@@ -59,25 +59,25 @@ Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=6
 From SolarTracker.h:
 ```Arduino
 // Uncomment or -D this define to completely disable usage of any multitasking commands and libraries. Not recommended.
-//#define SOLTRUINO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
+//#define HELIODUINO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
 
 // Uncomment or -D this define to disable usage of tcMenu library, which will disable all GUI control. Not recommended.
-//#define SOLTRUINO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
+//#define HELIODUINO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
 
 // Uncomment or -D this define to enable usage of the platform WiFi library, which enables networking capabilities.
-//#define SOLTRUINO_ENABLE_WIFI                      // Library used depends on your device architecture.
+//#define HELIODUINO_ENABLE_WIFI                      // Library used depends on your device architecture.
 
 // Uncomment or -D this define to enable usage of the external serial ESP AT WiFi library, which enables networking capabilities.
-//#define SOLTRUINO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
+//#define HELIODUINO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
-//#define SOLTRUINO_ENABLE_DEBUG_OUTPUT
+//#define HELIODUINO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
-//#define SOLTRUINO_ENABLE_VERBOSE_DEBUG
+//#define HELIODUINO_ENABLE_VERBOSE_DEBUG
 
 // Uncomment or -D this define to enable debug assertions (note: adds significant size to compiled sketch).
-//#define SOLTRUINO_ENABLE_DEBUG_ASSERTIONS
+//#define HELIODUINO_ENABLE_DEBUG_ASSERTIONS
 ```
 
 ### Controller Initialization
@@ -126,7 +126,7 @@ From SolarTracker.h, in class SolarTracker:
     // Initializes system from SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromSDCard(bool jsonFormat = true);
-#ifdef SOLTRUINO_USE_WIFI_STORAGE
+#ifdef HELIODUINO_USE_WIFI_STORAGE
     // Initializes system from a WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromWiFiStorage(bool jsonFormat = true);
@@ -147,7 +147,7 @@ From SolarTracker.h, in class SolarTracker:
     // Saves current system setup to SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToSDCard(bool jsonFormat = true);
-#ifdef SOLTRUINO_USE_WIFI_STORAGE
+#ifdef HELIODUINO_USE_WIFI_STORAGE
     // Saves current system setup to WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToWiFiStorage(bool jsonFormat = true);
@@ -162,7 +162,7 @@ From SolarTracker.h, in class SolarTracker:
 
 The controller can, after initialization, be set to produce logs and data files that can be further used by other applications. Log entries are timestamped and can keep track of when offsets are performed, when voltage spikes/drops, etc., while data files can be read into plotting applications or exported to a database for further processing. The passed file prefix is typically the subfolder that such files should reside under and is appended with the year, month, and date (in YYMMDD format).
 
-Note: You can also get the same logging output sent to the Serial device by defining `SOLTRUINO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
+Note: You can also get the same logging output sent to the Serial device by defining `HELIODUINO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
 
 Note: Files on FAT32-based SD cards are limited to 8 character file/folder names and a 3 character extension.
 
