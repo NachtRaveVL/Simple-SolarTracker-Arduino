@@ -3,7 +3,7 @@ Helioduino: Simple Solar Tracker Automation Controller.
 
 **Simple-SolarTracker-Arduino v0.1**
 
-Simple automation controller for solar tracking using an Arduino board.  
+Simple automation controller for solar tracking systems.  
 Licensed under the non-restrictive MIT license.
 
 Created by NachtRaveVL, Jan 3rd, 2023.
