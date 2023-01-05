@@ -1,16 +1,18 @@
-# Sunduino
-Sunduino: Simple Sun Tracking Automation Controller.
+# Helioduino
+Helioduino: Simple Solar Tracker Automation Controller.
 
-**Simple-SunTracking-Arduino v0.1**
+**Simple-SolarTracker-Arduino v0.1**
 
-Simple automation controller for sun tracking solar power systems using an Arduino board.  
+Simple automation controller for solar tracking using an Arduino board.  
 Licensed under the non-restrictive MIT license.
 
 Created by NachtRaveVL, Jan 3rd, 2023.
 
 **UNDER ACTIVE DEVELOPMENT BUT DON'T EXPECT ANY MIRACLES**
 
-This controller allows one to set up a system of servos that control angle-of-tilt for solar panel cells, calculating their offsets across the day to maintain optimal power input. The system is based on setting your location and time using direct input, simple GPS & RTC modules, and/or WiFi, along with setting the various axis' of gimbaled control available per panel set. Optionally added voltage sensing provides automatic max-power offset calibration and failure sensing, while external cleaning devices on relay can be set to run routinely. Calibration data can be saved to external SD card or EEPROM device. Works with a large variety of common servos and motor controllers using simple PWM-based outputs or external i2c-based PWM controllers like the 16-channel PCA9685. Supports sensor data publishing and logging to data files and/or MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Sunduino also comes with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
+This controller allows one to set up a system of servos and sensors that control angle-of-tilt for both single and dual axis sun tracking solar panels, calculating servo offsets across the day to maintain optimal power input. The system is based on setting your location and time using either direct input, optionally available GPS & RTC modules, and/or determined over WiFi. Optionally added voltage sensing provides automatic max-power offset calibration and failure sensing, while external devices on relay can be set to run routinely to do things like spray down panels and provide heating during cold months.
+
+Calibration data can be saved to external SD card or EEPROM device. Works with a large variety of common servos and motor controllers using simple PWM-based outputs or external i2c-based PWM controllers like the 16-channel PCA9685. Supports sensor data publishing and logging to data files and/or MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Helioduino also comes with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
 
 Made primarily for Arduino microcontrollers, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
@@ -22,11 +24,11 @@ Datasheet links include: (TODO)
 
 ## About
 
-We want to make sun tracking for solar cells more accessible by utilizing the widely-available low-cost IoT and IoT-like microcontrollers (MCUs) of today.
+We want to make solar trackers more accessible to DIY'ers by utilizing the widely-available low-cost IoT and IoT-like microcontrollers (MCUs) of today.
 
-With the advances in minaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of these small devices to do what amounts to putting a few servos in the correct offsets. Sun tracking solar panels is a perfect application for these devices, especially as a data logger, panel offset calculator, and more.
+With the advances in miniaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of the se small devices to do what amounts to putting a few servos in the correct offsets as the day goes by. Solar tracking is a perfect application for these devices, especially as a data logger, process monitor, and more. Professional controller systems like this can cost hundreds to even thousands of dollars, but DIY systems can wind up being a fraction of that cost.
 
-Sunduino is an MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos from the hobby store, some solar panels from over seas, and other widely available low-cost hardware to build a working functional sun tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Sunduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from, and hopefully learning some basic electronics.
+Helioduino is a MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos and relays, some solar panels, maybe some light dependent resistors (LDRs), and other widely available low-cost hardware to build a functional DIY solar tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Helioduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from, and hopefully learning some basic electronics/coding along the way.
 
 ## Controller Setup
 
@@ -44,7 +46,7 @@ Note: Certain MCUs, such as those from STM, are sold in many different Flash/SRA
 
 ### Installation
 
-The easiest way to install this controller is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this controller and extract its files into a `Simple-SunTracking-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
+The easiest way to install this controller is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this controller and extract its files into a `Simple-SolarTracker-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
 
 From there, you can make a local copy of one of the examples based on the kind of system setup you want to use. If you are unsure of which, we recommend using the (TODO) Example for older MCUs and the Full System Example for modern MCUs. Older storage constrained MCUs may need further modifications (and possibly external hardware) so is recommended only for advanced users.
 
@@ -54,28 +56,28 @@ There are several defines inside of the controller's main header file that allow
 
 Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files, but at least you keep those changes to the same place.
 
-From SunTracking.h:
+From SolarTracker.h:
 ```Arduino
 // Uncomment or -D this define to completely disable usage of any multitasking commands and libraries. Not recommended.
-//#define SUNDUINO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
+//#define SOLTRUINO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
 
 // Uncomment or -D this define to disable usage of tcMenu library, which will disable all GUI control. Not recommended.
-//#define SUNDUINO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
+//#define SOLTRUINO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
 
 // Uncomment or -D this define to enable usage of the platform WiFi library, which enables networking capabilities.
-//#define SUNDUINO_ENABLE_WIFI                      // Library used depends on your device architecture.
+//#define SOLTRUINO_ENABLE_WIFI                      // Library used depends on your device architecture.
 
 // Uncomment or -D this define to enable usage of the external serial ESP AT WiFi library, which enables networking capabilities.
-//#define SUNDUINO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
+//#define SOLTRUINO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
-//#define SUNDUINO_ENABLE_DEBUG_OUTPUT
+//#define SOLTRUINO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
-//#define SUNDUINO_ENABLE_VERBOSE_DEBUG
+//#define SOLTRUINO_ENABLE_VERBOSE_DEBUG
 
 // Uncomment or -D this define to enable debug assertions (note: adds significant size to compiled sketch).
-//#define SUNDUINO_ENABLE_DEBUG_ASSERTIONS
+//#define SOLTRUINO_ENABLE_DEBUG_ASSERTIONS
 ```
 
 ### Controller Initialization
@@ -86,10 +88,10 @@ There are several initialization mode settings exposed through this controller t
 
 The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's piezo buzzer pin, EEPROM device size, SD Card CS pin and SPI speed (hard-wired to `25M`Hz on Teensy), control input ribbon pin mapping, EEPROM i2c address, RTC i2c address, LCD i2c address, i2c Wire class instance, and i2c clock speed. The default constructor values of the controller, if left unspecified, has no pins or device sizes set, zero'ed i2c addresses, i2c Wire class instance `Wire` @`400k`Hz, and SPI speeds set to same as processor speed (/0 divider, else 50MHz if undetected).
 
-From SunTracking.h, in class SunTracking:
+From SolarTracker.h, in class SolarTracker:
 ```Arduino
     // Controller constructor. Typically called during class instantiation, before setup().
-    SunTracking(pintype_t piezoBuzzerPin = -1,              // Piezo buzzer pin, else -1
+    SolarTracker(pintype_t piezoBuzzerPin = -1,              // Piezo buzzer pin, else -1
                 uint32_t eepromDeviceSize = 0,              // EEPROM bit storage size (use I2C_DEVICESIZE_* defines), else 0
                 uint8_t eepromI2CAddress = B000,            // EEPROM i2c address
                 uint8_t rtcI2CAddress = B000,               // RTC i2c address (only B000 can be used atm)
@@ -109,14 +111,14 @@ From SunTracking.h, in class SunTracking:
 
 Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a (TODO)) system set to Metric units, without any input control or output display.
 
-From SunTracking.h, in class SunTracking:
+From SolarTracker.h, in class SolarTracker:
 ```Arduino
     // Initializes default empty system. Typically called near top of setup().
     // See individual enums for more info.
-    void init(SunTracking_SystemMode systemMode = SunTracking_SystemMode_Recycling,                 // What system of crop feeding is performed
-              SunTracking_MeasurementMode measureMode = SunTracking_MeasurementMode_Default,        // What units of measurement should be used
-              SunTracking_DisplayOutputMode dispOutMode = SunTracking_DisplayOutputMode_Disabled,   // What display output mode should be used
-              SunTracking_ControlInputMode ctrlInMode = SunTracking_ControlInputMode_Disabled);     // What control input mode should be used
+    void init(SolarTracker_SystemMode systemMode = SolarTracker_SystemMode_TODO,                 // What system of sun tracking is performed
+              SolarTracker_MeasurementMode measureMode = SolarTracker_MeasurementMode_Default,        // What units of measurement should be used
+              SolarTracker_DisplayOutputMode dispOutMode = SolarTracker_DisplayOutputMode_Disabled,   // What display output mode should be used
+              SolarTracker_ControlInputMode ctrlInMode = SolarTracker_ControlInputMode_Disabled);     // What control input mode should be used
 
     // Initializes system from EEPROM save, returning success flag
     // Set system data address with setSystemEEPROMAddress
@@ -124,7 +126,7 @@ From SunTracking.h, in class SunTracking:
     // Initializes system from SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromSDCard(bool jsonFormat = true);
-#ifdef SUNDUINO_USE_WIFI_STORAGE
+#ifdef SOLTRUINO_USE_WIFI_STORAGE
     // Initializes system from a WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromWiFiStorage(bool jsonFormat = true);
@@ -137,7 +139,7 @@ From SunTracking.h, in class SunTracking:
 
 The controller can also be initialized from a saved configuration, such as from an EEPROM or SD Card, or other JSON or Binary stream. A saved configuration of the system can be made via the controller class object's `saveTo…(…)` methods, or called automatically on timer by setting an Autosave mode/interval.
 
-From SunTracking.h, in class SunTracking:
+From SolarTracker.h, in class SolarTracker:
 ```Arduino
     // Saves current system setup to EEPROM save, returning success flag
     // Set system data address with setSystemEEPROMAddress
@@ -145,7 +147,7 @@ From SunTracking.h, in class SunTracking:
     // Saves current system setup to SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToSDCard(bool jsonFormat = true);
-#ifdef SUNDUINO_USE_WIFI_STORAGE
+#ifdef SOLTRUINO_USE_WIFI_STORAGE
     // Saves current system setup to WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToWiFiStorage(bool jsonFormat = true);
@@ -160,11 +162,11 @@ From SunTracking.h, in class SunTracking:
 
 The controller can, after initialization, be set to produce logs and data files that can be further used by other applications. Log entries are timestamped and can keep track of when offsets are performed, when voltage spikes/drops, etc., while data files can be read into plotting applications or exported to a database for further processing. The passed file prefix is typically the subfolder that such files should reside under and is appended with the year, month, and date (in YYMMDD format).
 
-Note: You can also get the same logging output sent to the Serial device by defining `SUNDUINO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
+Note: You can also get the same logging output sent to the Serial device by defining `SOLTRUINO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
 
 Note: Files on FAT32-based SD cards are limited to 8 character file/folder names and a 3 character extension.
 
-From SunTracking.h, in class SunTracking:
+From SolarTracker.h, in class SolarTracker:
 ```Arduino
     // Enables data logging to the SD card. Log file names will append YYMMDD.txt to the specified prefix. Returns success flag.
     inline bool enableSysLoggingToSDCard(String logFilePrefix = "logs/hy");
@@ -224,8 +226,8 @@ I2C Devices Supported: DS3231 RTC modules, AT24C* EEPROM modules, 16x2/20x4 LCD 
 
 ## Memory Callouts
 
-* The total number of objects and different kinds of objects (sensors, pumps, relays, etc.) that the controller can support at once depends on how much free Flash storage and RAM your MCU has available. Sunduino objects range in RAM memory size from 150 to 500 bytes or more depending on settings and object type, with the base Flash memory usage ranging from 100kB to 300kB+ depending on settings.
+* The total number of objects and different kinds of objects (sensors, pumps, relays, etc.) that the controller can support at once depends on how much free Flash storage and RAM your MCU has available. Helioduino objects range in RAM memory size from 150 to 500 bytes or more depending on settings and object type, with the base Flash memory usage ranging from 100kB to 300kB+ depending on settings.
   * For our target microcontroller range, on the low end we have older devices with 256kB of Flash and at least 8kB of RAM, while on the upper end we have more modern devices with 2+MB of Flash and 256+kB of RAM. Devices with < 32kB of RAM may struggle with system builds and may be limited to specific system setups (such as no WiFi, no data publishing, only minimal UI, etc.), while other newer devices with more capacity build with everything enabled.
-* For AVR, SAM/SAMD, and other architectures that do not have C++ STL (standard container) support, there are a series of *`_MAXSIZE` defines at the top of `SunTrackingDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller uses.
+* For AVR, SAM/SAMD, and other architectures that do not have C++ STL (standard container) support, there are a series of *`_MAXSIZE` defines at the top of `SolarTrackerDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller uses.
 * To save on the cost of code size for constrained devices, focus on not enabling that which you won't need, which has the benefit of being able to utilize code stripping to remove sections of code that don't get used.
   * There are also header defines that can strip out certain libraries and functionality, such as ones that disable the UI, multi-tasking subsystems, etc.
