@@ -10,13 +10,13 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 
 **UNDER ACTIVE DEVELOPMENT BUT DON'T EXPECT ANY MIRACLES**
 
-This controller allows one to set up a system of servos and sensors that control angle-of-tilt for both single and dual axis sun tracking solar panels, calculating servo offsets across the day to maintain optimal power input. The system is based on setting your location and time using either direct input, optionally available GPS & RTC modules, and/or determined over WiFi. Optionally added voltage sensing provides automatic max-power offset calibration and failure sensing, while external devices on relay can be set to run routinely to do things like spray down panels and provide heating during cold months.
+This controller allows one to set up a system of panels and sensors that control angle-of-tilt for both single and dual axis sun tracking solar systems, operating a panel's servos and/or linear actuators across the day to maintain optimal power input. Can be used with GPS and RTC modules for accurate sun position calculations, or with light/power sensing driving an estimation/balancing algorithm. External devices on relay can be set up to run on routine to do things like spray/wipe panels, deploy/retract panels and any covers at sunrise/sunset, or provide heating during cold temperatures.
 
-Calibration data can be saved to external SD card or EEPROM device. Works with a large variety of common servos and motor controllers using simple PWM-based outputs or external i2c-based PWM controllers like the 16-channel PCA9685. Supports sensor data publishing and logging to data files and/or MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Helioduino also comes with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
+Calibration data can be saved to external SD card or EEPROM device. Works with a large variety of common solar/hobbyist equipment/sensors. Supports sensor data logging to SD card data files and data publishing via MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Helioduino also comes with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
 
 Made primarily for Arduino microcontrollers, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
-Dependencies include: Adafruit BusIO (dep of RTClib), ArduinoJson, ArxContainer, ArxSmartPtr, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), PCA9685-Arduino (optional), RTClib, SimpleCollections (dep of TaskManager), TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, or WiFiEspAT (external serial AT).
+Dependencies include: Adafruit BusIO (dep of RTClib), Adafruit GPS Library, Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), OneWire (or OneWireSTM), RTClib, SimpleCollections (dep of TaskManager), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, or WiFiEspAT (external serial AT).
 
 Datasheet links include: (TODO)
 
@@ -26,7 +26,7 @@ Datasheet links include: (TODO)
 
 We want to make solar trackers more accessible to DIY'ers by utilizing the widely-available low-cost IoT and IoT-like microcontrollers (MCUs) of today.
 
-With the advances in miniaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of the se small devices to do what amounts to putting a few servos in the correct offsets as the day goes by. Solar tracking is a perfect application for these devices, especially as a data logger, process monitor, and more. Professional controller systems like this can cost hundreds to even thousands of dollars, but DIY systems can wind up being a fraction of that cost.
+With the advances in miniaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of these small devices to do what amounts to putting a few servos in the correct offsets as the day goes by. Solar tracking is a perfect application for these devices, especially as a data logger, process monitor, and more. Professional controller systems like this can cost hundreds to even thousands of dollars, but DIY systems can wind up being a fraction of that cost.
 
 Helioduino is a MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos and relays, some solar panels, maybe some light dependent resistors (LDRs), and other widely available low-cost hardware to build a functional DIY solar tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Helioduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from, and hopefully learning some basic electronics/coding along the way.
 
@@ -56,28 +56,28 @@ There are several defines inside of the controller's main header file that allow
 
 Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files, but at least you keep those changes to the same place.
 
-From SolarTracker.h:
+From Helio.h:
 ```Arduino
 // Uncomment or -D this define to completely disable usage of any multitasking commands and libraries. Not recommended.
-//#define HELIODUINO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
+//#define HELIO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
 
 // Uncomment or -D this define to disable usage of tcMenu library, which will disable all GUI control. Not recommended.
-//#define HELIODUINO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
+//#define HELIO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
 
 // Uncomment or -D this define to enable usage of the platform WiFi library, which enables networking capabilities.
-//#define HELIODUINO_ENABLE_WIFI                      // Library used depends on your device architecture.
+//#define HELIO_ENABLE_WIFI                      // Library used depends on your device architecture.
 
 // Uncomment or -D this define to enable usage of the external serial ESP AT WiFi library, which enables networking capabilities.
-//#define HELIODUINO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
+//#define HELIO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
-//#define HELIODUINO_ENABLE_DEBUG_OUTPUT
+//#define HELIO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
-//#define HELIODUINO_ENABLE_VERBOSE_DEBUG
+//#define HELIO_ENABLE_VERBOSE_DEBUG
 
 // Uncomment or -D this define to enable debug assertions (note: adds significant size to compiled sketch).
-//#define HELIODUINO_ENABLE_DEBUG_ASSERTIONS
+//#define HELIO_ENABLE_DEBUG_ASSERTIONS
 ```
 
 ### Controller Initialization
@@ -88,10 +88,10 @@ There are several initialization mode settings exposed through this controller t
 
 The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's piezo buzzer pin, EEPROM device size, SD Card CS pin and SPI speed (hard-wired to `25M`Hz on Teensy), control input ribbon pin mapping, EEPROM i2c address, RTC i2c address, LCD i2c address, i2c Wire class instance, and i2c clock speed. The default constructor values of the controller, if left unspecified, has no pins or device sizes set, zero'ed i2c addresses, i2c Wire class instance `Wire` @`400k`Hz, and SPI speeds set to same as processor speed (/0 divider, else 50MHz if undetected).
 
-From SolarTracker.h, in class SolarTracker:
+From Helio.h, in class Helio:
 ```Arduino
     // Controller constructor. Typically called during class instantiation, before setup().
-    SolarTracker(pintype_t piezoBuzzerPin = -1,              // Piezo buzzer pin, else -1
+    Helio(pintype_t piezoBuzzerPin = -1,              // Piezo buzzer pin, else -1
                 uint32_t eepromDeviceSize = 0,              // EEPROM bit storage size (use I2C_DEVICESIZE_* defines), else 0
                 uint8_t eepromI2CAddress = B000,            // EEPROM i2c address
                 uint8_t rtcI2CAddress = B000,               // RTC i2c address (only B000 can be used atm)
@@ -111,14 +111,14 @@ From SolarTracker.h, in class SolarTracker:
 
 Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a (TODO)) system set to Metric units, without any input control or output display.
 
-From SolarTracker.h, in class SolarTracker:
+From Helio.h, in class Helio:
 ```Arduino
     // Initializes default empty system. Typically called near top of setup().
     // See individual enums for more info.
-    void init(SolarTracker_SystemMode systemMode = SolarTracker_SystemMode_TODO,                 // What system of sun tracking is performed
-              SolarTracker_MeasurementMode measureMode = SolarTracker_MeasurementMode_Default,        // What units of measurement should be used
-              SolarTracker_DisplayOutputMode dispOutMode = SolarTracker_DisplayOutputMode_Disabled,   // What display output mode should be used
-              SolarTracker_ControlInputMode ctrlInMode = SolarTracker_ControlInputMode_Disabled);     // What control input mode should be used
+    void init(Helio_SystemMode systemMode = Helio_SystemMode_TODO,                 // What system of sun tracking is performed
+              Helio_MeasurementMode measureMode = Helio_MeasurementMode_Default,        // What units of measurement should be used
+              Helio_DisplayOutputMode dispOutMode = Helio_DisplayOutputMode_Disabled,   // What display output mode should be used
+              Helio_ControlInputMode ctrlInMode = Helio_ControlInputMode_Disabled);     // What control input mode should be used
 
     // Initializes system from EEPROM save, returning success flag
     // Set system data address with setSystemEEPROMAddress
@@ -126,7 +126,7 @@ From SolarTracker.h, in class SolarTracker:
     // Initializes system from SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromSDCard(bool jsonFormat = true);
-#ifdef HELIODUINO_USE_WIFI_STORAGE
+#ifdef HELIO_USE_WIFI_STORAGE
     // Initializes system from a WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool initFromWiFiStorage(bool jsonFormat = true);
@@ -139,7 +139,7 @@ From SolarTracker.h, in class SolarTracker:
 
 The controller can also be initialized from a saved configuration, such as from an EEPROM or SD Card, or other JSON or Binary stream. A saved configuration of the system can be made via the controller class object's `saveTo…(…)` methods, or called automatically on timer by setting an Autosave mode/interval.
 
-From SolarTracker.h, in class SolarTracker:
+From Helio.h, in class Helio:
 ```Arduino
     // Saves current system setup to EEPROM save, returning success flag
     // Set system data address with setSystemEEPROMAddress
@@ -147,7 +147,7 @@ From SolarTracker.h, in class SolarTracker:
     // Saves current system setup to SD card file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToSDCard(bool jsonFormat = true);
-#ifdef HELIODUINO_USE_WIFI_STORAGE
+#ifdef HELIO_USE_WIFI_STORAGE
     // Saves current system setup to WiFiStorage file save, returning success flag
     // Set config file name with setSystemConfigFilename
     bool saveToWiFiStorage(bool jsonFormat = true);
@@ -162,11 +162,11 @@ From SolarTracker.h, in class SolarTracker:
 
 The controller can, after initialization, be set to produce logs and data files that can be further used by other applications. Log entries are timestamped and can keep track of when offsets are performed, when voltage spikes/drops, etc., while data files can be read into plotting applications or exported to a database for further processing. The passed file prefix is typically the subfolder that such files should reside under and is appended with the year, month, and date (in YYMMDD format).
 
-Note: You can also get the same logging output sent to the Serial device by defining `HELIODUINO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
+Note: You can also get the same logging output sent to the Serial device by defining `HELIO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
 
 Note: Files on FAT32-based SD cards are limited to 8 character file/folder names and a 3 character extension.
 
-From SolarTracker.h, in class SolarTracker:
+From Helio.h, in class Helio:
 ```Arduino
     // Enables data logging to the SD card. Log file names will append YYMMDD.txt to the specified prefix. Returns success flag.
     inline bool enableSysLoggingToSDCard(String logFilePrefix = "logs/hy");
@@ -228,6 +228,6 @@ I2C Devices Supported: DS3231 RTC modules, AT24C* EEPROM modules, 16x2/20x4 LCD 
 
 * The total number of objects and different kinds of objects (sensors, pumps, relays, etc.) that the controller can support at once depends on how much free Flash storage and RAM your MCU has available. Helioduino objects range in RAM memory size from 150 to 500 bytes or more depending on settings and object type, with the base Flash memory usage ranging from 100kB to 300kB+ depending on settings.
   * For our target microcontroller range, on the low end we have older devices with 256kB of Flash and at least 8kB of RAM, while on the upper end we have more modern devices with 2+MB of Flash and 256+kB of RAM. Devices with < 32kB of RAM may struggle with system builds and may be limited to specific system setups (such as no WiFi, no data publishing, only minimal UI, etc.), while other newer devices with more capacity build with everything enabled.
-* For AVR, SAM/SAMD, and other architectures that do not have C++ STL (standard container) support, there are a series of *`_MAXSIZE` defines at the top of `SolarTrackerDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller uses.
+* For AVR, SAM/SAMD, and other architectures that do not have C++ STL (standard container) support, there are a series of *`_MAXSIZE` defines at the top of `HelioDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller uses.
 * To save on the cost of code size for constrained devices, focus on not enabling that which you won't need, which has the benefit of being able to utilize code stripping to remove sections of code that don't get used.
   * There are also header defines that can strip out certain libraries and functionality, such as ones that disable the UI, multi-tasking subsystems, etc.
