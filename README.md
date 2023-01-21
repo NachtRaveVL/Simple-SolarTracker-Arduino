@@ -56,7 +56,7 @@ There are several defines inside of the controller's main header file that allow
 
 Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file. Note that editing such directly will affect all other projects compiled on your system using those modified platform framework files, but at least you keep those changes to the same place.
 
-From Helio.h:
+From Helioduino.h:
 ```Arduino
 // Uncomment or -D this define to completely disable usage of any multitasking commands and libraries. Not recommended.
 //#define HELIO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
@@ -88,34 +88,34 @@ There are several initialization mode settings exposed through this controller t
 
 The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's piezo buzzer pin, EEPROM device size, SD Card CS pin and SPI speed (hard-wired to `25M`Hz on Teensy), control input ribbon pin mapping, EEPROM i2c address, RTC i2c address, LCD i2c address, i2c Wire class instance, and i2c clock speed. The default constructor values of the controller, if left unspecified, has no pins or device sizes set, zero'ed i2c addresses, i2c Wire class instance `Wire` @`400k`Hz, and SPI speeds set to same as processor speed (/0 divider, else 50MHz if undetected).
 
-From Helio.h, in class Helio:
+From Helioduino.h, in class Helioduino:
 ```Arduino
     // Controller constructor. Typically called during class instantiation, before setup().
-    Helio(pintype_t piezoBuzzerPin = -1,              // Piezo buzzer pin, else -1
-                uint32_t eepromDeviceSize = 0,              // EEPROM bit storage size (use I2C_DEVICESIZE_* defines), else 0
-                uint8_t eepromI2CAddress = B000,            // EEPROM i2c address
-                uint8_t rtcI2CAddress = B000,               // RTC i2c address (only B000 can be used atm)
-                pintype_t sdCardCSPin = -1,                 // SD card CS pin, else -1
-                uint32_t sdCardSpeed = F_SPD,               // SD card SPI speed, in Hz (ignored on Teensy)
-                pintype_t *ctrlInputPinMap = nullptr,       // Control input pin map, else nullptr
-                uint8_t lcdI2CAddress = B000,               // LCD i2c address
+    Helioduino(pintype_t piezoBuzzerPin = -1,         // Piezo buzzer pin, else -1
+               uint32_t eepromDeviceSize = 0,         // EEPROM bit storage size (use I2C_DEVICESIZE_* defines), else 0
+               uint8_t eepromI2CAddress = B000,       // EEPROM i2c address
+               uint8_t rtcI2CAddress = B000,          // RTC i2c address (only B000 can be used atm)
+               pintype_t sdCardCSPin = -1,            // SD card CS pin, else -1
+               uint32_t sdCardSpeed = F_SPD,          // SD card SPI speed, in Hz (ignored on Teensy)
+               pintype_t *ctrlInputPinMap = nullptr,  // Control input pin map, else nullptr
+               uint8_t lcdI2CAddress = B000,          // LCD i2c address
 #if (!defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_TWOWIRE)) || defined(Wire)
-                TwoWire &i2cWire = Wire,                    // I2C wire class instance
+               TwoWire &i2cWire = Wire,               // I2C wire class instance
 #else
-                TwoWire &i2cWire = new TwoWire(),           // I2C wire class instance
+               TwoWire &i2cWire = new TwoWire(),      // I2C wire class instance
 #endif
-                uint32_t i2cSpeed = 400000U);               // I2C speed, in Hz
+               uint32_t i2cSpeed = 400000U);          // I2C speed, in Hz
 ```
 
 #### Controller Initialization
 
 Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a (TODO)) system set to Metric units, without any input control or output display.
 
-From Helio.h, in class Helio:
+From Helioduino.h, in class Helioduino:
 ```Arduino
     // Initializes default empty system. Typically called near top of setup().
     // See individual enums for more info.
-    void init(Helio_SystemMode systemMode = Helio_SystemMode_TODO,                 // What system of sun tracking is performed
+    void init(Helio_SystemMode systemMode = Helio_SystemMode_PositionCalc,              // What mode of panel orientation is performed
               Helio_MeasurementMode measureMode = Helio_MeasurementMode_Default,        // What units of measurement should be used
               Helio_DisplayOutputMode dispOutMode = Helio_DisplayOutputMode_Disabled,   // What display output mode should be used
               Helio_ControlInputMode ctrlInMode = Helio_ControlInputMode_Disabled);     // What control input mode should be used
@@ -139,7 +139,7 @@ From Helio.h, in class Helio:
 
 The controller can also be initialized from a saved configuration, such as from an EEPROM or SD Card, or other JSON or Binary stream. A saved configuration of the system can be made via the controller class object's `saveTo…(…)` methods, or called automatically on timer by setting an Autosave mode/interval.
 
-From Helio.h, in class Helio:
+From Helioduino.h, in class Helioduino:
 ```Arduino
     // Saves current system setup to EEPROM save, returning success flag
     // Set system data address with setSystemEEPROMAddress
@@ -166,7 +166,7 @@ Note: You can also get the same logging output sent to the Serial device by defi
 
 Note: Files on FAT32-based SD cards are limited to 8 character file/folder names and a 3 character extension.
 
-From Helio.h, in class Helio:
+From Helioduino.h, in class Helioduino:
 ```Arduino
     // Enables data logging to the SD card. Log file names will append YYMMDD.txt to the specified prefix. Returns success flag.
     inline bool enableSysLoggingToSDCard(String logFilePrefix = "logs/hy");
@@ -210,14 +210,23 @@ I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same sh
 * When more than one I2C device of the same kind is to be used on the same data line, each device must be set to use a different address. This is accomplished via the A0-A2 (sometimes A0-A5) pins/pads on the physical device that must be set either open or closed (typically via a de-solderable resistor, or by shorting a pin/pad). Check your specific breakout's datasheet for details.
 * Note that not all the I2C libraries used support multi-addressable I2C devices at this time. Currently, this restriction applies to RTC devices (read as: may only use one).
 
-I2C Devices Supported: DS3231 RTC modules, AT24C* EEPROM modules, 16x2/20x4 LCD modules
+I2C Devices Supported: DS*/PCF* RTC modules, AT24C* EEPROM modules, 16x2/20x4 LCD modules
+
+### OneWire Bus
+
+OneWire devices can be chained together on the same shared data lines (no flipping of wires). Devices can be of the same or different types, require minimal setup (and no soldering), and most can even operate in "parasite" power mode where they use the power from the data line (and an internal capacitor) to function (thus saving a `Vcc` line, only requiring `Data` and `GND`). OneWire runs only in the low kb/s speeds and is useful for digital sensors.
+
+* Typically, sensors are limited to 20 devices along a maximum 100m of wire.
+* When more than one OneWire device is on the same data data line, each device registers itself an enumeration index (0 - N) along with its own 64-bit unique identifier (UUID, with last byte being CRC). The device can then be referenced via this UUID by the system in the future indefinitely, or enumeration index so long as the device doesn't change its line position.
+
+OneWire Devices Supported: DHT modules
 
 ### Analog IO
 
 * All analog sensors will need to have the same operational voltage range. Many analog sensors are set to use 0v to 5v by default, but some can go -5v to +5v, some even up to 5.5v.
 * The `AREF` pin, by default, is the same voltage as the MCU. Analog sensors must not exceed this voltage limit.
   * 5v analog sensor signals **must** be [level converted](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/) in order to connect to 3.3v MCUs.
-* The SAM/SAMD family of MCUs (e.g. Due, Zero, MKR, etc.) as well as the RasPi Pico and others support different bit resolutions for analog/PWM pins, but also may limit how many pins are able to use these higher resolutions. See the datasheet of your MCU for details.
+* The SAM/SAMD family of MCUs (e.g. Due, Zero, MKR, etc.) as well as the RasPi Pico and others support different bit resolutions for analog/PWM pins, but may also impose other limits. See the datasheet of your MCU for details.
 
 ### WiFi
 
