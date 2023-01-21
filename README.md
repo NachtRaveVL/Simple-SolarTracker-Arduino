@@ -8,17 +8,17 @@ Licensed under the non-restrictive MIT license.
 
 Created by NachtRaveVL, Jan 3rd, 2023.
 
-**UNDER ACTIVE DEVELOPMENT BUT DON'T EXPECT ANY MIRACLES**
+**UNDER ACTIVE DEVELOPMENT -- WORK IN PROGRESS**
 
-This controller allows one to set up a system of panels and sensors that control angle-of-tilt for both single and dual axis sun tracking solar systems, operating a panel's servos and/or linear actuators across the day to maintain optimal power input. Can be used with GPS and RTC modules for accurate sun position calculations, or with light/power sensing driving an estimation/balancing algorithm. External devices on relay can be set up to run on routine to do things like spray/wipe panels, deploy/retract panels and any covers at sunrise/sunset, or provide heating during cold temperatures.
+This controller allows one to set up a system of panels, servos, LDRs, relays, and other things useful in controlling both single and double axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with linear actuators, use power sensing to auto-optimize daily panel offset, spray/wipe panels on routine to keep panels clean, deploy/retract panels at sunrise/sunset, or even provide panel heating during cold temperatures or when ice is detected.
 
-Calibration data can be saved to external SD card or EEPROM device. Works with a large variety of common solar/hobbyist equipment/sensors. Supports sensor data logging to SD card data files and data publishing via MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Helioduino also comes with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
+Can optionally be used with serial GPS and i2c RTC modules for accurate sun angle measurements and sunrise/sunset timings, through enabled WiFi from on-board or external serial ESP-AT modules, or even by auto-balancing simple analog light/power sensors (such as opposite panel side mounted LDRs). Configured system can be saved/loaded to/from external EEPROM, SD card, or WiFiStorage device in JSON or binary, along with auto-save/recovery/cleanup, and can even use a piezo buzzer for audible system alerts. Library string data can be built into onboard MCU Flash or alongside config and user calibration data on external storage. Supports sensor data logging to external storage and publishing to MQTT, and can be extended to work with other JSON-based Web APIs or Client-like derivatives. Actuator and sensor I/O pins can be multiplexed for pin-limited MCUs. UI support pending, but will include system setup/configuration and monitoring abilities with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
 
-Made primarily for Arduino microcontrollers, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
+Made primarily for Arduino microcontrollers/build environment, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
 Dependencies include: Adafruit BusIO (dep of RTClib), Adafruit GPS Library, Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), OneWire (or OneWireSTM), RTClib, SimpleCollections (dep of TaskManager), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, or WiFiEspAT (external serial AT).
 
-Datasheet links include: (TODO)
+Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](), [], [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
 *If you value the work that we do, our small team always appreciates a subscription to our [Patreon](www.patreon.com/nachtrave).*
 
@@ -188,7 +188,7 @@ Serial UART uses individual communication lines for each device, with the receiv
 
 * When wiring up modules that use Serial UART, make sure to flip `RX`/`TX` lines.
   * 3.3v devices that are not 5v tolerant (such as external [serial-based ESP WiFi modules](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/)) will require a bi-directional logic level converter/shifter to access on 5v MCUs.
-    * We have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/tree/main/extra)) to assist with hooking up such common 3v3 WiFi and level shifter modules alongside 5v MCUs.
+    * We have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Helio-Arduino/tree/main/extra)) to assist with hooking up such common 3v3 WiFi and level shifter modules alongside 5v MCUs.
     * Alternatively, hack a single 10kΩ resistor ([preferably two of any 1:2 ratio](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/)) between the MCU's TX pin and module's RX pin.
 
 Serial UART Devices Supported: ESP8266 WiFi module (3.3v only)
@@ -222,7 +222,7 @@ I2C Devices Supported: DS3231 RTC modules, AT24C* EEPROM modules, 16x2/20x4 LCD 
 ### WiFi
 
 * Devices with built-in WiFi can enable such through header defines while other devices can utilize an external [serial-based ESP WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/).
-  * Again, we have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/tree/main/extra)) to assist with hooking up these common WiFi modules alongside a level shifter if using a 5v MCU.
+  * Again, we have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Helio-Arduino/tree/main/extra)) to assist with hooking up these common WiFi modules alongside a level shifter if using a 5v MCU.
 
 ## Memory Callouts
 
