@@ -18,7 +18,7 @@ Made primarily for Arduino microcontrollers/build environment, but should work w
 
 Dependencies include: Adafruit BusIO (dep of RTClib), Adafruit GPS Library, Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), OneWire (or OneWireSTM), RTClib, SimpleCollections (dep of TaskManager), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, or WiFiEspAT (external serial AT).
 
-Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](), [], [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
+Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
 *If you value the work that we do, our small team always appreciates a subscription to our [Patreon](www.patreon.com/nachtrave).*
 
@@ -37,7 +37,8 @@ Helioduino is a MCU-based solution primarily written for Arduino and Arduino-lik
 Minimum MCU: 256-512kB Flash, 16-24kB SRAM, 8-16MHz  
 Recommended: 1MB+ Flash, 32kB+ SRAM, 32MHz+
 
-Will work: Nano 33 (any), MKR (any), Due/Zero, ESP32/8266, Teensy 3+, STM32 (properly sized), Pico, etc.  
+Will work: Nano 33 (any), MKR (any), Due/Zero, ESP32/8266, Teensy 3+, STM32 (properly sized), Pico, etc.
+
 Won't work: Uno (any), Nano (classic & Every), Leonardo/Duemilanove, Micro, Pro, Esplora, Teensy 2-, STM8, etc.
 
 Devices that _may_ work, but only with heavy tweaking/limited build: ATMega2560, Genuino 101, STM32 (improperly sized)
@@ -188,10 +189,10 @@ Serial UART uses individual communication lines for each device, with the receiv
 
 * When wiring up modules that use Serial UART, make sure to flip `RX`/`TX` lines.
   * 3.3v devices that are not 5v tolerant (such as external [serial-based ESP WiFi modules](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/)) will require a bi-directional logic level converter/shifter to access on 5v MCUs.
-    * We have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Helio-Arduino/tree/main/extra)) to assist with hooking up such common 3v3 WiFi and level shifter modules alongside 5v MCUs.
+    * We have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/tree/main/extra)) to assist with hooking up such common 3v3 WiFi and level shifter modules alongside 5v MCUs.
     * Alternatively, hack a single 10kΩ resistor ([preferably two of any 1:2 ratio](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/)) between the MCU's TX pin and module's RX pin.
 
-Serial UART Devices Supported: ESP8266 WiFi module (3.3v only)
+Serial UART Devices Supported: AT WiFi modules, NEMA GPS modules
 
 ### SPI Bus
 
@@ -231,7 +232,7 @@ OneWire Devices Supported: DHT modules
 ### WiFi
 
 * Devices with built-in WiFi can enable such through header defines while other devices can utilize an external [serial-based ESP WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/).
-  * Again, we have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Helio-Arduino/tree/main/extra)) to assist with hooking up these common WiFi modules alongside a level shifter if using a 5v MCU.
+  * Again, we have included a small breakout PCB ([gerbers here](https://github.com/NachtRaveVL/Simple-Hydroponics-Arduino/tree/main/extra)) to assist with hooking up these common WiFi modules alongside a level shifter if using a 5v MCU.
 
 ## Memory Callouts
 
