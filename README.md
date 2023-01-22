@@ -12,7 +12,7 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 
 This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and double axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with linear actuators, use power sensing to auto-optimize daily panel offset, spray/wipe panels on routine to keep panels clean, deploy/retract panels at sunrise/sunset, or even provide panel heating during cold temperatures or when ice is detected.
 
-Can be used with GPS and RTC modules for accurate sun angle measurements and sunrise/sunset timings, or through enabled WiFi from on-board or external serial AT module. Configured system can be saved/loaded to/from external EEPROM, SD card, or WiFiStorage-like device in JSON or binary, along with auto-save, recovery, and cleanup functionality, and can even use a piezo buzzer for audible system alerts. Actuator and sensor I/O pins can be multiplexed for pin-limited environments. Library data can be built into onboard MCU Flash or exported alongside system/user data on external storage. Supports sensor data logging to external storage and publishing to MQTT, and can be extended to work with other JSON based Web APIs or Client-like derivatives. UI support pending, but will include system setup/configuration and monitoring abilities with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
+Can be used with GPS and RTC modules for accurate sun angle measurements and sunrise/sunset timings, or through enabled WiFi/Ethernet from on-board or external ESP8266 WiFi module. Configured system can be saved/loaded to/from external EEPROM, SD card, or WiFiStorage-like device in JSON or binary, along with auto-save, recovery, and cleanup functionality, and can even use a piezo buzzer for audible system alerts. Actuator and sensor I/O pins can be multiplexed for pin-limited environments. Library data can be built into onboard Flash or exported alongside system/user data onto external storage. Supports sensor data and system event logging/publishing to external storage and MQTT, and can be extended to work with other JSON based Web APIs or Client-like derivatives. UI support pending, but will include system setup/configuration and monitoring abilities with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
@@ -28,7 +28,7 @@ We want to make solar trackers more accessible to DIY'ers by utilizing the widel
 
 With the advances in miniaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of these small devices to do what amounts to putting a few servos in the correct offsets as the day goes by. Solar tracking is a perfect application for these devices, especially as a data logger, process monitor, and more. Professional controller systems like this can cost hundreds to even thousands of dollars, but DIY systems can wind up being a fraction of that cost.
 
-Helioduino is a MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos and relays, some solar panels, maybe some light dependent resistors (LDRs), and other widely available low-cost hardware to build a functional DIY solar tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Helioduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from, and hopefully learning some basic electronics/coding along the way.
+Helioduino is a MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos and relays, some solar panels, maybe some light dependent resistors (LDRs), and other widely available low-cost hardware to build a functional DIY solar tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Helioduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from - and hey, hopefully learning some basic electronics/coding along the way.
 
 ## Controller Setup
 
@@ -60,16 +60,22 @@ Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=6
 From Helioduino.h:
 ```Arduino
 // Uncomment or -D this define to completely disable usage of any multitasking commands and libraries. Not recommended.
-//#define HELIO_DISABLE_MULTITASKING             // https://github.com/davetcc/TaskManagerIO
+//#define HELIO_DISABLE_MULTITASKING              // https://github.com/davetcc/TaskManagerIO
 
 // Uncomment or -D this define to disable usage of tcMenu library, which will disable all GUI control. Not recommended.
-//#define HELIO_DISABLE_GUI                      // https://github.com/davetcc/tcMenu
+//#define HELIO_DISABLE_GUI                       // https://github.com/davetcc/tcMenu
 
 // Uncomment or -D this define to enable usage of the platform WiFi library, which enables networking capabilities.
-//#define HELIO_ENABLE_WIFI                      // Library used depends on your device architecture.
+//#define HELIO_ENABLE_WIFI                       // Library used depends on your device architecture.
 
-// Uncomment or -D this define to enable usage of the external serial ESP AT WiFi library, which enables networking capabilities.
-//#define HELIO_ENABLE_ESP_WIFI                  // https://github.com/jandrassy/WiFiEspAT
+// Uncomment or -D this define to enable usage of the external serial AT WiFi library, which enables networking capabilities.
+//#define HELIO_ENABLE_AT_WIFI                    // https://github.com/jandrassy/WiFiEspAT
+
+// Uncomment or -D this define to enable usage of the Arduino MQTT library, which enables IoT data publishing capabilities.
+//#define HELIO_ENABLE_MQTT                       // https://github.com/256dpi/arduino-mqtt
+
+// Uncomment or -D this define to enable external data storage (SD card or EEPROM) to save on sketch size. Required for constrained devices.
+//#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, instead relying solely on external storage.
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
 //#define HELIO_ENABLE_DEBUG_OUTPUT
@@ -205,7 +211,7 @@ SPI Devices Supported: SD card modules
 
 ### I2C Bus
 
-I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same shared data lines (no flipping of wires), which are typically labeled `SCL` and `SDA`. Only different kinds of I2C devices can be used on the same data line together using factory default settings, otherwise manual addressing must be done. I2C runs at mid to high KHz speeds and is useful for advanced device control.
+I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same shared data lines (no flipping of wires), which are typically labeled `SCL` and `SDA`. Only different kinds of I2C devices can be used on the same data line together using factory default settings, otherwise manual addressing must be done. I2C runs at mid to high kHz speeds and is useful for advanced device control.
 
 * When more than one I2C device of the same kind is to be used on the same data line, each device must be set to use a different address. This is accomplished via the A0-A2 (sometimes A0-A5) pins/pads on the physical device that must be set either open or closed (typically via a de-solderable resistor, or by shorting a pin/pad). Check your specific breakout's datasheet for details.
 * Note that not all the I2C libraries used support multi-addressable I2C devices at this time. Currently, this restriction applies to RTC devices (read as: may only use one).
