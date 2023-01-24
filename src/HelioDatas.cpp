@@ -34,9 +34,9 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
     switch (idType) {
         case (int8_t)HelioIdentity::Actuator:
             switch (classType) {
-                case HelioActuator::Relay:
+                case (int8_t)HelioActuator::Relay:
                     return new HelioActuatorData();
-                case HelioActuator::VariablePWM:
+                case (int8_t)HelioActuator::VariablePWM:
                     return new HelioActuatorData();
                 default: break;
             }
@@ -44,12 +44,12 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
 
         case (int8_t)HelioIdentity::Sensor:
             switch (classType) {
-                case HelioSensor::Binary:
+                case (int8_t)HelioSensor::Binary:
                     return new HelioBinarySensorData();
-                case HelioSensor::Analog:
+                case (int8_t)HelioSensor::Analog:
                     return new HelioAnalogSensorData();
                 //case 2: // Digital (not instance-able)
-                case HelioSensor::DHT1W:
+                case (int8_t)HelioSensor::DHT1W:
                     return new HelioDHTTempHumiditySensorData();
                 default: break;
             }
@@ -58,11 +58,15 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
         case (int8_t)HelioIdentity::Panel:
             switch (classType) {
                 // todo
+                //case (int8_t)HelioPanel::SingleAxis:
+                //    return new HelioSingleAxisPanelData();
+                //case (int8_t)HelioPanel::DualAxis:
+                //    return new HelioDualAxisPanelData();
                 default: break;
             }
             break;
 
-        case 4: // Rail
+        case (int8_t)HelioIdentity::Rail:
             switch (classType) {
                 case (int8_t)HelioRail::Simple:
                     return new HelioSimpleRailData();

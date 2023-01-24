@@ -111,6 +111,7 @@ From Helioduino.h, in class Helioduino:
                DeviceSetup rtcSetup = DeviceSetup(),                // RTC device setup (i2c only)
                DeviceSetup sdSetup = DeviceSetup(),                 // SD card device setup (spi only)
                DeviceSetup netSetup = DeviceSetup(),                // Network device setup (spi/ttl)
+               DeviceSetup gpsSetup = DeviceSetup(),                // GPS device setup (ttl/i2c/spi)
                pintype_t *ctrlInputPins = nullptr,                  // Control input pins, else nullptr
                DeviceSetup lcdSetup = DeviceSetup());               // LCD device setup (i2c only)
 ```
