@@ -145,50 +145,6 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
     return retVal;
 }
 
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE>
-Vector<HelioObject *, N> linksFilterPumpActuatorsByInputPanelAndOutputPanelType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_PanelType destPanelType)
-{
-    Vector<HelioObject *, N> retVal;
-
-    for (int linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
-        if (links.second[linksIndex].first->isActuatorType()) {
-            auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
-
-            if (actuator->isRelayPumpClass() && static_cast<HelioPumpRelayActuator *>(actuator)->getInputPanel().get() == srcPanel) {
-                auto outputPanel = static_cast<HelioPumpRelayActuator *>(actuator)->getOutputPanel().get();
-
-                if (outputPanel && outputPanel->getPanelType() == destPanelType) {
-                    retVal.push_back(links.second[linksIndex].first);
-                }
-            }
-        }
-    }
-
-    return retVal;
-}
-
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE>
-Vector<HelioObject *, N> linksFilterPumpActuatorsByOutputPanelAndInputPanelType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *destPanel, Helio_PanelType srcPanelType)
-{
-    Vector<HelioObject *, N> retVal;
-
-    for (int linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
-        if (links.second[linksIndex].first->isActuatorType()) {
-            auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
-
-            if (actuator->isRelayPumpClass() && static_cast<HelioPumpRelayActuator *>(actuator)->getOutputPanel().get() == destPanel) {
-                auto inputPanel = static_cast<HelioPumpRelayActuator *>(actuator)->getInputPanel().get();
-
-                if (inputPanel && inputPanel->getPanelType() == srcPanelType) {
-                    retVal.push_back(links.second[linksIndex].first);
-                }
-            }
-        }
-    }
-
-    return retVal;
-}
-
 template<size_t N>
 void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<SharedPtr<HelioActuator>, N> &actuatorsOut, Helio_ActuatorType actuatorType)
 {

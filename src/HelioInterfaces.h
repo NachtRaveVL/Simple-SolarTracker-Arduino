@@ -11,15 +11,21 @@ struct HelioJSONSerializableInterface;
 class HelioObjInterface;
 class HelioUIInterface;
 
+struct HelioDigitalInputPinInterface;
+struct HelioDigitalOutputPinInterface;
+struct HelioAnalogInputPinInterface;
+struct HelioAnalogOutputPinInterface;
+class HelioRTCInterface;
+
 class HelioActuatorAttachmentInterface;
 class HelioSensorAttachmentInterface;
-class HelioRailAttachmentInterface;
 class HelioPanelAttachmentInterface;
+class HelioRailAttachmentInterface;
 
 class HelioActuatorObjectInterface;
 class HelioSensorObjectInterface;
-class HelioRailObjectInterface;
 class HelioPanelObjectInterface;
+class HelioRailObjectInterface;
 
 class HelioTriggerObjectInterface;
 
