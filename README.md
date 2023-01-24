@@ -16,7 +16,7 @@ Can be used with GPS and RTC modules for accurate sun angle measurements and sun
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
-Dependencies include: Adafruit BusIO (dep of RTClib), Adafruit GPS Library (ext serial NEMA), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), OneWire (or OneWireSTM), RTClib, SimpleCollections (dep of TaskManager), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, WiFiEspAT (ext serial AT), or Ethernet.
+Dependencies include: Adafruit BusIO (dep of RTClib), Adafruit GPS Library (ext serial NMEA, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManager), LiquidCrystalIO (dep of TaskManager), OneWire (or OneWireSTM), RTClib, SimpleCollections (dep of TaskManager), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, WiFiEspAT (ext serial AT), or Ethernet.
 
 Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
@@ -66,13 +66,19 @@ From Helioduino.h:
 //#define HELIO_DISABLE_GUI                       // https://github.com/davetcc/tcMenu
 
 // Uncomment or -D this define to enable usage of the platform WiFi library, which enables networking capabilities.
-//#define HELIO_ENABLE_WIFI                       // Library used depends on your device architecture.
+//#define HELIO_ENABLE_WIFI                       // https://reference.arduino.cc/reference/en/libraries/wifi/
 
 // Uncomment or -D this define to enable usage of the external serial AT WiFi library, which enables networking capabilities.
 //#define HELIO_ENABLE_AT_WIFI                    // https://github.com/jandrassy/WiFiEspAT
 
+// Uncomment or -D this define to enable usage of the platform Ethernet library, which enables networking capabilities.
+//#define HELIO_ENABLE_ETHERNET                   // https://reference.arduino.cc/reference/en/libraries/ethernet/
+
 // Uncomment or -D this define to enable usage of the Arduino MQTT library, which enables IoT data publishing capabilities.
 //#define HELIO_ENABLE_MQTT                       // https://github.com/256dpi/arduino-mqtt
+
+// Uncomment or -D this define to enable usage of the Adafruit GPS library, which enables GPS capabilities.
+//#define HELIO_ENABLE_GPS                        // https://github.com/adafruit/Adafruit_GPS
 
 // Uncomment or -D this define to enable external data storage (SD card or EEPROM) to save on sketch size. Required for constrained devices.
 //#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, instead relying solely on external storage.
@@ -93,25 +99,20 @@ There are several initialization mode settings exposed through this controller t
 
 #### Class Instantiation
 
-The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's piezo buzzer pin, EEPROM device size, SD Card CS pin and SPI speed (hard-wired to `25M`Hz on Teensy), control input ribbon pin mapping, EEPROM i2c address, RTC i2c address, LCD i2c address, i2c Wire class instance, and i2c clock speed. The default constructor values of the controller, if left unspecified, has no pins or device sizes set, zero'ed i2c addresses, i2c Wire class instance `Wire` @`400k`Hz, and SPI speeds set to same as processor speed (/0 divider, else 50MHz if undetected).
+The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's various devices and how they are connected, with defaults providing no device specified.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
     // Controller constructor. Typically called during class instantiation, before setup().
-    Helioduino(pintype_t piezoBuzzerPin = -1,         // Piezo buzzer pin, else -1
-               uint32_t eepromDeviceSize = 0,         // EEPROM bit storage size (use I2C_DEVICESIZE_* defines), else 0
-               uint8_t eepromI2CAddress = B000,       // EEPROM i2c address
-               uint8_t rtcI2CAddress = B000,          // RTC i2c address (only B000 can be used atm)
-               pintype_t sdCardCSPin = -1,            // SD card CS pin, else -1
-               uint32_t sdCardSpeed = F_SPD,          // SD card SPI speed, in Hz (ignored on Teensy)
-               pintype_t *ctrlInputPinMap = nullptr,  // Control input pin map, else nullptr
-               uint8_t lcdI2CAddress = B000,          // LCD i2c address
-#if (!defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_TWOWIRE)) || defined(Wire)
-               TwoWire &i2cWire = Wire,               // I2C wire class instance
-#else
-               TwoWire &i2cWire = new TwoWire(),      // I2C wire class instance
-#endif
-               uint32_t i2cSpeed = 400000U);          // I2C speed, in Hz
+    Helioduino(pintype_t piezoBuzzerPin = -1,                       // Piezo buzzer pin, else -1
+               Helio_EEPROMType eepromType = Helio_EEPROMType_None, // EEPROM device type/size, else None
+               DeviceSetup eepromSetup = DeviceSetup(),             // EEPROM device setup (i2c only)
+               Helio_RTCType rtcType = Helio_RTCType_None,          // RTC device type, else None
+               DeviceSetup rtcSetup = DeviceSetup(),                // RTC device setup (i2c only)
+               DeviceSetup sdSetup = DeviceSetup(),                 // SD card device setup (spi only)
+               DeviceSetup netSetup = DeviceSetup(),                // Network device setup (spi/ttl)
+               pintype_t *ctrlInputPins = nullptr,                  // Control input pins, else nullptr
+               DeviceSetup lcdSetup = DeviceSetup());               // LCD device setup (i2c only)
 ```
 
 #### Controller Initialization
@@ -197,7 +198,7 @@ Serial UART uses individual communication lines for each device, with the receiv
   * 5v devices interacting with 3.3v devices that are not 5v tolerant (such as [serial ESP WiFi modules](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/)) will require a bi-directional logic level converter/shifter to utilize.
     * Alternatively, hack a single 10kΩ resistor ([but preferably two of any 1:2 ratio](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/)) between the 5v module's TX pin and 3.3v module's RX pin.
 
-Serial UART Devices Supported: AT WiFi modules, NEMA GPS modules
+Serial UART Devices Supported: AT WiFi modules, NMEA GPS modules
 
 ### SPI Bus
 
