@@ -686,7 +686,7 @@ static void printDeviceSetup(String prefix, const DeviceSetup &devSetup)
 
 void Helioduino::commonPostInit()
 {
-    if ((_rtcSyncProvider = getRealTimeClock())) {
+    if ((_rtcSyncProvider = getRTC())) {
         setSyncProvider(rtcNow);
     }
 
@@ -814,6 +814,13 @@ void miscLoop()
 
         Helioduino::_activeInstance->publisher.update();
 
+        #ifdef HELIO_USE_GPS // FIXME: This may get removed if it doesn't work right, but it's probably close.
+            if (Helioduino::_gps && Helioduino::_gps->newNMEAreceived()) {
+                Helioduino::_gps->parse(Helioduino::_gps->lastNMEA());
+                // TODO: Update lat/long of controller (trigger possible event change, possibly back behind a frequency timer).
+            }
+        #endif
+
         #if HELIO_SYS_MEM_LOGGING_ENABLE
         {   static time_t _lastMemLog = unixNow();
             if (unixNow() >= _lastMemLog + 15) {
@@ -893,6 +900,9 @@ void Helioduino::update()
 
     #ifdef HELIO_USE_MQTT
         if (publisher._mqttClient) { publisher._mqttClient->loop(); }
+    #endif
+    #ifdef HELIO_USE_GPS // FIXME: This may get removed if it doesn't work right.
+        if (_gps) { while(_gps->available()) { _gps->read(); } }
     #endif
 }
 
@@ -1109,6 +1119,15 @@ void Helioduino::setAutosaveEnabled(Helio_Autosave autosaveEnabled, Helio_Autosa
     }
 }
 
+void Helioduino::setRTCTime(DateTime time)
+{
+    auto rtc = getRTC();
+    if (rtc) {
+        rtc->adjust(DateTime((uint32_t)(time.unixtime() + (-getTimeZoneOffset() * SECS_PER_HOUR))));
+        notifyRTCTimeUpdated();
+    }
+}
+
 #ifdef HELIO_USE_WIFI
 
 void Helioduino::setWiFiConnection(String ssid, String pass)
@@ -1166,15 +1185,6 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
 
 #endif
 
-void Helioduino::setRealTimeClockTime(DateTime time)
-{
-    auto rtc = getRealTimeClock();
-    if (rtc) {
-        rtc->adjust(DateTime((uint32_t)(time.unixtime() + (-getTimeZoneOffset() * SECS_PER_HOUR))));
-        notifyRTCTimeUpdated();
-    }
-}
-
 int Helioduino::getControlInputRibbonPinCount() const
 {
     switch (getControlInputMode()) {
@@ -1212,7 +1222,7 @@ I2C_eeprom *Helioduino::getEEPROM(bool begin)
     return (!begin || _eepromBegan) ? _eeprom : nullptr;
 }
 
-HelioRTCInterface *Helioduino::getRealTimeClock(bool begin)
+HelioRTCInterface *Helioduino::getRTC(bool begin)
 {
     if (!_rtc) { allocateRTC(); }
 

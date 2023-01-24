@@ -446,6 +446,8 @@ public:
     inline void setSystemConfigFilename(String configFilename) { _sysConfigFilename = configFilename; }
     // Sets EEPROM system data address as used in init and save by EEPROM.
     inline void setSystemDataAddress(uint16_t sysDataAddress) { _sysDataAddress = sysDataAddress; }
+    // Sets the RTC's time to the passed time, with respect to set timezone. Will trigger significant time event.
+    void setRTCTime(DateTime time);
 #ifdef HELIO_USE_WIFI
     // Sets WiFi connection's SSID/pass combo (note: password is stored encrypted, but is not hack-proof)
     void setWiFiConnection(String ssid, String pass);
@@ -454,9 +456,6 @@ public:
     // Sets Ethernet connection's MAC address
     void setEthernetConnection(const uint8_t *macAddress);
 #endif
-
-    // Sets the RTC's time to the passed time, with respect to set timezone. Will trigger significant time event.
-    void setRealTimeClockTime(DateTime time);
 
     // Accessors.
 
@@ -490,7 +489,7 @@ public:
     // EEPROM instance (lazily instantiated, nullptr return -> failure/no device)
     I2C_eeprom *getEEPROM(bool begin = true);
     // Real time clock instance (lazily instantiated, nullptr return -> failure/no device)
-    HelioRTCInterface *getRealTimeClock(bool begin = true);
+    HelioRTCInterface *getRTC(bool begin = true);
     // SD card instance (user code *must* call endSDCard(inst) to return interface, possibly lazily instantiated, nullptr return -> failure/no device)
     SDClass *getSDCard(bool begin = true);
     // Ends SD card transaction with proper regards to platform once all instances returned (note: some instancing may be expected to never return)

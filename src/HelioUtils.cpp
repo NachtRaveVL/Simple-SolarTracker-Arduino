@@ -138,7 +138,7 @@ void publishData(HelioSensor *sensor)
 
 bool setCurrentTime(DateTime currTime)
 {
-    auto rtc = getHelioInstance() ? getHelioInstance()->getRealTimeClock() : nullptr;
+    auto rtc = getHelioInstance() ? getHelioInstance()->getRTC() : nullptr;
     if (rtc) {
         rtc->adjust(currTime);
         getHelioInstance()->notifyRTCTimeUpdated();
