@@ -11,14 +11,12 @@ class HelioBinarySensor;
 class HelioAnalogSensor;
 class HelioDigitalSensor;
 class HelioDHTTempHumiditySensor;
-class HelioDSTemperatureSensor;
 
 struct HelioSensorData;
 struct HelioBinarySensorData;
 struct HelioAnalogSensorData;
 struct HelioDigitalSensorData;
 struct HelioDHTTempHumiditySensorData;
-struct HelioDSTemperatureSensorData;
 
 #include "Helioduino.h"
 #include "HelioDatas.h"
