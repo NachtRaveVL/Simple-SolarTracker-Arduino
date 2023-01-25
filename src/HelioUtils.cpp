@@ -969,7 +969,7 @@ String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
         // todo
         case Helio_SensorType_AirTempHumidity:
             return SFP(HStr_Enum_AirTemperatureHumidity);
-        case Helio_SensorType_PowerUsageMeter:
+        case Helio_SensorType_PowerUsage:
             return SFP(HStr_Enum_PowerUsageMeter);
         case Helio_SensorType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();

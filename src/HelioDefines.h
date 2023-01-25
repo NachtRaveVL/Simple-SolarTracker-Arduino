@@ -261,8 +261,8 @@ enum Helio_ActuatorType : signed char {
     Helio_ActuatorType_PanelCover,                          // Panel cover actuator
     Helio_ActuatorType_PanelHeater,                         // Panel heater actuator
     Helio_ActuatorType_PanelCleaner,                        // Panel cleaner actuator
-    Helio_ActuatorType_AxisLinearActuator,                  // Panel axis linear actuator
-    Helio_ActuatorType_AxisRotaryServo,                     // Panel axis rotary servo
+    Helio_ActuatorType_LinearActuator,                      // Panel axis linear actuator
+    Helio_ActuatorType_RotaryServo,                         // Panel axis rotary servo
 
     Helio_ActuatorType_Count,                               // Internal use only
     Helio_ActuatorType_Undefined = -1                       // Internal use only
@@ -271,12 +271,15 @@ enum Helio_ActuatorType : signed char {
 // Sensor Type
 // Sensor device type. Specifies the various sensors and the kinds of things they measure.
 enum Helio_SensorType : signed char {
-    Helio_SensorType_LightDepResistor,                      // Light dependent resistor (analog)
-    Helio_SensorType_PowerUsageMeter,                       // Power usage meter (analog)
-    Helio_SensorType_PowerProdMeter,                        // Power production meter (analog)
+    Helio_SensorType_LightIntensity,                        // Light dependent resistor (LDR, analog)
+    Helio_SensorType_PowerUsage,                            // Power usage meter (analog)
+    Helio_SensorType_PowerProduction,                       // Power production meter (analog)
     Helio_SensorType_AirTempHumidity,                       // Air temperature and humidity sensor (digital)
-    Helio_SensorType_IceDetector,                           // Ice detector (binary)
-    Helio_SensorType_AxisEndstop,                           // Panel axis endstop (binary)
+    Helio_SensorType_IceDetector,                           // Ice detector (binary/analog)
+    Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
+    Helio_SensorType_RetractEndstop,                        // Panel axis retraction endstop (binary)
+    Helio_SensorType_ExtendEndstop,                         // Panel axis retraction endstop (binary)
+    Helio_SensorType_StrokePosition,                        // Actuator stroke position potentiometer (analog)
 
     Helio_SensorType_Count,                                 // Internal use only
     Helio_SensorType_Undefined = -1                         // Internal use only
@@ -285,10 +288,10 @@ enum Helio_SensorType : signed char {
 // Panel Type
 // Common panel types. Specifies the various solar panel axis/mount configurations.
 enum Helio_PanelType : signed char {
-    Helio_PanelType_SingleAxisHorz,                         // Single axis horizontal / tilting panel (elevation)
-    Helio_PanelType_SingleAxisVert,                         // Single axis vertical / facing panel (azimuth)
-    Helio_PanelType_DualAxisGimbaled,                       // Gimbaled dual axis panel (azimuth + elevation)
-    Helio_PanelType_EquatorialMounted,                      // Equatorial mounted panel (right-ascension + declination, polar alignment required)
+    Helio_PanelType_Horizontal,                             // Single axis horizontal / tilting panel (elevation)
+    Helio_PanelType_Vertical,                               // Single axis vertical / facing panel (azimuth)
+    Helio_PanelType_Gimballed,                              // Dual axis gimballed panel (azimuth + elevation)
+    Helio_PanelType_Equatorial,                             // Dual axis equatorial mounted panel (right-ascension + declination, external polar alignment required)
 
     Helio_PanelType_Count,                                  // Internal use only
     Helio_PanelType_Undefined = -1                          // Internal use only

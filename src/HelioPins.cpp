@@ -43,7 +43,7 @@ HelioPin::operator HelioDigitalPin() const
 
 HelioPin::operator HelioAnalogPin() const
 {
-    return (isAnalogType() || isAnalog() || (!isUnknownType() && !isDigital())) ? HelioAnalogPin(pin, mode, channel) : HelioAnalogPin();
+    return (isAnalogType() || isAnalog() || (!isUnknownType() && !isDigital())) ? HelioAnalogPin(pin, mode, isOutput() ? DAC_RESOLUTION : ADC_RESOLUTION, channel) : HelioAnalogPin();
 }
 
 void HelioPin::saveToData(HelioPinData *dataOut) const
@@ -185,7 +185,7 @@ HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, Arduino_PinModeType pinMode,
 #endif
                                uint8_t muxChannel)
     : HelioPin(Analog, pinNumber, pinMode != OUTPUT ? Helio_PinMode_Analog_Input : Helio_PinMode_Analog_Output, muxChannel),
-      bitRes(analogBitRes ? analogBitRes : (pinMode != OUTPUT ? ADC_RESOLUTION : DAC_RESOLUTION))
+      bitRes(analogBitRes ? analogBitRes : (pinMode == OUTPUT ? DAC_RESOLUTION : ADC_RESOLUTION))
 #ifdef ESP32
       , pwmChannel(pinPWMChannel)
 #endif
@@ -203,7 +203,7 @@ HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, Helio_PinMode pinMode, uint8
 #endif
                                uint8_t muxChannel)
     : HelioPin(Analog, pinNumber, pinMode, muxChannel),
-      bitRes(analogBitRes ? analogBitRes : (pinMode != Helio_PinMode_Analog_Output ? ADC_RESOLUTION : DAC_RESOLUTION))
+      bitRes(analogBitRes ? analogBitRes : (pinMode == Helio_PinMode_Analog_Output ? DAC_RESOLUTION : ADC_RESOLUTION))
 #ifdef ESP32
       , pwmChannel(pinPWMChannel)
 #endif
