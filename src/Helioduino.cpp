@@ -1016,9 +1016,9 @@ Helio_PositionIndex Helioduino::firstPosition(HelioIdentity id, bool taken)
     return -1;
 }
 
-bool Helioduino::tryGetPinLock(pintype_t pin, time_t waitMillis)
+bool Helioduino::tryGetPinLock(pintype_t pin, millis_t waitMillis)
 {
-    time_t startMillis = millis();
+    millis_t startMillis = millis();
     while (1) {
         auto iter = _pinLocks.find(pin);
         if (iter == _pinLocks.end()) {
@@ -1389,7 +1389,7 @@ uint16_t Helioduino::getPollingInterval() const
     return _systemData ? _systemData->pollingInterval : 0;
 }
 
-bool Helioduino::isPollingFrameOld(unsigned int frame, unsigned int allowance) const
+bool Helioduino::isPollingFrameOld(Helio_PollingFrame frame, Helio_PollingFrame allowance) const
 {
     return _pollingFrame - frame > allowance;
 }

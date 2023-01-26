@@ -89,19 +89,11 @@ HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measuremen
 }
 
 
-HelioMeasurement::HelioMeasurement()
-    : type(Unknown), frame(0), timestamp(unixNow())
-{ ; }
-
 HelioMeasurement::HelioMeasurement(int classType, time_t timestampIn)
     : type((typeof(type))classType), timestamp(timestampIn)
 {
     updateFrame();
 }
-
-HelioMeasurement::HelioMeasurement(int classType, time_t timestampIn, uint16_t frameIn)
-    : type((typeof(type))classType), timestamp(timestampIn), frame(frameIn)
-{ ; }
 
 HelioMeasurement::HelioMeasurement(const HelioMeasurementData *dataIn)
     : type((typeof(type))(dataIn->type)), timestamp(dataIn->timestamp)
@@ -116,7 +108,7 @@ void HelioMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measure
     dataOut->timestamp = timestamp;
 }
 
-void HelioMeasurement::updateFrame(unsigned int minFrame)
+void HelioMeasurement::updateFrame(Helio_PollingFrame minFrame)
 {
     frame = max(minFrame, getHelioInstance() ? getHelioInstance()->getPollingFrame() : 0);
 }
@@ -130,7 +122,7 @@ HelioBinaryMeasurement::HelioBinaryMeasurement(bool stateIn, time_t timestamp)
     : HelioMeasurement((int)Binary, timestamp), state(stateIn)
 { ; }
 
-HelioBinaryMeasurement::HelioBinaryMeasurement(bool stateIn, time_t timestamp, uint16_t frame)
+HelioBinaryMeasurement::HelioBinaryMeasurement(bool stateIn, time_t timestamp, Helio_PollingFrame frame)
     : HelioMeasurement((int)Binary, timestamp, frame), state(stateIn)
 { ; }
 
@@ -156,7 +148,7 @@ HelioSingleMeasurement::HelioSingleMeasurement(float valueIn, Helio_UnitsType un
     : HelioMeasurement((int)Single, timestamp), value(valueIn), units(unitsIn)
 { ; }
 
-HelioSingleMeasurement::HelioSingleMeasurement(float valueIn, Helio_UnitsType unitsIn, time_t timestamp, uint16_t frame)
+HelioSingleMeasurement::HelioSingleMeasurement(float valueIn, Helio_UnitsType unitsIn, time_t timestamp, Helio_PollingFrame frame)
     : HelioMeasurement((int)Single, timestamp, frame), value(valueIn), units(unitsIn)
 { ; }
 
@@ -180,14 +172,14 @@ HelioDoubleMeasurement::HelioDoubleMeasurement()
 { ; }
 
 HelioDoubleMeasurement::HelioDoubleMeasurement(float value1, Helio_UnitsType units1,
-                                                           float value2, Helio_UnitsType units2,
-                                                           time_t timestamp)
+                                               float value2, Helio_UnitsType units2,
+                                               time_t timestamp)
     : HelioMeasurement((int)Double, timestamp), value{value1,value2}, units{units1,units2}
 { ; }
 
 HelioDoubleMeasurement::HelioDoubleMeasurement(float value1, Helio_UnitsType units1,
-                                                           float value2, Helio_UnitsType units2,
-                                                           time_t timestamp, uint16_t frame)
+                                               float value2, Helio_UnitsType units2,
+                                               time_t timestamp, Helio_PollingFrame frame)
     : HelioMeasurement((int)Double, timestamp, frame), value{value1,value2}, units{units1,units2}
 { ; }
 
@@ -215,16 +207,16 @@ HelioTripleMeasurement::HelioTripleMeasurement()
 { ; }
 
 HelioTripleMeasurement::HelioTripleMeasurement(float value1, Helio_UnitsType units1,
-                                                           float value2, Helio_UnitsType units2,
-                                                           float value3, Helio_UnitsType units3,
-                                                           time_t timestamp)
+                                               float value2, Helio_UnitsType units2,
+                                               float value3, Helio_UnitsType units3,
+                                               time_t timestamp)
     : HelioMeasurement((int)Triple, timestamp), value{value1,value2,value3}, units{units1,units2,units3}
 { ; }
 
 HelioTripleMeasurement::HelioTripleMeasurement(float value1, Helio_UnitsType units1,
-                                                           float value2, Helio_UnitsType units2,
-                                                           float value3, Helio_UnitsType units3,
-                                                           time_t timestamp, uint16_t frame)
+                                               float value2, Helio_UnitsType units2,
+                                               float value3, Helio_UnitsType units3,
+                                               time_t timestamp, Helio_PollingFrame frame)
     : HelioMeasurement((int)Triple, timestamp, frame), value{value1,value2,value3}, units{units1,units2,units3}
 { ; }
 

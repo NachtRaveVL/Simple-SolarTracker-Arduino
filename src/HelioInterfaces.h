@@ -146,14 +146,16 @@ public:
 // Actuator Object Interface
 class HelioActuatorObjectInterface {
 public:
-    virtual bool enableActuator(float intensity = 1.0f, bool force = false) = 0;
-    virtual void disableActuator() = 0;
     virtual bool getCanEnable() = 0;
     virtual bool isEnabled(float tolerance = 0.0f) const = 0;
 
     virtual void setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits = Helio_UnitsType_Undefined) = 0;
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) = 0;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() = 0;
+
+protected:
+    virtual bool _enableActuator(float intensity = 1.0) = 0;
+    virtual void _disableActuator() = 0;
 };
 
 // Sensor Object Interface

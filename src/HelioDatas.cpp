@@ -36,7 +36,7 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
             switch (classType) {
                 case (int8_t)HelioActuator::Relay:
                     return new HelioActuatorData();
-                case (int8_t)HelioActuator::VariablePWM:
+                case (int8_t)HelioActuator::Variable:
                     return new HelioActuatorData();
                 default: break;
             }

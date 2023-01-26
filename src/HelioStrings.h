@@ -80,6 +80,7 @@ enum Helio_String : unsigned short {
     HStr_Key_DataFilePrefix,
     HStr_Key_DetriggerTol,
     HStr_Key_DispOutMode,
+    HStr_Key_EnableMode,
     HStr_Key_Flags,
     HStr_Key_Id,
     HStr_Key_InputInversion,

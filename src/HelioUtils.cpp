@@ -43,12 +43,15 @@ ActuatorTimedEnableTask::ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuat
 
 void ActuatorTimedEnableTask::exec()
 {
-    while (!_actuator->enableActuator(_enableIntensity)) { yield(); }
+    HelioActivationHandle handle(_actuator.get(), _enableIntensity, _enableTimeMillis);
 
-    delayFine(_enableTimeMillis);
+    while (handle.actuator) {
+        if (handle.startMillis > 0 && handle.durationMillis > 0) {
+            // todo
+        }
 
-    HELIO_SOFT_ASSERT(_actuator->isEnabled(), SFP(HStr_Err_OperationFailure));
-    _actuator->disableActuator();
+        yield();
+    }
 }
 
 taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float enableIntensity, time_t enableTimeMillis)
@@ -480,15 +483,15 @@ unsigned int freeMemory() {
     #endif
 }
 
-void delayFine(time_t timeMillis) {
-    time_t startMillis = millis();
+void delayFine(millis_t timeMillis) {
+    millis_t startMillis = millis();
     time_t endMillis = startMillis + timeMillis;
 
     {   time_t delayMillis = max(0, timeMillis - HELIO_SYS_DELAYFINE_SPINMILLIS);
         if (delayMillis > 0) { delay(delayMillis); }
     }
 
-    {   time_t timeMillis = millis();
+    {   millis_t timeMillis = millis();
         while ((endMillis >= startMillis && (timeMillis < endMillis)) ||
                 (endMillis < startMillis && (timeMillis >= startMillis || timeMillis < endMillis))) {
             timeMillis = millis();
