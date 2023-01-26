@@ -23,8 +23,9 @@ extern HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn);
 // who can activate under it.
 class HelioPanel : public HelioObject, public HelioPanelObjectInterface {
 public:
-    const enum : signed char { Single, Unknown = -1 } classType; // Panel class type (custom RTTI)
+    const enum : signed char { Single, Multi, Unknown = -1 } classType; // Panel class type (custom RTTI)
     inline bool isSingleClass() const { return classType == Single; }
+    inline bool isMultiClass() const { return classType == Multi; }
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioPanel(Helio_PanelType panelType,
@@ -34,7 +35,21 @@ public:
 
     virtual void update() override;
 
-    virtual bool canActivate(HelioActuator *actuator);
+    virtual HelioSensorAttachment &getAxis1Position(bool poll = false) = 0;
+    virtual HelioSensorAttachment &getAxis2Position(bool poll = false) = 0;
+
+    virtual HelioBalancerAttachment &getAxis1Driver(bool resolve = true) = 0;
+    virtual HelioBalancerAttachment &getAxis2Driver(bool resolve = true) = 0;
+
+    virtual bool isAxis1Retracted() = 0;
+    virtual bool isAxis1Extended() = 0;
+
+    virtual bool isAxis2Retracted() = 0;
+    virtual bool isAxis2Extended() = 0;
+
+    virtual void setAxis1Angle(float axis1Angle);
+    virtual void setAxis2Angle(float axis2Angle);
+
     //virtual bool isFilled() = 0;
     //virtual bool isEmpty() = 0;
 
@@ -50,7 +65,7 @@ public:
     //Signal<HelioPanel *, HELIO_PANEL_STATE_SLOTS> &getEmptySignal();
 
 protected:
-    Helio_UnitsType _volumeUnits;                     // Volume units preferred
+    //Helio_UnitsType _volumeUnits;                     // Volume units preferred
 
     //Helio_TriggerState _filledState;                  // Current filled state
     //Helio_TriggerState _emptyState;                   // Current empty state

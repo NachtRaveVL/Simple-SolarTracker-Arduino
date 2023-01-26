@@ -69,8 +69,10 @@
 #endif
 #endif
 
+typedef typeof(millis()) millis_t;                          // Millis type
 typedef int8_t Helio_PositionIndex;                         // Position indexing type alias
 typedef uint32_t Helio_KeyType;                             // Key type alias, for hashing
+typedef uint16_t Helio_PollingFrame;                        // Polling frame type, for sync
 typedef typeof(INPUT) Arduino_PinModeType;                  // Arduino pin mode type alias
 typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin status type alias
 
@@ -224,7 +226,7 @@ enum Helio_MeasurementMode : signed char {
 
     Helio_MeasurementMode_Count,                            // Internal use only
     Helio_MeasurementMode_Undefined = -1,                   // Internal use only
-    Helio_MeasurementMode_Default = Helio_MeasurementMode_Metric // Default system measurement mode (feel free to change)
+    Helio_MeasurementMode_Default = Helio_MeasurementMode_Metric // Default system measurement mode
 };
 
 // LCD/Display Output Mode
@@ -346,6 +348,34 @@ enum Helio_BalancerState : signed char {
     Helio_BalancerState_Undefined = -1                      // Internal use only
 };
 
+// Enable Mode
+// Actuator intensity/enablement calculation mode. Specifies how multiple activations get used together.
+enum Helio_EnableMode : signed char {
+    Helio_EnableMode_Highest,                               // Parallel activation using highest drive intensity
+    Helio_EnableMode_Lowest,                                // Parallel activation using lowest drive intensity
+    Helio_EnableMode_Average,                               // Parallel activation using averaged drive intensities
+    Helio_EnableMode_Multiply,                              // Parallel activation using multiplied drive intensities
+
+    Helio_EnableMode_InOrder,                               // Serial activation using in-order/fifo-queue drive intensities
+    Helio_EnableMode_RevOrder,                              // Serial activation using reverse-order/lifo-stack drive intensities
+    Helio_EnableMode_DesOrder,                              // Serial activation using highest-to-lowest/descending-order drive intensities
+    Helio_EnableMode_AscOrder,                              // Serial activation using lowest-to-highest/ascending-order drive intensities
+
+    Helio_EnableMode_Count,                                 // Internal use only
+    Helio_EnableMode_Undefined = -1                         // Internal use only
+};
+
+// Direction Mode
+// Actuator intensity application mode. Specifies activation directionality and enablement.
+enum Helio_DirectionMode : signed char {
+    Helio_DirectionMode_Forward,                            // Standard/forward direction mode
+    Helio_DirectionMode_Reverse,                            // Opposite/reverse direction mode
+    Helio_DirectionMode_Stop,                               // Stationary/braking direction mode
+
+    Helio_DirectionMode_Count,                              // Internal use only
+    Helio_DirectionMode_Undefined = -1                      // Internal use only
+};
+
 // Units Category
 // Unit of measurement category. Specifies the kind of unit.
 enum Helio_UnitsCategory : signed char {
@@ -400,6 +430,7 @@ class HelioAttachment;
 class HelioSensorAttachment;
 class HelioTriggerAttachment;
 class HelioBalancerAttachment;
+struct HelioActivationHandle;
 class HelioActuator;
 class HelioSensor;
 class HelioPanel;

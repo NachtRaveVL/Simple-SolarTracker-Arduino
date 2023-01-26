@@ -39,21 +39,18 @@ struct HelioMeasurement {
     inline bool isUnknownType() const { return type <= Unknown; }
 
     time_t timestamp;                                       // Time event recorded (UTC)
-    uint16_t frame;                                         // Polling frame #
+    Helio_PollingFrame frame;                               // Polling frame # measurement taken on, or 0 if not-set else 1 if user-set
 
-    HelioMeasurement();
-    HelioMeasurement(int classType,
-                     time_t timestamp = 0);
-    HelioMeasurement(int classType,
-                     time_t timestamp,
-                     uint16_t frame);
+    inline HelioMeasurement() : type(Unknown), frame(0), timestamp(unixNow()) { ; }
+    inline HelioMeasurement(int classType, time_t timestampIn, Helio_PollingFrame frameIn) : type((typeof(type))classType), timestamp(timestampIn), frame(frameIn) { ; }
+    HelioMeasurement(int classType, time_t timestamp = 0);
     HelioMeasurement(const HelioMeasurementData *dataIn);
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
 
     inline void updateTimestamp() { timestamp = unixNow(); }
-    void updateFrame(unsigned int minFrame = 0);
-    inline void setMinFrame(unsigned int minFrame = 0) { frame = max(minFrame, frame); }
+    void updateFrame(Helio_PollingFrame minFrame = 0);
+    inline void setMinFrame(Helio_PollingFrame minFrame = 0) { frame = max(minFrame, frame); }
 };
 
 // Single Value Sensor Data Measurement
@@ -62,13 +59,8 @@ struct HelioSingleMeasurement : public HelioMeasurement {
     Helio_UnitsType units;                                  // Units of value
 
     HelioSingleMeasurement();
-    HelioSingleMeasurement(float value,
-                           Helio_UnitsType units,
-                           time_t timestamp = unixNow());
-    HelioSingleMeasurement(float value,
-                           Helio_UnitsType units,
-                           time_t timestamp,
-                           uint16_t frame);
+    HelioSingleMeasurement(float value, Helio_UnitsType units, time_t timestamp = unixNow());
+    HelioSingleMeasurement(float value, Helio_UnitsType units, time_t timestamp, Helio_PollingFrame frame);
     HelioSingleMeasurement(const HelioMeasurementData *dataIn);
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
@@ -79,11 +71,8 @@ struct HelioBinaryMeasurement : public HelioMeasurement {
     bool state;                                             // Polled state
 
     HelioBinaryMeasurement();
-    HelioBinaryMeasurement(bool state,
-                           time_t timestamp = unixNow());
-    HelioBinaryMeasurement(bool state,
-                           time_t timestamp,
-                           uint16_t frame);
+    HelioBinaryMeasurement(bool state, time_t timestamp = unixNow());
+    HelioBinaryMeasurement(bool state, time_t timestamp, Helio_PollingFrame frame);
     HelioBinaryMeasurement(const HelioMeasurementData *dataIn);
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
@@ -97,17 +86,12 @@ struct HelioDoubleMeasurement : public HelioMeasurement {
     Helio_UnitsType units[2];                               // Units of values
 
     HelioDoubleMeasurement();
-    HelioDoubleMeasurement(float value1,
-                           Helio_UnitsType units1, 
-                           float value2,
-                           Helio_UnitsType units2, 
+    HelioDoubleMeasurement(float value1, Helio_UnitsType units1, 
+                           float value2, Helio_UnitsType units2, 
                            time_t timestamp = unixNow());
-    HelioDoubleMeasurement(float value1,
-                           Helio_UnitsType units1, 
-                           float value2,
-                           Helio_UnitsType units2, 
-                           time_t timestamp,
-                           uint16_t frame);
+    HelioDoubleMeasurement(float value1, Helio_UnitsType units1, 
+                           float value2, Helio_UnitsType units2, 
+                           time_t timestamp, Helio_PollingFrame frame);
     HelioDoubleMeasurement(const HelioMeasurementData *dataIn);
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
@@ -121,21 +105,14 @@ struct HelioTripleMeasurement : public HelioMeasurement {
     Helio_UnitsType units[3];                               // Units of values
 
     HelioTripleMeasurement();
-    HelioTripleMeasurement(float value1,
-                           Helio_UnitsType units1, 
-                           float value2,
-                           Helio_UnitsType units2, 
-                           float value3,
-                           Helio_UnitsType units3,
+    HelioTripleMeasurement(float value1, Helio_UnitsType units1, 
+                           float value2, Helio_UnitsType units2, 
+                           float value3, Helio_UnitsType units3,
                            time_t timestamp = unixNow());
-    HelioTripleMeasurement(float value1,
-                           Helio_UnitsType units1, 
-                           float value2,
-                           Helio_UnitsType units2, 
-                           float value3,
-                           Helio_UnitsType units3,
-                           time_t timestamp,
-                           uint16_t frame);
+    HelioTripleMeasurement(float value1, Helio_UnitsType units1, 
+                           float value2, Helio_UnitsType units2, 
+                           float value3, Helio_UnitsType units3,
+                           time_t timestamp, Helio_PollingFrame frame);
     HelioTripleMeasurement(const HelioMeasurementData *dataIn);
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;

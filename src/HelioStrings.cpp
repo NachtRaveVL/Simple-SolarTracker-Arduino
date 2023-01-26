@@ -417,6 +417,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_DispOutMode[] PROGMEM = {"dispOutMode"};
             return flashStr_Key_DispOutMode;
         } break;
+        case HStr_Key_EnableMode: {
+            static const char flashStr_Key_EnableMode[] PROGMEM = {"enableMode"};
+            return flashStr_Key_EnableMode;
+        } break;
         case HStr_Key_Flags: {
             static const char flashStr_Key_Flags[] PROGMEM = {"flags"};
             return flashStr_Key_Flags;
