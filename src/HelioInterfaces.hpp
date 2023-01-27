@@ -54,20 +54,66 @@ inline SharedPtr<U> HelioRailAttachmentInterface::getRail(bool resolve)
 }
 
 
+inline void HelioActuatorObjectInterface::setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits)
+{
+    setContinuousPowerUsage(HelioSingleMeasurement(contPowerUsage, contPowerUsageUnits));
+}
+
 inline bool HelioBalancerObjectInterface::isBalanced() const
 {
     return getBalancerState() == Helio_BalancerState_Balanced;
 }
 
+inline void HelioMotorObjectInterface::setContinuousSpeed(float contSpeed, Helio_UnitsType contSpeedUnits)
+{
+    setContinuousSpeed(HelioSingleMeasurement(contSpeed, contSpeedUnits));
+}
+
 
 template <class U>
-inline void HelioPowerSensorAttachmentInterface::setPowerUsageSensor(U sensor)
+inline void HelioPositionSensorAttachmentInterface::setPositionSensor(U sensor)
+{
+    getPosition(false).setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioPositionSensorAttachmentInterface::getPositionSensor(bool poll)
+{
+    return static_pointer_cast<U>(getPosition(poll).getObject());
+}
+
+template <class U>
+inline void HelioSpeedSensorAttachmentInterface::setSpeedSensor(U sensor)
+{
+    getSpeed(false).setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioSpeedSensorAttachmentInterface::getSpeedSensor(bool poll)
+{
+    return static_pointer_cast<U>(getSpeed(poll).getObject());
+}
+
+template <class U>
+inline void HelioPowerProductionSensorAttachmentInterface::setPowerProductionSensor(U sensor)
+{
+    getPowerProduction(false).setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioPowerProductionSensorAttachmentInterface::getPowerProductionSensor(bool poll)
+{
+    return static_pointer_cast<U>(getPowerProduction(poll).getObject());
+}
+
+template <class U>
+inline void HelioPowerUsageSensorAttachmentInterface::setPowerUsageSensor(U sensor)
 {
     getPowerUsage(false).setObject(sensor);
 }
 
 template <class U>
-inline SharedPtr<U> HelioPowerSensorAttachmentInterface::getPowerUsageSensor(bool poll)
+inline SharedPtr<U> HelioPowerUsageSensorAttachmentInterface::getPowerUsageSensor(bool poll)
 {
     return static_pointer_cast<U>(getPowerUsage(poll).getObject());
 }

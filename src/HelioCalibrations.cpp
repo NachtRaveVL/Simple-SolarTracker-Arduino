@@ -21,7 +21,7 @@ bool HelioCalibrations::setUserCalibrationData(const HelioCalibrationData *calib
     HELIO_SOFT_ASSERT(calibrationData, SFP(HStr_Err_InvalidParameter));
 
     if (calibrationData) {
-        Helio_KeyType key = stringHash(calibrationData->sensorName);
+        Helio_KeyType key = stringHash(calibrationData->ownerName);
         auto iter = _calibrationData.find(key);
         bool retVal = false;
 
@@ -47,7 +47,7 @@ bool HelioCalibrations::setUserCalibrationData(const HelioCalibrationData *calib
 bool HelioCalibrations::dropUserCalibrationData(const HelioCalibrationData *calibrationData)
 {
     HELIO_HARD_ASSERT(calibrationData, SFP(HStr_Err_InvalidParameter));
-    Helio_KeyType key = stringHash(calibrationData->sensorName);
+    Helio_KeyType key = stringHash(calibrationData->ownerName);
     auto iter = _calibrationData.find(key);
 
     if (iter != _calibrationData.end()) {

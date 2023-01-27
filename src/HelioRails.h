@@ -97,7 +97,7 @@ protected:
 // Regulated Power Rail
 // Power rail that has a max power rating and power sensor that can track power
 // usage, with limit trigger for over-power state limiting actuator activation.
-class HelioRegulatedRail : public HelioRail, public HelioPowerSensorAttachmentInterface {
+class HelioRegulatedRail : public HelioRail, public HelioPowerUsageSensorAttachmentInterface {
 public:
     HelioRegulatedRail(Helio_RailType railType,
                        Helio_PositionIndex railIndex,

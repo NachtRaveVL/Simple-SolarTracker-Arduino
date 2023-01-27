@@ -70,24 +70,24 @@ void HelioScheduler::setupWaterPHBalancer(HelioPanel *panel, SharedPtr<HelioBala
 {
     if (panel && waterPHBalancer) {
         {   Vector<Pair<SharedPtr<HelioActuator>, float>, HELIO_BAL_INCACTUATORS_MAXSIZE> incActuators;
-            auto phUpPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhUpSolution);
+            auto phUpMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhUpSolution);
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhUpSolution);
 
-            linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(phUpPumps, dosingRate, incActuators, Helio_ActuatorType_PeristalticPump);
-            if (!incActuators.size()) { // prefer peristaltic, else use full pump
-                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(phUpPumps, dosingRate, incActuators, Helio_ActuatorType_WaterPump);
+            linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
+            if (!incActuators.size()) { // prefer peristaltic, else use full motor
+                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
             }
 
             waterPHBalancer->setIncrementActuators(incActuators);
         }
 
         {   Vector<Pair<SharedPtr<HelioActuator>, float>, HELIO_BAL_DECACTUATORS_MAXSIZE> decActuators;
-            auto phDownPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_DECACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhDownSolution);
+            auto phDownMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_DECACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhDownSolution);
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhDownSolution);
 
-            linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(phDownPumps, dosingRate, decActuators, Helio_ActuatorType_PeristalticPump);
-            if (!decActuators.size()) { // prefer peristaltic, else use full pump
-                linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(phDownPumps, dosingRate, decActuators, Helio_ActuatorType_WaterPump);
+            linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_PeristalticMotor);
+            if (!decActuators.size()) { // prefer peristaltic, else use full motor
+                linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_WaterMotor);
             }
 
             waterPHBalancer->setDecrementActuators(decActuators);
@@ -102,11 +102,11 @@ void HelioScheduler::setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioBal
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_NutrientPremix);
 
             if (dosingRate > FLT_EPSILON) {
-                auto nutrientPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_NutrientPremix);
+                auto nutrientMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_NutrientPremix);
 
-                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientPumps, dosingRate, incActuators, Helio_ActuatorType_PeristalticPump);
-                if (!incActuators.size()) { // prefer peristaltic, else use full pump
-                    linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientPumps, dosingRate, incActuators, Helio_ActuatorType_WaterPump);
+                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
+                if (!incActuators.size()) { // prefer peristaltic, else use full motor
+                    linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
                 }
             }
 
@@ -118,11 +118,11 @@ void HelioScheduler::setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioBal
                         dosingRate = getCombinedDosingRate(panel, (Helio_PanelType)panelType);
 
                         if (dosingRate > FLT_EPSILON) {
-                            auto nutrientPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, (Helio_PanelType)panelType);
+                            auto nutrientMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_INCACTUATORS_MAXSIZE>(panel->getLinkages(), panel, (Helio_PanelType)panelType);
 
-                            linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientPumps, dosingRate, incActuators, Helio_ActuatorType_PeristalticPump);
-                            if (incActuators.size() == prevIncSize) { // prefer peristaltic, else use full pump
-                                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientPumps, dosingRate, incActuators, Helio_ActuatorType_WaterPump);
+                            linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
+                            if (incActuators.size() == prevIncSize) { // prefer peristaltic, else use full motor
+                                linksResolveActuatorsPairRateByType<HELIO_BAL_INCACTUATORS_MAXSIZE>(nutrientMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
                             }
                         }
 
@@ -138,11 +138,11 @@ void HelioScheduler::setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioBal
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_FreshWater);
 
             if (dosingRate > FLT_EPSILON) {
-                auto dilutionPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_DECACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_NutrientPremix);
+                auto dilutionMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_BAL_DECACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_NutrientPremix);
 
-                linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(dilutionPumps, dosingRate, decActuators, Helio_ActuatorType_PeristalticPump);
-                if (!decActuators.size()) { // prefer peristaltic, else use full pump
-                    linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(dilutionPumps, dosingRate, decActuators, Helio_ActuatorType_WaterPump);
+                linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(dilutionMotors, dosingRate, decActuators, Helio_ActuatorType_PeristalticMotor);
+                if (!decActuators.size()) { // prefer peristaltic, else use full motor
+                    linksResolveActuatorsPairRateByType<HELIO_BAL_DECACTUATORS_MAXSIZE>(dilutionMotors, dosingRate, decActuators, Helio_ActuatorType_WaterMotor);
                 }
             }
 
@@ -483,7 +483,7 @@ void HelioScheduler::performScheduling()
 
             {   auto lightingIter = _lightings.find(feedPanel->getKey());
 
-                if (linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_WaterSprayer) ||
+                if (linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_PanelCleaner) ||
                     linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_GrowLights)) {
                     if (lightingIter != _lightings.end()) {
                         if (lightingIter->second) {
@@ -492,7 +492,7 @@ void HelioScheduler::performScheduling()
                     } else {
                         #ifdef HELIO_USE_VERBOSE_OUTPUT
                             Serial.print(F("Scheduler::performScheduling Light linkages found for: ")); Serial.print(iter->second->getKeyString()); Serial.print(':'); Serial.print(' ');
-                            Serial.println(linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_WaterSprayer) +
+                            Serial.println(linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_PanelCleaner) +
                                             linksCountActuatorsByPanelAndType(feedPanel->getLinkages(), feedPanel.get(), Helio_ActuatorType_GrowLights)); flushYield();
                         #endif
 
@@ -776,14 +776,14 @@ void HelioFeeding::setupStaging()
         case TopOff: {
             if (!feedRes->isFilled()) {
                 Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-                auto topOffPumps = linksFilterPumpActuatorsByOutputPanelAndInputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_FreshWater);
+                auto topOffMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_FreshWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffPumps, newActuatorReqs, Helio_ActuatorType_WaterPump); // fresh water pumps
+                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // fresh water motors
                 if (!newActuatorReqs.size()) {
-                    linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffPumps, newActuatorReqs, Helio_ActuatorType_PeristalticPump); // fresh water peristaltic pumps
+                    linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_PeristalticMotor); // fresh water peristaltic motors
                 }
 
-                HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no fresh water pumps
+                HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no fresh water motors
                 setActuatorReqs(newActuatorReqs);
             } else {
                 clearActuatorReqs();
@@ -802,18 +802,18 @@ void HelioFeeding::setupStaging()
         case Feed: {
             Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
 
-            {   auto feedPumps = linksFilterPumpActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_FeedWater);
+            {   auto feedMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_FeedWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedPumps, newActuatorReqs, Helio_ActuatorType_WaterPump); // feed water pump
+                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // feed water motor
             }
 
-            if (!newActuatorReqs.size() && getHelioInstance()->getSystemMode() == Helio_SystemMode_DrainToWaste) { // prefers feed water pumps, else direct to waste is feed
-                auto feedPumps = linksFilterPumpActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_DrainageWater);
+            if (!newActuatorReqs.size() && getHelioInstance()->getSystemMode() == Helio_SystemMode_DrainToWaste) { // prefers feed water motors, else direct to waste is feed
+                auto feedMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_DrainageWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedPumps, newActuatorReqs, Helio_ActuatorType_WaterPump); // DTW feed water pump
+                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // DTW feed water motor
             }
 
-            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no feed water pumps
+            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no feed water motors
 
             #if HELIO_SCH_AERATORS_FEEDRUN
                 {   auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_ActuatorType_WaterAerator);
@@ -827,11 +827,11 @@ void HelioFeeding::setupStaging()
 
         case Drain: {
             Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-            auto drainPumps = linksFilterPumpActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_DrainageWater);
+            auto drainMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_PanelType_DrainageWater);
 
-            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(drainPumps, newActuatorReqs, Helio_ActuatorType_WaterPump); // drainage water pump
+            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(drainMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // drainage water motor
 
-            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no drainage water pumps
+            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no drainage water motors
             setActuatorReqs(newActuatorReqs);
         } break;
 
@@ -1125,7 +1125,7 @@ void HelioLighting::recalcLighting()
         time_t dayLightSecs = lightHours * SECS_PER_HOUR;
 
         time_t daySprayerSecs = 0;
-        if (sprayingNeeded && linksCountActuatorsByPanelAndType(feedRes->getLinkages(), feedRes.get(), Helio_ActuatorType_WaterSprayer)) {
+        if (sprayingNeeded && linksCountActuatorsByPanelAndType(feedRes->getLinkages(), feedRes.get(), Helio_ActuatorType_PanelCleaner)) {
             daySprayerSecs = getSchedulerInstance()->getPreLightSprayMins() * SECS_PER_MIN;
         }
 
@@ -1160,9 +1160,9 @@ void HelioLighting::setupStaging()
 
         case Spray: {
             Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-            auto sprayers = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_ActuatorType_WaterSprayer);
+            auto sprayers = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTUATORS_MAXSIZE>(feedRes->getLinkages(), feedRes.get(), Helio_ActuatorType_PanelCleaner);
 
-            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(sprayers, newActuatorReqs, Helio_ActuatorType_WaterSprayer);
+            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(sprayers, newActuatorReqs, Helio_ActuatorType_PanelCleaner);
 
             setActuatorReqs(newActuatorReqs);
         } break;

@@ -157,7 +157,7 @@ struct HelioSchedulerSubData : public HelioSubData {
     float weeklyDosingRates[HELIO_CROP_GROWWEEKS_MAX];      // Nutrient dosing rate percentages (applies to any nutrient premixes in use - default: 1)
     float stdDosingRates[3];                                // Standard dosing rates for fresh water, pH up, and pH down (default: 1,1/2,1/2)
     uint8_t totalFeedingsDay;                               // Total number of feedings per day, if any (else 0 for disable - default: 0)
-    uint8_t preFeedAeratorMins;                             // Minimum time to run aerators (if present) before feed pumps turn on, in minutes (default: 30)
+    uint8_t preFeedAeratorMins;                             // Minimum time to run aerators (if present) before feed motors turn on, in minutes (default: 30)
     uint8_t preLightSprayMins;                              // Minimum time to run sprayers/sprinklers (if present/needed) before grow lights turn on, in minutes (default: 60)
     time_t airReportInterval;                               // Interval between air sensor reports, in seconds (default: 8hrs)
 

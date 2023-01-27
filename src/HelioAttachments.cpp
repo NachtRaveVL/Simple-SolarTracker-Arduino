@@ -99,18 +99,6 @@ void HelioSensorAttachment::detachObject()
     setNeedsMeasurement();
 }
 
-void HelioSensorAttachment::setMeasurement(float value, Helio_UnitsType units)
-{
-    auto outUnits = definedUnitsElse(getMeasurementUnits(), units);
-    _measurement.value = value;
-    _measurement.units = units;
-    _measurement.updateTimestamp();
-    _measurement.updateFrame(1);
-
-    convertUnits(&_measurement, outUnits, _convertParam);
-    _needsMeasurement = false;
-}
-
 void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
 {
     auto outUnits = definedUnitsElse(getMeasurementUnits(), measurement.units);

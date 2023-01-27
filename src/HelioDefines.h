@@ -107,6 +107,11 @@ typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin statu
 #define HELIO_CONTROL_LOOP_INTERVAL     100                 // Run interval of main control loop, in milliseconds
 #define HELIO_DATA_LOOP_INTERVAL        2000                // Default run interval of data loop, in milliseconds (customizable later)
 #define HELIO_MISC_LOOP_INTERVAL        250                 // Run interval of misc loop, in milliseconds
+
+#define HELIO_ACT_TRAVELCALC_MINWRTMILLIS 250               // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
+#define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
+#define HELIO_ACT_TRAVELCALC_MAXFRAMEDIFF 5                 // Maximum polling frames # away an instantaneous speed can be for it to be used in travel/distance calculations (so it uses only recent measurements)
+
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
 #define HELIO_POS_EXPORT_BEGFROM        1                   // Whenever exported/user-facing position indexing starts at 1 or 0 (aka display offset)
@@ -382,7 +387,8 @@ enum Helio_UnitsCategory : signed char {
     Helio_UnitsCategory_AirTemperature,                     // Air temperature based unit
     Helio_UnitsCategory_AirHumidity,                        // Air humidity based unit
     Helio_UnitsCategory_AirHeatIndex,                       // Air heat index based unit
-    Helio_UnitsCategory_Distance,                           // Distance based unit
+    Helio_UnitsCategory_Distance,                           // Distance/position based unit
+    Helio_UnitsCategory_Speed,                              // Speed based unit
     Helio_UnitsCategory_Power,                              // Power based unit
 
     Helio_UnitsCategory_Count,                              // Internal use only
@@ -399,6 +405,8 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Temperature_Kelvin,                     // Kelvin temperature mode
     Helio_UnitsType_Distance_Meters,                        // Meters distance mode
     Helio_UnitsType_Distance_Feet,                          // Feet distance mode
+    Helio_UnitsType_Speed_MetersPerMin,                     // Meters per minute speed mode
+    Helio_UnitsType_Speed_FeetPerMin,                       // Feet per minute speed mode
     Helio_UnitsType_Power_Wattage,                          // Wattage power mode
     Helio_UnitsType_Power_Amperage,                         // Amperage current power mode
 

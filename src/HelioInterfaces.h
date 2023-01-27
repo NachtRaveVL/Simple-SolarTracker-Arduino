@@ -10,12 +10,12 @@ struct HelioJSONSerializableInterface;
 
 class HelioObjInterface;
 class HelioUIInterface;
+class HelioRTCInterface;
 
 struct HelioDigitalInputPinInterface;
 struct HelioDigitalOutputPinInterface;
 struct HelioAnalogInputPinInterface;
 struct HelioAnalogOutputPinInterface;
-class HelioRTCInterface;
 
 class HelioActuatorAttachmentInterface;
 class HelioSensorAttachmentInterface;
@@ -28,8 +28,11 @@ class HelioPanelObjectInterface;
 class HelioRailObjectInterface;
 
 class HelioTriggerObjectInterface;
+class HelioMotorObjectInterface;
 
-class HelioPowerSensorAttachmentInterface;
+class HelioPositionSensorAttachmentInterface;
+class HelioSpeedSensorAttachmentInterface;
+class HelioPowerUsageSensorAttachmentInterface;
 class HelioAirTemperatureSensorAttachmentInterface;
 class HelioAirHumiditySensorAttachmentInterface;
 
@@ -65,6 +68,15 @@ public:
     virtual void setNeedsLayout() = 0;
 };
 
+// RTC Module Interface
+class HelioRTCInterface {
+public:
+    virtual bool begin(TwoWire *wireInstance) = 0;
+    virtual void adjust(const DateTime &dt) = 0;
+    virtual bool lostPower(void) = 0;
+    virtual DateTime now() = 0;
+};
+
 
 // Digital Input Pin Interface
 struct HelioDigitalInputPinInterface {
@@ -93,17 +105,6 @@ struct HelioAnalogOutputPinInterface {
     inline void set(float amount) { analogWrite(amount); }
     inline void set_raw(int amount) { analogWrite_raw(amount); }
 };
-
-
-// RTC Module Interface
-class HelioRTCInterface {
-public:
-    virtual bool begin(TwoWire *wireInstance) = 0;
-    virtual void adjust(const DateTime &dt) = 0;
-    virtual bool lostPower(void) = 0;
-    virtual DateTime now() = 0;
-};
-
 
 
 // Actuator Attachment Interface
@@ -149,13 +150,14 @@ public:
     virtual bool getCanEnable() = 0;
     virtual bool isEnabled(float tolerance = 0.0f) const = 0;
 
-    virtual void setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits = Helio_UnitsType_Undefined) = 0;
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) = 0;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() = 0;
+    inline void setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits = Helio_UnitsType_Undefined);
 
 protected:
     virtual bool _enableActuator(float intensity = 1.0) = 0;
     virtual void _disableActuator() = 0;
+    virtual void handleActivation() = 0;
 };
 
 // Sensor Object Interface
@@ -165,6 +167,9 @@ public:
     virtual const HelioMeasurement *getLatestMeasurement() const = 0;
     virtual bool isTakingMeasurement() const = 0;
     virtual bool needsPolling(uint32_t allowance = 0) const = 0;
+
+protected:
+    //virtual void handleMeasurement() = 0;
 };
 
 // Panel Object Interface
@@ -202,9 +207,58 @@ public:
     virtual Helio_TriggerState getTriggerState() const = 0;
 };
 
+// Motor Object Interface
+class HelioMotorObjectInterface {
+public:
+    virtual bool canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) = 0;
+    virtual HelioActivationHandle travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) = 0;
+    virtual bool canTravel(Helio_DirectionMode direction, millis_t time) = 0;
+    virtual HelioActivationHandle travel(Helio_DirectionMode direction, millis_t time) = 0;
 
-// Power Aware Interface
-class HelioPowerSensorAttachmentInterface {
+    virtual void setDistanceUnits(Helio_UnitsType distanceUnits) = 0;
+    virtual Helio_UnitsType getDistanceUnits() const = 0;
+    virtual void setSpeedUnits(Helio_UnitsType speedUnits) = 0;
+    virtual Helio_UnitsType getSpeedUnits() const = 0;
+
+    virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) = 0;
+    virtual const HelioSingleMeasurement &getContinuousSpeed() = 0;
+    inline void setContinuousSpeed(float contSpeed, Helio_UnitsType contSpeedUnits = Helio_UnitsType_Undefined);
+
+protected:
+    virtual void pollTravelingSensors() = 0;
+    virtual void handleTravelTime(millis_t time) = 0;
+};
+
+
+// Position Aware Interface
+class HelioPositionSensorAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getPosition(bool poll = false) = 0;
+
+    template<class U> inline void setPositionSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getPositionSensor(bool poll = false);
+};
+
+// Speed Aware Interface
+class HelioSpeedSensorAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getSpeed(bool poll = false) = 0;
+
+    template<class U> inline void setSpeedSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getSpeedSensor(bool poll = false);
+};
+
+// Power Production Aware Interface
+class HelioPowerProductionSensorAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getPowerProduction(bool poll = false) = 0;
+
+    template<class U> inline void setPowerProductionSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getPowerProductionSensor(bool poll = false);
+};
+
+// Power Usage Aware Interface
+class HelioPowerUsageSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getPowerUsage(bool poll = false) = 0;
 
