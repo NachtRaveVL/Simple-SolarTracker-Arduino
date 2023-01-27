@@ -378,6 +378,38 @@ bool HelioRelayMotorActuator::getCanEnable()
     return false;
 }
 
+bool HelioRelayMotorActuator::_enableActuator(float intensity)
+{
+    if (_outputPin.isValid() && _outputPin2.isValid() && !_enabled) {
+        if (!isFPEqual(intensity, 0.0f)) {
+            _enabled = true;
+            if (!signbit(intensity)) {
+                _outputPin.activate();
+                _outputPin2.deactivate();
+            } else {
+                _outputPin.deactivate();
+                _outputPin2.activate();
+            }
+            handleActivation();
+        } else {
+            _outputPin.deactivate();
+            _outputPin2.deactivate();
+        }
+    }
+
+    return _enabled;
+}
+
+void HelioRelayMotorActuator::_disableActuator()
+{
+    if (_outputPin.isValid() && _outputPin2.isValid() && _enabled) {
+        _enabled = false;
+        _outputPin.deactivate();
+        _outputPin2.deactivate();
+        handleActivation();
+    }
+}
+
 void HelioRelayMotorActuator::handleActivation()
 {
     millis_t time = millis();
