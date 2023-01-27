@@ -153,7 +153,7 @@ void HelioActuator::update()
                 break;
         }
 
-        _enableActuator(constrain(drivingIntensity, -1.0f, 1.0f));
+        _enableActuator(drivingIntensity);
         _needsUpdate = false;
     }
 }
@@ -293,11 +293,13 @@ bool HelioRelayActuator::isEnabled(float tolerance) const
 
 bool HelioRelayActuator::_enableActuator(float intensity)
 {
+    bool wasEnabled = _enabled;
+
     if (_outputPin.isValid() && !_enabled) {
         if (!isFPEqual(intensity, 0.0f)) {
             _enabled = true;
             _outputPin.activate();
-            handleActivation();
+            if (!wasEnabled) { handleActivation(); }
         } else {
             _outputPin.deactivate();
         }
@@ -380,17 +382,21 @@ bool HelioRelayMotorActuator::getCanEnable()
 
 bool HelioRelayMotorActuator::_enableActuator(float intensity)
 {
-    if (_outputPin.isValid() && _outputPin2.isValid() && !_enabled) {
-        if (!isFPEqual(intensity, 0.0f)) {
+    bool wasEnabled = _enabled;
+    intensity = constrain(intensity, -1.0f, 1.0f);
+
+    if (_outputPin.isValid() && _outputPin2.isValid() && (!_enabled || !isFPEqual(_intensity, intensity))) {
+        _intensity = intensity;
+        if (!isFPEqual(_intensity, 0.0f)) {
             _enabled = true;
-            if (!signbit(intensity)) {
+            if (!signbit(_intensity)) {
                 _outputPin.activate();
                 _outputPin2.deactivate();
             } else {
                 _outputPin.deactivate();
                 _outputPin2.activate();
             }
-            handleActivation();
+            if (!wasEnabled) { handleActivation(); }
         } else {
             _outputPin.deactivate();
             _outputPin2.deactivate();
@@ -413,6 +419,7 @@ void HelioRelayMotorActuator::_disableActuator()
 void HelioRelayMotorActuator::handleActivation()
 {
     millis_t time = millis();
+    HelioActuator::handleActivation();
 
     if (_enabled) {
         _travelDistanceAccum = 0;
@@ -468,7 +475,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
                 getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
             }
             getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
-            return enableActuator(time);
+            return enableActuator(direction, 1.0f, time);
         #else
             getLoggerInstance()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
             if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
@@ -476,7 +483,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
                 getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
             }
             getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
-            return enableActuator(time);
+            return enableActuator(direction, 1.0f, time);
         #endif
     }
 }
@@ -615,6 +622,7 @@ bool HelioVariableActuator::isEnabled(float tolerance) const
 
 bool HelioVariableActuator::_enableActuator(float intensity)
 {
+    bool wasEnabled = _enabled;
     intensity = constrain(intensity, 0.0f, 1.0f);
 
     if (_outputPin.isValid() && (!_enabled || !isFPEqual(_intensity, intensity))) {
@@ -622,7 +630,7 @@ bool HelioVariableActuator::_enableActuator(float intensity)
         if (!isFPEqual(_intensity, 0.0f)) {
             _enabled = true;
             _outputPin.analogWrite(_intensity);
-            handleActivation();
+            if (!wasEnabled) { handleActivation(); }
         } else {
             _outputPin.analogWrite_raw(0);
         }

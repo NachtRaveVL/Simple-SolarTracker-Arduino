@@ -149,7 +149,6 @@ protected:
 
     virtual bool _enableActuator(float intensity = 1.0) override;
     virtual void _disableActuator() override;
-    virtual void handleActivation() override;
 };
 
 
@@ -189,6 +188,7 @@ public:
 
 protected:
     HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse)
+    float _intensity;                                       // Current set intensity
     Helio_UnitsType _distanceUnits;                         // Distance units preferred
     Helio_UnitsType _speedUnits;                            // Speed units preferred
     HelioSingleMeasurement _contSpeed;                      // Continuous speed
