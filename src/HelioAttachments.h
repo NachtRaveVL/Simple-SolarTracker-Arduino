@@ -161,8 +161,8 @@ public:
 
     inline void updateIfNeeded(bool poll = false);
 
-    void setMeasurement(float value, Helio_UnitsType units = Helio_UnitsType_Undefined);
     void setMeasurement(HelioSingleMeasurement measurement);
+    inline void setMeasurement(float value, Helio_UnitsType units = Helio_UnitsType_Undefined) { setMeasurement(HelioSingleMeasurement(value, units)); }
     void setMeasurementRow(uint8_t measurementRow);
     void setMeasurementUnits(Helio_UnitsType units, float convertParam = FLT_UNDEF);
 

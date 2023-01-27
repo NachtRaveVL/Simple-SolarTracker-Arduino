@@ -55,6 +55,10 @@ Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorT
         case Helio_SensorType_PowerUsage:
         case Helio_SensorType_PowerProduction:
             return Helio_UnitsCategory_Power;
+        case Helio_SensorType_WindSpeed:
+            return Helio_UnitsCategory_Speed;
+        case Helio_SensorType_StrokePosition:
+            return Helio_UnitsCategory_Distance;
         default: break;
     }
     return Helio_UnitsCategory_Undefined;

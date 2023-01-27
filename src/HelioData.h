@@ -33,7 +33,7 @@ struct HelioData : public HelioJSONSerializableInterface {
           int8_t idType;                                    // Object ID type enum value (e.g. actuator, sensor, etc.)
           int8_t objType;                                   // Object type enum value (e.g. actuatorType, sensorType, etc.)
           int8_t posIndex;                                  // Object position index # (zero-ordinal)
-          int8_t classType;                                 // Object class type enum value (e.g. pump, dht1w, etc.)
+          int8_t classType;                                 // Object class type enum value (e.g. motor, dht1w, etc.)
         } object;
     } id;                                                   // Identifier union
     uint16_t _size;                                         // The size (in bytes) of the data

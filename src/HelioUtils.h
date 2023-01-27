@@ -71,11 +71,11 @@ extern BasicArduinoInterruptAbstraction interruptImpl;
 
 // This will schedule an actuator to enable on the next TaskManagerIO runloop using the given intensity and enable time millis.
 // Actuator is captured. Returns taskId or TASKMGR_INVALIDID on error.
-taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float enableIntensity, time_t enableTimeMillis);
+taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float intensity, time_t duration);
 
 // This will schedule an actuator to enable on the next TaskManagerIO runloop using the given enable time millis.
 // Actuator is captured. Returns taskId or TASKMGR_INVALIDID on error.
-taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, time_t enableTimeMillis);
+taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, time_t duration);
 
 // This will schedule a signal's fire method on the next TaskManagerIO runloop using the given call/fire parameter.
 // Object is captured, if not nullptr. Returns taskId or TASKMGR_INVALIDID on error.
@@ -150,14 +150,14 @@ class ActuatorTimedEnableTask : public Executable {
 public:
     taskid_t taskId;
     ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuator,
-                            float enableIntensity,
-                            time_t enableTimeMillis);
+                            float intensity,
+                            millis_t duration);
 
     virtual void exec() override;
 private:
     SharedPtr<HelioActuator> _actuator;
-    float _enableIntensity;
-    time_t _enableTimeMillis;
+    float _intensity;
+    millis_t _duration;
 };
 
 
@@ -263,7 +263,7 @@ template<typename T> inline T mapValue(T value, T inMin, T inMax, T outMin, T ou
 extern unsigned int freeMemory();
 
 // This delays a finely timed amount, with spin loop nearer to end. Used in finely timed dispensers.
-extern void delayFine(millis_t timeMillis);
+extern void delayFine(millis_t time);
 
 // This will query the active RTC sync device for the current time.
 extern time_t rtcNow();
@@ -303,11 +303,15 @@ inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType o
 // Convert param used in certain unit conversions. Returns conversion success flag.
 inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) { return convertUnits(measureIn->value, &measureOut->value, measureIn->units, outUnits, &measureOut->units, convertParam); }
 
+// Returns the base units from a rate unit (e.g. mm/s -> mm).
+extern Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units);
 
 // Returns default temperature units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default distance units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+// Returns default speed units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
+extern Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default decimal places rounded to based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern int defaultDecimalPlaces(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 

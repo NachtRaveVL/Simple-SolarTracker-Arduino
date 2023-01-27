@@ -24,52 +24,50 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 }
 
 
-HelioActivationHandle::HelioActivationHandle(HelioActuator *actuator, Helio_DirectionMode directionIn, float intensityIn, millis_t forMillis, bool force)
-    : actuator(actuator), direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)), startMillis(0), durationMillis(forMillis), forced(force)
+HelioActivationHandle::HelioActivationHandle(HelioActuator *actuator, Helio_DirectionMode directionIn, float intensityIn, millis_t duration, bool force)
+    : actuator(actuator), direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)), start(0), duration(duration), forced(force)
 {
     if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
 }
 
 HelioActivationHandle::HelioActivationHandle(const HelioActivationHandle &handle)
     : actuator(handle.actuator), direction(handle.direction), intensity(constrain(handle.intensity, 0.0f, 1.0f)), forced(handle.forced),
-      startMillis(handle.startMillis), durationMillis(handle.durationMillis)
+      start(handle.start), duration(handle.duration)
 {
-    if (actuator) { actuator->_handles.push_back(this); }
+    if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
 }
 
 HelioActivationHandle::~HelioActivationHandle()
 {
-    if (actuator) { actuator->_needsUpdate = true;
-        for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
-            if ((*handleIter) == this) {
-                actuator->_handles.erase(handleIter);
-                break;
-            }
-        }
-        actuator = nullptr;
-    }
+    unset();
 }
 
 HelioActivationHandle &HelioActivationHandle::operator=(const HelioActivationHandle &handle)
 {
     if (handle.actuator != actuator) {
-        if (actuator) { actuator->_needsUpdate = true;
-            for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
-                if ((*handleIter) == this) {
-                    actuator->_handles.erase(handleIter);
-                    break;
-                }
-            }
-        }
+        unset();
         actuator = handle.actuator;
         if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
-    }
+    } else { start = 0; }
     direction = handle.direction;
     intensity = constrain(handle.intensity, 0.0f, 1.0f);
-    startMillis = 0;
-    durationMillis = handle.durationMillis;
+    duration = handle.duration;
     forced = handle.forced;
     return *this;
+}
+
+void HelioActivationHandle::unset()
+{
+    if (actuator) {
+        for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
+            if ((*handleIter) == this) {
+                actuator->_handles.erase(handleIter); actuator->_needsUpdate = true;
+                break;
+            }
+        }
+        actuator = nullptr;
+    }
+    start = duration = 0;
 }
 
 
@@ -167,14 +165,6 @@ bool HelioActuator::getCanEnable()
     return true;
 }
 
-void HelioActuator::setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits)
-{
-    _contPowerUsage.value = contPowerUsage;
-    _contPowerUsage.units = contPowerUsageUnits;
-    _contPowerUsage.updateTimestamp();
-    _contPowerUsage.updateFrame(1);
-}
-
 void HelioActuator::setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage)
 {
     _contPowerUsage = contPowerUsage;
@@ -225,6 +215,43 @@ void HelioActuator::saveToData(HelioData *dataOut)
     ((HelioActuatorData *)dataOut)->enableMode = _enableMode;
 }
 
+void HelioActuator::handleActivation()
+{
+    millis_t time = millis();
+
+    if (_enabled) {
+        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+            if ((*handleIter)->start == 0) {
+                (*handleIter)->start = max(1, time);
+            }
+        }
+
+        getLoggerInstance()->logActivation(this);
+    } else {
+        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+            if ((*handleIter)->duration) {
+                millis_t duration = time - (*handleIter)->start;
+
+                if (duration >= (*handleIter)->duration) {
+                    (*handleIter)->duration = 0;
+                    (*handleIter)->actuator = nullptr;
+                    handleIter = _handles.erase(handleIter) - 1;
+                } else {
+                    (*handleIter)->duration -= duration;
+                }
+            }
+        }
+
+        getLoggerInstance()->logDeactivation(this);
+    }
+
+    #ifdef HELIO_USE_MULTITASKING
+        scheduleSignalFireOnce<HelioActuator *>(getSharedPtr(), _activateSignal, this);
+    #else
+        _activateSignal.fire(this);
+    #endif
+}
+
 
 HelioRelayActuator::HelioRelayActuator(Helio_ActuatorType actuatorType,
                                        Helio_PositionIndex actuatorIndex,
@@ -254,31 +281,25 @@ HelioRelayActuator::~HelioRelayActuator()
     }
 }
 
+bool HelioRelayActuator::getCanEnable()
+{
+    return _outputPin.isValid() && HelioActuator::getCanEnable();
+}
+
+bool HelioRelayActuator::isEnabled(float tolerance) const
+{
+    return _enabled;
+}
+
 bool HelioRelayActuator::_enableActuator(float intensity)
 {
-    if (_outputPin.isValid()) {
-        bool enabledBefore = _enabled;
-
-        if (!_enabled && !isFPEqual(intensity, 0.0f)) {
+    if (_outputPin.isValid() && !_enabled) {
+        if (!isFPEqual(intensity, 0.0f)) {
             _enabled = true;
             _outputPin.activate();
-        }
-
-        if (_enabled && !enabledBefore) {
-            millis_t timeMillis = max(1, millis());
-            for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                if ((*handleIter) && (*handleIter)->startMillis == 0) {
-                    (*handleIter)->startMillis = timeMillis;
-                }
-            }
-
-            getLoggerInstance()->logActivation(this);
-
-            #ifdef HELIO_USE_MULTITASKING
-                scheduleSignalFireOnce<HelioActuator *>(getSharedPtr(), _activateSignal, this);
-            #else
-                _activateSignal.fire(this);
-            #endif
+            handleActivation();
+        } else {
+            _outputPin.deactivate();
         }
     }
 
@@ -287,52 +308,11 @@ bool HelioRelayActuator::_enableActuator(float intensity)
 
 void HelioRelayActuator::_disableActuator()
 {
-    if (_outputPin.isValid()) {
-        bool enabledBefore = _enabled;
-
-        if (_enabled) {
-            _enabled = false;
-            _outputPin.deactivate();
-        }
-
-        if (!_enabled && enabledBefore) {
-            millis_t timeMillis = millis();
-            for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                if ((*handleIter) && (*handleIter)->durationMillis) {
-                    millis_t durationMillis = timeMillis - (*handleIter)->startMillis;
-                    if (durationMillis >= (*handleIter)->durationMillis) {
-                        (*handleIter)->durationMillis = 0;
-                        (*handleIter)->actuator = nullptr;
-                        handleIter = _handles.erase(handleIter) - 1;
-                    } else {
-                        (*handleIter)->durationMillis -= durationMillis;
-                    }
-                }
-            }
-
-            getLoggerInstance()->logDeactivation(this);
-
-            #ifdef HELIO_USE_MULTITASKING
-                scheduleSignalFireOnce<HelioActuator *>(getSharedPtr(), _activateSignal, this);
-            #else
-                _activateSignal.fire(this);
-            #endif
-        }
+    if (_outputPin.isValid() && _enabled) {
+        _enabled = false;
+        _outputPin.deactivate();
+        handleActivation();
     }
-}
-
-bool HelioRelayActuator::getCanEnable()
-{
-    if (HelioActuator::getCanEnable()) {
-        // todo: adapt for panels
-        return true;
-    }
-    return false;
-}
-
-bool HelioRelayActuator::isEnabled(float tolerance) const
-{
-    return _enabled;
 }
 
 void HelioRelayActuator::saveToData(HelioData *dataOut)
@@ -343,12 +323,231 @@ void HelioRelayActuator::saveToData(HelioData *dataOut)
 }
 
 
+HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType,
+                                                 Helio_PositionIndex actuatorIndex,
+                                                 HelioDigitalPin forwardOutputPin,
+                                                 HelioDigitalPin reverseOutputPin,
+                                                 int classType)
+    :  HelioRelayActuator(actuatorType, actuatorIndex, forwardOutputPin, classType), _outputPin2(reverseOutputPin),
+       _distanceUnits(defaultDistanceUnits()), _speedUnits(defaultSpeedUnits()), _position(this), _speed(this),
+       _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
+{
+    _position.setMeasurementUnits(getDistanceUnits());
+    _speed.setMeasurementUnits(getSpeedUnits());
+}
+
+HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn)
+    : HelioRelayActuator(dataIn), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0),
+      _distanceUnits(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
+      _speedUnits(definedUnitsElse(dataIn->speedUnits, defaultSpeedUnits())),
+      _contSpeed(&(dataIn->contSpeed)),
+      _position(this), _speed(this)
+{
+    _position.setMeasurementUnits(getDistanceUnits());
+    _speed.setMeasurementUnits(getSpeedUnits());
+
+    _position.setObject(dataIn->positionSensor);
+    _speed.setObject(dataIn->speedSensor);
+}
+
+void HelioRelayMotorActuator::update()
+{
+    HelioActuator::update();
+
+    _position.updateIfNeeded(true);
+
+    _speed.updateIfNeeded(true);
+
+    if (_travelTimeAccum) {
+        millis_t time = millis();
+        millis_t motor = time - _travelTimeAccum;
+        if (motor >= HELIO_ACT_TRAVELCALC_MINWRTMILLIS) {
+            handleTravelTime(motor);
+            _travelTimeAccum = max(1, time);
+        }
+    }
+
+    if (_enabled) { pollTravelingSensors(); }
+}
+
+bool HelioRelayMotorActuator::getCanEnable()
+{
+    if (_outputPin2.isValid() && HelioRelayActuator::getCanEnable()) {
+        return true;
+    }
+    return false;
+}
+
+void HelioRelayMotorActuator::handleActivation()
+{
+    millis_t time = millis();
+
+    if (_enabled) {
+        _travelDistanceAccum = 0;
+        _travelTimeStart = _travelTimeAccum = max(1, time);
+    } else {
+        millis_t duration = time - _travelTimeAccum;
+        if (duration) { handleTravelTime(duration); }
+        _travelTimeAccum = 0;
+        duration = time - _travelTimeStart;
+
+        getLoggerInstance()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
+        if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+        getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistanceAccum, baseUnitsFromRate(getSpeedUnits()), 1));
+        getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
+    }
+}
+
+bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
+{
+    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
+        convertUnits(&distance, &distanceUnits, getDistanceUnits());
+        HelioSingleMeasurement position = getPosition().getMeasurement();
+        position.value += (direction != Helio_DirectionMode_Reverse ? distance : -distance);
+        return position.value > 0.0f && position.value <= 1000.0f; // todo: actual track bounds
+    }
+    return false;
+}
+
+HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
+{
+    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
+        convertUnits(&distance, &distanceUnits, baseUnitsFromRate(getSpeedUnits()));
+        return travel(direction, (millis_t)((distance / _contSpeed.value) * secondsToMillis(SECS_PER_MIN)));
+    }
+    return HelioActivationHandle();
+}
+
+bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, millis_t time)
+{
+    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
+        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()));
+    }
+    return false;
+}
+
+HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, millis_t time)
+{
+    if (getPanel()) {
+        #ifdef HELIO_USE_MULTITASKING
+            getLoggerInstance()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
+            if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+            if (_contSpeed.value > FLT_EPSILON) {
+                getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
+            }
+            getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
+            return enableActuator(time);
+        #else
+            getLoggerInstance()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
+            if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+            if (_contSpeed.value > FLT_EPSILON) {
+                getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
+            }
+            getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
+            return enableActuator(time);
+        #endif
+    }
+}
+
+void HelioRelayMotorActuator::setDistanceUnits(Helio_UnitsType distanceUnits)
+{
+    if (_distanceUnits != distanceUnits) {
+        _distanceUnits = distanceUnits;
+
+        _position.setMeasurementUnits(getDistanceUnits());
+    }
+}
+
+Helio_UnitsType HelioRelayMotorActuator::getDistanceUnits() const
+{
+    return definedUnitsElse(_distanceUnits, defaultDistanceUnits());
+}
+
+void HelioRelayMotorActuator::setSpeedUnits(Helio_UnitsType speedUnits)
+{
+    if (_speedUnits != speedUnits) {
+        _speedUnits = speedUnits;
+
+        convertUnits(&_contSpeed, getSpeedUnits());
+        _speed.setMeasurementUnits(getSpeedUnits());
+    }
+}
+
+Helio_UnitsType HelioRelayMotorActuator::getSpeedUnits() const
+{
+    return definedUnitsElse(_speedUnits, defaultDistanceUnits());
+}
+
+void HelioRelayMotorActuator::setContinuousSpeed(HelioSingleMeasurement contSpeed)
+{
+    _contSpeed = contSpeed;
+    _contSpeed.setMinFrame(1);
+
+    convertUnits(&_contSpeed, getSpeedUnits());
+}
+
+const HelioSingleMeasurement &HelioRelayMotorActuator::getContinuousSpeed()
+{
+    return _contSpeed;
+}
+
+HelioSensorAttachment &HelioRelayMotorActuator::getPosition(bool poll)
+{
+    _position.updateIfNeeded(poll);
+    return _position;
+}
+
+HelioSensorAttachment &HelioRelayMotorActuator::getSpeed(bool poll)
+{
+    _speed.updateIfNeeded(poll);
+    return _speed;
+}
+
+void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
+{
+    HelioRelayActuator::saveToData(dataOut);
+
+    _outputPin2.saveToData(&((HelioMotorActuatorData *)dataOut)->outputPin2);
+    ((HelioMotorActuatorData *)dataOut)->distanceUnits = _distanceUnits;
+    ((HelioMotorActuatorData *)dataOut)->speedUnits = _speedUnits;
+    if (_contSpeed.frame) {
+        _contSpeed.saveToData(&(((HelioMotorActuatorData *)dataOut)->contSpeed));
+    }
+    if (_position.getId()) {
+        strncpy(((HelioMotorActuatorData *)dataOut)->positionSensor, _position.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    }
+    if (_speed.getId()) {
+        strncpy(((HelioMotorActuatorData *)dataOut)->speedSensor, _speed.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    }
+}
+
+void HelioRelayMotorActuator::pollTravelingSensors()
+{
+    if (getPositionSensor()) {
+        _position->takeMeasurement(true);
+    }
+    if (getSpeedSensor()) {
+        _speed->takeMeasurement(true);
+    }
+}
+
+void HelioRelayMotorActuator::handleTravelTime(millis_t time)
+{
+    float speedVal = _speed.getMeasurementFrame() && getSpeedSensor() && !_speed->needsPolling(HELIO_ACT_TRAVELCALC_MAXFRAMEDIFF) &&
+                     _speed.getMeasurementValue() >= (_contSpeed.value * HELIO_ACT_TRAVELCALC_MINSPEED) - FLT_EPSILON ? _speed.getMeasurementValue() : _contSpeed.value;
+    float distanceTraveled = speedVal * (time / (float)secondsToMillis(SECS_PER_MIN));
+    _travelDistanceAccum += distanceTraveled;
+
+    // todo: speed/pos sensor variance
+}
+
+
 HelioVariableActuator::HelioVariableActuator(Helio_ActuatorType actuatorType,
                                              Helio_PositionIndex actuatorIndex,
                                              HelioAnalogPin outputPin,
                                              int classType)
     : HelioActuator(actuatorType, actuatorIndex, classType),
-      _outputPin(outputPin), _pwmAmount(0.0f)
+      _outputPin(outputPin), _intensity(0.0f)
 {
     HELIO_HARD_ASSERT(_outputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _outputPin.init();
@@ -357,7 +556,7 @@ HelioVariableActuator::HelioVariableActuator(Helio_ActuatorType actuatorType,
 
 HelioVariableActuator::HelioVariableActuator(const HelioActuatorData *dataIn)
     : HelioActuator(dataIn),
-      _outputPin(&dataIn->outputPin), _pwmAmount(0.0f)
+      _outputPin(&dataIn->outputPin), _intensity(0.0f)
 {
     HELIO_HARD_ASSERT(_outputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _outputPin.init();
@@ -372,25 +571,28 @@ HelioVariableActuator::~HelioVariableActuator()
     }
 }
 
+bool HelioVariableActuator::getCanEnable()
+{
+    return _outputPin.isValid() && HelioActuator::getCanEnable();
+}
+
+bool HelioVariableActuator::isEnabled(float tolerance) const
+{
+    return _enabled && _intensity >= tolerance - FLT_EPSILON;
+}
+
 bool HelioVariableActuator::_enableActuator(float intensity)
 {
-    if (_outputPin.isValid()) {
-        bool enabledBefore = _enabled;
+    intensity = constrain(intensity, 0.0f, 1.0f);
 
-        if (!_enabled || (_enabled && !isFPEqual(_pwmAmount, intensity))) {
+    if (_outputPin.isValid() && (!_enabled || !isFPEqual(_intensity, intensity))) {
+        _intensity = intensity;
+        if (!isFPEqual(_intensity, 0.0f)) {
             _enabled = true;
-            _pwmAmount = constrain(intensity, 0.0f, 1.0f);
-            _outputPin.analogWrite(_pwmAmount);
-        }
-
-        if (_enabled && !enabledBefore) {
-            getLoggerInstance()->logActivation(this);
-
-            #ifdef HELIO_USE_MULTITASKING
-                scheduleSignalFireOnce<HelioActuator *>(getSharedPtr(), _activateSignal, this);
-            #else
-                _activateSignal.fire(this);
-            #endif
+            _outputPin.analogWrite(_intensity);
+            handleActivation();
+        } else {
+            _outputPin.analogWrite_raw(0);
         }
     }
 
@@ -399,48 +601,11 @@ bool HelioVariableActuator::_enableActuator(float intensity)
 
 void HelioVariableActuator::_disableActuator()
 {
-    if (_outputPin.isValid()) {
-        bool enabledBefore = _enabled;
-
-        if (_enabled) {
-            _enabled = false;
-            _outputPin.analogWrite_raw(0);
-        }
-
-        if (!_enabled && enabledBefore) {
-            getLoggerInstance()->logDeactivation(this);
-
-            #ifdef HELIO_USE_MULTITASKING
-                scheduleSignalFireOnce<HelioActuator *>(getSharedPtr(), _activateSignal, this);
-            #else
-                _activateSignal.fire(this);
-            #endif
-        }
+    if (_outputPin.isValid() && _enabled) {
+        _enabled = false;
+        _outputPin.analogWrite_raw(0);
+        handleActivation();
     }
-}
-
-bool HelioVariableActuator::isEnabled(float tolerance) const
-{
-    return _enabled && _pwmAmount >= tolerance - FLT_EPSILON;
-}
-
-int HelioVariableActuator::getPWMAmount(int) const
-{
-    return _outputPin.bitRes.inverseTransform(_pwmAmount);
-}
-
-void HelioVariableActuator::setPWMAmount(float amount)
-{
-    _pwmAmount = constrain(amount, 0.0f, 1.0f);
-
-    if (_enabled) { _outputPin.analogWrite(_pwmAmount); }
-}
-
-void HelioVariableActuator::setPWMAmount(int amount)
-{
-    _pwmAmount = _outputPin.bitRes.transform(amount);
-
-    if (_enabled) { _outputPin.analogWrite(_pwmAmount); }
 }
 
 void HelioVariableActuator::saveToData(HelioData *dataOut)
@@ -452,7 +617,7 @@ void HelioVariableActuator::saveToData(HelioData *dataOut)
 
 
 HelioActuatorData::HelioActuatorData()
-    : HelioObjectData(), outputPin(), contPowerUsage(), railName{0}, panelName{0}, enableMode(Helio_EnableMode_Undefined)
+    : HelioObjectData(), outputPin(), enableMode(Helio_EnableMode_Undefined), contPowerUsage(), railName{0}, panelName{0}
 {
     _size = sizeof(*this);
 }
@@ -465,13 +630,13 @@ void HelioActuatorData::toJSONObject(JsonObject &objectOut) const
         JsonObject outputPinObj = objectOut.createNestedObject(SFP(HStr_Key_OutputPin));
         outputPin.toJSONObject(outputPinObj);
     }
+    if (enableMode != Helio_EnableMode_Undefined) { objectOut[SFP(HStr_Key_EnableMode)] = enableMode; }
     if (contPowerUsage.value > FLT_EPSILON) {
-        JsonObject contPowerUsageObj = objectOut.createNestedObject(SFP(HStr_Key_ContPowerUsage));
+        JsonObject contPowerUsageObj = objectOut.createNestedObject(SFP(HStr_Key_ContinousPowerUsage));
         contPowerUsage.toJSONObject(contPowerUsageObj);
     }
     if (railName[0]) { objectOut[SFP(HStr_Key_RailName)] = charsToString(railName, HELIO_NAME_MAXSIZE); }
     if (panelName[0]) { objectOut[SFP(HStr_Key_PanelName)] = charsToString(panelName, HELIO_NAME_MAXSIZE); }
-    if (enableMode != Helio_EnableMode_Undefined) { objectOut[SFP(HStr_Key_EnableMode)] = enableMode; }
 }
 
 void HelioActuatorData::fromJSONObject(JsonObjectConst &objectIn)
@@ -480,11 +645,51 @@ void HelioActuatorData::fromJSONObject(JsonObjectConst &objectIn)
 
     JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
     if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
-    JsonVariantConst contPowerUsageVar = objectIn[SFP(HStr_Key_ContPowerUsage)];
+    enableMode = objectIn[SFP(HStr_Key_EnableMode)] | enableMode;
+    JsonVariantConst contPowerUsageVar = objectIn[SFP(HStr_Key_ContinousPowerUsage)];
     if (!contPowerUsageVar.isNull()) { contPowerUsage.fromJSONVariant(contPowerUsageVar); }
     const char *railNameStr = objectIn[SFP(HStr_Key_RailName)];
     if (railNameStr && railNameStr[0]) { strncpy(railName, railNameStr, HELIO_NAME_MAXSIZE); }
     const char *panelNameStr = objectIn[SFP(HStr_Key_PanelName)];
     if (panelNameStr && panelNameStr[0]) { strncpy(panelName, panelNameStr, HELIO_NAME_MAXSIZE); }
-    enableMode = objectIn[SFP(HStr_Key_EnableMode)] | enableMode;
+}
+
+HelioMotorActuatorData::HelioMotorActuatorData()
+    : HelioActuatorData(), outputPin2(), distanceUnits(Helio_UnitsType_Undefined), speedUnits(Helio_UnitsType_Undefined), contSpeed(), positionSensor{0}, speedSensor{0}
+{
+    _size = sizeof(*this);
+}
+
+void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
+{
+    HelioActuatorData::toJSONObject(objectOut);
+
+    if (isValidPin(outputPin2.pin)) {
+        JsonObject outputPin2Obj = objectOut.createNestedObject(SFP(HStr_Key_OutputPin2));
+        outputPin2.toJSONObject(outputPin2Obj);
+    }
+    if (distanceUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_DistanceUnits)] = unitsTypeToSymbol(distanceUnits); }
+    if (speedUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_SpeedUnits)] = unitsTypeToSymbol(distanceUnits); }
+    if (contSpeed.value > FLT_EPSILON) {
+        JsonObject contSpeedObj = objectOut.createNestedObject(SFP(HStr_Key_ContinousSpeed));
+        contSpeed.toJSONObject(contSpeedObj);
+    }
+    if (positionSensor[0]) { objectOut[SFP(HStr_Key_PositionSensor)] = charsToString(positionSensor, HELIO_NAME_MAXSIZE); }
+    if (speedSensor[0]) { objectOut[SFP(HStr_Key_SpeedSensor)] = charsToString(speedSensor, HELIO_NAME_MAXSIZE); }
+}
+
+void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
+{
+    HelioActuatorData::fromJSONObject(objectIn);
+
+    JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
+    if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
+    distanceUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_DistanceUnits)]);
+    speedUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_SpeedUnits)]);
+    JsonVariantConst contSpeedVar = objectIn[SFP(HStr_Key_ContinousSpeed)];
+    if (!contSpeedVar.isNull()) { contSpeed.fromJSONVariant(contSpeedVar); }
+    const char *positionSensorStr = objectIn[SFP(HStr_Key_PositionSensor)];
+    if (positionSensorStr && positionSensorStr[0]) { strncpy(positionSensor, positionSensorStr, HELIO_NAME_MAXSIZE); }
+    const char *speedSensorStr = objectIn[SFP(HStr_Key_SpeedSensor)];
+    if (speedSensorStr && speedSensorStr[0]) { strncpy(speedSensor, speedSensorStr, HELIO_NAME_MAXSIZE); }
 }

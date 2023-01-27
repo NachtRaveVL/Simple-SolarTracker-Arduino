@@ -174,22 +174,22 @@ void HelioSystemData::fromJSONObject(JsonObjectConst &objectIn)
 
 HelioCalibrationData::HelioCalibrationData()
     : HelioData('H','C','A','L', 1),
-      sensorName{0}, calibUnits(Helio_UnitsType_Undefined),
+      ownerName{0}, calibUnits(Helio_UnitsType_Undefined),
       multiplier(1.0f), offset(0.0f)
 {
     _size = sizeof(*this);
     HELIO_HARD_ASSERT(isCalibrationData(), SFP(HStr_Err_OperationFailure));
 }
 
-HelioCalibrationData::HelioCalibrationData(HelioIdentity sensorId, Helio_UnitsType calibUnitsIn)
+HelioCalibrationData::HelioCalibrationData(HelioIdentity ownerId, Helio_UnitsType calibUnitsIn)
     : HelioData('H','C','A','L', 1),
-      sensorName{0}, calibUnits(calibUnitsIn),
+      ownerName{0}, calibUnits(calibUnitsIn),
       multiplier(1.0f), offset(0.0f)
 {
     _size = sizeof(*this);
     HELIO_HARD_ASSERT(isCalibrationData(), SFP(HStr_Err_OperationFailure));
-    if (sensorId) {
-        strncpy(sensorName, sensorId.keyString.c_str(), HELIO_NAME_MAXSIZE);
+    if (ownerId) {
+        strncpy(ownerName, ownerId.keyString.c_str(), HELIO_NAME_MAXSIZE);
     }
 }
 
@@ -197,7 +197,7 @@ void HelioCalibrationData::toJSONObject(JsonObject &objectOut) const
 {
     HelioData::toJSONObject(objectOut);
 
-    if (sensorName[0]) { objectOut[SFP(HStr_Key_SensorName)] = charsToString(sensorName, HELIO_NAME_MAXSIZE); }
+    if (ownerName[0]) { objectOut[SFP(HStr_Key_SensorName)] = charsToString(ownerName, HELIO_NAME_MAXSIZE); }
     if (calibUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_CalibUnits)] = unitsTypeToSymbol(calibUnits); }
     objectOut[SFP(HStr_Key_Multiplier)] = multiplier;
     objectOut[SFP(HStr_Key_Offset)] = offset;
@@ -207,8 +207,8 @@ void HelioCalibrationData::fromJSONObject(JsonObjectConst &objectIn)
 {
     HelioData::fromJSONObject(objectIn);
 
-    const char *sensorNameStr = objectIn[SFP(HStr_Key_SensorName)];
-    if (sensorNameStr && sensorNameStr[0]) { strncpy(sensorName, sensorNameStr, HELIO_NAME_MAXSIZE); }
+    const char *ownerNameStr = objectIn[SFP(HStr_Key_SensorName)];
+    if (ownerNameStr && ownerNameStr[0]) { strncpy(ownerName, ownerNameStr, HELIO_NAME_MAXSIZE); }
     calibUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_CalibUnits)]);
     multiplier = objectIn[SFP(HStr_Key_Multiplier)] | multiplier;
     offset = objectIn[SFP(HStr_Key_Offset)] | offset;

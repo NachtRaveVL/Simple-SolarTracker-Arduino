@@ -37,16 +37,16 @@ DateTime HelioRTCWrapper<RTC_DS1307>::now()
 BasicArduinoInterruptAbstraction interruptImpl;
 
 
-ActuatorTimedEnableTask::ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuator, float enableIntensity, time_t enableTimeMillis)
-    : taskId(TASKMGR_INVALIDID), _actuator(actuator), _enableIntensity(enableIntensity), _enableTimeMillis(enableTimeMillis)
+ActuatorTimedEnableTask::ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuator, float intensity, millis_t duration)
+    : taskId(TASKMGR_INVALIDID), _actuator(actuator), _intensity(intensity), _duration(duration)
 { ; }
 
 void ActuatorTimedEnableTask::exec()
 {
-    HelioActivationHandle handle(_actuator.get(), _enableIntensity, _enableTimeMillis);
+    HelioActivationHandle handle(_actuator.get(), _intensity, _duration);
 
     while (handle.actuator) {
-        if (handle.startMillis > 0 && handle.durationMillis > 0) {
+        if (handle.start > 0 && handle.duration > 0) {
             // todo
         }
 
@@ -54,17 +54,17 @@ void ActuatorTimedEnableTask::exec()
     }
 }
 
-taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float enableIntensity, time_t enableTimeMillis)
+taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float intensity, time_t duration)
 {
-    ActuatorTimedEnableTask *enableTask = actuator ? new ActuatorTimedEnableTask(actuator, enableIntensity, enableTimeMillis) : nullptr;
+    ActuatorTimedEnableTask *enableTask = actuator ? new ActuatorTimedEnableTask(actuator, intensity, duration) : nullptr;
     HELIO_SOFT_ASSERT(!actuator || enableTask, SFP(HStr_Err_AllocationFailure));
     taskid_t retVal = enableTask ? taskManager.scheduleOnce(0, enableTask, TIME_MILLIS, true) : TASKMGR_INVALIDID;
     return (enableTask ? (enableTask->taskId = retVal) : retVal);
 }
 
-taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, time_t enableTimeMillis)
+taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, time_t duration)
 {
-    ActuatorTimedEnableTask *enableTask = actuator ? new ActuatorTimedEnableTask(actuator, 1.0f, enableTimeMillis) : nullptr;
+    ActuatorTimedEnableTask *enableTask = actuator ? new ActuatorTimedEnableTask(actuator, 1.0f, duration) : nullptr;
     HELIO_SOFT_ASSERT(!actuator || enableTask, SFP(HStr_Err_AllocationFailure));
     taskid_t retVal = enableTask ? taskManager.scheduleOnce(0, enableTask, TIME_MILLIS, true) : TASKMGR_INVALIDID;
     return (enableTask ? (enableTask->taskId = retVal) : retVal);
@@ -483,18 +483,18 @@ unsigned int freeMemory() {
     #endif
 }
 
-void delayFine(millis_t timeMillis) {
-    millis_t startMillis = millis();
-    time_t endMillis = startMillis + timeMillis;
+void delayFine(millis_t time) {
+    millis_t start = millis();
+    time_t end = start + time;
 
-    {   time_t delayMillis = max(0, timeMillis - HELIO_SYS_DELAYFINE_SPINMILLIS);
-        if (delayMillis > 0) { delay(delayMillis); }
+    {   time_t left = max(0, time - HELIO_SYS_DELAYFINE_SPINMILLIS);
+        if (left > 0) { delay(left); }
     }
 
-    {   millis_t timeMillis = millis();
-        while ((endMillis >= startMillis && (timeMillis < endMillis)) ||
-                (endMillis < startMillis && (timeMillis >= startMillis || timeMillis < endMillis))) {
-            timeMillis = millis();
+    {   millis_t time = millis();
+        while ((end >= start && (time < end)) ||
+               (end < start && (time >= start || time < end))) {
+            time = millis();
         }
     }
 }
@@ -589,7 +589,29 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Distance_Feet:
             switch (unitsOut) {
                 case Helio_UnitsType_Distance_Meters:
-                    *valueOut = valueIn * 0.3048;
+                    *valueOut = valueIn * 0.3048f;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Speed_MetersPerMin:
+            switch (unitsOut) {
+                case Helio_UnitsType_Speed_FeetPerMin:
+                    *valueOut = valueIn * 3.28084f;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Speed_FeetPerMin:
+            switch (unitsOut) {
+                case Helio_UnitsType_Speed_MetersPerMin:
+                    *valueOut = valueIn * 0.3048f;
                     return true;
 
                 default:
@@ -648,6 +670,19 @@ bool convertUnits(float valueIn, float *valueOut, Helio_UnitsType unitsIn, Helio
     return false;
 }
 
+Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units)
+{
+    switch (units) {
+        case Helio_UnitsType_Speed_MetersPerMin:
+            return Helio_UnitsType_Distance_Meters;
+        case Helio_UnitsType_Speed_FeetPerMin:
+            return Helio_UnitsType_Distance_Feet;
+        default:
+            break;
+    }
+    return Helio_UnitsType_Undefined;
+}
+
 Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode)
 {
     if (measureMode == Helio_MeasurementMode_Undefined) {
@@ -674,10 +709,27 @@ Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode)
 
     switch (measureMode) {
         case Helio_MeasurementMode_Imperial:
-            return Helio_UnitsType_Distance_Meters;
+            return Helio_UnitsType_Distance_Feet;
         case Helio_MeasurementMode_Metric:
         case Helio_MeasurementMode_Scientific:
             return Helio_UnitsType_Distance_Meters;
+        default:
+            return Helio_UnitsType_Undefined;
+    }
+}
+
+Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode)
+{
+    if (measureMode == Helio_MeasurementMode_Undefined) {
+        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
+    }
+
+    switch (measureMode) {
+        case Helio_MeasurementMode_Imperial:
+            return Helio_UnitsType_Speed_FeetPerMin;
+        case Helio_MeasurementMode_Metric:
+        case Helio_MeasurementMode_Scientific:
+            return Helio_UnitsType_Speed_MetersPerMin;
         default:
             return Helio_UnitsType_Undefined;
     }
@@ -954,9 +1006,9 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
             // todo return SFP(HStr_Enum_XXX);
         case Helio_ActuatorType_PanelCleaner:
             // todo return SFP(HStr_Enum_XXX);
-        case Helio_ActuatorType_AxisLinearActuator:
+        case Helio_ActuatorType_LinearActuator:
             // todo return SFP(HStr_Enum_XXX);
-        case Helio_ActuatorType_AxisRotaryServo:
+        case Helio_ActuatorType_RotaryServo:
             // todo return SFP(HStr_Enum_XXX);
         case Helio_ActuatorType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
@@ -1040,6 +1092,8 @@ String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpec
             return SFP(HStr_Enum_AirHeatIndex);
         case Helio_UnitsCategory_Distance:
             return SFP(HStr_Enum_Distance);
+        case Helio_UnitsCategory_Speed:
+            return SFP(HStr_Enum_Speed);
         case Helio_UnitsCategory_Power:
             return SFP(HStr_Enum_Power);
         case Helio_UnitsCategory_Count:
@@ -1067,6 +1121,10 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             return SFP(HStr_Unit_Meters);
         case Helio_UnitsType_Distance_Feet:
             return SFP(HStr_Unit_Feet);
+        case Helio_UnitsType_Speed_MetersPerMin:
+            return SFP(HStr_Unit_MetersPerMin);
+        case Helio_UnitsType_Speed_FeetPerMin:
+            return SFP(HStr_Unit_FeetPerMin);
         case Helio_UnitsType_Power_Wattage:
             return SFP(HStr_Unit_Wattage); // alt: J/s
         case Helio_UnitsType_Power_Amperage:
