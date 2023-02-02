@@ -108,9 +108,8 @@ typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin statu
 #define HELIO_DATA_LOOP_INTERVAL        2000                // Default run interval of data loop, in milliseconds (customizable later)
 #define HELIO_MISC_LOOP_INTERVAL        250                 // Run interval of misc loop, in milliseconds
 
-#define HELIO_ACT_TRAVELCALC_MINWRTMILLIS 250               // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
+#define HELIO_ACT_TRAVELCALC_UPDATEMS   250                 // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
 #define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
-#define HELIO_ACT_TRAVELCALC_MAXFRAMEDIFF 5                 // Maximum polling frames # away an instantaneous speed can be for it to be used in travel/distance calculations (so it uses only recent measurements)
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0

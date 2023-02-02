@@ -148,6 +148,7 @@ public:
 class HelioActuatorObjectInterface {
 public:
     virtual bool getCanEnable() = 0;
+    virtual float getDriveIntensity() = 0;
     virtual bool isEnabled(float tolerance = 0.0f) const = 0;
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) = 0;
@@ -155,7 +156,7 @@ public:
     inline void setContinuousPowerUsage(float contPowerUsage, Helio_UnitsType contPowerUsageUnits = Helio_UnitsType_Undefined);
 
 protected:
-    virtual bool _enableActuator(float intensity = 1.0) = 0;
+    virtual void _enableActuator(float intensity = 1.0) = 0;
     virtual void _disableActuator() = 0;
     virtual void handleActivation() = 0;
 };
@@ -166,7 +167,7 @@ public:
     virtual bool takeMeasurement(bool force = false) = 0;
     virtual const HelioMeasurement *getLatestMeasurement() const = 0;
     virtual bool isTakingMeasurement() const = 0;
-    virtual bool needsPolling(uint32_t allowance = 0) const = 0;
+    virtual bool getNeedsPolling(uint32_t allowance = 0) const = 0;
 
 protected:
     //virtual void handleMeasurement() = 0;
