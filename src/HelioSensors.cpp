@@ -99,7 +99,7 @@ bool HelioSensor::isTakingMeasurement() const
     return _isTakingMeasure;
 }
 
-bool HelioSensor::needsPolling(uint32_t allowance) const
+bool HelioSensor::getNeedsPolling(uint32_t allowance) const
 {
     auto latestMeasurement = getLatestMeasurement();
     return getHelioInstance() && latestMeasurement ? getHelioInstance()->isPollingFrameOld(latestMeasurement->frame, allowance) : false;
@@ -171,7 +171,7 @@ HelioBinarySensor::~HelioBinarySensor()
 
 bool HelioBinarySensor::takeMeasurement(bool force)
 {
-    if (_inputPin.isValid() && (force || needsPolling()) && !_isTakingMeasure) {
+    if (_inputPin.isValid() && (force || getNeedsPolling()) && !_isTakingMeasure) {
         _isTakingMeasure = true;
         bool stateBefore = _lastMeasurement.state;
 
@@ -263,7 +263,7 @@ HelioAnalogSensor::HelioAnalogSensor(const HelioAnalogSensorData *dataIn)
 
 bool HelioAnalogSensor::takeMeasurement(bool force)
 {
-    if (_inputPin.isValid() && (force || needsPolling()) && !_isTakingMeasure) {
+    if (_inputPin.isValid() && (force || getNeedsPolling()) && !_isTakingMeasure) {
         _isTakingMeasure = true;
 
         #ifdef HELIO_USE_MULTITASKING
@@ -509,7 +509,7 @@ HelioDHTTempHumiditySensor::~HelioDHTTempHumiditySensor()
 
 bool HelioDHTTempHumiditySensor::takeMeasurement(bool force)
 {
-    if (getHelioInstance() && _dht && (force || needsPolling()) && !_isTakingMeasure) {
+    if (getHelioInstance() && _dht && (force || getNeedsPolling()) && !_isTakingMeasure) {
         _isTakingMeasure = true;
 
         #ifdef HELIO_USE_MULTITASKING

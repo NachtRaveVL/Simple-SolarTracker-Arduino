@@ -32,7 +32,8 @@ extern HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 // actuators are enabled for a specified duration, which is able to be async updated.
 // Finely timed activations should instead consider utilizing ActuatorTimedEnableTask.
 struct HelioActivationHandle {
-    HelioActuator *actuator;            // Actuator owner (strong)
+    SharedPtr<HelioActuator> actuator;  // Actuator owner
+    Slot<millis_t> *update;             // Update function slot (owned)
     float intensity;                    // Intensity (normalized [0.0,1.0])
     Helio_DirectionMode direction;      // Direction setting
     millis_t start;                     // Enablement start timestamp, in milliseconds, else 0
@@ -40,7 +41,7 @@ struct HelioActivationHandle {
     bool forced;                        // If activation should force enable and ignore cursory canEnable checks
 
     // Default constructor for empty handles
-    inline HelioActivationHandle() : actuator(nullptr), intensity(0.0f), direction(Helio_DirectionMode_Undefined), start(0), duration(0), forced(false) { ; }
+    inline HelioActivationHandle() : actuator(nullptr), update(nullptr), intensity(0.0f), direction(Helio_DirectionMode_Undefined), start(0), duration(0), forced(false) { ; }
     // Handle constructor that specifies a normalized enablement, ranged: normalized [0.0,1.0] for specified direction
     HelioActivationHandle(HelioActuator *actuator, Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = 0, bool force = false);
     // Handle constructor that specifies a binary enablement, ranged: (=0=,!0!) for disable/enable or (<=-1,=0=,>=1) for reverse/stop/forward
@@ -55,11 +56,15 @@ struct HelioActivationHandle {
     HelioActivationHandle &operator=(const HelioActivationHandle &handle);
     inline HelioActivationHandle &operator=(HelioActuator *actuator) { return operator=(actuator->enableActuator()); }
 
+    // Sets an update slot to run during execution of handle that can further refine duration value.
+    // Useful for rate-based or variable activations. Slot receives current system time millis() as parameter.
+    void setUpdate(Slot<millis_t> &slot);
+
     void unset();                       // For disconnecting from an actuator
 
-    // Driving intensity value ([-1,1] non-normalized, [0,1] normalized)
-    inline float getDriveIntensity(bool normalized = false) const { return direction == Helio_DirectionMode_Forward ? intensity :
-                                                                           direction == Helio_DirectionMode_Reverse ? (normalized ? intensity : -intensity) : 0.0f; }
+    // Driving intensity value
+    inline float getDriveIntensity() const { return direction == Helio_DirectionMode_Forward ? intensity :
+                                                    direction == Helio_DirectionMode_Reverse ? -intensity : 0.0f; }
 };
 
 
@@ -83,7 +88,6 @@ public:
     virtual void update() override;
 
     virtual bool getCanEnable() override;
-    virtual bool isEnabled(float tolerance = 0.0f) const = 0;
 
     inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = 0, bool force = false) { return HelioActivationHandle(this, direction, intensity, duration, force); }
     inline HelioActivationHandle enableActuator(float intensity = 1.0f, millis_t duration = 0, bool force = false) { return HelioActivationHandle(this, intensity, duration, force); }
@@ -138,6 +142,7 @@ public:
     virtual ~HelioRelayActuator();
 
     virtual bool getCanEnable() override;
+    virtual float getDriveIntensity() override;
     virtual bool isEnabled(float tolerance = 0.0f) const override;
 
     inline const HelioDigitalPin &getOutputPin() const { return _outputPin; }
@@ -147,7 +152,7 @@ protected:
 
     virtual void saveToData(HelioData *dataOut) override;
 
-    virtual bool _enableActuator(float intensity = 1.0) override;
+    virtual void _enableActuator(float intensity = 1.0) override;
     virtual void _disableActuator() override;
 };
 
@@ -168,6 +173,7 @@ public:
     virtual void update() override;
 
     virtual bool getCanEnable() override;
+    virtual float getDriveIntensity() override;
 
     virtual bool canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
     virtual HelioActivationHandle travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
@@ -187,20 +193,21 @@ public:
     virtual HelioSensorAttachment &getSpeed(bool poll = false) override;
 
 protected:
-    HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse)
+    HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse/H-bridge pin B)
     float _intensity;                                       // Current set intensity
     Helio_UnitsType _distanceUnits;                         // Distance units preferred
     Helio_UnitsType _speedUnits;                            // Speed units preferred
     HelioSingleMeasurement _contSpeed;                      // Continuous speed
     HelioSensorAttachment _position;                        // Position sensor attachment
     HelioSensorAttachment _speed;                           // Speed rate sensor attachment
+    float _travelPositionStart;                             // Start for travel distance
     float _travelDistanceAccum;                             // Accumulator for total distance traveled
     millis_t _travelTimeStart;                              // Time millis motor was activated at
     millis_t _travelTimeAccum;                              // Time millis motor has been accumulated up to
 
     virtual void saveToData(HelioData *dataOut) override;
 
-    virtual bool _enableActuator(float intensity = 1.0) override;
+    virtual void _enableActuator(float intensity = 1.0) override;
     virtual void _disableActuator() override;
     virtual void handleActivation() override;
 
@@ -222,10 +229,10 @@ public:
     virtual ~HelioVariableActuator();
 
     virtual bool getCanEnable() override;
+    virtual float getDriveIntensity() override;
     virtual bool isEnabled(float tolerance = 0.0f) const override;
 
-    inline float getIntensity() const { return _intensity; }
-    inline int getIntensity_raw() const { return _outputPin.bitRes.inverseTransform(_intensity); }
+    inline int getDriveIntensity_raw() const { return _outputPin.bitRes.inverseTransform(_intensity); }
 
     inline const HelioAnalogPin &getOutputPin() const { return _outputPin; }
 
@@ -235,7 +242,7 @@ protected:
 
     virtual void saveToData(HelioData *dataOut) override;
 
-    virtual bool _enableActuator(float intensity = 1.0) override;
+    virtual void _enableActuator(float intensity = 1.0) override;
     virtual void _disableActuator() override;
     virtual void handleActivation() override;
 };
