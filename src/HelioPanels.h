@@ -35,43 +35,27 @@ public:
 
     virtual void update() override;
 
-    virtual HelioSensorAttachment &getAxis1Position(bool poll = false) = 0;
-    virtual HelioSensorAttachment &getAxis2Position(bool poll = false) = 0;
+    virtual bool canActivate(HelioActuator *actuator) override;
 
-    virtual HelioBalancerAttachment &getAxis1Driver(bool resolve = true) = 0;
-    virtual HelioBalancerAttachment &getAxis2Driver(bool resolve = true) = 0;
+    virtual HelioDriverAttachment &getAxisDriver(int axisIndex = 0, bool resolve = true) = 0;
+    virtual int getAxisCount();
 
-    virtual bool isAxis1Retracted() = 0;
-    virtual bool isAxis1Extended() = 0;
+    virtual void setPowerUnits(Helio_UnitsType powerUnits);
+    virtual Helio_UnitsType getPowerUnits() const { return definedUnitsElse(_powerUnits, defaultPowerUnits()); }
 
-    virtual bool isAxis2Retracted() = 0;
-    virtual bool isAxis2Extended() = 0;
-
-    virtual void setAxis1Angle(float axis1Angle);
-    virtual void setAxis2Angle(float axis2Angle);
-
-    //virtual bool isFilled() = 0;
-    //virtual bool isEmpty() = 0;
-
-    //virtual void setVolumeUnits(Helio_UnitsType volumeUnits);
-    //virtual Helio_UnitsType getVolumeUnits() const { return definedUnitsElse(_volumeUnits, defaultLiquidVolumeUnits()); }
-
-    //virtual HelioSensorAttachment &getWaterVolume(bool poll = false) = 0;
+    virtual HelioSensorAttachment &getWaterVolume(bool poll = false) = 0;
 
     inline Helio_PanelType getPanelType() const { return _id.objTypeAs.panelType; }
     inline Helio_PositionIndex getPanelIndex() const { return _id.posIndex; }
+    inline Helio_PanelState getPanelState() const { return _panelState; }
 
-    //Signal<HelioPanel *, HELIO_PANEL_STATE_SLOTS> &getFilledSignal();
-    //Signal<HelioPanel *, HELIO_PANEL_STATE_SLOTS> &getEmptySignal();
+    Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> &getStateSignal();
 
 protected:
-    //Helio_UnitsType _volumeUnits;                     // Volume units preferred
+    Helio_UnitsType _powerUnits;                            // Power units preferred
+    Helio_PanelState _panelState;                           // Current panel state
 
-    //Helio_TriggerState _filledState;                  // Current filled state
-    //Helio_TriggerState _emptyState;                   // Current empty state
-
-    //Signal<HelioPanel *, HELIO_PANEL_STATE_SLOTS> _filledSignal; // Filled state signal
-    //Signal<HelioPanel *, HELIO_PANEL_STATE_SLOTS> _emptySignal; // Empty state signal
+    Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> _stateSignal; // Panel state signal
 
     virtual HelioData *allocateData() const override;
     virtual void saveToData(HelioData *dataOut) override;

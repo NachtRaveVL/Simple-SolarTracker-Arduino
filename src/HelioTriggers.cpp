@@ -69,7 +69,7 @@ Helio_TriggerState HelioTrigger::getTriggerState() const
     return _triggerState;
 }
 
-Signal<Helio_TriggerState, HELIO_TRIGGER_STATE_SLOTS> &HelioTrigger::getTriggerSignal()
+Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> &HelioTrigger::getTriggerSignal()
 {
     return _triggerSignal;
 }

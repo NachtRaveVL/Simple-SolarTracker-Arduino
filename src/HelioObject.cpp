@@ -232,7 +232,7 @@ String HelioObject::getKeyString() const
 SharedPtr<HelioObjInterface> HelioObject::getSharedPtr() const
 {
     return getHelioInstance() ? static_pointer_cast<HelioObjInterface>(getHelioInstance()->objectById(_id))
-                                    : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
+                              : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
 }
 
 HelioData *HelioObject::allocateData() const

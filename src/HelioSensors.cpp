@@ -120,7 +120,7 @@ void HelioSensor::setUserCalibrationData(HelioCalibrationData *userCalibrationDa
     }
 }
 
-Signal<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS> &HelioSensor::getMeasurementSignal()
+Signal<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> &HelioSensor::getMeasurementSignal()
 {
     return _measureSignal;
 }
@@ -226,7 +226,7 @@ bool HelioBinarySensor::tryRegisterAsISR()
     return _usingISR;
 }
 
-Signal<bool, HELIO_SENSOR_MEASUREMENT_SLOTS> &HelioBinarySensor::getStateSignal()
+Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> &HelioBinarySensor::getStateSignal()
 {
     return _stateSignal;
 }

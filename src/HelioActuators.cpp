@@ -24,43 +24,42 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 }
 
 
-HelioActivationHandle::HelioActivationHandle(HelioActuator *actuator, Helio_DirectionMode directionIn, float intensityIn, millis_t duration, bool force)
-    : actuator(actuator), direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)), start(0), duration(duration), forced(force)
+HelioActivationHandle::HelioActivationHandle(SharedPtr<HelioActuator> actuatorIn, Helio_DirectionMode directionIn, float intensityIn, millis_t durationIn, bool force)
+    : actuator(nullptr), direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)),
+      checkTime(0), duration(durationIn), elapsed(0), forced(force)
 {
-    if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
+    operator=(actuatorIn);
 }
 
 HelioActivationHandle::HelioActivationHandle(const HelioActivationHandle &handle)
-    : actuator(handle.actuator), direction(handle.direction), intensity(constrain(handle.intensity, 0.0f, 1.0f)),
-      start(0), duration(handle.duration), forced(handle.forced)
+    : actuator(nullptr), direction(handle.direction), intensity(handle.intensity),
+      checkTime(0), duration(handle.duration), elapsed(0), forced(handle.forced)
 {
-    if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
+    operator=(handle.actuator);
 }
 
 HelioActivationHandle::~HelioActivationHandle()
 {
     unset();
-    if (update) { delete update; }
 }
 
 HelioActivationHandle &HelioActivationHandle::operator=(const HelioActivationHandle &handle)
 {
-    if (handle.actuator != actuator) {
-        unset();
-        actuator = handle.actuator;
-        if (actuator) { actuator->_handles.push_back(this); actuator->_needsUpdate = true; }
-    } else { start = 0; }
     direction = handle.direction;
-    intensity = constrain(handle.intensity, 0.0f, 1.0f);
+    intensity = handle.intensity;
     duration = handle.duration;
     forced = handle.forced;
-    return *this;
+    return operator=(handle.actuator);
 }
 
-void HelioActivationHandle::setUpdate(Slot<millis_t> &slot)
+HelioActivationHandle &HelioActivationHandle::operator=(SharedPtr<HelioActuator> actuatorIn)
 {
-    if (update) { delete update; }
-    update = slot.clone();
+    if (actuator != actuatorIn) {
+        unset();
+        actuator = actuatorIn;
+        if (actuator) { actuator->_handles.push_back(this); actuator->setNeedsUpdate(); }
+    }
+    return *this;
 }
 
 void HelioActivationHandle::unset()
@@ -68,13 +67,25 @@ void HelioActivationHandle::unset()
     if (actuator) {
         for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
             if ((*handleIter) == this) {
-                actuator->_handles.erase(handleIter); actuator->_needsUpdate = true;
+                actuator->_handles.erase(handleIter); actuator->setNeedsUpdate();
                 break;
             }
         }
         actuator = nullptr;
     }
-    start = 0;
+    checkTime = 0;
+}
+
+void HelioActivationHandle::elapseBy(millis_t delta)
+{
+    if (delta && isActive()) {
+        if (!isInfinite()) {
+            if (delta < duration) { duration -= delta; }
+            else { delta = duration; duration = 0; }
+        }
+        checkTime += delta;
+        elapsed += delta;
+    }
 }
 
 
@@ -163,52 +174,14 @@ void HelioActuator::update()
         _enableActuator(drivingIntensity);
     }
 
+    // Update running handles and elapse them as needed
     if (_enabled && wasEnabled) {
         millis_t time = millis();
-
-        switch (_enableMode) {
-            case Helio_EnableMode_Highest:
-            case Helio_EnableMode_Lowest:
-            case Helio_EnableMode_Average:
-            case Helio_EnableMode_Multiply: {
-                // Parallel actuators all run in unison
-                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    if ((*handleIter)->update) {
-                        (*handleIter)->update->operator()(time - (*handleIter)->start);
-                    }
-                }
-            } break;
-
-            case Helio_EnableMode_InOrder: {
-                auto handleIter = _handles.begin();
-                if ((*handleIter)->update) {
-                    (*handleIter)->update->operator()(time - (*handleIter)->start);
-                }
-            } break;
-
-            case Helio_EnableMode_RevOrder: {
-                auto handleIter = _handles.end() - 1;
-                if ((*handleIter)->update) {
-                    (*handleIter)->update->operator()(time - (*handleIter)->start);
-                }
-            } break;
-
-            case Helio_EnableMode_DesOrder:
-            case Helio_EnableMode_AscOrder: {
-                float drivingIntensity = getDriveIntensity();
-
-                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    if (isFPEqual((*handleIter)->intensity, drivingIntensity)) {
-                        if ((*handleIter)->update) {
-                            (*handleIter)->update->operator()(time - (*handleIter)->start);
-                        }
-                        break;
-                    }
-                }
-            } break;
-
-            default:
-                break;
+        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+            if ((*handleIter)->isActive()) {
+                (*handleIter)->elapseBy(time - (*handleIter)->checkTime);
+                if (getActuatorIsSerialFromMode(_enableMode)) { break; }
+            }
         }
     }
 
@@ -245,7 +218,7 @@ HelioAttachment &HelioActuator::getParentPanel(bool resolve)
     return _panel;
 }
 
-Signal<HelioActuator *> &HelioActuator::getActivationSignal()
+Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> &HelioActuator::getActivationSignal()
 {
     return _activateSignal;
 }
@@ -277,34 +250,37 @@ void HelioActuator::handleActivation()
     millis_t time = millis();
 
     if (_enabled) {
-        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-            if ((*handleIter)->actuator.get() == this && (*handleIter)->start == 0) {
-                (*handleIter)->start = max(1, time);
-            }
+        switch (_enableMode) {
+            case Helio_EnableMode_InOrder:
+                (*_handles.begin())->checkTime = max(1, time);
+                break;
+            case Helio_EnableMode_RevOrder:
+                (*(_handles.end() - 1))->checkTime = max(1, time);
+                break;
+            default: {
+                bool isSerial = getActuatorIsSerialFromMode(_enableMode);
+                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                    if ((*handleIter)->checkTime == 0 && (!isSerial || isFPEqual((*handleIter)->intensity, getDriveIntensity()))) {
+                        (*handleIter)->checkTime = max(1, time);
+                        if (isSerial) { break; }
+                    }
+                }
+            } break;
         }
 
         getLoggerInstance()->logActivation(this);
     } else {
         for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-            if ((*handleIter)->duration) {
-                millis_t duration = time - (*handleIter)->start;
+            if ((*handleIter)->isActive()) {
+                (*handleIter)->elapseBy(time - (*handleIter)->checkTime);
+                (*handleIter)->checkTime = 0;
 
-                if (duration >= (*handleIter)->duration) {
-                    duration = (*handleIter)->duration; (*handleIter)->duration = 0;
-                    if ((*handleIter)->update) {
-                        (*handleIter)->update->operator()(duration);
-                    }
-                    (*handleIter)->start = 0;
-                    (*handleIter)->actuator = nullptr;
+                if ((*handleIter)->isDone()) {
+                    (*handleIter)->actuator = nullptr; // purposeful no-call to unset, handled here
                     handleIter = _handles.erase(handleIter) - 1;
-                } else {
-                    (*handleIter)->duration -= duration;
-                    if ((*handleIter)->update) {
-                        (*handleIter)->update->operator()(duration);
-                    }
-                    (*handleIter)->start = 0;
                 }
             }
+            if (getActuatorIsSerialFromMode(_enableMode)) { break; }
         }
 
         getLoggerInstance()->logDeactivation(this);

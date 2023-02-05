@@ -13,8 +13,11 @@ HelioDLinkObject::HelioDLinkObject(const HelioDLinkObject &obj)
     : _key(obj._key), _obj(obj._obj), _keyStr(nullptr)
 {
     if (obj._keyStr) {
-        _keyStr = (const char *)malloc(strlen(obj._keyStr) + 1);
-        strcpy((char *)_keyStr, obj._keyStr);
+        auto len = strnlen(obj._keyStr, HELIO_NAME_MAXSIZE);
+        if (len) {
+            _keyStr = (const char *)malloc(len + 1);
+            strncpy((char *)_keyStr, obj._keyStr, len + 1);
+        }
     }
 }
 
@@ -30,7 +33,7 @@ void HelioDLinkObject::unresolve()
         auto len = id.keyString.length();
         if (len) {
             _keyStr = (const char *)malloc(len + 1);
-            strcpy((char *)_keyStr, id.keyString.c_str());
+            strncpy((char *)_keyStr, id.keyString.c_str(), len + 1);
         }
     }
     HELIO_HARD_ASSERT(!_obj || _key == _obj->getKey(), SFP(HStr_Err_OperationFailure));
@@ -50,53 +53,96 @@ SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
     return _obj;
 }
 
+
 HelioAttachment::HelioAttachment(HelioObjInterface *parent)
     : _parent(parent), _obj()
+{ ; }
+
+HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
+    : _parent(attachment._parent), _obj()
 {
-    HELIO_HARD_ASSERT(_parent, SFP(HStr_Err_InvalidParameter));
+    setObject(attachment._obj);
 }
 
 HelioAttachment::~HelioAttachment()
 {
-    if (isResolved()) {
+    if (_parent && isResolved()) {
         _obj->removeLinkage((HelioObject *)_parent);
     }
 }
 
 void HelioAttachment::attachObject()
 {
-    _obj->addLinkage((HelioObject *)_parent);
+    if (resolve() && _parent) { // purposeful resolve in front
+        _obj->addLinkage((HelioObject *)_parent);
+    }
 }
 
 void HelioAttachment::detachObject()
 {
-    if (isResolved()) {
+    if (_parent && isResolved()) {
         _obj->removeLinkage((HelioObject *)_parent);
     }
     // note: used to set _obj to nullptr here, but found that it's best not to -> avoids additional operator= calls during typical detach scenarios
 }
 
+void HelioAttachment::updateIfNeeded(bool poll)
+{
+    // intended to be overridden by derived classes, but not an error if left not implemented
+}
+
+void HelioAttachment::setParent(HelioObjInterface *parent)
+{
+    if (_parent != parent) {
+        if (isResolved() && _parent) { _obj->removeLinkage((HelioObject *)_parent); }
+        _parent = parent;
+        if (isResolved() && _parent) { _obj->addLinkage((HelioObject *)_parent); }
+    }
+}
+
+
 HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
-    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS>(
+    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(
           parent, &HelioSensor::getMeasurementSignal),
       _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
     setHandleMethod(&HelioSensorAttachment::handleMeasurement);
 }
 
+HelioSensorAttachment::HelioSensorAttachment(const HelioSensorAttachment &attachment)
+    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(attachment),
+      _measurement(attachment._measurement), _measurementRow(attachment._measurementRow),
+      _convertParam(attachment._convertParam), _needsMeasurement(attachment._needsMeasurement)
+{
+    setHandleSlot(*attachment._handleSlot);
+}
+
+HelioSensorAttachment::~HelioSensorAttachment()
+{ ; }
+
 void HelioSensorAttachment::attachObject()
 {
-    HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS>::attachObject();
+    HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>::attachObject();
 
-    if (_handleMethod) { _handleMethod->operator()(get()->getLatestMeasurement()); }
+    if (_handleSlot) { _handleSlot->operator()(get()->getLatestMeasurement()); }
     else { handleMeasurement(get()->getLatestMeasurement()); }
 }
 
 void HelioSensorAttachment::detachObject()
 {
-    HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS>::detachObject();
+    HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>::detachObject();
 
     setNeedsMeasurement();
+}
+
+void HelioSensorAttachment::updateIfNeeded(bool poll)
+{
+    if (resolve() && (_needsMeasurement || poll)) {
+        if (_handleSlot) { _handleSlot->operator()(get()->getLatestMeasurement()); }
+        else { handleMeasurement(get()->getLatestMeasurement()); }
+
+        get()->takeMeasurement((_needsMeasurement || poll)); // purposeful recheck
+    }
 }
 
 void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
@@ -137,12 +183,73 @@ void HelioSensorAttachment::handleMeasurement(const HelioMeasurement *measuremen
 
 
 HelioTriggerAttachment::HelioTriggerAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_STATE_SLOTS>(
+    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(
         parent, &HelioTrigger::getTriggerSignal)
 { ; }
 
-
-HelioBalancerAttachment::HelioBalancerAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_BalancerState, HELIO_BALANCER_STATE_SLOTS>(
-        parent, &HelioBalancer::getBalancerSignal)
+HelioTriggerAttachment::HelioTriggerAttachment(const HelioTriggerAttachment &attachment)
+    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(attachment)
 { ; }
+
+HelioTriggerAttachment::~HelioTriggerAttachment()
+{ ; }
+
+void HelioTriggerAttachment::updateIfNeeded(bool poll)
+{
+    if (resolve()) { get()->update(); }
+
+}
+
+
+HelioDriverAttachment::HelioDriverAttachment(HelioObjInterface *parent)
+    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(
+        parent, &HelioDriver::getDrivingSignal)
+{ ; }
+
+HelioDriverAttachment::HelioDriverAttachment(const HelioDriverAttachment &attachment)
+    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(attachment)
+{ ; }
+
+HelioDriverAttachment::~HelioDriverAttachment()
+{ ; }
+
+void HelioDriverAttachment::updateIfNeeded(bool poll)
+{
+    if (resolve()) { get()->update(); }
+}
+
+
+HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
+    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(
+        parent, &HelioActuator::getActivationSignal),
+       _actuatorHandle(), _updateSlot(nullptr), _rateMultiplier(1.0f)
+{ ; }
+
+HelioActuatorAttachment::HelioActuatorAttachment(const HelioActuatorAttachment &attachment)
+    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(attachment),
+      _updateSlot(attachment._updateSlot ? attachment._updateSlot->clone() : nullptr),
+      _actuatorHandle(attachment._actuatorHandle), _rateMultiplier(attachment._rateMultiplier)
+{ ; }
+
+HelioActuatorAttachment::~HelioActuatorAttachment()
+{
+    if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
+}
+
+void HelioActuatorAttachment::updateIfNeeded(bool poll = false)
+{
+    if (isEnabled()) {
+        _actuatorHandle.elapseBy(millis() - _actuatorHandle.checkTime);
+        if (_updateSlot) {
+            _updateSlot->operator()(&_actuatorHandle);
+        }
+    }
+}
+
+void HelioActuatorAttachment::setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot)
+{
+    if (!_updateSlot || !_updateSlot->operator==(&updateSlot)) {
+        if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
+        _updateSlot = updateSlot.clone();
+    }
+}
