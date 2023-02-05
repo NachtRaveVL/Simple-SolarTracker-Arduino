@@ -293,7 +293,7 @@ struct DeviceSetup {
 
 // Helioduino Controller
 // Main controller interface of the Helioduino solar tracker system.
-class Helioduino : public HelioFactory {
+class Helioduino : public HelioFactory, public HelioCalibrations {
 public:
     HelioScheduler scheduler;                                       // Scheduler public instance
     HelioLogger logger;                                             // Logger public instance
@@ -407,11 +407,11 @@ public:
     SharedPtr<HelioObject> objectById(HelioIdentity id) const;
 
     // Finds first position either open or taken, given the id type
-    hposind_t firstPosition(HelioIdentity id, bool taken);
+    hposi_t firstPosition(HelioIdentity id, bool taken);
     // Finds first position taken, given the id type
-    inline hposind_t firstPositionTaken(HelioIdentity id) { return firstPosition(id, true); }
+    inline hposi_t firstPositionTaken(HelioIdentity id) { return firstPosition(id, true); }
     // Finds first position open, given the id type
-    inline hposind_t firstPositionOpen(HelioIdentity id) { return firstPosition(id, false); }
+    inline hposi_t firstPositionOpen(HelioIdentity id) { return firstPosition(id, false); }
 
     // Pin Handlers.
 
@@ -530,9 +530,9 @@ public:
     // System sensor polling interval (time between sensor reads), in milliseconds (default: HELIO_DATA_LOOP_INTERVAL)
     uint16_t getPollingInterval() const;
     // System polling frame number for sensor frame tracking
-    inline Helio_PollingFrame getPollingFrame() const { return _pollingFrame; }
+    inline hframe_t getPollingFrame() const { return _pollingFrame; }
     // Determines if a given frame # if out of date (true) or current (false), with optional frame # difference allowance
-    bool isPollingFrameOld(Helio_PollingFrame frame, Helio_PollingFrame allowance = 0) const;
+    bool isPollingFrameOld(hframe_t frame, hframe_t allowance = 0) const;
     // Returns if system autosaves are enabled or not
     bool isAutosaveEnabled() const;
     // Returns if system fallback autosaves are enabled or not
@@ -609,7 +609,7 @@ protected:
     taskid_t _miscTaskId;                                   // Misc task Id if created, else TASKMGR_INVALIDID
 #endif
     bool _suspend;                                          // If system is currently suspended from operation
-    Helio_PollingFrame _pollingFrame;                       // Current data polling frame # (index 0 reserved for disabled/undef, advanced by publisher)
+    hframe_t _pollingFrame;                                 // Current data polling frame # (index 0 reserved for disabled/undef, advanced by publisher)
     time_t _lastSpaceCheck;                                 // Last date storage media free space was checked, if able (UTC)
     time_t _lastAutosave;                                   // Last date autosave was performed, if able (UTC)
     String _sysConfigFilename;                              // System config filename used in serialization (default: "Helioduino.cfg")

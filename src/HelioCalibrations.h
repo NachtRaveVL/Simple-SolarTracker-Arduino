@@ -29,10 +29,6 @@ public:
 
 protected:
     Map<hkey_t, HelioCalibrationData *, HELIO_CAL_CALIBSTORE_MAXSIZE> _calibrationData; // Loaded user calibration data
-
-    friend class Helioduino;
 };
-
-extern HelioCalibrations helioCalibrations;
 
 #endif // /ifndef HelioCalibrations_H

@@ -334,9 +334,9 @@ template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE> Vector<HelioObject *, N> link
 int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Recombines filtered object list back into SharedPtr actuator list.
-template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType);
+template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 // Recombines filtered object list back into SharedPtr actuator list paired with rate value.
-template<size_t N> void linksResolveActuatorsPairRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType);
+template<size_t N> void linksResolveActuatorsWithRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 
 // Pins & Checks
 

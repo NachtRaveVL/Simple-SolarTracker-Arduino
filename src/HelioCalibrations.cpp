@@ -5,8 +5,6 @@
 
 #include "Helioduino.h"
 
-HelioCalibrations helioCalibrations;
-
 const HelioCalibrationData *HelioCalibrations::getUserCalibrationData(hkey_t key) const
 {
     auto iter = _calibrationData.find(key);

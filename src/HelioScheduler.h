@@ -9,17 +9,17 @@
 
 class HelioScheduler;
 struct HelioSchedulerSubData;
-struct HelioFeeding;
-struct HelioLighting;
+struct HelioProcess;
+struct HelioTracking;
 
 #include "Helioduino.h"
 
 // Scheduler
 // The Scheduler acts as the system's main scheduling attendant, who looks through all
 // the various equipment and crops you have programmed in, and figures out the best
-// case feeding and lighting sequences that should occur to support them. It is also
+// case tracking and lighting sequences that should occur to support them. It is also
 // responsible for setting up and maintaining the system balancers that get assigned to
-// feed panels, which drives the various driving processes in use, as well as
+// track panels, which drives the various driving processes in use, as well as
 // determining when significant time changes have occurred and broadcasting such out.
 class HelioScheduler {
 public:
@@ -28,42 +28,24 @@ public:
 
     void update();
 
-    void setupWaterPHBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterPHBalancer);
-    void setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterTDSBalancer);
-    void setupWaterTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterTempBalancer);
-    void setupAirTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioDriver> airTempBalancer);
-    void setupAirCO2Balancer(HelioPanel *panel, SharedPtr<HelioDriver> airCO2Balancer);
-
-    void setBaseFeedMultiplier(float feedMultiplier);
-    void setWeeklyDosingRate(int weekIndex, float dosingRate, Helio_PanelType panelType = Helio_PanelType_NutrientPremix);
-    void setStandardDosingRate(float dosingRate, Helio_PanelType panelType);
-    void setFlushWeek(int weekIndex);
-    void setTotalFeedingsDay(unsigned int feedingsDay);
-    void setPreFeedAeratorMins(unsigned int aeratorMins);
-    void setPreLightSprayMins(unsigned int sprayMins);
+    void setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> servoDriver);
+    
+    void setBaseTrackMultiplier(float trackMultiplier);
     void setAirReportInterval(TimeSpan interval);
 
     inline void setNeedsScheduling();
     inline bool needsScheduling() { return _needsScheduling; }
 
-    float getCombinedDosingRate(HelioPanel *panel, Helio_PanelType panelType = Helio_PanelType_NutrientPremix);
     inline bool inDaytimeMode() const { return _inDaytimeMode; }
 
-    float getBaseFeedMultiplier() const;
-    float getWeeklyDosingRate(int weekIndex, Helio_PanelType panelType = Helio_PanelType_NutrientPremix) const;
-    float getStandardDosingRate(Helio_PanelType panelType) const;
-    bool isFlushWeek(int weekIndex);
-    unsigned int getTotalFeedingsDay() const;
-    unsigned int getPreFeedAeratorMins() const;
-    unsigned int getPreLightSprayMins() const;
+    float getBaseTrackMultiplier() const;
     TimeSpan getAirReportInterval() const;
 
 protected:
-    bool _inDaytimeMode;                                    // Whenever in daytime feeding mode or not
+    bool _inDaytimeMode;                                    // Whenever in daytime tracking mode or not
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
-    Map<hkey_t, HelioFeeding *, HELIO_SCH_FEEDRES_MAXSIZE> _feedings; // Feedings in progress
-    Map<hkey_t, HelioLighting *, HELIO_SCH_FEEDRES_MAXSIZE> _lightings; // Lightings in progress
+    Map<hkey_t, HelioTracking *, HELIO_SCH_TRACKRES_MAXSIZE> _trackings; // Trackings in progress
 
     friend class Helioduino;
 
@@ -76,40 +58,40 @@ protected:
 };
 
 
-// Scheduler Feeding Process Log Type
-enum HelioFeedingLogType : signed char {
-    HelioFeedingLogType_WaterSetpoints,                     // Water setpoints
-    HelioFeedingLogType_WaterMeasures,                      // Water measurements
-    HelioFeedingLogType_AirSetpoints,                       // Air setpoints
-    HelioFeedingLogType_AirMeasures                         // Air measurements
+// Scheduler Tracking Process Log Type
+enum HelioTrackingLogType : signed char {
+    HelioTrackingLogType_WaterSetpoints,                     // Water setpoints
+    HelioTrackingLogType_WaterMeasures,                      // Water measurements
+    HelioTrackingLogType_AirSetpoints,                       // Air setpoints
+    HelioTrackingLogType_AirMeasures                         // Air measurements
 };
 
-// Scheduler Feeding Process Broadcast Type
-enum HelioFeedingBroadcastType : signed char {
-    HelioFeedingBroadcastType_Began,                        // Began main process
-    HelioFeedingBroadcastType_Ended                         // Ended main process
+// Scheduler Tracking Process Broadcast Type
+enum HelioTrackingBroadcastType : signed char {
+    HelioTrackingBroadcastType_Began,                        // Began main process
+    HelioTrackingBroadcastType_Ended                         // Ended main process
 };
 
 // Scheduler Process Base
-// Processes are created and managed by Scheduler to manage the feeding and lighting
+// Processes are created and managed by Scheduler to manage the tracking and lighting
 // sequences necessary for crops to grow.
 struct HelioProcess {
-    SharedPtr<HelioFeedPanel> feedRes;                      // Feed panel
+    SharedPtr<HelioTrackPanel> trackRes;                      // Track panel
     Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
 
     time_t stageStart;                                      // Stage start time
 
-    HelioProcess(SharedPtr<HelioFeedPanel> feedRes);
+    HelioProcess(SharedPtr<HelioTrackPanel> trackRes);
 
     void clearActuatorReqs();
     void setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn);
 };
 
-// Scheduler Feeding Process
-struct HelioFeeding : public HelioProcess {
-    enum : signed char {Init,TopOff,PreFeed,Feed,Drain,Done,Unknown = -1} stage; // Current feeding stage
+// Scheduler Tracking Process
+struct HelioTracking : public HelioProcess {
+    enum : signed char {Init,TopOff,PreTrack,Track,Drain,Done,Unknown = -1} stage; // Current tracking stage
 
-    time_t canFeedAfter;                                    // Time next feeding can occur (UTC)
+    time_t canTrackAfter;                                    // Time next tracking can occur (UTC)
     time_t lastAirReport;                                   // Last time an air report was generated (UTC)
 
     float phSetpoint;                                       // Calculated pH setpoint for attached crops
@@ -118,46 +100,28 @@ struct HelioFeeding : public HelioProcess {
     float airTempSetpoint;                                  // Calculated air temp setpoint for attached crops
     float co2Setpoint;                                      // Calculated co2 level setpoint for attached crops
 
-    HelioFeeding(SharedPtr<HelioFeedPanel> feedRes);
-    ~HelioFeeding();
+    HelioTracking(SharedPtr<HelioTrackPanel> trackRes);
+    ~HelioTracking();
 
-    void recalcFeeding();
+    void recalcTracking();
     void setupStaging();
     void update();
 
 private:
     void reset();
-    void logFeeding(HelioFeedingLogType logType);
-    void broadcastFeeding(HelioFeedingBroadcastType broadcastType);
-};
-
-// Scheduler Lighting Process
-struct HelioLighting : public HelioProcess {
-    enum : signed char {Init,Spray,Light,Done,Unknown = -1} stage; // Current lighting stage
-
-    time_t sprayStart;                                      // Time when spraying should start (TZ)
-    time_t lightStart;                                      // Time when lighting should start / spraying should end (TZ, same as sprayStart when no spraying needed)
-    time_t lightEnd;                                        // Time when lighting should finish (TZ)
-
-    float lightHours;                                       // Calculated light hours for attached crops
-
-    HelioLighting(SharedPtr<HelioFeedPanel> feedRes);
-    ~HelioLighting();
-
-    void recalcLighting();
-    void setupStaging();
-    void update();
+    void logTracking(HelioTrackingLogType logType);
+    void broadcastTracking(HelioTrackingBroadcastType broadcastType);
 };
 
 
 // Scheduler Serialization Sub Data
 // A part of HSYS system data.
 struct HelioSchedulerSubData : public HelioSubData {
-    float baseFeedMultiplier;                               // Feed aggressiveness base TDS/EC multiplier (applies to *ALL* feeding solutions in use - default: 1)
+    float baseTrackMultiplier;                               // Track aggressiveness base TDS/EC multiplier (applies to *ALL* tracking solutions in use - default: 1)
     float weeklyDosingRates[HELIO_CROP_GROWWEEKS_MAX];      // Nutrient dosing rate percentages (applies to any nutrient premixes in use - default: 1)
     float stdDosingRates[3];                                // Standard dosing rates for fresh water, pH up, and pH down (default: 1,1/2,1/2)
-    uint8_t totalFeedingsDay;                               // Total number of feedings per day, if any (else 0 for disable - default: 0)
-    uint8_t preFeedAeratorMins;                             // Minimum time to run aerators (if present) before feed motors turn on, in minutes (default: 30)
+    uint8_t totalTrackingsDay;                               // Total number of trackings per day, if any (else 0 for disable - default: 0)
+    uint8_t preTrackAeratorMins;                             // Minimum time to run aerators (if present) before track motors turn on, in minutes (default: 30)
     uint8_t preLightSprayMins;                              // Minimum time to run sprayers/sprinklers (if present/needed) before grow lights turn on, in minutes (default: 60)
     time_t airReportInterval;                               // Interval between air sensor reports, in seconds (default: 8hrs)
 
