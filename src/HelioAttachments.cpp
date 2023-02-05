@@ -101,6 +101,42 @@ void HelioAttachment::setParent(HelioObjInterface *parent)
 }
 
 
+HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
+    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(
+        parent, &HelioActuator::getActivationSignal),
+       _actuatorHandle(), _updateSlot(nullptr), _rateMultiplier(1.0f)
+{ ; }
+
+HelioActuatorAttachment::HelioActuatorAttachment(const HelioActuatorAttachment &attachment)
+    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(attachment),
+      _updateSlot(attachment._updateSlot ? attachment._updateSlot->clone() : nullptr),
+      _actuatorHandle(attachment._actuatorHandle), _rateMultiplier(attachment._rateMultiplier)
+{ ; }
+
+HelioActuatorAttachment::~HelioActuatorAttachment()
+{
+    if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
+}
+
+void HelioActuatorAttachment::updateIfNeeded(bool poll = false)
+{
+    if (isEnabled()) {
+        _actuatorHandle.elapseBy(millis() - _actuatorHandle.checkTime);
+        if (_updateSlot) {
+            _updateSlot->operator()(&_actuatorHandle);
+        }
+    }
+}
+
+void HelioActuatorAttachment::setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot)
+{
+    if (!_updateSlot || !_updateSlot->operator==(&updateSlot)) {
+        if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
+        _updateSlot = updateSlot.clone();
+    }
+}
+
+
 HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(
           parent, &HelioSensor::getMeasurementSignal),
@@ -216,40 +252,4 @@ HelioDriverAttachment::~HelioDriverAttachment()
 void HelioDriverAttachment::updateIfNeeded(bool poll)
 {
     if (resolve()) { get()->update(); }
-}
-
-
-HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
-    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(
-        parent, &HelioActuator::getActivationSignal),
-       _actuatorHandle(), _updateSlot(nullptr), _rateMultiplier(1.0f)
-{ ; }
-
-HelioActuatorAttachment::HelioActuatorAttachment(const HelioActuatorAttachment &attachment)
-    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(attachment),
-      _updateSlot(attachment._updateSlot ? attachment._updateSlot->clone() : nullptr),
-      _actuatorHandle(attachment._actuatorHandle), _rateMultiplier(attachment._rateMultiplier)
-{ ; }
-
-HelioActuatorAttachment::~HelioActuatorAttachment()
-{
-    if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
-}
-
-void HelioActuatorAttachment::updateIfNeeded(bool poll = false)
-{
-    if (isEnabled()) {
-        _actuatorHandle.elapseBy(millis() - _actuatorHandle.checkTime);
-        if (_updateSlot) {
-            _updateSlot->operator()(&_actuatorHandle);
-        }
-    }
-}
-
-void HelioActuatorAttachment::setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot)
-{
-    if (!_updateSlot || !_updateSlot->operator==(&updateSlot)) {
-        if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
-        _updateSlot = updateSlot.clone();
-    }
 }
