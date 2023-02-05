@@ -381,7 +381,7 @@ bool Helioduino::initFromJSONStream(Stream *streamIn)
                 HELIO_SOFT_ASSERT(data && (data->isStandardData() || data->isObjectData()), SFP(HStr_Err_ImportFailure));
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
-                        helioCalibrations.setUserCalibrationData((HelioCalibrationData *)data);
+                        setUserCalibrationData((HelioCalibrationData *)data);
                     }
                     delete data; data = nullptr;
                 } else if (data && data->isObjectData()) {
@@ -429,8 +429,8 @@ bool Helioduino::saveToJSONStream(Stream *streamOut, bool compact)
             }
         }
 
-        if (helioCalibrations.hasUserCalibrations()) {
-            for (auto iter = helioCalibrations._calibrationData.begin(); iter != helioCalibrations._calibrationData.end(); ++iter) {
+        if (hasUserCalibrations()) {
+            for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
                 StaticJsonDocument<HELIO_JSON_DOC_DEFSIZE> doc;
 
                 JsonObject calibDataObj = doc.to<JsonObject>();
@@ -498,7 +498,7 @@ bool Helioduino::initFromBinaryStream(Stream *streamIn)
                 HELIO_SOFT_ASSERT(data && (data->isStandardData() || data->isObjectData()), SFP(HStr_Err_AllocationFailure));
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
-                        helioCalibrations.setUserCalibrationData((HelioCalibrationData *)data);
+                        setUserCalibrationData((HelioCalibrationData *)data);
                     }
                     delete data; data = nullptr;
                 } else if (data && data->isObjectData()) {
@@ -541,10 +541,10 @@ bool Helioduino::saveToBinaryStream(Stream *streamOut)
             if (!bytesWritten) { return false; }
         }
 
-        if (helioCalibrations.hasUserCalibrations()) {
+        if (hasUserCalibrations()) {
             size_t bytesWritten = 0;
 
-            for (auto iter = helioCalibrations._calibrationData.begin(); iter != helioCalibrations._calibrationData.end(); ++iter) {
+            for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
                 bytesWritten += serializeDataToBinaryStream(iter->second, streamOut);
             }
 
@@ -747,8 +747,8 @@ void Helioduino::commonPostSave()
 {
     logger.logSystemSave();
 
-    if (helioCalibrations.hasUserCalibrations()) {
-        for (auto iter = helioCalibrations._calibrationData.begin(); iter != helioCalibrations._calibrationData.end(); ++iter) {
+    if (hasUserCalibrations()) {
+        for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
             iter->second->_unsetModded();
         }
     }
@@ -1460,9 +1460,9 @@ void Helioduino::notifyDayChanged()
             auto panel = static_pointer_cast<HelioPanel>(iter->second);
 
             // todo
-            // if (panel && panel->isFeedClass()) {
-            //     auto feedPanel = static_pointer_cast<HelioFeedPanel>(iter->second);
-            //     if (feedPanel) {feedPanel->notifyDayChanged(); }
+            // if (panel && panel->isTrackClass()) {
+            //     auto trackPanel = static_pointer_cast<HelioTrackPanel>(iter->second);
+            //     if (trackPanel) {trackPanel->notifyDayChanged(); }
             // }
         }
     }

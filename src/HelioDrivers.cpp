@@ -7,7 +7,8 @@
 
 HelioDriver::HelioDriver(float trackMin, float trackMax, float targetSetpoint, float travelRate, int typeIn)
     : type((typeof(type))typeIn), _drivingState(Helio_DrivingState_Undefined), _enabled(false),
-      _trackMin(trackMin), _trackMax(trackMax), _targetSetpoint(targetSetpoint), _travelRate(travelRate)
+      _trackMin(trackMin), _trackMax(trackMax), _targetSetpoint(targetSetpoint), _travelRate(travelRate),
+      _angle(this)
 { ; }
 
 HelioDriver::~HelioDriver()
@@ -68,9 +69,8 @@ void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_A
 
     {   _actuators.clear();
         for (auto activationInIter = actuators.begin(); activationInIter != actuators.end(); ++activationInIter) {
-            auto activation = (*activationInIter);
-            activation.setParent(this);
-            _actuators.push_back(activation);
+            _actuators.push_back(*activationInIter);
+            _actuators.back().setParent(this);
         }
     }
 }
@@ -87,33 +87,34 @@ void HelioDriver::disableAllActivations()
     }
 }
 
-HelioServoDriver::HelioServoDriver(SharedPtr<HelioSensor> sensor, float targetSetpoint, float targetRange, float edgeOffset, float edgeLength, uint8_t measurementRow)
-    : HelioDriver(sensor, targetSetpoint, targetRange, measurementRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
-{ ; }
 
-void HelioServoDriver::update()
-{
-    HelioDriver::update();
-    if (!_enabled || !_sensor) { return; }
+// HelioServoDriver::HelioServoDriver(SharedPtr<HelioSensor> sensor, float targetSetpoint, float targetRange, float edgeOffset, float edgeLength, uint8_t measurementRow)
+//     : HelioDriver(sensor, targetSetpoint, targetRange, measurementRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
+// { ; }
 
-    if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined) {
-        auto measure = _sensor.getMeasurement(true);
+// void HelioServoDriver::update()
+// {
+//     HelioDriver::update();
+//     if (!_enabled || !_sensor) { return; }
 
-        float x = fabsf(measure.value - _targetSetpoint);
-        float val = _edgeLength > FLT_EPSILON ? mapValue<float>(x, _edgeOffset, _edgeOffset + _edgeLength, 0.0f, 1.0f)
-                                              : (x >= _edgeOffset - FLT_EPSILON ? 1.0 : 0.0f);
-        val = constrain(val, 0.0f, 1.0f);
+//     if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined) {
+//         auto measure = _sensor.getMeasurement(true);
 
-        if (_drivingState == Helio_DrivingState_GoHigher) {
-            for (auto activationIter = _actuators.begin(); activationIter != _actuators.end(); ++activationIter) {
-                activationIter->setupActivation(val * activationIter->getRateMultiplier());
-                activationIter->enableActivation();
-            }
-        } else {
-            for (auto activationIter = _actuators.begin(); activationIter != _actuators.end(); ++activationIter) {
-                activationIter->setupActivation(-val * activationIter->getRateMultiplier());
-                activationIter->enableActivation();
-            }
-        }
-    }
-}
+//         float x = fabsf(measure.value - _targetSetpoint);
+//         float val = _edgeLength > FLT_EPSILON ? mapValue<float>(x, _edgeOffset, _edgeOffset + _edgeLength, 0.0f, 1.0f)
+//                                               : (x >= _edgeOffset - FLT_EPSILON ? 1.0 : 0.0f);
+//         val = constrain(val, 0.0f, 1.0f);
+
+//         if (_drivingState == Helio_DrivingState_GoHigher) {
+//             for (auto activationIter = _actuators.begin(); activationIter != _actuators.end(); ++activationIter) {
+//                 activationIter->setupActivation(val * activationIter->getRateMultiplier());
+//                 activationIter->enableActivation();
+//             }
+//         } else {
+//             for (auto activationIter = _actuators.begin(); activationIter != _actuators.end(); ++activationIter) {
+//                 activationIter->setupActivation(-val * activationIter->getRateMultiplier());
+//                 activationIter->enableActivation();
+//             }
+//         }
+//     }
+// }

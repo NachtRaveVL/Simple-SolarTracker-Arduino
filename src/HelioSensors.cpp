@@ -71,14 +71,14 @@ HelioSensor::HelioSensor(Helio_SensorType sensorType,
     : HelioObject(HelioIdentity(sensorType, sensorIndex)), classType((typeof(classType))classTypeIn),
       _isTakingMeasure(false), _panel(this), _calibrationData(nullptr)
 {
-    _calibrationData = helioCalibrations.getUserCalibrationData(_id.key);
+    _calibrationData = getHelioInstance() ? getHelioInstance()->getUserCalibrationData(_id.key) : nullptr;
 }
 
 HelioSensor::HelioSensor(const HelioSensorData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
       _isTakingMeasure(false), _panel(this), _calibrationData(nullptr)
 {
-    _calibrationData = helioCalibrations.getUserCalibrationData(_id.key);
+    _calibrationData = getHelioInstance() ? getHelioInstance()->getUserCalibrationData(_id.key) : nullptr;
     _panel.setObject(dataIn->panelName);
 }
 
@@ -113,10 +113,14 @@ HelioAttachment &HelioSensor::getParentPanel(bool resolve)
 
 void HelioSensor::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
 {
-    if (userCalibrationData && helioCalibrations.setUserCalibrationData(userCalibrationData)) {
-        _calibrationData = helioCalibrations.getUserCalibrationData(_id.key);
-    } else if (!userCalibrationData && _calibrationData && helioCalibrations.dropUserCalibrationData(_calibrationData)) {
-        _calibrationData = nullptr;
+    if (getHelioInstance()) {
+        if (userCalibrationData && getHelioInstance()->setUserCalibrationData(userCalibrationData)) {
+            _calibrationData = getHelioInstance()->getUserCalibrationData(_id.key);
+        } else if (!userCalibrationData && _calibrationData && getHelioInstance()->dropUserCalibrationData(_calibrationData)) {
+            _calibrationData = nullptr;
+        }
+    } else {
+        _calibrationData = userCalibrationData;
     }
 }
 
