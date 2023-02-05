@@ -8,7 +8,7 @@
 SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t outputPin)
 {
     bool outputPinIsDigital = checkPinIsDigital(outputPin);
-    Helio_PositionIndex positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelHeater));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelHeater));
     HELIO_HARD_ASSERT(outputPinIsDigital, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
 
@@ -27,13 +27,13 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t output
 SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t inputPin, uint8_t inputBitRes)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
-    Helio_PositionIndex positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_AirTempHumidity));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_TemperatureHumidity));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
 
     if (inputPinIsAnalog && positionIndex != -1) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
-            Helio_SensorType_AirTempHumidity,
+            Helio_SensorType_TemperatureHumidity,
             positionIndex,
             HelioAnalogPin(inputPin, INPUT, inputBitRes)
         ));
@@ -46,7 +46,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
 SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
-    Helio_PositionIndex positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerUsage));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerUsage));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
 
@@ -67,7 +67,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageMeter(pintype_t inputPin
 
 SharedPtr<HelioSimpleRail> HelioFactory::addSimplePowerRail(Helio_RailType railType, int maxActiveAtOnce)
 {
-    Helio_PositionIndex positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
     HELIO_SOFT_ASSERT((int)railType >= 0 && railType <= Helio_RailType_Count, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(maxActiveAtOnce > 0, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
@@ -86,7 +86,7 @@ SharedPtr<HelioSimpleRail> HelioFactory::addSimplePowerRail(Helio_RailType railT
 
 SharedPtr<HelioRegulatedRail> HelioFactory::addRegulatedPowerRail(Helio_RailType railType, float maxPower)
 {
-    Helio_PositionIndex positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
     HELIO_SOFT_ASSERT((int)railType >= 0 && railType <= Helio_RailType_Count, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(maxPower > FLT_EPSILON, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));

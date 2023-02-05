@@ -22,13 +22,13 @@ public:
     bool dropUserCalibrationData(const HelioCalibrationData *calibrationData);
 
     // Returns user calibration data instance in storage
-    const HelioCalibrationData *getUserCalibrationData(Helio_KeyType key) const;
+    const HelioCalibrationData *getUserCalibrationData(hkey_t key) const;
 
     // Returns if there are any user calibrations in storage
     inline bool hasUserCalibrations() const { return _calibrationData.size(); };
 
 protected:
-    Map<Helio_KeyType, HelioCalibrationData *, HELIO_CALSTORE_CALIBS_MAXSIZE> _calibrationData; // Loaded user calibration data
+    Map<hkey_t, HelioCalibrationData *, HELIO_CALSTORE_CALIBS_MAXSIZE> _calibrationData; // Loaded user calibration data
 
     friend class Helioduino;
 };

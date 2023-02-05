@@ -24,7 +24,7 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 }
 
 
-HelioRail::HelioRail(Helio_RailType railType, Helio_PositionIndex railIndex, int classTypeIn)
+HelioRail::HelioRail(Helio_RailType railType, hposi_t railIndex, int classTypeIn)
     : HelioObject(HelioIdentity(railType, railIndex)), classType((typeof(classType))classTypeIn),
       _powerUnits(defaultPowerUnits()), _limitState(Helio_TriggerState_Undefined)
 {
@@ -145,7 +145,7 @@ void HelioRail::handleLimit(Helio_TriggerState limitState)
 
 
 HelioSimpleRail::HelioSimpleRail(Helio_RailType railType,
-                                             Helio_PositionIndex railIndex,
+                                             hposi_t railIndex,
                                              int maxActiveAtOnce,
                                              int classType)
     : HelioRail(railType, railIndex, classType), _activeCount(0), _maxActiveAtOnce(maxActiveAtOnce)
@@ -193,7 +193,7 @@ void HelioSimpleRail::handleActivation(HelioActuator *actuator)
 
 
 HelioRegulatedRail::HelioRegulatedRail(Helio_RailType railType,
-                                                   Helio_PositionIndex railIndex,
+                                                   hposi_t railIndex,
                                                    float maxPower,
                                                    int classType)
     : HelioRail(railType, railIndex, classType), _maxPower(maxPower), _powerUsage(this), _limitTrigger(this)

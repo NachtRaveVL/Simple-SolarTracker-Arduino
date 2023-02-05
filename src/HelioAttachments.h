@@ -19,7 +19,7 @@ class HelioActuatorAttachment;
 #include "HelioMeasurements.h"
 
 // forward decls
-extern Helio_KeyType stringHash(String);
+extern hkey_t stringHash(String);
 extern String addressToString(uintptr_t);
 
 // Delay/Dynamic Loaded/Linked Object Reference
@@ -33,7 +33,7 @@ public:
 
     inline bool isUnresolved() const { return !_obj; }
     inline bool isResolved() const { return (bool)_obj; }
-    inline bool needsResolved() const { return isUnresolved() && _key != (Helio_KeyType)-1; }
+    inline bool needsResolved() const { return isUnresolved() && _key != (hkey_t)-1; }
     inline bool resolve() { return isResolved() || (bool)getObject(); }
     void unresolve();
 
@@ -42,7 +42,7 @@ public:
     template<class U = HelioObjInterface> inline U* get() { return getObject<U>().get(); }
 
     inline HelioIdentity getId() const { return _obj ? _obj->getId() : (_keyStr ? HelioIdentity(_keyStr) : HelioIdentity(_key)); }
-    inline Helio_KeyType getKey() const { return _key; }
+    inline hkey_t getKey() const { return _key; }
     inline String getKeyString() const { return _keyStr ? String(_keyStr) : (_obj ? _obj->getKeyString() : addressToString((uintptr_t)_key)); }
 
     inline operator bool() const { return isResolved(); }
@@ -57,12 +57,12 @@ public:
 
     inline bool operator==(const HelioIdentity &rhs) const { return _key == rhs.key; }
     inline bool operator==(const char *rhs) const { return _key == stringHash(rhs); }
-    template<class U> inline bool operator==(const SharedPtr<U> &rhs) const { return _key == (rhs ? rhs->getKey() : (Helio_KeyType)-1); }
-    inline bool operator==(const HelioObjInterface *rhs) const { return _key == (rhs ? rhs->getKey() : (Helio_KeyType)-1); }
-    inline bool operator==(nullptr_t) const { return _key == (Helio_KeyType)-1; }
+    template<class U> inline bool operator==(const SharedPtr<U> &rhs) const { return _key == (rhs ? rhs->getKey() : (hkey_t)-1); }
+    inline bool operator==(const HelioObjInterface *rhs) const { return _key == (rhs ? rhs->getKey() : (hkey_t)-1); }
+    inline bool operator==(nullptr_t) const { return _key == (hkey_t)-1; }
 
 protected:
-    Helio_KeyType _key;                                     // Object key
+    hkey_t _key;                                     // Object key
     SharedPtr<HelioObjInterface> _obj;                      // Shared pointer to object
     const char *_keyStr;                                    // Copy of id.keyString (if not resolved, or unresolved)
 
@@ -102,7 +102,7 @@ public:
     inline HelioObjInterface *getParent() { return _parent; }
 
     inline HelioIdentity getId() const { return _obj.getId(); }
-    inline Helio_KeyType getKey() const { return _obj.getKey(); }
+    inline hkey_t getKey() const { return _obj.getKey(); }
     inline String getKeyString() const { return _obj.getKeyString(); }
 
     inline operator bool() const { return isResolved(); }

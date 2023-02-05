@@ -128,8 +128,8 @@ void publishData(HelioSensor *sensor)
 
     if (getPublisherInstance()) {
         auto measurement = sensor->getLatestMeasurement();
-        Helio_PositionIndex rows = getMeasurementRowCount(measurement);
-        Helio_PositionIndex columnIndexStart = getPublisherInstance()->getColumnIndexStart(sensor->getKey());
+        hposi_t rows = getMeasurementRowCount(measurement);
+        hposi_t columnIndexStart = getPublisherInstance()->getColumnIndexStart(sensor->getKey());
 
         if (columnIndexStart >= 0) {
             for (uint8_t measurementRow = 0; measurementRow < rows; ++measurementRow) {
@@ -195,13 +195,13 @@ void createDirectoryFor(SDClass *sd, String filename)
     }
 }
 
-Helio_KeyType stringHash(String string)
+hkey_t stringHash(String string)
 {
-    Helio_KeyType hash = 5381;
+    hkey_t hash = 5381;
     for(int index = 0; index < string.length(); ++index) {
-        hash = ((hash << 5) + hash) + (Helio_KeyType)string[index]; // Good 'ol DJB2
+        hash = ((hash << 5) + hash) + (hkey_t)string[index]; // Good 'ol DJB2
     }
-    return hash != (Helio_KeyType)-1 ? hash : 5381;
+    return hash != (hkey_t)-1 ? hash : 5381;
 }
 
 String addressToString(uintptr_t addr)
@@ -1053,8 +1053,8 @@ String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
 {
     switch (sensorType) {
         // todo
-        case Helio_SensorType_AirTempHumidity:
-            return SFP(HStr_Enum_AirTemperatureHumidity);
+        case Helio_SensorType_TemperatureHumidity:
+            return SFP(HStr_Enum_TemperatureHumidity);
         case Helio_SensorType_PowerUsage:
             return SFP(HStr_Enum_PowerUsageMeter);
         case Helio_SensorType_Count:
@@ -1115,12 +1115,12 @@ String railTypeToString(Helio_RailType railType, bool excludeSpecial)
 String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpecial)
 {
     switch (unitsCategory) {
-        case Helio_UnitsCategory_AirTemperature:
-            return SFP(HStr_Enum_AirTemperature);
-        case Helio_UnitsCategory_AirHumidity:
-            return SFP(HStr_Enum_AirHumidity);
-        case Helio_UnitsCategory_AirHeatIndex:
-            return SFP(HStr_Enum_AirHeatIndex);
+        case Helio_UnitsCategory_Temperature:
+            return SFP(HStr_Enum_Temperature);
+        case Helio_UnitsCategory_Humidity:
+            return SFP(HStr_Enum_Humidity);
+        case Helio_UnitsCategory_HeatIndex:
+            return SFP(HStr_Enum_HeatIndex);
         case Helio_UnitsCategory_Distance:
             return SFP(HStr_Enum_Distance);
         case Helio_UnitsCategory_Speed:
@@ -1168,7 +1168,7 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
     return !excludeSpecial ? SFP(HStr_Unit_Undefined) : String();
 }
 
-String positionIndexToString(Helio_PositionIndex positionIndex, bool excludeSpecial)
+String positionIndexToString(hposi_t positionIndex, bool excludeSpecial)
 {
     if (positionIndex >= 0 && positionIndex < HELIO_POS_MAXSIZE) {
         return String(positionIndex + HELIO_POS_EXPORT_BEGFROM);
@@ -1182,7 +1182,7 @@ String positionIndexToString(Helio_PositionIndex positionIndex, bool excludeSpec
     return String();
 }
 
-Helio_PositionIndex positionIndexFromString(String positionIndexStr)
+hposi_t positionIndexFromString(String positionIndexStr)
 {
     if (positionIndexStr == positionIndexToString(HELIO_POS_MAXSIZE)) {
         return HELIO_POS_MAXSIZE;

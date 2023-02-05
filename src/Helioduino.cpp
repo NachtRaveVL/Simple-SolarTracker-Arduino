@@ -993,7 +993,7 @@ SharedPtr<HelioObject> Helioduino::objectById_Col(const HelioIdentity &id) const
     return nullptr;
 }
 
-Helio_PositionIndex Helioduino::firstPosition(HelioIdentity id, bool taken)
+hposi_t Helioduino::firstPosition(HelioIdentity id, bool taken)
 {
     if (id.posIndex != HELIO_POS_SEARCH_FROMEND) {
         id.posIndex = HELIO_POS_SEARCH_FROMBEG;
@@ -1389,7 +1389,7 @@ uint16_t Helioduino::getPollingInterval() const
     return _systemData ? _systemData->pollingInterval : 0;
 }
 
-bool Helioduino::isPollingFrameOld(Helio_PollingFrame frame, Helio_PollingFrame allowance) const
+bool Helioduino::isPollingFrameOld(hframe_t frame, hframe_t allowance) const
 {
     return _pollingFrame - frame > allowance;
 }

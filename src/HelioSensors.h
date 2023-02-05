@@ -43,7 +43,7 @@ public:
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioSensor(Helio_SensorType sensorType,
-                Helio_PositionIndex sensorIndex,
+                hposi_t sensorIndex,
                 int classType = Unknown);
     HelioSensor(const HelioSensorData *dataIn);
     virtual ~HelioSensor();
@@ -64,7 +64,7 @@ public:
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
 
     inline Helio_SensorType getSensorType() const { return _id.objTypeAs.sensorType; }
-    inline Helio_PositionIndex getSensorIndex() const { return _id.posIndex; }
+    inline hposi_t getSensorIndex() const { return _id.posIndex; }
 
     Signal<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> &getMeasurementSignal();
 
@@ -85,7 +85,7 @@ protected:
 class HelioBinarySensor : public HelioSensor {
 public:
     HelioBinarySensor(Helio_SensorType sensorType,
-                      Helio_PositionIndex sensorIndex,
+                      hposi_t sensorIndex,
                       HelioDigitalPin inputPin,
                       int classType = Binary);
     HelioBinarySensor(const HelioBinarySensorData *dataIn);
@@ -122,7 +122,7 @@ protected:
 class HelioAnalogSensor : public HelioSensor {
 public:
     HelioAnalogSensor(Helio_SensorType sensorType,
-                      Helio_PositionIndex sensorIndex,
+                      hposi_t sensorIndex,
                       HelioAnalogPin inputPin,
                       bool inputInversion = false,
                       int classType = Analog);
@@ -154,15 +154,15 @@ protected:
 class HelioDigitalSensor : public HelioSensor {
 public:
     HelioDigitalSensor(Helio_SensorType sensorType,
-                       Helio_PositionIndex sensorIndex,
+                       hposi_t sensorIndex,
                        HelioDigitalPin inputPin,
                        uint8_t bitRes1W = 9,
                        bool allocate1W = false,
                        int classType = Digital);
     HelioDigitalSensor(const HelioDigitalSensorData *dataIn, bool allocate1W = false);
 
-    virtual bool setWirePositionIndex(Helio_PositionIndex wirePosIndex);
-    virtual Helio_PositionIndex getWirePositionIndex() const;
+    virtual bool setWirePositionIndex(hposi_t wirePosIndex);
+    virtual hposi_t getWirePositionIndex() const;
 
     virtual bool setWireDeviceAddress(const uint8_t wireDevAddress[8]);
     virtual const uint8_t *getWireDeviceAddress() const;
@@ -173,7 +173,7 @@ protected:
     HelioDigitalPin _inputPin;                              // Digital input pin
     OneWire *_oneWire;                                      // OneWire comm instance (strong, nullptr when not used)
     uint8_t _wireBitRes;                                    // OneWire bit resolution
-    Helio_PositionIndex _wirePosIndex;                      // OneWire sensor position index
+    hposi_t _wirePosIndex;                      // OneWire sensor position index
     uint8_t _wireDevAddress[8];                             // OneWire sensor device address
 
     void resolveDeviceAddress();
@@ -186,7 +186,7 @@ protected:
 // This class is for working with DHT* OneWire-based air temperature and humidity sensors.
 class HelioDHTTempHumiditySensor : public HelioDigitalSensor {
 public:
-    HelioDHTTempHumiditySensor(Helio_PositionIndex sensorIndex,
+    HelioDHTTempHumiditySensor(hposi_t sensorIndex,
                                HelioDigitalPin inputPin,
                                Helio_DHTType dhtType,
                                bool computeHeatIndex = true,
@@ -204,8 +204,8 @@ public:
     virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow) override;
     virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
 
-    virtual bool setWirePositionIndex(Helio_PositionIndex wirePosIndex) override; // disabled
-    virtual Helio_PositionIndex getWirePositionIndex() const override; // disabled
+    virtual bool setWirePositionIndex(hposi_t wirePosIndex) override; // disabled
+    virtual hposi_t getWirePositionIndex() const override; // disabled
 
     virtual bool setWireDeviceAddress(const uint8_t wireDevAddress[8]) override; // disabled
     virtual const uint8_t *getWireDeviceAddress() const override; // disabled
@@ -259,7 +259,7 @@ struct HelioAnalogSensorData : public HelioSensorData {
 // Digital Sensor Serialization Data
 struct HelioDigitalSensorData : public HelioSensorData {
     uint8_t wireBitRes;
-    Helio_PositionIndex wirePosIndex;
+    hposi_t wirePosIndex;
     uint8_t wireDevAddress[8];
 
     HelioDigitalSensorData();

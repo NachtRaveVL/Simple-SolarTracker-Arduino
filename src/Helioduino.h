@@ -407,11 +407,11 @@ public:
     SharedPtr<HelioObject> objectById(HelioIdentity id) const;
 
     // Finds first position either open or taken, given the id type
-    Helio_PositionIndex firstPosition(HelioIdentity id, bool taken);
+    hposind_t firstPosition(HelioIdentity id, bool taken);
     // Finds first position taken, given the id type
-    inline Helio_PositionIndex firstPositionTaken(HelioIdentity id) { return firstPosition(id, true); }
+    inline hposind_t firstPositionTaken(HelioIdentity id) { return firstPosition(id, true); }
     // Finds first position open, given the id type
-    inline Helio_PositionIndex firstPositionOpen(HelioIdentity id) { return firstPosition(id, false); }
+    inline hposind_t firstPositionOpen(HelioIdentity id) { return firstPosition(id, false); }
 
     // Pin Handlers.
 
@@ -615,7 +615,7 @@ protected:
     String _sysConfigFilename;                              // System config filename used in serialization (default: "Helioduino.cfg")
     uint16_t _sysDataAddress;                               // EEPROM system data address used in serialization (default: -1/disabled)
 
-    Map<Helio_KeyType, SharedPtr<HelioObject>, HELIO_SYS_OBJECTS_MAXSIZE> _objects; // Shared object collection, key'ed by HelioIdentity
+    Map<hkey_t, SharedPtr<HelioObject>, HELIO_SYS_OBJECTS_MAXSIZE> _objects; // Shared object collection, key'ed by HelioIdentity
     Map<pintype_t, OneWire *, HELIO_SYS_ONEWIRE_MAXSIZE> _oneWires; // Pin OneWire mapping
     Map<pintype_t, pintype_t, HELIO_SYS_PINLOCKS_MAXSIZE> _pinLocks; // Pin locks mapping (existence = locked)
     Map<pintype_t, SharedPtr<HelioPinMuxer>, HELIO_SYS_PINMUXERS_MAXSIZE> _pinMuxers; // Pin muxers mapping

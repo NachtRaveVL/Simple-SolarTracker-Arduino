@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioDLinkObject::HelioDLinkObject()
-    : _key((Helio_KeyType)-1), _obj(nullptr), _keyStr(nullptr)
+    : _key((hkey_t)-1), _obj(nullptr), _keyStr(nullptr)
 { ; }
 
 HelioDLinkObject::HelioDLinkObject(const HelioDLinkObject &obj)
@@ -43,7 +43,7 @@ void HelioDLinkObject::unresolve()
 SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
 {
     if (_obj) { return _obj; }
-    if (_key == (Helio_KeyType)-1) { return nullptr; }
+    if (_key == (hkey_t)-1) { return nullptr; }
     if (Helioduino::_activeInstance) {
         _obj = static_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
     }

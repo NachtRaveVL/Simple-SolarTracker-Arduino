@@ -90,7 +90,7 @@ void HelioActivationHandle::elapseBy(millis_t delta)
 
 
 HelioActuator::HelioActuator(Helio_ActuatorType actuatorType,
-                             Helio_PositionIndex actuatorIndex,
+                             hposi_t actuatorIndex,
                              int classTypeIn)
     : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType((typeof(classType))classTypeIn),
       _enabled(false), _enableMode(Helio_EnableMode_Undefined), _rail(this), _panel(this)
@@ -295,7 +295,7 @@ void HelioActuator::handleActivation()
 
 
 HelioRelayActuator::HelioRelayActuator(Helio_ActuatorType actuatorType,
-                                       Helio_PositionIndex actuatorIndex,
+                                       hposi_t actuatorIndex,
                                        HelioDigitalPin outputPin,
                                        int classType)
     : HelioActuator(actuatorType, actuatorIndex, classType),
@@ -370,7 +370,7 @@ void HelioRelayActuator::saveToData(HelioData *dataOut)
 
 
 HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType,
-                                                 Helio_PositionIndex actuatorIndex,
+                                                 hposi_t actuatorIndex,
                                                  HelioDigitalPin forwardOutputPin,
                                                  HelioDigitalPin reverseOutputPin,
                                                  int classType)
@@ -637,7 +637,7 @@ void HelioRelayMotorActuator::handleTravelTime(millis_t time)
 
 
 HelioVariableActuator::HelioVariableActuator(Helio_ActuatorType actuatorType,
-                                             Helio_PositionIndex actuatorIndex,
+                                             hposi_t actuatorIndex,
                                              HelioAnalogPin outputPin,
                                              int classType)
     : HelioActuator(actuatorType, actuatorIndex, classType),

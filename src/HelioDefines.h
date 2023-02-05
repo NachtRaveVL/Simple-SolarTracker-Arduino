@@ -69,12 +69,12 @@
 #endif
 #endif
 
-typedef typeof(millis()) millis_t;                          // Millis type
-typedef int8_t Helio_PositionIndex;                         // Position indexing type alias
-typedef uint32_t Helio_KeyType;                             // Key type alias, for hashing
-typedef uint16_t Helio_PollingFrame;                        // Polling frame type, for sync
-typedef typeof(INPUT) Arduino_PinModeType;                  // Arduino pin mode type alias
-typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin status type alias
+typedef typeof(millis()) millis_t;                          // Time millis type
+typedef int8_t hposi_t;                                     // Position indexing type alias
+typedef uint32_t hkey_t;                                    // Key type alias, for hashing
+typedef uint16_t hframe_t;                                  // Polling frame type, for sync
+typedef typeof(INPUT) ard_pinmode_t;                        // Arduino pin mode type alias
+typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin status type alias
 
 #define HELIO_NAME_MAXSIZE              24                  // Naming character maximum size (system name, crop name, etc.)
 #define HELIO_POS_MAXSIZE               32                  // Position indicies maximum size (max # of objs of same type)
@@ -280,7 +280,7 @@ enum Helio_SensorType : signed char {
     Helio_SensorType_LightIntensity,                        // Light dependent resistor (LDR, analog)
     Helio_SensorType_PowerUsage,                            // Power usage meter (analog)
     Helio_SensorType_PowerProduction,                       // Power production meter (analog)
-    Helio_SensorType_AirTempHumidity,                       // Air temperature and humidity sensor (digital)
+    Helio_SensorType_TemperatureHumidity,                   // Temperature and humidity sensor (digital)
     Helio_SensorType_IceDetector,                           // Ice detector (binary/analog)
     Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
     Helio_SensorType_Endstop,                               // Track axis endstop (binary)
@@ -351,6 +351,18 @@ enum Helio_DrivingState : signed char {
     Helio_DrivingState_Undefined = -1                       // Internal use only
 };
 
+// Panel State
+// Common panel states. Specifies panel alignment and .
+enum Helio_PanelState : signed char {
+    Helio_PanelState_AlignedToSun,                          // Aligned to sun
+    Helio_PanelState_TravelingToSun,                        // Traveling to sun
+    Helio_PanelState_TravelingToHome,                       // Traveling to home position
+    Helio_PanelState_AlignedToHome,                         // Aligned to home position/stowed
+
+    Helio_PanelState_Count,                                 // Internal use only
+    Helio_PanelState_Undefined = -1                         // Internal use only
+};
+
 // Enable Mode
 // Actuator intensity/enablement calculation mode. Specifies how multiple activations get used together.
 enum Helio_EnableMode : signed char {
@@ -383,9 +395,9 @@ enum Helio_DirectionMode : signed char {
 // Units Category
 // Unit of measurement category. Specifies the kind of unit.
 enum Helio_UnitsCategory : signed char {
-    Helio_UnitsCategory_AirTemperature,                     // Air temperature based unit
-    Helio_UnitsCategory_AirHumidity,                        // Air humidity based unit
-    Helio_UnitsCategory_AirHeatIndex,                       // Air heat index based unit
+    Helio_UnitsCategory_Temperature,                        // Temperature based unit
+    Helio_UnitsCategory_Humidity,                           // Humidity based unit
+    Helio_UnitsCategory_HeatIndex,                          // Heat index based unit
     Helio_UnitsCategory_Distance,                           // Distance/position based unit
     Helio_UnitsCategory_Speed,                              // Speed based unit
     Helio_UnitsCategory_Power,                              // Power based unit

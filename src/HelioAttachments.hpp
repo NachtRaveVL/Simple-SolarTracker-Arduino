@@ -35,7 +35,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const char *rhs)
 
 inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioObjInterface *rhs)
 {
-    _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
+    _key = rhs ? rhs->getKey() : (hkey_t)-1;
     _obj = rhs ? getSharedPtr<HelioObjInterface>(rhs) : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
 
@@ -44,7 +44,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioObjInterface *rh
 
 inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioAttachment *rhs)
 {
-    _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
+    _key = rhs ? rhs->getKey() : (hkey_t)-1;
     _obj = rhs && rhs->isResolved() ? rhs->getSharedPtr() : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
 
@@ -62,7 +62,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioAttachment *rhs)
 template<class U>
 inline HelioDLinkObject &HelioDLinkObject::operator=(SharedPtr<U> &rhs)
 {
-    _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
+    _key = rhs ? rhs->getKey() : (hkey_t)-1;
     _obj = rhs ? reinterpret_pointer_cast<HelioObjInterface>(rhs) : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
 
@@ -86,7 +86,7 @@ template<class U>
 SharedPtr<U> HelioAttachment::getObject()
 {
     if (_obj) { return _obj.getObject<U>(); }
-    if (_obj.getKey() == (Helio_KeyType)-1) { return nullptr; }
+    if (_obj.getKey() == (hkey_t)-1) { return nullptr; }
 
     if (_obj.needsResolved() && _obj._getObject()) {
         attachObject();
