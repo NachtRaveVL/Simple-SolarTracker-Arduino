@@ -211,7 +211,7 @@ extern String getNNFilename(String prefix, unsigned int value, String ext);
 extern void createDirectoryFor(SDClass *sd, String filename);
 
 // Computes a hash for a string using a fast and efficient (read as: good enough for our use) hashing algorithm.
-extern Helio_KeyType stringHash(String string);
+extern hkey_t stringHash(String string);
 
 // Returns properly formatted address "0xADDR" (size depending on void* size)
 extern String addressToString(uintptr_t addr);
@@ -415,9 +415,9 @@ extern String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial =
 extern Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr);
 
 // Converts from position index to string, with optional exclude for special types (instead returning "").
-extern String positionIndexToString(Helio_PositionIndex positionIndex, bool excludeSpecial = false);
+extern String positionIndexToString(hposi_t positionIndex, bool excludeSpecial = false);
 // Converts back to position index from string.
-extern Helio_PositionIndex positionIndexFromString(String positionIndexStr);
+extern hposi_t positionIndexFromString(String positionIndexStr);
 
 // Converts from boolean value to triggered/not-triggered trigger state.
 inline Helio_TriggerState triggerStateFromBool(bool value) { return value ? Helio_TriggerState_Triggered : Helio_TriggerState_NotTriggered; }

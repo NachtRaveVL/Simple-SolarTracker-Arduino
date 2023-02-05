@@ -62,8 +62,8 @@ protected:
     bool _inDaytimeMode;                                    // Whenever in daytime feeding mode or not
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
-    Map<Helio_KeyType, HelioFeeding *, HELIO_SCH_FEEDRES_MAXSIZE> _feedings; // Feedings in progress
-    Map<Helio_KeyType, HelioLighting *, HELIO_SCH_FEEDRES_MAXSIZE> _lightings; // Lightings in progress
+    Map<hkey_t, HelioFeeding *, HELIO_SCH_FEEDRES_MAXSIZE> _feedings; // Feedings in progress
+    Map<hkey_t, HelioLighting *, HELIO_SCH_FEEDRES_MAXSIZE> _lightings; // Lightings in progress
 
     friend class Helioduino;
 

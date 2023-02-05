@@ -31,7 +31,7 @@ public:
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioRail(Helio_RailType railType,
-              Helio_PositionIndex railIndex,
+              hposi_t railIndex,
               int classType = Unknown);
     HelioRail(const HelioRailData *dataIn);
     virtual ~HelioRail();
@@ -48,7 +48,7 @@ public:
     virtual Helio_UnitsType getPowerUnits() const override;
 
     inline Helio_RailType getRailType() const { return _id.objTypeAs.railType; }
-    inline Helio_PositionIndex getRailIndex() const { return _id.posIndex; }
+    inline hposi_t getRailIndex() const { return _id.posIndex; }
     virtual float getRailVoltage() const override;
 
     Signal<HelioRail *, HELIO_CAPACITY_SIGNAL_SLOTS> &getCapacitySignal();
@@ -74,7 +74,7 @@ protected:
 class HelioSimpleRail : public HelioRail {
 public:
     HelioSimpleRail(Helio_RailType railType,
-                    Helio_PositionIndex railIndex,
+                    hposi_t railIndex,
                     int maxActiveAtOnce = 2,
                     int classType = Simple);
     HelioSimpleRail(const HelioSimpleRailData *dataIn);
@@ -100,7 +100,7 @@ protected:
 class HelioRegulatedRail : public HelioRail, public HelioPowerUsageSensorAttachmentInterface {
 public:
     HelioRegulatedRail(Helio_RailType railType,
-                       Helio_PositionIndex railIndex,
+                       hposi_t railIndex,
                        float maxPower,
                        int classType = Regulated);
     HelioRegulatedRail(const HelioRegulatedRailData *dataIn);

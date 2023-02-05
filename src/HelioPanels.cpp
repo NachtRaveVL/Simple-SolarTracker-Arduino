@@ -21,7 +21,7 @@ HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 }
 
 
-HelioPanel::HelioPanel(Helio_PanelType panelType, Helio_PositionIndex panelIndex, int classTypeIn)
+HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, int classTypeIn)
     : HelioObject(HelioIdentity(panelType, panelIndex)), classType((typeof(classType))classTypeIn)
 { ; }
 

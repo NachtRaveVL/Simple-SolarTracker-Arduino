@@ -738,21 +738,21 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_AC220V[] PROGMEM = {"AC220V"};
             return flashStr_Enum_AC220V;
         } break;
-        case HStr_Enum_AirHeatIndex: {
-            static const char flashStr_Enum_AirHeatIndex[] PROGMEM = {"AirHeatIndex"};
-            return flashStr_Enum_AirHeatIndex;
+        case HStr_Enum_HeatIndex: {
+            static const char flashStr_Enum_HeatIndex[] PROGMEM = {"HeatIndex"};
+            return flashStr_Enum_HeatIndex;
         } break;
-        case HStr_Enum_AirHumidity: {
-            static const char flashStr_Enum_AirHumidity[] PROGMEM = {"AirHumidity"};
-            return flashStr_Enum_AirHumidity;
+        case HStr_Enum_Humidity: {
+            static const char flashStr_Enum_Humidity[] PROGMEM = {"Humidity"};
+            return flashStr_Enum_Humidity;
         } break;
-        case HStr_Enum_AirTemperature: {
-            static const char flashStr_Enum_AirTemperature[] PROGMEM = {"AirTemperature"};
-            return flashStr_Enum_AirTemperature;
+        case HStr_Enum_Temperature: {
+            static const char flashStr_Enum_Temperature[] PROGMEM = {"Temperature"};
+            return flashStr_Enum_Temperature;
         } break;
-        case HStr_Enum_AirTemperatureHumidity: {
-            static const char flashStr_Enum_AirTemperatureHumidity[] PROGMEM = {"AirTempHumid"};
-            return flashStr_Enum_AirTemperatureHumidity;
+        case HStr_Enum_TemperatureHumidity: {
+            static const char flashStr_Enum_TemperatureHumidity[] PROGMEM = {"TempHumid"};
+            return flashStr_Enum_TemperatureHumidity;
         } break;
         case HStr_Enum_DC12V: {
             static const char flashStr_Enum_DC12V[] PROGMEM = {"DC12V"};

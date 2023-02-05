@@ -33,7 +33,7 @@ Helio_UnitsType defaultMeasureUnitsForSensorType(Helio_SensorType sensorType, ui
     }
 
     switch (sensorType) {
-        case Helio_SensorType_AirTempHumidity:
+        case Helio_SensorType_TemperatureHumidity:
             return defaultTemperatureUnits(measureMode);
         case Helio_SensorType_PowerUsage:
             return Helio_UnitsType_Power_Wattage;
@@ -45,11 +45,11 @@ Helio_UnitsType defaultMeasureUnitsForSensorType(Helio_SensorType sensorType, ui
 Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorType, uint8_t measurementRow)
 {
     switch (sensorType) {
-        case Helio_SensorType_AirTempHumidity:
+        case Helio_SensorType_TemperatureHumidity:
             switch (measurementRow) {
-                case 0: return Helio_UnitsCategory_AirTemperature;
-                case 1: return Helio_UnitsCategory_AirHumidity;
-                case 2: return Helio_UnitsCategory_AirHeatIndex;
+                case 0: return Helio_UnitsCategory_Temperature;
+                case 1: return Helio_UnitsCategory_Humidity;
+                case 2: return Helio_UnitsCategory_HeatIndex;
                 default: break;
             }
         case Helio_SensorType_PowerUsage:
@@ -66,7 +66,7 @@ Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorT
 
 
 HelioSensor::HelioSensor(Helio_SensorType sensorType,
-                         Helio_PositionIndex sensorIndex,
+                         hposi_t sensorIndex,
                          int classTypeIn)
     : HelioObject(HelioIdentity(sensorType, sensorIndex)), classType((typeof(classType))classTypeIn),
       _isTakingMeasure(false), _panel(this), _calibrationData(nullptr)
@@ -142,7 +142,7 @@ void HelioSensor::saveToData(HelioData *dataOut)
 
 
 HelioBinarySensor::HelioBinarySensor(Helio_SensorType sensorType,
-                                     Helio_PositionIndex sensorIndex,
+                                     hposi_t sensorIndex,
                                      HelioDigitalPin inputPin,
                                      int classType)
     : HelioSensor(sensorType, sensorIndex, classType),
@@ -241,7 +241,7 @@ void HelioBinarySensor::saveToData(HelioData *dataOut)
 
 
 HelioAnalogSensor::HelioAnalogSensor(Helio_SensorType sensorType,
-                                     Helio_PositionIndex sensorIndex,
+                                     hposi_t sensorIndex,
                                      HelioAnalogPin inputPin,
                                      bool inputInversion,
                                      int classType)
@@ -361,7 +361,7 @@ void HelioAnalogSensor::saveToData(HelioData *dataOut)
 
 
 HelioDigitalSensor::HelioDigitalSensor(Helio_SensorType sensorType,
-                                       Helio_PositionIndex sensorIndex,
+                                       hposi_t sensorIndex,
                                        HelioDigitalPin inputPin,
                                        uint8_t bitRes1W,
                                        bool allocate1W,
@@ -392,12 +392,12 @@ HelioDigitalSensor::HelioDigitalSensor(const HelioDigitalSensorData *dataIn, boo
     }
 }
 
-bool HelioDigitalSensor::setWirePositionIndex(Helio_PositionIndex wirePosIndex)
+bool HelioDigitalSensor::setWirePositionIndex(hposi_t wirePosIndex)
 {
     wirePosIndex = constrain(wirePosIndex, 0, 62);
     if (_oneWire && wirePosIndex >= 0 && (_wirePosIndex != wirePosIndex || arrayElementsEqual<uint8_t>(_wireDevAddress, 8, 0)) &&
         getHelioInstance()->tryGetPinLock(_inputPin.pin)) {
-        Helio_PositionIndex posIndex = 0;
+        hposi_t posIndex = 0;
         uint8_t devAddress[8];
 
         _oneWire->reset_search();
@@ -417,7 +417,7 @@ bool HelioDigitalSensor::setWirePositionIndex(Helio_PositionIndex wirePosIndex)
     return false;
 }
 
-Helio_PositionIndex HelioDigitalSensor::getWirePositionIndex() const
+hposi_t HelioDigitalSensor::getWirePositionIndex() const
 {
     return _wirePosIndex >= 0 ? _wirePosIndex : (_wirePosIndex > -64 ? -_wirePosIndex - 1 : -_wirePosIndex - 64);
 }
@@ -426,7 +426,7 @@ bool HelioDigitalSensor::setWireDeviceAddress(const uint8_t wireDevAddress[8])
 {
     if (_oneWire && !arrayElementsEqual<uint8_t>(wireDevAddress, 8, 0) && (_wirePosIndex < 0 || memcmp(_wireDevAddress, wireDevAddress, 8) != 0) &&
         _oneWire->crc8(wireDevAddress, 7) == wireDevAddress[7] && getHelioInstance()->tryGetPinLock(_inputPin.pin)) {
-        Helio_PositionIndex posIndex = 0;
+        hposi_t posIndex = 0;
         uint8_t devAddress[8];
 
         _oneWire->reset_search();
@@ -457,7 +457,7 @@ void HelioDigitalSensor::resolveDeviceAddress()
         setWireDeviceAddress(_wireDevAddress);
 
         if (!(_wirePosIndex >= 0) && _wirePosIndex > -64) {
-            Helio_PositionIndex posIndex = -_wirePosIndex - 1;
+            hposi_t posIndex = -_wirePosIndex - 1;
             setWirePositionIndex(posIndex);
 
             if (!(_wirePosIndex >= 0)) { _wirePosIndex = -64 - posIndex; } // disables further resolve attempts
@@ -476,12 +476,12 @@ void HelioDigitalSensor::saveToData(HelioData *dataOut)
 }
 
 
-HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(Helio_PositionIndex sensorIndex,
+HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex,
                                                        HelioDigitalPin inputPin,
                                                        Helio_DHTType dhtType,
                                                        bool computeHeatIndex,
                                                        int classType)
-    : HelioDigitalSensor(Helio_SensorType_AirTempHumidity, sensorIndex, inputPin, 9, false, classType),
+    : HelioDigitalSensor(Helio_SensorType_TemperatureHumidity, sensorIndex, inputPin, 9, false, classType),
       _dht(new DHT(inputPin.pin, dhtType)), _dhtType(dhtType), _computeHeatIndex(computeHeatIndex),
       _measurementUnits{defaultTemperatureUnits(), Helio_UnitsType_Percentile_0_100, defaultTemperatureUnits()}
 {
@@ -600,12 +600,12 @@ Helio_UnitsType HelioDHTTempHumiditySensor::getMeasurementUnits(uint8_t measurem
     return _measurementUnits[measurementRow];
 }
 
-bool HelioDHTTempHumiditySensor::setWirePositionIndex(Helio_PositionIndex wirePosIndex)
+bool HelioDHTTempHumiditySensor::setWirePositionIndex(hposi_t wirePosIndex)
 {
     return false;
 }
 
-Helio_PositionIndex HelioDHTTempHumiditySensor::getWirePositionIndex() const
+hposi_t HelioDHTTempHumiditySensor::getWirePositionIndex() const
 {
     return -1;
 }

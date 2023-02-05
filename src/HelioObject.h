@@ -40,15 +40,15 @@ struct HelioIdentity {
         Helio_PanelType panelType;                          // As panel type enumeration
         Helio_RailType railType;                            // As rail type enumeration
     } objTypeAs;                                            // Enumeration type union
-    Helio_PositionIndex posIndex;                           // Position index
+    hposi_t posIndex;                           // Position index
     String keyString;                                       // String key
-    Helio_KeyType key;                                      // UInt Key
+    hkey_t key;                                      // UInt Key
 
     // Default constructor (incomplete id)
     HelioIdentity();
 
     // Copy key (incomplete id)
-    HelioIdentity(Helio_KeyType key);
+    HelioIdentity(hkey_t key);
 
     // Copy into keyStr (incomplete id)
     HelioIdentity(const char *idKeyStr);
@@ -57,28 +57,28 @@ struct HelioIdentity {
 
     // Copy id with new position index
     HelioIdentity(const HelioIdentity &id,
-                  Helio_PositionIndex positionIndex);
+                  hposi_t positionIndex);
 
     // Actuator id constructor
     HelioIdentity(Helio_ActuatorType actuatorType,
-                  Helio_PositionIndex positionIndex = HELIO_POS_SEARCH_FROMBEG);
+                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
     // Sensor id constructor
     HelioIdentity(Helio_SensorType sensorType,
-                  Helio_PositionIndex positionIndex = HELIO_POS_SEARCH_FROMBEG);
+                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
     // Panel id constructor
     HelioIdentity(Helio_PanelType panelType,
-                  Helio_PositionIndex positionIndex = HELIO_POS_SEARCH_FROMBEG);
+                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
     // Rail id constructor
     HelioIdentity(Helio_RailType railType,
-                  Helio_PositionIndex positionIndex = HELIO_POS_SEARCH_FROMBEG);
+                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
 
     // Data constructor
     HelioIdentity(const HelioData *dataIn);
 
     // Used to update key value after modification, returning new key by convenience
-    Helio_KeyType regenKey();
+    hkey_t regenKey();
 
-    inline operator bool() const { return key != (Helio_KeyType)-1; }
+    inline operator bool() const { return key != (hkey_t)-1; }
     inline bool operator==(const HelioIdentity &otherId) const { return key == otherId.key; }
     inline bool operator!=(const HelioIdentity &otherId) const { return key != otherId.key; }
 };
@@ -113,7 +113,7 @@ public:
     inline Pair<uint8_t, Pair<HelioObject *, int8_t> *> getLinkages() const { return make_pair(_linksSize, _links); }
 
     virtual HelioIdentity getId() const override;           // Returns the unique Identity of the object
-    virtual Helio_KeyType getKey() const override;          // Returns the unique key of the object
+    virtual hkey_t getKey() const override;          // Returns the unique key of the object
     virtual String getKeyString() const override;           // Returns the key string of the object
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override; // Returns the SharedPtr instance of the object
 
@@ -136,7 +136,7 @@ private:
 class HelioSubObject : public HelioObjInterface {
 public:
     virtual HelioIdentity getId() const override;
-    virtual Helio_KeyType getKey() const override;
+    virtual hkey_t getKey() const override;
     virtual String getKeyString() const override;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override;
 

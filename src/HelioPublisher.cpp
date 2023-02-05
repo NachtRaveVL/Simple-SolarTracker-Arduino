@@ -149,7 +149,7 @@ bool HelioPublisher::beginPublishingToMQTTClient(MQTTClient &client)
 
 #endif
 
-void HelioPublisher::publishData(Helio_PositionIndex columnIndex, HelioSingleMeasurement measurement)
+void HelioPublisher::publishData(hposi_t columnIndex, HelioSingleMeasurement measurement)
 {
     HELIO_SOFT_ASSERT(hasPublisherData() && _dataColumns && _columnCount, SFP(HStr_Err_NotYetInitialized));
     if (_dataColumns && _columnCount && columnIndex >= 0 && columnIndex < _columnCount) {
@@ -158,17 +158,17 @@ void HelioPublisher::publishData(Helio_PositionIndex columnIndex, HelioSingleMea
     }
 }
 
-Helio_PositionIndex HelioPublisher::getColumnIndexStart(Helio_KeyType sensorKey)
+hposi_t HelioPublisher::getColumnIndexStart(hkey_t sensorKey)
 {
     HELIO_SOFT_ASSERT(hasPublisherData() && _dataColumns && _columnCount, SFP(HStr_Err_NotYetInitialized));
     if (_dataColumns && _columnCount) {
         for (int columnIndex = 0; columnIndex < _columnCount; ++columnIndex) {
             if (_dataColumns[columnIndex].sensorKey == sensorKey) {
-                return (Helio_PositionIndex)columnIndex;
+                return (hposi_t)columnIndex;
             }
         }
     }
-    return (Helio_PositionIndex)-1;
+    return (hposi_t)-1;
 }
 
 Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &HelioPublisher::getPublishSignal()

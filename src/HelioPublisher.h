@@ -44,13 +44,13 @@ public:
     inline bool isPublishingToMQTTClient() const;
 #endif
 
-    void publishData(Helio_PositionIndex columnIndex, HelioSingleMeasurement measurement);
+    void publishData(hposi_t columnIndex, HelioSingleMeasurement measurement);
 
     inline void setNeedsTabulation();
     inline bool needsTabulation() { return _needsTabulation; }
 
     inline bool isPublishingEnabled() const;
-    Helio_PositionIndex getColumnIndexStart(Helio_KeyType sensorKey);
+    hposi_t getColumnIndexStart(hkey_t sensorKey);
 
     Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &getPublishSignal();
 
@@ -67,7 +67,7 @@ protected:
     MQTTClient *_mqttClient;                                // MQTT client object (strong)
 #endif
     String _dataFilename;                                   // Resolved data file name (based on day)
-    Helio_PollingFrame _pollingFrame;                       // Polling frame that publishing is caught up to
+    hframe_t _pollingFrame;                       // Polling frame that publishing is caught up to
     bool _needsTabulation;                                  // Needs tabulation tracking flag
     uint8_t _columnCount;                                   // Data columns count
     HelioDataColumn *_dataColumns;                          // Data columns (owned)
@@ -94,7 +94,7 @@ protected:
 // Publisher Data Column
 // Data column worth of storage. Intended to be array allocated.
 struct HelioDataColumn {
-    Helio_KeyType sensorKey;                                // Key to sensor object
+    hkey_t sensorKey;                                // Key to sensor object
     HelioSingleMeasurement measurement;                     // Storage polling frame measurement
 };
 

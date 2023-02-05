@@ -86,7 +86,7 @@ public:
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioActuator(Helio_ActuatorType actuatorType,
-                  Helio_PositionIndex actuatorIndex,
+                  hposi_t actuatorIndex,
                   int classType = Unknown);
     HelioActuator(const HelioActuatorData *dataIn);
 
@@ -109,7 +109,7 @@ public:
     virtual HelioAttachment &getParentPanel(bool resolve = true) override;
 
     inline Helio_ActuatorType getActuatorType() const { return _id.objTypeAs.actuatorType; }
-    inline Helio_PositionIndex getActuatorIndex() const { return _id.posIndex; }
+    inline hposi_t getActuatorIndex() const { return _id.posIndex; }
 
     inline void setNeedsUpdate() { _needsUpdate = true; }
     inline bool needsUpdate() { return _needsUpdate; }
@@ -141,7 +141,7 @@ protected:
 class HelioRelayActuator : public HelioActuator {
 public:
     HelioRelayActuator(Helio_ActuatorType actuatorType,
-                       Helio_PositionIndex actuatorIndex,
+                       hposi_t actuatorIndex,
                        HelioDigitalPin outputPin,
                        int classType = Relay);
     HelioRelayActuator(const HelioActuatorData *dataIn);
@@ -170,7 +170,7 @@ protected:
 class HelioRelayMotorActuator : public HelioRelayActuator, public HelioMotorObjectInterface, public HelioPositionSensorAttachmentInterface, public HelioSpeedSensorAttachmentInterface {
 public:
     HelioRelayMotorActuator(Helio_ActuatorType actuatorType,
-                            Helio_PositionIndex actuatorIndex,
+                            hposi_t actuatorIndex,
                             HelioDigitalPin forwardOutputPin,
                             HelioDigitalPin reverseOutputPin,
                             int classType = RelayMotor);
@@ -228,7 +228,7 @@ protected:
 class HelioVariableActuator : public HelioActuator {
 public:
     HelioVariableActuator(Helio_ActuatorType actuatorType,
-                          Helio_PositionIndex actuatorIndex,
+                          hposi_t actuatorIndex,
                           HelioAnalogPin outputPin,
                           int classType = Variable);
     HelioVariableActuator(const HelioActuatorData *dataIn);

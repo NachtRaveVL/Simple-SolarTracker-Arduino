@@ -30,10 +30,10 @@ HelioObject *newObjectFromData(const HelioData *dataIn)
 
 
 HelioIdentity::HelioIdentity()
-    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(), key((Helio_KeyType)-1)
+    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(), key((hkey_t)-1)
 { ; }
 
-HelioIdentity::HelioIdentity(Helio_KeyType key)
+HelioIdentity::HelioIdentity(hkey_t key)
     : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(), key(key)
 { ; }
 
@@ -47,32 +47,32 @@ HelioIdentity::HelioIdentity(String idKey)
     : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(idKey), key(stringHash(idKey.c_str()))
 { ; }
 
-HelioIdentity::HelioIdentity(const HelioIdentity &id, Helio_PositionIndex positionIndex)
-    : type(id.type), objTypeAs{.actuatorType=id.objTypeAs.actuatorType}, posIndex(positionIndex), keyString(), key((Helio_KeyType)-1)
+HelioIdentity::HelioIdentity(const HelioIdentity &id, hposi_t positionIndex)
+    : type(id.type), objTypeAs{.actuatorType=id.objTypeAs.actuatorType}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
 
-HelioIdentity::HelioIdentity(Helio_ActuatorType actuatorTypeIn, Helio_PositionIndex positionIndex)
-    : type(Actuator), objTypeAs{.actuatorType=actuatorTypeIn}, posIndex(positionIndex), keyString(), key((Helio_KeyType)-1)
+HelioIdentity::HelioIdentity(Helio_ActuatorType actuatorTypeIn, hposi_t positionIndex)
+    : type(Actuator), objTypeAs{.actuatorType=actuatorTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
 
-HelioIdentity::HelioIdentity(Helio_SensorType sensorTypeIn, Helio_PositionIndex positionIndex)
-    : type(Sensor), objTypeAs{.sensorType=sensorTypeIn}, posIndex(positionIndex), keyString(), key((Helio_KeyType)-1)
+HelioIdentity::HelioIdentity(Helio_SensorType sensorTypeIn, hposi_t positionIndex)
+    : type(Sensor), objTypeAs{.sensorType=sensorTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
 
-HelioIdentity::HelioIdentity(Helio_PanelType panelTypeIn, Helio_PositionIndex positionIndex)
-    : type(Panel), objTypeAs{.panelType=panelTypeIn}, posIndex(positionIndex), keyString(), key((Helio_KeyType)-1)
+HelioIdentity::HelioIdentity(Helio_PanelType panelTypeIn, hposi_t positionIndex)
+    : type(Panel), objTypeAs{.panelType=panelTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
 
-HelioIdentity::HelioIdentity(Helio_RailType railTypeIn, Helio_PositionIndex positionIndex)
-    : type(Rail), objTypeAs{.railType=railTypeIn}, posIndex(positionIndex), keyString(), key((Helio_KeyType)-1)
+HelioIdentity::HelioIdentity(Helio_RailType railTypeIn, hposi_t positionIndex)
+    : type(Rail), objTypeAs{.railType=railTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
@@ -81,12 +81,12 @@ HelioIdentity::HelioIdentity(const HelioData *dataIn)
     : type((typeof(type))(dataIn->id.object.idType)),
       objTypeAs{.actuatorType=(Helio_ActuatorType)(dataIn->id.object.objType)},
       posIndex(dataIn->id.object.posIndex),
-      keyString(), key((Helio_KeyType)-1)
+      keyString(), key((hkey_t)-1)
 {
     regenKey();
 }
 
-Helio_KeyType HelioIdentity::regenKey()
+hkey_t HelioIdentity::regenKey()
 {
     switch (type) {
         case Actuator:
@@ -219,7 +219,7 @@ HelioIdentity HelioObject::getId() const
     return _id;
 }
 
-Helio_KeyType HelioObject::getKey() const
+hkey_t HelioObject::getKey() const
 {
     return _id.key;
 }
@@ -257,9 +257,9 @@ HelioIdentity HelioSubObject::getId() const
     return HelioIdentity(getKey());
 }
 
-Helio_KeyType HelioSubObject::getKey() const
+hkey_t HelioSubObject::getKey() const
 {
-    return (Helio_KeyType)(intptr_t)this;
+    return (hkey_t)(intptr_t)this;
 }
 
 String HelioSubObject::getKeyString() const

@@ -110,7 +110,7 @@ HelioDigitalPin::HelioDigitalPin()
     : HelioPin(Digital)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Arduino_PinModeType pinMode, uint8_t muxChannel)
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, uint8_t muxChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (pinMode != INPUT ? (pinMode == INPUT_PULLUP ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
                                                                          : Helio_PinMode_Digital_Input_Floating)
                                                      : (pinMode == OUTPUT ? Helio_PinMode_Digital_Output_OpenDrain : Helio_PinMode_Digital_Output_PushPull), muxChannel),
@@ -124,7 +124,7 @@ HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, uin
                 pinMode == Helio_PinMode_Digital_Output_OpenDrain)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Arduino_PinModeType pinMode, bool isActiveLow, uint8_t muxChannel)
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, bool isActiveLow, uint8_t muxChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (isActiveLow ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
                                                      : (isActiveLow ? Helio_PinMode_Digital_Output_OpenDrain : Helio_PinMode_Digital_Output_PushPull), muxChannel),
       activeLow(isActiveLow)
@@ -146,17 +146,17 @@ void HelioDigitalPin::saveToData(HelioPinData *dataOut) const
     dataOut->dataAs.digitalPin.activeLow = activeLow;
 }
 
-Arduino_PinStatusType HelioDigitalPin::digitalRead()
+ard_pinstatus_t HelioDigitalPin::digitalRead()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid() && (!isMuxed() || tryEnableMuxer())) {
             return ::digitalRead(pin);
         }
     #endif
-    return (Arduino_PinStatusType)-1;
+    return (ard_pinstatus_t)-1;
 }
 
-void HelioDigitalPin::digitalWrite(Arduino_PinStatusType status)
+void HelioDigitalPin::digitalWrite(ard_pinstatus_t status)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid() && (!isMuxed() || tryEnableMuxer())) {
@@ -176,7 +176,7 @@ HelioAnalogPin::HelioAnalogPin()
 #endif
 { ; }
 
-HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, Arduino_PinModeType pinMode, uint8_t analogBitRes,
+HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, ard_pinmode_t pinMode, uint8_t analogBitRes,
 #ifdef ESP32
                                uint8_t pinPWMChannel,
 #endif

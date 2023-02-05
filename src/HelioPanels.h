@@ -29,7 +29,7 @@ public:
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioPanel(Helio_PanelType panelType,
-               Helio_PositionIndex panelIndex,
+               hposi_t panelIndex,
                int classType = Unknown);
     HelioPanel(const HelioPanelData *dataIn);
 
@@ -46,7 +46,7 @@ public:
     virtual HelioSensorAttachment &getWaterVolume(bool poll = false) = 0;
 
     inline Helio_PanelType getPanelType() const { return _id.objTypeAs.panelType; }
-    inline Helio_PositionIndex getPanelIndex() const { return _id.posIndex; }
+    inline hposi_t getPanelIndex() const { return _id.posIndex; }
     inline Helio_PanelState getPanelState() const { return _panelState; }
 
     Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> &getStateSignal();

@@ -54,7 +54,7 @@ struct HelioJSONSerializableInterface {
 class HelioObjInterface {
 public:
     virtual HelioIdentity getId() const = 0;
-    virtual Helio_KeyType getKey() const = 0;
+    virtual hkey_t getKey() const = 0;
     virtual String getKeyString() const = 0;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const = 0;
 
@@ -82,14 +82,14 @@ public:
 
 // Digital Input Pin Interface
 struct HelioDigitalInputPinInterface {
-    virtual Arduino_PinStatusType digitalRead() = 0;
+    virtual ard_pinstatus_t digitalRead() = 0;
     inline int get() { return digitalRead(); }
 };
 
 // Digital Output Pin Interface
 struct HelioDigitalOutputPinInterface {
-    virtual void digitalWrite(Arduino_PinStatusType status) = 0;
-    inline void set(Arduino_PinStatusType status) { digitalWrite(status); }
+    virtual void digitalWrite(ard_pinstatus_t status) = 0;
+    inline void set(ard_pinstatus_t status) { digitalWrite(status); }
 };
 
 // Analog Input Pin Interface
