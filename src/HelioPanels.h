@@ -21,11 +21,11 @@ extern HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn);
 // This is the base class for all panels, which defines how the panel is
 // identified, where it lives, what's attached to it, if it is full or empty, and
 // who can activate under it.
-class HelioPanel : public HelioObject, public HelioPanelObjectInterface {
+class HelioPanel : public HelioObject, public HelioPanelObjectInterface, public HelioPowerProductionSensorAttachmentInterface {
 public:
-    const enum : signed char { Single, Multi, Unknown = -1 } classType; // Panel class type (custom RTTI)
-    inline bool isSingleClass() const { return classType == Single; }
-    inline bool isMultiClass() const { return classType == Multi; }
+    const enum : signed char { SunTracking, Reflecting, Unknown = -1 } classType; // Panel class type (custom RTTI)
+    inline bool isSunTrackingClass() const { return classType == SunTracking; }
+    inline bool isReflectingClass() const { return classType == Reflecting; }
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioPanel(Helio_PanelType panelType,
@@ -37,13 +37,14 @@ public:
 
     virtual bool canActivate(HelioActuator *actuator) override;
 
-    virtual HelioDriverAttachment &getAxisDriver(int axisIndex = 0, bool resolve = true) = 0;
-    virtual int getAxisCount();
+    HelioDriverAttachment &getAxisDriver(hposi_t axisIndex = 0, bool resolve = true);
+    HelioSensorAttachment &getAxisAngle(hposi_t axisIndex = 0, bool poll = false, bool resolve = true);
+    inline hposi_t getAxisCount() { return getPanelAxisCountFromType(getPanelType()); }
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits);
     virtual Helio_UnitsType getPowerUnits() const { return definedUnitsElse(_powerUnits, defaultPowerUnits()); }
 
-    virtual HelioSensorAttachment &getWaterVolume(bool poll = false) = 0;
+    virtual HelioSensorAttachment &getPowerProduction(bool poll = false) override;
 
     inline Helio_PanelType getPanelType() const { return _id.objTypeAs.panelType; }
     inline hposi_t getPanelIndex() const { return _id.posIndex; }
@@ -54,14 +55,16 @@ public:
 protected:
     Helio_UnitsType _powerUnits;                            // Power units preferred
     Helio_PanelState _panelState;                           // Current panel state
+    HelioSensorAttachment _powerProd;                       // Power production sensor (optional)
+    HelioDriverAttachment _axisDriver[2];                   // Axis driver attachments
+    HelioSensorAttachment _angleSensor[2];                  // Angle sensor attachments (optional)
 
     Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> _stateSignal; // Panel state signal
 
     virtual HelioData *allocateData() const override;
     virtual void saveToData(HelioData *dataOut) override;
 
-    //virtual void handleFilled(Helio_TriggerState filledState);
-    //virtual void handleEmpty(Helio_TriggerState emptyState);
+    virtual void handleState(Helio_PanelState panelState);
 };
 
 // Panel Serialization Data

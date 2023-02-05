@@ -1065,6 +1065,20 @@ String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
     return !excludeSpecial ? SFP(HStr_Undefined) : String();
 }
 
+hposi_t getPanelAxisCountFromType(Helio_PanelType panelType)
+{
+    switch (panelType) {
+        case Helio_PanelType_Horizontal:
+        case Helio_PanelType_Vertical:
+            return 1;
+        case Helio_PanelType_Gimballed:
+        case Helio_PanelType_Equatorial:
+            return 2;
+        default:
+            return 0;
+    }
+}
+
 String panelTypeToString(Helio_PanelType panelType, bool excludeSpecial)
 {
     switch (panelType) {

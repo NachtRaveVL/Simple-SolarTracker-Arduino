@@ -37,8 +37,8 @@ public:
     virtual void setTravelRate(float travelRate) override;
     virtual Helio_DrivingState getDrivingState() const override;
 
-    virtual void setTargetUnits(Helio_UnitsType targetUnits) = 0;
-    virtual Helio_UnitsType getTargetUnits() const = 0;
+    virtual void setTargetUnits(Helio_UnitsType targetUnits);
+    inline Helio_UnitsType getTargetUnits() const { return definedUnitsElse(_targetUnits, defaultDistanceUnits()); }
 
     void setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> &actuators);
     inline const Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> &getActuators() { return _actuators; }
@@ -58,9 +58,9 @@ protected:
     float _trackMax;                                        // Track maximum value
     float _targetSetpoint;                                  // Target set-point value
     float _travelRate;                                      // Travel rate
+    Helio_UnitsType _targetUnits;                           // Target units
     Helio_DrivingState _drivingState;                       // Current driving state
     bool _enabled;                                          // Enabled flag
-    HelioSensorAttachment _angle;                           // Angle sensor (optional)
 
     Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> _drivingSignal; // Driving signal
 
@@ -84,11 +84,7 @@ public:
 
     virtual void update() override;
 
-    virtual void setTargetUnits(Helio_UnitsType targetUnits) override;
-    virtual Helio_UnitsType getTargetUnits() const override;
-
 protected:
-    Helio_UnitsType _targetUnits;                           // Target units
 };
 
 // Motor Driver
@@ -96,7 +92,7 @@ protected:
 // an intensity value that corresponds to travel direction and speed. Device will park
 // within target range of target value, and will keep actuators within travel range of
 // one another (else disable). Track sensors can be position, speed, or endstop based.
-class HelioMotorDriver : public HelioDriver, public HelioPositionSensorAttachmentInterface, public HelioSpeedSensorAttachmentInterface, public HelioMinEndstopAttachmentInterface, public HelioMaxEndstopAttachmentInterface {
+class HelioMotorDriver : public HelioDriver {
 public:
     HelioMotorDriver(float trackMax = 100.0f,
                      float trackMin = 0.0f,
@@ -106,21 +102,9 @@ public:
 
     virtual void update() override;
 
-    virtual void setTargetUnits(Helio_UnitsType targetUnits) override;
-    virtual Helio_UnitsType getTargetUnits() const override;
-
-    virtual HelioSensorAttachment &getPosition(bool poll = false) override;
-    virtual HelioSensorAttachment &getSpeed(bool poll = false) override;
-    virtual HelioSensorAttachment &getMinimum(bool poll = false) override;
-    virtual HelioSensorAttachment &getMaximum(bool poll = false) override;
-
 protected:
     float _targetRange;                                     // Target range
     float _travelRange;                                     // Travel range 
-    HelioSensorAttachment _position;                        // Position sensor (optional)
-    HelioSensorAttachment _speed;                           // Speed sensor (optional)
-    HelioSensorAttachment _minimum;                         // Minimum endstop (optional)
-    HelioSensorAttachment _maximum;                         // Maximum endstop (optional)
 };
 
 #endif // /ifndef HelioDrivers_H
