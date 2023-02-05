@@ -98,22 +98,18 @@ SharedPtr<U> HelioAttachment::getObject()
 template<class ParameterType, int Slots> template<class U>
 HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(HelioObjInterface *parent, Signal<ParameterType,Slots> &(U::*signalGetter)(void))
     : HelioAttachment(parent), _signalGetter((SignalGetterPtr)signalGetter), _handleSlot(nullptr)
-{
-    HELIO_HARD_ASSERT(_signalGetter, SFP(HStr_Err_InvalidParameter));
-}
+{ ; }
 
 template<class ParameterType, int Slots>
 HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(const HelioSignalAttachment<ParameterType,Slots> &attachment)
     : HelioAttachment(attachment), _signalGetter((SignalGetterPtr)attachment._signalGetter),
       _handleSlot(attachment._handleSlot ? attachment._handleSlot->clone() : nullptr)
-{
-    HELIO_HARD_ASSERT(_signalGetter, SFP(HStr_Err_InvalidParameter));
-}
+{ ; }
 
 template<class ParameterType, int Slots>
 HelioSignalAttachment<ParameterType,Slots>::~HelioSignalAttachment()
 {
-    if (isResolved() && _handleSlot) {
+    if (isResolved() && _handleSlot && _signalGetter) {
         (get()->*_signalGetter)().detach(*_handleSlot);
     }
     if (_handleSlot) {
@@ -126,7 +122,7 @@ void HelioSignalAttachment<ParameterType,Slots>::attachObject()
 {
     HelioAttachment::attachObject();
 
-    if (_handleSlot) {
+    if (isResolved() && _handleSlot && _signalGetter) {
         (get()->*_signalGetter)().attach(*_handleSlot);
     }
 }
@@ -134,23 +130,35 @@ void HelioSignalAttachment<ParameterType,Slots>::attachObject()
 template<class ParameterType, int Slots>
 void HelioSignalAttachment<ParameterType,Slots>::detachObject()
 {
-    if (isResolved() && _handleSlot) {
+    if (isResolved() && _handleSlot && _signalGetter) {
         (get()->*_signalGetter)().detach(*_handleSlot);
     }
 
     HelioAttachment::detachObject();
 }
 
+template<class ParameterType, int Slots> template<class U>
+void HelioSignalAttachment<ParameterType,Slots>::setSignalGetter(Signal<ParameterType,Slots> &(U::*signalGetter)(void))
+{
+    if (_signalGetter != signalGetter) {
+        if (isResolved() && _handleSlot && _signalGetter) { (get()->*_signalGetter)().detach(*_handleSlot); }
+
+        _signalGetter = signalGetter;
+
+        if (isResolved() && _handleSlot && _signalGetter) { (get()->*_signalGetter)().attach(*_handleSlot); }
+    }
+}
+
 template<class ParameterType, int Slots>
 void HelioSignalAttachment<ParameterType,Slots>::setHandleSlot(const Slot<ParameterType> &handleSlot)
 {
     if (!_handleSlot || !_handleSlot->operator==(&handleSlot)) {
-        if (isResolved() && _handleSlot) { (get()->*_signalGetter)().detach(*_handleSlot); }
+        if (isResolved() && _handleSlot && _signalGetter) { (get()->*_signalGetter)().detach(*_handleSlot); }
 
         if (_handleSlot) { delete _handleSlot; _handleSlot = nullptr; }
         _handleSlot = handleSlot.clone();
 
-        if (isResolved() && _handleSlot) { (get()->*_signalGetter)().attach(*_handleSlot); }
+        if (isResolved() && _handleSlot && _signalGetter) { (get()->*_signalGetter)().attach(*_handleSlot); }
     }
 }
 

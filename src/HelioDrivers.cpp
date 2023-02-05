@@ -7,8 +7,7 @@
 
 HelioDriver::HelioDriver(float trackMin, float trackMax, float targetSetpoint, float travelRate, int typeIn)
     : type((typeof(type))typeIn), _drivingState(Helio_DrivingState_Undefined), _enabled(false),
-      _trackMin(trackMin), _trackMax(trackMax), _targetSetpoint(targetSetpoint), _travelRate(travelRate),
-      _angle(this)
+      _trackMin(trackMin), _trackMax(trackMax), _targetSetpoint(targetSetpoint), _travelRate(travelRate)
 { ; }
 
 HelioDriver::~HelioDriver()

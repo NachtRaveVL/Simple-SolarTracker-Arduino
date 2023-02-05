@@ -391,6 +391,9 @@ extern String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecia
 // Converts back to sensor type enum from string.
 extern Helio_SensorType sensorTypeFromString(String sensorTypeStr);
 
+// Returns axis count as derived from panel type enumeration.
+extern hposi_t getPanelAxisCountFromType(Helio_PanelType panelType);
+
 // Converts from fluid panel enum to string, with optional exclude for special types (instead returning "").
 extern String panelTypeToString(Helio_PanelType panelType, bool excludeSpecial = false);
 // Converts back to fluid panel enum from string.

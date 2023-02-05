@@ -66,7 +66,7 @@ HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
 
 HelioAttachment::~HelioAttachment()
 {
-    if (_parent && isResolved()) {
+    if (isResolved() && _parent) {
         _obj->removeLinkage((HelioObject *)_parent);
     }
 }
@@ -80,7 +80,7 @@ void HelioAttachment::attachObject()
 
 void HelioAttachment::detachObject()
 {
-    if (_parent && isResolved()) {
+    if (isResolved() && _parent) {
         _obj->removeLinkage((HelioObject *)_parent);
     }
     // note: used to set _obj to nullptr here, but found that it's best not to -> avoids additional operator= calls during typical detach scenarios
@@ -95,15 +95,16 @@ void HelioAttachment::setParent(HelioObjInterface *parent)
 {
     if (_parent != parent) {
         if (isResolved() && _parent) { _obj->removeLinkage((HelioObject *)_parent); }
+
         _parent = parent;
+
         if (isResolved() && _parent) { _obj->addLinkage((HelioObject *)_parent); }
     }
 }
 
 
 HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
-    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(
-        parent, &HelioActuator::getActivationSignal),
+    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(parent, &HelioActuator::getActivationSignal),
        _actuatorHandle(), _updateSlot(nullptr), _rateMultiplier(1.0f)
 { ; }
 
@@ -138,8 +139,7 @@ void HelioActuatorAttachment::setUpdateSlot(const Slot<HelioActivationHandle *> 
 
 
 HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
-    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(
-          parent, &HelioSensor::getMeasurementSignal),
+    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, &HelioSensor::getMeasurementSignal),
       _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
     setHandleMethod(&HelioSensorAttachment::handleMeasurement);
@@ -219,8 +219,7 @@ void HelioSensorAttachment::handleMeasurement(const HelioMeasurement *measuremen
 
 
 HelioTriggerAttachment::HelioTriggerAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(
-        parent, &HelioTrigger::getTriggerSignal)
+    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(parent, &HelioTrigger::getTriggerSignal)
 { ; }
 
 HelioTriggerAttachment::HelioTriggerAttachment(const HelioTriggerAttachment &attachment)
@@ -238,8 +237,7 @@ void HelioTriggerAttachment::updateIfNeeded(bool poll)
 
 
 HelioDriverAttachment::HelioDriverAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(
-        parent, &HelioDriver::getDrivingSignal)
+    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(parent, &HelioDriver::getDrivingSignal)
 { ; }
 
 HelioDriverAttachment::HelioDriverAttachment(const HelioDriverAttachment &attachment)

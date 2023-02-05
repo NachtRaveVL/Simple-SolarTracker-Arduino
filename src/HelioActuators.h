@@ -101,6 +101,7 @@ public:
 
     inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
     inline Helio_EnableMode getEnableMode() { return _enableMode; }
+    inline bool isSerialMode() { return getActuatorIsSerialFromMode(getEnableMode()); }
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() override;
