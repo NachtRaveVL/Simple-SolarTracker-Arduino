@@ -76,7 +76,7 @@ typedef uint16_t hframe_t;                                  // Polling frame typ
 typedef typeof(INPUT) ard_pinmode_t;                        // Arduino pin mode type alias
 typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin status type alias
 
-#define HELIO_NAME_MAXSIZE              24                  // Naming character maximum size (system name, crop name, etc.)
+#define HELIO_NAME_MAXSIZE              32                  // Naming character maximum size (system name, crop name, etc.)
 #define HELIO_POS_MAXSIZE               32                  // Position indicies maximum size (max # of objs of same type)
 #define HELIO_URL_MAXSIZE               64                  // URL string maximum size (max url length)
 #define HELIO_JSON_DOC_SYSSIZE          256                 // JSON document chunk data bytes for reading in main system data (serialization buffer size)
@@ -85,8 +85,8 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
 // The following slot sizes apply to all architectures
 #define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
-#define HELIO_SENSOR_SIGNAL_SLOTS       4                   // Maximum number of slots for sensor's measurement signal
-#define HELIO_TRIGGER_SIGNAL_SLOTS      2                   // Maximum number of slots for trigger's state signal
+#define HELIO_SENSOR_SIGNAL_SLOTS       6                   // Maximum number of slots for sensor's measurement signal
+#define HELIO_TRIGGER_SIGNAL_SLOTS      4                   // Maximum number of slots for trigger's state signal
 #define HELIO_DRIVER_SIGNAL_SLOTS       2                   // Maximum number of slots for driver's state signal
 #define HELIO_LOG_SIGNAL_SLOTS          2                   // Maximum number of slots for system log signal
 #define HELIO_PUBLISH_SIGNAL_SLOTS      2                   // Maximum number of slots for data publish signal
@@ -95,7 +95,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_RAILS_LINKS_BASESIZE      4                   // Base array size for rail's linkage list
 // The following max sizes only matter for architectures that do not have STL support
 #define HELIO_SYS_OBJECTS_MAXSIZE       16                  // Maximum array size for system objects (max # of objects in system)
-#define HELIO_CALSTORE_CALIBS_MAXSIZE   8                   // Maximum array size for calibration store objects (max # of different custom calibrations)
+#define HELIO_CAL_CALIBSTORE_MAXSIZE    8                   // Maximum array size for calibration store objects (max # of different custom calibrations)
 #define HELIO_OBJ_LINKS_MAXSIZE         8                   // Maximum array size for object linkage list, per obj (max # of linked objects)
 #define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
 #define HELIO_DRV_ACTUATORS_MAXSIZE     8                   // Maximum array size for driver actuators list (max # of actuators used)
@@ -427,30 +427,31 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Undefined = -1                          // Internal use only
 };
 
-// Forward decls
+// Common forward decls
 class Helioduino;
 class HelioScheduler;
 class HelioLogger;
 class HelioPublisher;
 struct HelioIdentity;
-class HelioObject;
-class HelioSubObject;
 struct HelioData;
 struct HelioSubData;
 struct HelioObjectData;
-struct HelioMeasurement;
-struct HelioSingleMeasurement;
 struct HelioPin;
 struct HelioDigitalPin;
 struct HelioAnalogPin;
-class HelioTrigger;
-class HelioDriver;
+struct HelioActivationHandle;
+struct HelioMeasurement;
+struct HelioSingleMeasurement;
+class HelioObject;
+class HelioSubObject;
 class HelioDLinkObject;
 class HelioAttachment;
+class HelioActuatorAttachment;
 class HelioSensorAttachment;
 class HelioTriggerAttachment;
 class HelioDriverAttachment;
-struct HelioActivationHandle;
+class HelioTrigger;
+class HelioDriver;
 class HelioActuator;
 class HelioSensor;
 class HelioPanel;

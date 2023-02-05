@@ -9,10 +9,10 @@
 class HelioDLinkObject;
 class HelioAttachment;
 template<class ParameterType, int Slots> class HelioSignalAttachment;
+class HelioActuatorAttachment;
 class HelioSensorAttachment;
 class HelioTriggerAttachment;
 class HelioDriverAttachment;
-class HelioActuatorAttachment;
 
 #include "Helioduino.h"
 #include "HelioObject.h"
@@ -156,6 +156,64 @@ protected:
 };
 
 
+// Actuator Attachment Point
+// This attachment interfaces with actuator activation handles for actuator control, and
+// registers the parent object with an Actuator upon dereference / unregisters the parent
+// object from the Actuator at time of destruction or reassignment.
+class HelioActuatorAttachment : public HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> {
+public:
+    HelioActuatorAttachment(HelioObjInterface *parent);
+    HelioActuatorAttachment(const HelioActuatorAttachment &attachment);
+    virtual ~HelioActuatorAttachment();
+
+    // Updates with actuator activation handle. Does not call actuator's update() (handled by system).
+    virtual void updateIfNeeded(bool poll = false) override;
+
+    // A rate multiplier is used to adjust either the intensity or duration of activations,
+    // which depends on whenever they operate in binary mode (on/off) or variably (ranged).
+    inline void setRateMultiplier(float rateMultiplier) { _rateMultiplier = rateMultiplier; }
+    inline float getRateMultiplier() const { return _rateMultiplier; }
+
+    // Activations are set up first by calling one of these methods. This configures the
+    // direction as well as intensity that the actuator will operate upon, once enabled.
+    inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, direction, intensity, duration, force); }
+    inline void setupActivation(float intensity, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, intensity, duration, force); }
+    inline void setupActivation(millis_t duration, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
+    inline void setupActivation(bool force, millis_t duration = -1) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
+
+    // Enables activation handle with current setup, if not already active.
+    inline void enableActivation() { if (!_actuatorHandle.actuator) { _actuatorHandle = HelioAttachment::getObject<HelioActuator>(); } }
+    // Disables activation handle, if not already inactive.
+    inline void disableActivation() { _actuatorHandle.unset(); }
+
+    inline bool isActuatorEnabled(float tolerance = 0.0f) { return resolve() && HelioAttachment::get<HelioActuator>()->isEnabled(tolerance); }
+    inline bool isActivationEnabled() { return _actuatorHandle.isActive(); }
+    inline bool isEnabled(float tolerance = 0.0f) { return isActuatorEnabled(tolerance) && isActivationEnabled(); }
+
+    // Sets an update slot to run during execution of actuator that can further refine duration value.
+    // Useful for rate-based or variable activations. Slot receives activation handle pointer as parameter.
+    void setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot);
+    inline void setUpdateFunction(void (*updateFunctionPtr)(HelioActivationHandle *)) { setUpdateSlot(FunctionSlot<HelioActivationHandle *>(updateFunctionPtr)); }
+    template<class U> inline void setUpdateMethod(void (U::*updateMethodPtr)(HelioActivationHandle *), U *updateClassInst = nullptr) { setUpdateSlot(MethodSlot<U,HelioActivationHandle *>(updateClassInst ? updateClassInst : reinterpret_cast<U *>(_parent), updateMethodPtr)); }
+
+    inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
+    inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
+
+    inline HelioActuator &operator*() { return *HelioAttachment::get<HelioActuator>(); }
+    inline HelioActuator *operator->() { return HelioAttachment::get<HelioActuator>(); }
+
+    inline HelioActuatorAttachment &operator=(const HelioIdentity &rhs) { setObject(rhs); return *this; }
+    inline HelioActuatorAttachment &operator=(const char *rhs) { setObject(rhs); return *this; }
+    template<class U> inline HelioActuatorAttachment &operator=(SharedPtr<U> rhs) { setObject(rhs); return *this; }
+    template<class U> inline HelioActuatorAttachment &operator=(const U *rhs) { setObject(rhs); return *this; }
+
+protected:
+    HelioActivationHandle _actuatorHandle;                  // Actuator activation handle (double ref to object when active)
+    Slot<HelioActivationHandle *> *_updateSlot;             // Update slot (owned)
+    float _rateMultiplier;                                  // Rate multiplier
+};
+
+
 // Sensor Measurement Attachment Point
 // This attachment registers the parent object with a Sensor's new measurement Signal
 // upon dereference / unregisters the parent object from the Sensor at time of destruction
@@ -264,63 +322,6 @@ public:
     inline HelioDriverAttachment &operator=(const char *rhs) { setObject(rhs); return *this; }
     template<class U> inline HelioDriverAttachment &operator=(SharedPtr<U> rhs) { setObject(rhs); return *this; }
     template<class U> inline HelioDriverAttachment &operator=(const U *rhs) { setObject(rhs); return *this; }
-};
-
-// Actuator Attachment Point
-// This attachment interfaces with actuator activation handles for actuator control, and
-// registers the parent object with an Actuator upon dereference / unregisters the parent
-// object from the Actuator at time of destruction or reassignment.
-class HelioActuatorAttachment : public HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> {
-public:
-    HelioActuatorAttachment(HelioObjInterface *parent);
-    HelioActuatorAttachment(const HelioActuatorAttachment &attachment);
-    virtual ~HelioActuatorAttachment();
-
-    // Updates with actuator activation handle. Does not call actuator's update() (handled by system).
-    virtual void updateIfNeeded(bool poll = false) override;
-
-    // A rate multiplier is used to adjust either the intensity or duration of activations,
-    // which depends on whenever they operate in binary mode (on/off) or variably (ranged).
-    inline void setRateMultiplier(float rateMultiplier) { _rateMultiplier = rateMultiplier; }
-    inline float getRateMultiplier() const { return _rateMultiplier; }
-
-    // Activations are set up first by calling one of these methods. This configures the
-    // direction as well as intensity that the actuator will operate upon, once enabled.
-    inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, direction, intensity, duration, force); }
-    inline void setupActivation(float intensity, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, intensity, duration, force); }
-    inline void setupActivation(millis_t duration, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
-    inline void setupActivation(bool force, millis_t duration = -1) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
-
-    // Enables activation handle with current setup, if not already active.
-    inline void enableActivation() { if (!_actuatorHandle.actuator) { _actuatorHandle = HelioAttachment::getObject<HelioActuator>(); } }
-    // Disables activation handle, if not already inactive.
-    inline void disableActivation() { _actuatorHandle.unset(); }
-
-    inline bool isActuatorEnabled(float tolerance = 0.0f) { return resolve() && HelioAttachment::get<HelioActuator>()->isEnabled(tolerance); }
-    inline bool isActivationEnabled() { return _actuatorHandle.isActive(); }
-    inline bool isEnabled(float tolerance = 0.0f) { return isActuatorEnabled(tolerance) && isActivationEnabled(); }
-
-    // Sets an update slot to run during execution of actuator that can further refine duration value.
-    // Useful for rate-based or variable activations. Slot receives activation handle pointer as parameter.
-    void setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot);
-    inline void setUpdateFunction(void (*updateFunctionPtr)(HelioActivationHandle *)) { setUpdateSlot(FunctionSlot<HelioActivationHandle *>(updateFunctionPtr)); }
-    template<class U> inline void setUpdateMethod(void (U::*updateMethodPtr)(HelioActivationHandle *), U *updateClassInst = nullptr) { setUpdateSlot(MethodSlot<U,HelioActivationHandle *>(updateClassInst ? updateClassInst : reinterpret_cast<U *>(_parent), updateMethodPtr)); }
-
-    inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
-    inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
-
-    inline HelioActuator &operator*() { return *HelioAttachment::get<HelioActuator>(); }
-    inline HelioActuator *operator->() { return HelioAttachment::get<HelioActuator>(); }
-
-    inline HelioActuatorAttachment &operator=(const HelioIdentity &rhs) { setObject(rhs); return *this; }
-    inline HelioActuatorAttachment &operator=(const char *rhs) { setObject(rhs); return *this; }
-    template<class U> inline HelioActuatorAttachment &operator=(SharedPtr<U> rhs) { setObject(rhs); return *this; }
-    template<class U> inline HelioActuatorAttachment &operator=(const U *rhs) { setObject(rhs); return *this; }
-
-protected:
-    HelioActivationHandle _actuatorHandle;                  // Actuator activation handle (double ref to object when active)
-    Slot<HelioActivationHandle *> *_updateSlot;             // Update slot (owned)
-    float _rateMultiplier;                                  // Rate multiplier
 };
 
 #endif // /ifndef HelioAttachments_H
