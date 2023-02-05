@@ -58,7 +58,7 @@ struct HelioSystemData : public HelioData {
 // id: HCAL. Helioduino linear calibration data.
 // This class essentially controls a simple Ax+B linear transformation mapping, and is
 // used to 'convert' values from one coordinate system into another, or in our case used
-// for storing custom user curve/offset correction data.
+// for storing custom user curve/offset correction/mapping data.
 // See setFrom* methods to set calibrated data in various formats.
 struct HelioCalibrationData : public HelioData {
     char ownerName[HELIO_NAME_MAXSIZE];                     // Owner object name this calibration belongs to
