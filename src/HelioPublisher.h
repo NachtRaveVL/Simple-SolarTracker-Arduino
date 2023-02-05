@@ -52,7 +52,7 @@ public:
     inline bool isPublishingEnabled() const;
     Helio_PositionIndex getColumnIndexStart(Helio_KeyType sensorKey);
 
-    Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_STATE_SLOTS> &getPublishSignal();
+    Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &getPublishSignal();
 
     void notifyDayChanged();
 
@@ -72,7 +72,7 @@ protected:
     uint8_t _columnCount;                                   // Data columns count
     HelioDataColumn *_dataColumns;                          // Data columns (owned)
 
-    Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_STATE_SLOTS> _publishSignal; // Data publishing signal
+    Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> _publishSignal; // Data publishing signal
 
     friend class Helioduino;
 

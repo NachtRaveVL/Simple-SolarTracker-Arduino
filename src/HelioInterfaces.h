@@ -32,6 +32,8 @@ class HelioMotorObjectInterface;
 
 class HelioPositionSensorAttachmentInterface;
 class HelioSpeedSensorAttachmentInterface;
+class HelioMinEndstopAttachmentInterface;
+class HelioMaxEndstopAttachmentInterface;
 class HelioPowerUsageSensorAttachmentInterface;
 class HelioAirTemperatureSensorAttachmentInterface;
 class HelioAirHumiditySensorAttachmentInterface;
@@ -178,7 +180,8 @@ class HelioPanelObjectInterface {
 public:
     virtual bool canActivate(HelioActuator *actuator) = 0;
 
-    // todo
+    virtual void setPowerUnits(Helio_UnitsType powerUnits) = 0;
+    virtual Helio_UnitsType getPowerUnits() const = 0;
 };
 
 // Rail Object Interface
@@ -195,11 +198,12 @@ public:
 
 
 // Balancer Object Interface
-class HelioBalancerObjectInterface {
+class HelioDriverObjectInterface {
 public:
     virtual void setTargetSetpoint(float targetSetpoint) = 0;
-    virtual Helio_BalancerState getBalancerState() const = 0;
-    inline bool isBalanced() const;
+    virtual void setTravelRate(float travelRate) = 0;
+    virtual Helio_DrivingState getDrivingState() const = 0;
+    inline bool isOnTarget() const;
 };
 
 // Trigger Object Interface
@@ -248,6 +252,25 @@ public:
     template<class U> inline void setSpeedSensor(U sensor);
     template<class U = HelioSensor> inline SharedPtr<U> getSpeedSensor(bool poll = false);
 };
+
+// Min Endstop Interface
+class HelioMinEndstopAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getMinimum(bool poll = false) = 0;
+
+    template<class U> inline void setMinEndstop(U endstop);
+    template<class U = HelioSensor> inline SharedPtr<U> getMinEndstop(bool poll = false);
+};
+
+// Max Endstop Interface
+class HelioMaxEndstopAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getMaximum(bool poll = false) = 0;
+
+    template<class U> inline void setMaxEndstop(U endstop);
+    template<class U = HelioSensor> inline SharedPtr<U> getMaxEndstop(bool poll = false);
+};
+
 
 // Power Production Aware Interface
 class HelioPowerProductionSensorAttachmentInterface {

@@ -43,10 +43,10 @@ ActuatorTimedEnableTask::ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuat
 
 void ActuatorTimedEnableTask::exec()
 {
-    HelioActivationHandle handle(_actuator.get(), _intensity, _duration);
+    HelioActivationHandle handle(_actuator, _intensity, _duration);
 
     while (handle.actuator) {
-        if (handle.start > 0 && handle.duration > 0) {
+        if (handle.checkTime > 0 && handle.duration > 0) {
             // todo
         }
 
@@ -483,11 +483,11 @@ unsigned int freeMemory() {
     #endif
 }
 
-void delayFine(millis_t time) {
+void delayFine(millis_t duration) {
     millis_t start = millis();
-    time_t end = start + time;
+    millis_t end = start + duration;
 
-    {   time_t left = max(0, time - HELIO_SYS_DELAYFINE_SPINMILLIS);
+    {   millis_t left = max(0, duration - HELIO_SYS_DELAYFINE_SPINMILLIS);
         if (left > 0) { delay(left); }
     }
 
@@ -510,6 +510,9 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
                     *valueOut = valueIn * 100.0f;
                     return true;
 
+                case Helio_UnitsType_Angle_0_360:
+                    *valueOut = fmodf(valueIn * 360.0f, 360.0f);
+
                 default:
                     if (!isFPEqual(convertParam, FLT_UNDEF)) {
                         *valueOut = valueIn * convertParam;
@@ -523,6 +526,17 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             switch (unitsOut) {
                 case Helio_UnitsType_Raw_0_1:
                     *valueOut = valueIn / 100.0f;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Angle_0_360:
+            switch (unitsOut) {
+                case Helio_UnitsType_Raw_0_1:
+                    *valueOut = valueIn / 360.0f;
                     return true;
 
                 default:
@@ -730,6 +744,23 @@ Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode)
         case Helio_MeasurementMode_Metric:
         case Helio_MeasurementMode_Scientific:
             return Helio_UnitsType_Speed_MetersPerMin;
+        default:
+            return Helio_UnitsType_Undefined;
+    }
+}
+
+Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined)
+{
+    if (measureMode == Helio_MeasurementMode_Undefined) {
+        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
+    }
+
+    switch (measureMode) {
+        case Helio_MeasurementMode_Imperial:
+        case Helio_MeasurementMode_Metric:
+            return Helio_UnitsType_Power_Wattage;
+        case Helio_MeasurementMode_Scientific:
+            return Helio_UnitsType_Power_JoulesPerSecond;
         default:
             return Helio_UnitsType_Undefined;
     }

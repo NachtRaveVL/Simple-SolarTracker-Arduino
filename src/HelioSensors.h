@@ -66,13 +66,13 @@ public:
     inline Helio_SensorType getSensorType() const { return _id.objTypeAs.sensorType; }
     inline Helio_PositionIndex getSensorIndex() const { return _id.posIndex; }
 
-    Signal<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS> &getMeasurementSignal();
+    Signal<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> &getMeasurementSignal();
 
 protected:
     bool _isTakingMeasure;                                  // Taking measurement flag
     HelioAttachment _panel;                                 // Panel attachment
     const HelioCalibrationData *_calibrationData;           // Calibration data
-    Signal<const HelioMeasurement *, HELIO_SENSOR_MEASUREMENT_SLOTS> _measureSignal; // New measurement signal
+    Signal<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> _measureSignal; // New measurement signal
 
     virtual HelioData *allocateData() const override;
     virtual void saveToData(HelioData *dataOut) override;
@@ -101,7 +101,7 @@ public:
 
     inline const HelioDigitalPin &getInputPin() const { return _inputPin; }
 
-    Signal<bool, HELIO_SENSOR_MEASUREMENT_SLOTS> &getStateSignal();
+    Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> &getStateSignal();
 
     inline void notifyISRTriggered() { takeMeasurement(true); }
 
@@ -109,7 +109,7 @@ protected:
     HelioDigitalPin _inputPin;                              // Digital input pin
     bool _usingISR;                                         // Using ISR flag
     HelioBinaryMeasurement _lastMeasurement;                // Latest successful measurement
-    Signal<bool, HELIO_SENSOR_MEASUREMENT_SLOTS> _stateSignal; // State changed signal
+    Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> _stateSignal; // State changed signal
 
     virtual void saveToData(HelioData *dataOut) override;
 };

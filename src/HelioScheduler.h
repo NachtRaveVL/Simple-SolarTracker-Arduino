@@ -19,7 +19,7 @@ struct HelioLighting;
 // the various equipment and crops you have programmed in, and figures out the best
 // case feeding and lighting sequences that should occur to support them. It is also
 // responsible for setting up and maintaining the system balancers that get assigned to
-// feed panels, which drives the various balancing processes in use, as well as
+// feed panels, which drives the various driving processes in use, as well as
 // determining when significant time changes have occurred and broadcasting such out.
 class HelioScheduler {
 public:
@@ -28,11 +28,11 @@ public:
 
     void update();
 
-    void setupWaterPHBalancer(HelioPanel *panel, SharedPtr<HelioBalancer> waterPHBalancer);
-    void setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioBalancer> waterTDSBalancer);
-    void setupWaterTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioBalancer> waterTempBalancer);
-    void setupAirTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioBalancer> airTempBalancer);
-    void setupAirCO2Balancer(HelioPanel *panel, SharedPtr<HelioBalancer> airCO2Balancer);
+    void setupWaterPHBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterPHBalancer);
+    void setupWaterTDSBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterTDSBalancer);
+    void setupWaterTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioDriver> waterTempBalancer);
+    void setupAirTemperatureBalancer(HelioPanel *panel, SharedPtr<HelioDriver> airTempBalancer);
+    void setupAirCO2Balancer(HelioPanel *panel, SharedPtr<HelioDriver> airCO2Balancer);
 
     void setBaseFeedMultiplier(float feedMultiplier);
     void setWeeklyDosingRate(int weekIndex, float dosingRate, Helio_PanelType panelType = Helio_PanelType_NutrientPremix);
@@ -95,14 +95,14 @@ enum HelioFeedingBroadcastType : signed char {
 // sequences necessary for crops to grow.
 struct HelioProcess {
     SharedPtr<HelioFeedPanel> feedRes;                      // Feed panel
-    Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
+    Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
 
     time_t stageStart;                                      // Stage start time
 
     HelioProcess(SharedPtr<HelioFeedPanel> feedRes);
 
     void clearActuatorReqs();
-    void setActuatorReqs(const Vector<SharedPtr<HelioActuator>, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn);
+    void setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn);
 };
 
 // Scheduler Feeding Process

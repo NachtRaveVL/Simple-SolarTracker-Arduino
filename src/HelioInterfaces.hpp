@@ -59,9 +59,9 @@ inline void HelioActuatorObjectInterface::setContinuousPowerUsage(float contPowe
     setContinuousPowerUsage(HelioSingleMeasurement(contPowerUsage, contPowerUsageUnits));
 }
 
-inline bool HelioBalancerObjectInterface::isBalanced() const
+inline bool HelioDriverObjectInterface::isOnTarget() const
 {
-    return getBalancerState() == Helio_BalancerState_Balanced;
+    return getDrivingState() == Helio_DrivingState_OnTarget;
 }
 
 inline void HelioMotorObjectInterface::setContinuousSpeed(float contSpeed, Helio_UnitsType contSpeedUnits)
@@ -92,6 +92,30 @@ template <class U>
 inline SharedPtr<U> HelioSpeedSensorAttachmentInterface::getSpeedSensor(bool poll)
 {
     return static_pointer_cast<U>(getSpeed(poll).getObject());
+}
+
+template <class U>
+inline void HelioMinEndstopAttachmentInterface::setMinEndstop(U endstop)
+{
+    getMinimum(false).setObject(endstop);
+}
+
+template <class U>
+inline SharedPtr<U> HelioMinEndstopAttachmentInterface::getMinEndstop(bool poll)
+{
+    return static_pointer_cast<U>(getMinimum(poll).getObject());
+}
+
+template <class U>
+inline void HelioMaxEndstopAttachmentInterface::setMaxEndstop(U endstop)
+{
+    getMaximum(false).setObject(endstop);
+}
+
+template <class U>
+inline SharedPtr<U> HelioMaxEndstopAttachmentInterface::getMaxEndstop(bool poll)
+{
+    return static_pointer_cast<U>(getMaximum(poll).getObject());
 }
 
 template <class U>

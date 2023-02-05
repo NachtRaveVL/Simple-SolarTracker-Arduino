@@ -146,26 +146,30 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
 }
 
 template<size_t N>
-void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<SharedPtr<HelioActuator>, N> &actuatorsOut, Helio_ActuatorType actuatorType)
+void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
         auto actuator = getSharedPtr<HelioActuator>(*actIter);
         HELIO_HARD_ASSERT(actuator, SFP(HStr_Err_OperationFailure));
         if (actuator->getActuatorType() == actuatorType) {
-            actuatorsOut.push_back(actuator);
+            HelioActuatorAttachment activation(nullptr);
+            activation = actuator;
+            actuatorsOut.push_back(activation);
         }
     }
 }
 
 template<size_t N>
-void linksResolveActuatorsPairRateByType(Vector<HelioObject *, N> &actuatorsIn, float rateValue, Vector<Pair<SharedPtr<HelioActuator>, float>, N> &actuatorsOut, Helio_ActuatorType actuatorType)
+void linksResolveActuatorsPairRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
         auto actuator = getSharedPtr<HelioActuator>(*actIter);
         HELIO_HARD_ASSERT(actuator, SFP(HStr_Err_OperationFailure));
         if (actuator->getActuatorType() == actuatorType) {
-            auto pair = make_pair(actuator, rateValue);
-            actuatorsOut.push_back(pair);
+            HelioActuatorAttachment activation(parent);
+            activation = actuator;
+            activation.setRateMultiplier(rateMultiplier);
+            actuatorsOut.push_back(activation)
         }
     }
 }

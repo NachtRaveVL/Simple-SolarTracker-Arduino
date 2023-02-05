@@ -26,7 +26,7 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 
 HelioRail::HelioRail(Helio_RailType railType, Helio_PositionIndex railIndex, int classTypeIn)
     : HelioObject(HelioIdentity(railType, railIndex)), classType((typeof(classType))classTypeIn),
-      _powerUnits(Helio_UnitsType_Power_Wattage), _limitState(Helio_TriggerState_Undefined)
+      _powerUnits(defaultPowerUnits()), _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
@@ -34,7 +34,7 @@ HelioRail::HelioRail(Helio_RailType railType, Helio_PositionIndex railIndex, int
 HelioRail::HelioRail(const HelioRailData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
       _limitState(Helio_TriggerState_Undefined),
-      _powerUnits(definedUnitsElse(dataIn->powerUnits, Helio_UnitsType_Power_Wattage))
+      _powerUnits(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits()))
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
@@ -99,7 +99,7 @@ void HelioRail::setPowerUnits(Helio_UnitsType powerUnits)
 
 Helio_UnitsType HelioRail::getPowerUnits() const
 {
-    return definedUnitsElse(_powerUnits, Helio_UnitsType_Power_Wattage);
+    return definedUnitsElse(_powerUnits, defaultPowerUnits());
 }
 
 float HelioRail::getRailVoltage() const
@@ -107,7 +107,7 @@ float HelioRail::getRailVoltage() const
     return getRailVoltageFromType(_id.objTypeAs.railType);
 }
 
-Signal<HelioRail *, HELIO_CAPACITY_STATE_SLOTS> &HelioRail::getCapacitySignal()
+Signal<HelioRail *, HELIO_CAPACITY_SIGNAL_SLOTS> &HelioRail::getCapacitySignal()
 {
     return _capacitySignal;
 }

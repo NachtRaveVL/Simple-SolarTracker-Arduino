@@ -51,12 +51,12 @@ public:
     inline SharedPtr<HelioSensor> getSensor(bool poll = false) { _sensor.updateIfNeeded(poll); return _sensor.getObject(); }
     inline uint8_t getMeasurementRow() const { return _sensor.getMeasurementRow(); }
 
-    Signal<Helio_TriggerState, HELIO_TRIGGER_STATE_SLOTS> &getTriggerSignal();
+    Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> &getTriggerSignal();
 
 protected:
     HelioSensorAttachment _sensor;                          // Sensor attachment
     Helio_TriggerState _triggerState;                       // Current trigger state
-    Signal<Helio_TriggerState, HELIO_TRIGGER_STATE_SLOTS> _triggerSignal; // Trigger signal
+    Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> _triggerSignal; // Trigger signal
 
     virtual void handleMeasurement(const HelioMeasurement *measurement) = 0;
 };

@@ -233,7 +233,7 @@ void HelioLogger::setLogLevel(Helio_LogLevel logLevel)
     }
 }
 
-Signal<const HelioLogEvent, HELIO_LOG_STATE_SLOTS> &HelioLogger::getLogSignal()
+Signal<const HelioLogEvent, HELIO_LOG_SIGNAL_SLOTS> &HelioLogger::getLogSignal()
 {
     return _logSignal;
 }

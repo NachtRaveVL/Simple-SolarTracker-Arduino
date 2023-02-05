@@ -26,43 +26,48 @@ extern HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 // Activation Handle
 // Since actuators are shared objects, those wishing to enable any actuator must receive
 // a valid handle. Actuators may customize how they handle multiple activation handles.
-// Handles set an intensity value that may be ranged [0,1] or [-1,1] depending on the
+// Handles represent a driving intensity value ranged [0,1] or [-1,1] depending on the
 // capabilities of the attached actuator. Handles do not guarantee activation unless their
 // forced flag is set (also see Actuator activation signal), but can be set up to ensure
 // actuators are enabled for a specified duration, which is able to be async updated.
-// Finely timed activations should instead consider utilizing ActuatorTimedEnableTask.
 struct HelioActivationHandle {
-    SharedPtr<HelioActuator> actuator;  // Actuator owner
-    Slot<millis_t> *update;             // Update function slot (owned)
-    float intensity;                    // Intensity (normalized [0.0,1.0])
-    Helio_DirectionMode direction;      // Direction setting
-    millis_t start;                     // Enablement start timestamp, in milliseconds, else 0
-    millis_t duration;                  // Duration time requested/remaining, in milliseconds, else 0 for unlimited/no expiry
+    SharedPtr<HelioActuator> actuator;  // Actuator owner, set only when activation requested (use operator= to set)
+    float intensity;                    // Normalized driving intensity ([0.0,1.0])
+    Helio_DirectionMode direction;      // Normalized driving direction
+    millis_t checkTime;                 // Last check timestamp, in milliseconds, else 0 for not started
+    millis_t duration;                  // Duration time remaining, in milliseconds, else -1 for non-diminishing/unlimited or 0 for finished
+    millis_t elapsed;                   // Elapsed time accumulator, in milliseconds, else 0
     bool forced;                        // If activation should force enable and ignore cursory canEnable checks
 
-    // Default constructor for empty handles
-    inline HelioActivationHandle() : actuator(nullptr), update(nullptr), intensity(0.0f), direction(Helio_DirectionMode_Undefined), start(0), duration(0), forced(false) { ; }
     // Handle constructor that specifies a normalized enablement, ranged: normalized [0.0,1.0] for specified direction
-    HelioActivationHandle(HelioActuator *actuator, Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = 0, bool force = false);
+    HelioActivationHandle(SharedPtr<HelioActuator> actuator, Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false);
+
     // Handle constructor that specifies a binary enablement, ranged: (=0=,!0!) for disable/enable or (<=-1,=0=,>=1) for reverse/stop/forward
-    inline HelioActivationHandle(HelioActuator *actuator, int enabled, millis_t duration = 0, bool force = false)
+    inline HelioActivationHandle(SharedPtr<HelioActuator> actuator, int enabled, millis_t duration = -1, bool force = false)
         : HelioActivationHandle(actuator, (enabled > 0 ? Helio_DirectionMode_Forward : enabled < 0 ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop), (enabled ? 1.0f : 0.0f), duration, force) { ; }
     // Handle constructor that specifies a variable intensity enablement, ranged: [=0.0=,<=1.0] for disable/enable or [-1.0=>,=0.0=,<=1.0] for reverse/stop/forward
-    inline HelioActivationHandle(HelioActuator *actuator, float intensity, millis_t duration = 0, bool force = false)
+    inline HelioActivationHandle(SharedPtr<HelioActuator> actuator, float intensity, millis_t duration = -1, bool force = false)
         : HelioActivationHandle(actuator, (intensity > FLT_EPSILON ? Helio_DirectionMode_Forward : intensity < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop), fabsf(intensity), duration, force)  { ; }
 
+    // Default constructor for empty handles
+    inline HelioActivationHandle() : HelioActivationHandle(nullptr, Helio_DirectionMode_Undefined, 0.0f, 0, false) { ; }
     HelioActivationHandle(const HelioActivationHandle &handle);
     ~HelioActivationHandle();
     HelioActivationHandle &operator=(const HelioActivationHandle &handle);
-    inline HelioActivationHandle &operator=(HelioActuator *actuator) { return operator=(actuator->enableActuator()); }
+    HelioActivationHandle &operator=(SharedPtr<HelioActuator> actuator);
 
-    // Sets an update slot to run during execution of handle that can further refine duration value.
-    // Useful for rate-based or variable activations. Slot receives current system time millis() as parameter.
-    void setUpdate(Slot<millis_t> &slot);
+    // Disconnects activation from an actuator (un-registers self from actuator)
+    void unset();
 
-    void unset();                       // For disconnecting from an actuator
+    // Elapses time by delta, updating relevant operating values if needed
+    void elapseBy(millis_t delta);
 
-    // Driving intensity value
+    inline bool isActive() const { return actuator && checkTime > 0; }
+    inline bool isDone() const { return duration == 0; }
+    inline bool isInfinite() const { return duration == -1; }
+    inline millis_t getTimeElapsed(millis_t time = millis()) const { return isActive() ? (time - checkTime) + elapsed : elapsed; }
+
+    // De-normalized driving intensity value [-1.0,1.0]
     inline float getDriveIntensity() const { return direction == Helio_DirectionMode_Forward ? intensity :
                                                     direction == Helio_DirectionMode_Reverse ? -intensity : 0.0f; }
 };
@@ -89,14 +94,12 @@ public:
 
     virtual bool getCanEnable() override;
 
-    inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = 0, bool force = false) { return HelioActivationHandle(this, direction, intensity, duration, force); }
-    inline HelioActivationHandle enableActuator(float intensity = 1.0f, millis_t duration = 0, bool force = false) { return HelioActivationHandle(this, intensity, duration, force); }
-    inline HelioActivationHandle enableActuator(float intensity, millis_t duration = 0) { return HelioActivationHandle(this, intensity, duration); }
-    inline HelioActivationHandle enableActuator(float intensity) { return HelioActivationHandle(this, intensity); }
-    inline HelioActivationHandle enableActuator(millis_t duration, bool force = false) { return HelioActivationHandle(this, 1.0f, duration, force); }
-    inline HelioActivationHandle enableActuator(bool force, millis_t duration = 0) { return HelioActivationHandle(this, 1.0f, duration, force); }
+    inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), direction, intensity, duration, force); }
+    inline HelioActivationHandle enableActuator(float intensity, millis_t duration = -1, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), intensity, duration, force); }
+    inline HelioActivationHandle enableActuator(millis_t duration, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), 1, duration, force); }
+    inline HelioActivationHandle enableActuator(bool force, millis_t duration = -1) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), 1, duration, force); }
 
-    inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; _needsUpdate = true; }
+    inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
     inline Helio_EnableMode getEnableMode() { return _enableMode; }
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
@@ -108,17 +111,20 @@ public:
     inline Helio_ActuatorType getActuatorType() const { return _id.objTypeAs.actuatorType; }
     inline Helio_PositionIndex getActuatorIndex() const { return _id.posIndex; }
 
-    Signal<HelioActuator *> &getActivationSignal();
+    inline void setNeedsUpdate() { _needsUpdate = true; }
+    inline bool needsUpdate() { return _needsUpdate; }
+
+    Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> &getActivationSignal();
 
 protected:
     bool _enabled;                                          // Enabled state flag
-    bool _needsUpdate;                                      // Dirty flag for handle updates
+    bool _needsUpdate;                                      // Stale flag for handle updates
     Helio_EnableMode _enableMode;                           // Handle activation mode
     Vector<HelioActivationHandle *> _handles;               // Activation handles array
     HelioSingleMeasurement _contPowerUsage;                 // Continuous power draw
     HelioAttachment _rail;                                  // Power rail attachment
     HelioAttachment _panel;                                 // Panel attachment
-    Signal<HelioActuator *> _activateSignal;                // Activation update signal
+    Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> _activateSignal; // Activation update signal
 
     virtual HelioData *allocateData() const override;
     virtual void saveToData(HelioData *dataOut) override;

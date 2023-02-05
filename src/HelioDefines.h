@@ -84,21 +84,21 @@ typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin statu
 #define HELIO_STRING_BUFFER_SIZE        32                  // Size in bytes of string serialization buffers
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
 // The following slot sizes apply to all architectures
-#define HELIO_SENSOR_MEASUREMENT_SLOTS  4                   // Maximum number of measurement slots for sensor's measurement signal (max # of attachments)
-#define HELIO_TRIGGER_STATE_SLOTS       2                   // Maximum number of trigger state slots for trigger's state signal (max # of attachments)
-#define HELIO_BALANCER_STATE_SLOTS      2                   // Maximum number of balancer state slots for trigger's state signal (max # of attachments)
-#define HELIO_LOG_STATE_SLOTS           2                   // Maximum number of logger slots for system log signal
-#define HELIO_PUBLISH_STATE_SLOTS       2                   // Maximum number of publisher slots for data publish signal
-#define HELIO_PANEL_STATE_SLOTS         2                   // Maximum number of panel state slots for various signals
-#define HELIO_CAPACITY_STATE_SLOTS      8                   // Maximum number of capacity slots for rail capacity signal
+#define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
+#define HELIO_SENSOR_SIGNAL_SLOTS       4                   // Maximum number of slots for sensor's measurement signal
+#define HELIO_TRIGGER_SIGNAL_SLOTS      2                   // Maximum number of slots for trigger's state signal
+#define HELIO_DRIVER_SIGNAL_SLOTS       2                   // Maximum number of slots for driver's state signal
+#define HELIO_LOG_SIGNAL_SLOTS          2                   // Maximum number of slots for system log signal
+#define HELIO_PUBLISH_SIGNAL_SLOTS      2                   // Maximum number of slots for data publish signal
+#define HELIO_PANEL_SIGNAL_SLOTS        2                   // Maximum number of slots for various signals
+#define HELIO_CAPACITY_SIGNAL_SLOTS     8                   // Maximum number of slots for rail capacity signal
 #define HELIO_RAILS_LINKS_BASESIZE      4                   // Base array size for rail's linkage list
 // The following max sizes only matter for architectures that do not have STL support
 #define HELIO_SYS_OBJECTS_MAXSIZE       16                  // Maximum array size for system objects (max # of objects in system)
 #define HELIO_CALSTORE_CALIBS_MAXSIZE   8                   // Maximum array size for calibration store objects (max # of different custom calibrations)
 #define HELIO_OBJ_LINKS_MAXSIZE         8                   // Maximum array size for object linkage list, per obj (max # of linked objects)
 #define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
-#define HELIO_BAL_INCACTUATORS_MAXSIZE  8                   // Maximum array size for balancer increment actuators list (max # of increment autodosers/actuators used during balancing)
-#define HELIO_BAL_DECACTUATORS_MAXSIZE  2                   // Maximum array size for balancer decrement actuators list (max # of decrement autodosers/actuators used during balancing)
+#define HELIO_DRV_ACTUATORS_MAXSIZE     8                   // Maximum array size for driver actuators list (max # of actuators used)
 #define HELIO_SCH_REQACTUATORS_MAXSIZE  4                   // Maximum array size for scheduler required actuators list (max # of actuators active per process stage)
 #define HELIO_SYS_ONEWIRE_MAXSIZE       2                   // Maximum array size for pin OneWire list (max # of OneWire comm pins)
 #define HELIO_SYS_PINLOCKS_MAXSIZE      2                   // Maximum array size for pin locks list (max # of locks)
@@ -117,7 +117,7 @@ typedef typeof(LOW) Arduino_PinStatusType;                  // Arduino pin statu
 
 #define HELIO_RANGE_TEMP_HALF           5.0f                // How far to go, in either direction, to form a range when Temp is expressed as a single number, in C (note: this also controls auto-balancer ranges)
 
-#define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until balancing is marked as completed
+#define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
 #define HELIO_SENSOR_ANALOGREAD_SAMPLES 5                   // Number of samples to take for any analogRead call inside of a sensor's takeMeasurement call, or 0 to disable sampling (note: bitRes.maxValue * # of samples must fit inside a uint32_t)
 #define HELIO_SENSOR_ANALOGREAD_DELAY   0                   // Delay time between samples, or 0 to disable delay
@@ -167,27 +167,27 @@ enum Helio_EEPROMType : signed short {
     Helio_EEPROMType_24LC512 = I2C_DEVICESIZE_24LC512 >> 7, // 24LC512 (512K bits, 65536 bytes), 16-bit address space
     Helio_EEPROMType_None = -1,                             // No EEPROM
 
-    Helio_EEPROMType_1KBITS = Helio_EEPROMType_24LC01,      // 1K bits (alias of 24LC01)
-    Helio_EEPROMType_2KBITS = Helio_EEPROMType_24LC02,      // 2K bits (alias of 24LC02)
-    Helio_EEPROMType_4KBITS = Helio_EEPROMType_24LC04,      // 4K bits (alias of 24LC04)
-    Helio_EEPROMType_8KBITS = Helio_EEPROMType_24LC08,      // 8K bits (alias of 24LC08)
-    Helio_EEPROMType_16KBITS = Helio_EEPROMType_24LC16,     // 16K bits (alias of 24LC16)
-    Helio_EEPROMType_32KBITS = Helio_EEPROMType_24LC32,     // 32K bits (alias of 24LC32)
-    Helio_EEPROMType_64KBITS = Helio_EEPROMType_24LC64,     // 64K bits (alias of 24LC64)
-    Helio_EEPROMType_128KBITS = Helio_EEPROMType_24LC128,   // 128K bits (alias of 24LC128)
-    Helio_EEPROMType_256KBITS = Helio_EEPROMType_24LC256,   // 256K bits (alias of 24LC256)
-    Helio_EEPROMType_512KBITS = Helio_EEPROMType_24LC512,   // 512K bits (alias of 24LC512)
+    Helio_EEPROMType_1K_Bits = Helio_EEPROMType_24LC01,     // 1K bits (alias of 24LC01)
+    Helio_EEPROMType_2K_Bits = Helio_EEPROMType_24LC02,     // 2K bits (alias of 24LC02)
+    Helio_EEPROMType_4K_Bits = Helio_EEPROMType_24LC04,     // 4K bits (alias of 24LC04)
+    Helio_EEPROMType_8K_Bits = Helio_EEPROMType_24LC08,     // 8K bits (alias of 24LC08)
+    Helio_EEPROMType_16K_Bits = Helio_EEPROMType_24LC16,    // 16K bits (alias of 24LC16)
+    Helio_EEPROMType_32K_Bits = Helio_EEPROMType_24LC32,    // 32K bits (alias of 24LC32)
+    Helio_EEPROMType_64K_Bits = Helio_EEPROMType_24LC64,    // 64K bits (alias of 24LC64)
+    Helio_EEPROMType_128K_Bits = Helio_EEPROMType_24LC128,  // 128K bits (alias of 24LC128)
+    Helio_EEPROMType_256K_Bits = Helio_EEPROMType_24LC256,  // 256K bits (alias of 24LC256)
+    Helio_EEPROMType_512K_Bits = Helio_EEPROMType_24LC512,  // 512K bits (alias of 24LC512)
 
-    Helio_EEPROMType_128BYTES = Helio_EEPROMType_24LC01,    // 128 bytes (alias of 24LC01)
-    Helio_EEPROMType_256BYTES = Helio_EEPROMType_24LC02,    // 256 bytes (alias of 24LC02)
-    Helio_EEPROMType_512BYTES = Helio_EEPROMType_24LC04,    // 512 bytes (alias of 24LC04)
-    Helio_EEPROMType_1024BYTES = Helio_EEPROMType_24LC08,   // 1024 bytes (alias of 24LC08)
-    Helio_EEPROMType_2048BYTES = Helio_EEPROMType_24LC16,   // 2048 bytes (alias of 24LC16)
-    Helio_EEPROMType_4096BYTES = Helio_EEPROMType_24LC32,   // 4096 bytes (alias of 24LC32)
-    Helio_EEPROMType_8192BYTES = Helio_EEPROMType_24LC64,   // 8192 bytes (alias of 24LC64)
-    Helio_EEPROMType_16384BYTES = Helio_EEPROMType_24LC128, // 16384 bytes (alias of 24LC128)
-    Helio_EEPROMType_32768BYTES = Helio_EEPROMType_24LC256, // 32768 bytes (alias of 24LC256)
-    Helio_EEPROMType_65536BYTES = Helio_EEPROMType_24LC512  // 65536 bytes (alias of 24LC512)
+    Helio_EEPROMType_128_Bytes = Helio_EEPROMType_24LC01,   // 128 bytes (alias of 24LC01)
+    Helio_EEPROMType_256_Bytes = Helio_EEPROMType_24LC02,   // 256 bytes (alias of 24LC02)
+    Helio_EEPROMType_512_Bytes = Helio_EEPROMType_24LC04,   // 512 bytes (alias of 24LC04)
+    Helio_EEPROMType_1024_Bytes = Helio_EEPROMType_24LC08,  // 1024 bytes (alias of 24LC08)
+    Helio_EEPROMType_2048_Bytes = Helio_EEPROMType_24LC16,  // 2048 bytes (alias of 24LC16)
+    Helio_EEPROMType_4096_Bytes = Helio_EEPROMType_24LC32,  // 4096 bytes (alias of 24LC32)
+    Helio_EEPROMType_8192_Bytes = Helio_EEPROMType_24LC64,  // 8192 bytes (alias of 24LC64)
+    Helio_EEPROMType_16384_Bytes = Helio_EEPROMType_24LC128,// 16384 bytes (alias of 24LC128)
+    Helio_EEPROMType_32768_Bytes = Helio_EEPROMType_24LC256,// 32768 bytes (alias of 24LC256)
+    Helio_EEPROMType_65536_Bytes = Helio_EEPROMType_24LC512 // 65536 bytes (alias of 24LC512)
 };
 
 // RTC Device Type Enumeration
@@ -215,7 +215,7 @@ enum Helio_DHTType : signed char {
 // Specifies the general solar setup, how orientation is determined, etc.
 enum Helio_SystemMode : signed char {
     Helio_SystemMode_PositionCalc,                          // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
-    Helio_SystemMode_SensorDependent,                       // System will aim panels towards a position based on balancing/maximizing light/power sensor data (location/time not required, requires light/power sensing).
+    Helio_SystemMode_SensorDependent,                       // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
 
     Helio_SystemMode_Count,                                 // Internal use only
     Helio_SystemMode_Undefined = -1                         // Internal use only
@@ -283,8 +283,7 @@ enum Helio_SensorType : signed char {
     Helio_SensorType_AirTempHumidity,                       // Air temperature and humidity sensor (digital)
     Helio_SensorType_IceDetector,                           // Ice detector (binary/analog)
     Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
-    Helio_SensorType_RetractEndstop,                        // Panel axis retraction endstop (binary)
-    Helio_SensorType_ExtendEndstop,                         // Panel axis retraction endstop (binary)
+    Helio_SensorType_Endstop,                               // Track axis endstop (binary)
     Helio_SensorType_StrokePosition,                        // Actuator stroke position potentiometer (analog)
 
     Helio_SensorType_Count,                                 // Internal use only
@@ -341,15 +340,15 @@ enum Helio_TriggerState : signed char {
     Helio_TriggerState_Undefined = -1                       // Internal use only
 };
 
-// Balancing State
-// Common balancing states. Specifies balance or which direction of imbalance.
-enum Helio_BalancerState : signed char {
-    Helio_BalancerState_TooLow,                             // Too low / needs incremented state
-    Helio_BalancerState_Balanced,                           // Balanced state
-    Helio_BalancerState_TooHigh,                            // Too high / needs decremented state
+// Driving State
+// Common driving states. Specifies balance or which direction of imbalance.
+enum Helio_DrivingState : signed char {
+    Helio_DrivingState_GoHigher,                            // Need to go higher / too low
+    Helio_DrivingState_OnTarget,                            // On target
+    Helio_DrivingState_GoLower,                             // Need to go lower / too high
 
-    Helio_BalancerState_Count,                              // Internal use only
-    Helio_BalancerState_Undefined = -1                      // Internal use only
+    Helio_DrivingState_Count,                               // Internal use only
+    Helio_DrivingState_Undefined = -1                       // Internal use only
 };
 
 // Enable Mode
@@ -366,7 +365,8 @@ enum Helio_EnableMode : signed char {
     Helio_EnableMode_AscOrder,                              // Serial activation using lowest-to-highest/ascending-order drive intensities
 
     Helio_EnableMode_Count,                                 // Internal use only
-    Helio_EnableMode_Undefined = -1                         // Internal use only
+    Helio_EnableMode_Undefined = -1,                        // Internal use only
+    Helio_EnableMode_Serial = Helio_EnableMode_InOrder      // Serial (alias for in-order)
 };
 
 // Direction Mode
@@ -399,6 +399,7 @@ enum Helio_UnitsCategory : signed char {
 enum Helio_UnitsType : signed char {
     Helio_UnitsType_Raw_0_1,                                // Raw value [0.0,1.0] mode
     Helio_UnitsType_Percentile_0_100,                       // Percentile [0.0,100.0] mode
+    Helio_UnitsType_Angle_0_360,                            // Angle [0.0,360.0) mode
     Helio_UnitsType_Temperature_Celsius,                    // Celsius temperature mode
     Helio_UnitsType_Temperature_Fahrenheit,                 // Fahrenheit temperature mode
     Helio_UnitsType_Temperature_Kelvin,                     // Kelvin temperature mode
@@ -431,12 +432,12 @@ struct HelioPin;
 struct HelioDigitalPin;
 struct HelioAnalogPin;
 class HelioTrigger;
-class HelioBalancer;
+class HelioDriver;
 class HelioDLinkObject;
 class HelioAttachment;
 class HelioSensorAttachment;
 class HelioTriggerAttachment;
-class HelioBalancerAttachment;
+class HelioDriverAttachment;
 struct HelioActivationHandle;
 class HelioActuator;
 class HelioSensor;

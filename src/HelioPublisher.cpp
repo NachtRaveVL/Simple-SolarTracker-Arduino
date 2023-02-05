@@ -171,7 +171,7 @@ Helio_PositionIndex HelioPublisher::getColumnIndexStart(Helio_KeyType sensorKey)
     return (Helio_PositionIndex)-1;
 }
 
-Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_STATE_SLOTS> &HelioPublisher::getPublishSignal()
+Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &HelioPublisher::getPublishSignal()
 {
     return _publishSignal;
 }

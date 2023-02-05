@@ -312,6 +312,8 @@ extern Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode
 extern Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default speed units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+// Returns default power units to use based on measureMode (if undefined then uses active Hydruino instance's measurement mode, else default mode).
+extern Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default decimal places rounded to based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern int defaultDecimalPlaces(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 
@@ -332,9 +334,9 @@ template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE> Vector<HelioObject *, N> link
 int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Recombines filtered object list back into SharedPtr actuator list.
-template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<SharedPtr<HelioActuator>, N> &actuatorsOut, Helio_ActuatorType actuatorType);
+template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType);
 // Recombines filtered object list back into SharedPtr actuator list paired with rate value.
-template<size_t N> void linksResolveActuatorsPairRateByType(Vector<HelioObject *, N> &actuatorsIn, float rateValue, Vector<Pair<SharedPtr<HelioActuator>, float>, N> &actuatorsOut, Helio_ActuatorType actuatorType);
+template<size_t N> void linksResolveActuatorsPairRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &actuatorsOut, Helio_ActuatorType actuatorType);
 
 // Pins & Checks
 
@@ -375,6 +377,9 @@ extern Helio_DisplayOutputMode displayOutputModeFromString(String displayOutMode
 extern String controlInputModeToString(Helio_ControlInputMode controlInMode, bool excludeSpecial = false);
 // Converts back to control input mode enum from string.
 extern Helio_ControlInputMode controlInputModeFromString(String controlInModeStr);
+
+// Returns true for actuators that operate activation handles serially (as opposed to in-parallel) as derived from enabled mode enumeration.
+inline bool getActuatorIsSerialFromMode(Helio_EnableMode actuatorMode) { return actuatorMode >= Helio_EnableMode_Serial; }
 
 // Converts from actuator type enum to string, with optional exclude for special types (instead returning "").
 extern String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial = false);

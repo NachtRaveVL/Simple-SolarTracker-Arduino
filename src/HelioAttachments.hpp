@@ -9,6 +9,8 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(HelioIdentity rhs)
 {
     _key = rhs.key;
     _obj = nullptr;
+    if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+
     auto len = rhs.keyString.length();
     if (len) {
         _keyStr = (const char *)malloc(len + 1);
@@ -21,6 +23,8 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const char *rhs)
 {
     _key = stringHash(rhs);
     _obj = nullptr;
+    if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+
     auto len = strnlen(rhs, HELIO_NAME_MAXSIZE);
     if (len) {
         _keyStr = (const char *)malloc(len + 1);
@@ -34,6 +38,24 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioObjInterface *rh
     _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
     _obj = rhs ? getSharedPtr<HelioObjInterface>(rhs) : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+
+    return *this;
+}
+
+inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioAttachment *rhs)
+{
+    _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
+    _obj = rhs && rhs->isResolved() ? rhs->getSharedPtr() : nullptr;
+    if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+
+    if (rhs && !rhs->isResolved()) {
+        String keyString = rhs->getKeyString();
+        auto len = keyString.length();
+        if (len) {
+            _keyStr = (const char *)malloc(len + 1);
+            strncpy((char *)_keyStr, keyString.c_str(), len + 1);
+        }
+    }
     return *this;
 }
 
@@ -43,6 +65,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(SharedPtr<U> &rhs)
     _key = rhs ? rhs->getKey() : (Helio_KeyType)-1;
     _obj = rhs ? reinterpret_pointer_cast<HelioObjInterface>(rhs) : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+
     return *this;
 }
 
@@ -74,14 +97,15 @@ SharedPtr<U> HelioAttachment::getObject()
 
 template<class ParameterType, int Slots> template<class U>
 HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(HelioObjInterface *parent, Signal<ParameterType,Slots> &(U::*signalGetter)(void))
-    : HelioAttachment(parent), _signalGetter((SignalGetterPtr)signalGetter), _handleMethod(nullptr)
+    : HelioAttachment(parent), _signalGetter((SignalGetterPtr)signalGetter), _handleSlot(nullptr)
 {
     HELIO_HARD_ASSERT(_signalGetter, SFP(HStr_Err_InvalidParameter));
 }
 
 template<class ParameterType, int Slots>
 HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(const HelioSignalAttachment<ParameterType,Slots> &attachment)
-    : HelioAttachment(attachment._parent), _signalGetter((SignalGetterPtr)attachment._signalGetter), _handleMethod((HandleMethodSlotPtr)(attachment._handleMethod ? attachment._handleMethod->clone() : nullptr))
+    : HelioAttachment(attachment), _signalGetter((SignalGetterPtr)attachment._signalGetter),
+      _handleSlot(attachment._handleSlot ? attachment._handleSlot->clone() : nullptr)
 {
     HELIO_HARD_ASSERT(_signalGetter, SFP(HStr_Err_InvalidParameter));
 }
@@ -89,8 +113,11 @@ HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(const HelioSig
 template<class ParameterType, int Slots>
 HelioSignalAttachment<ParameterType,Slots>::~HelioSignalAttachment()
 {
-    if (isResolved() && _handleMethod) {
-        (get()->*_signalGetter)().detach(*_handleMethod);
+    if (isResolved() && _handleSlot) {
+        (get()->*_signalGetter)().detach(*_handleSlot);
+    }
+    if (_handleSlot) {
+        delete _handleSlot; _handleSlot = nullptr;
     }
 }
 
@@ -99,41 +126,31 @@ void HelioSignalAttachment<ParameterType,Slots>::attachObject()
 {
     HelioAttachment::attachObject();
 
-    if (_handleMethod) {
-        (get()->*_signalGetter)().attach(*_handleMethod);
+    if (_handleSlot) {
+        (get()->*_signalGetter)().attach(*_handleSlot);
     }
 }
 
 template<class ParameterType, int Slots>
 void HelioSignalAttachment<ParameterType,Slots>::detachObject()
 {
-    if (isResolved() && _handleMethod) {
-        (get()->*_signalGetter)().detach(*_handleMethod);
+    if (isResolved() && _handleSlot) {
+        (get()->*_signalGetter)().detach(*_handleSlot);
     }
 
     HelioAttachment::detachObject();
 }
 
-template<class ParameterType, int Slots> template<class U>
-void HelioSignalAttachment<ParameterType,Slots>::setHandleMethod(MethodSlot<U,ParameterType> handleMethod)
+template<class ParameterType, int Slots>
+void HelioSignalAttachment<ParameterType,Slots>::setHandleSlot(const Slot<ParameterType> &handleSlot)
 {
-    if (!_handleMethod || (*_handleMethod == handleMethod)) {
-        if (isResolved() && _handleMethod) { (get()->*_signalGetter)().detach(*_handleMethod); }
+    if (!_handleSlot || !_handleSlot->operator==(&handleSlot)) {
+        if (isResolved() && _handleSlot) { (get()->*_signalGetter)().detach(*_handleSlot); }
 
-        if (_handleMethod) { delete _handleMethod; _handleMethod = nullptr; }
-        _handleMethod = (HandleMethodSlotPtr)handleMethod.clone();
+        if (_handleSlot) { delete _handleSlot; _handleSlot = nullptr; }
+        _handleSlot = handleSlot.clone();
 
-        if (isResolved() && _handleMethod) { (get()->*_signalGetter)().attach(*_handleMethod); }
-    }
-}
-
-inline void HelioSensorAttachment::updateIfNeeded(bool poll)
-{
-    if (resolve() && (_needsMeasurement || poll)) {
-        if (_handleMethod) { _handleMethod->operator()(get()->getLatestMeasurement()); }
-        else { handleMeasurement(get()->getLatestMeasurement()); }
-
-        get()->takeMeasurement((_needsMeasurement || poll));
+        if (isResolved() && _handleSlot) { (get()->*_signalGetter)().attach(*_handleSlot); }
     }
 }
 
@@ -143,18 +160,8 @@ inline Helio_TriggerState HelioTriggerAttachment::getTriggerState()
     return resolve() ? get()->getTriggerState() : Helio_TriggerState_Undefined;
 }
 
-inline void HelioTriggerAttachment::updateIfNeeded()
-{
-    if (resolve()) { get()->update(); }
-}
 
-
-inline Helio_BalancerState HelioBalancerAttachment::getBalancerState()
+inline Helio_DrivingState HelioDriverAttachment::getDrivingState()
 {
-    return resolve() ? get()->getBalancerState() : Helio_BalancerState_Undefined;
-}
-
-inline void HelioBalancerAttachment::updateIfNeeded()
-{
-    if (resolve()) { get()->update(); }
+    return resolve() ? get()->getDrivingState() : Helio_DrivingState_Undefined;
 }
