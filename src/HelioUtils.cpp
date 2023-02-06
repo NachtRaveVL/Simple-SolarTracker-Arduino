@@ -46,10 +46,7 @@ void ActuatorTimedEnableTask::exec()
     HelioActivationHandle handle(_actuator, _intensity, _duration);
 
     while (handle.actuator) {
-        if (handle.checkTime > 0 && handle.duration > 0) {
-            // todo
-        }
-
+        // todo
         yield();
     }
 }
