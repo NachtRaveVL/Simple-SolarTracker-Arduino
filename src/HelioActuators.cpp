@@ -205,9 +205,10 @@ void HelioActuator::update()
             case Helio_EnableMode_DesOrder: {
                 bool selected = false;
                 for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    if ((*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
-                        if (!selected) { selected = true; (*handleIter)->checkTime = time; }
-                        else if (selected && (*handleIter)->checkTime != 0) { (*handleIter)->checkTime = 0; }
+                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                        selected = true; (*handleIter)->checkTime = time;
+                    } else if (selected && (*handleIter)->checkTime != 0) {
+                        (*handleIter)->checkTime = 0;
                     }
                 }
             } break;
@@ -216,9 +217,10 @@ void HelioActuator::update()
             case Helio_EnableMode_AscOrder: {
                 bool selected = false;
                 for (auto handleIter = _handles.end() - 1; handleIter != _handles.begin() - 1; --handleIter) {
-                    if ((*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
-                        if (!selected) { selected = true; (*handleIter)->checkTime = time; }
-                        else if (selected && (*handleIter)->checkTime != 0) { (*handleIter)->checkTime = 0; }
+                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                        selected = true; (*handleIter)->checkTime = time;
+                    } else if (selected && (*handleIter)->checkTime != 0) {
+                        (*handleIter)->checkTime = 0;
                     }
                 }
             } break;
