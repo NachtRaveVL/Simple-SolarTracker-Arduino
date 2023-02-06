@@ -24,39 +24,31 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 }
 
 
-HelioActivationHandle::HelioActivationHandle(SharedPtr<HelioActuator> actuatorIn, Helio_DirectionMode directionIn, float intensityIn, millis_t durationIn, bool force)
-    : actuator(nullptr), direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)),
-      checkTime(0), duration(durationIn), elapsed(0), forced(force)
+HelioActivationHandle::HelioActivationHandle(SharedPtr<HelioActuator> actuatorIn, Helio_DirectionMode direction, float intensity, millis_t duration, bool force)
+    : activation(direction, constrain(intensity, 0.0f, 1.0f), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)), 
+      actuator(nullptr), checkTime(0), elapsed(0)
 {
     operator=(actuatorIn);
 }
 
 HelioActivationHandle::HelioActivationHandle(const HelioActivationHandle &handle)
-    : actuator(nullptr), direction(handle.direction), intensity(handle.intensity),
-      checkTime(0), duration(handle.duration), elapsed(0), forced(handle.forced)
+    : actuator(nullptr), activation(handle.activation), checkTime(0), elapsed(0)
 {
     operator=(handle.actuator);
 }
 
 HelioActivationHandle::~HelioActivationHandle()
 {
-    unset();
-}
-
-HelioActivationHandle &HelioActivationHandle::operator=(const HelioActivationHandle &handle)
-{
-    direction = handle.direction;
-    intensity = handle.intensity;
-    duration = handle.duration;
-    forced = handle.forced;
-    return operator=(handle.actuator);
+    if (actuator) { unset(); }
 }
 
 HelioActivationHandle &HelioActivationHandle::operator=(SharedPtr<HelioActuator> actuatorIn)
 {
-    if (actuator != actuatorIn) {
-        unset();
+    if (actuator != actuatorIn && isValid()) {
+        if (actuator) { unset(); } else { checkTime = 0; }
+
         actuator = actuatorIn;
+
         if (actuator) { actuator->_handles.push_back(this); actuator->setNeedsUpdate(); }
     }
     return *this;
@@ -64,6 +56,7 @@ HelioActivationHandle &HelioActivationHandle::operator=(SharedPtr<HelioActuator>
 
 void HelioActivationHandle::unset()
 {
+    if (isActive()) { elapseTo(); checkTime = 0; }
     if (actuator) {
         for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
             if ((*handleIter) == this) {
@@ -73,15 +66,14 @@ void HelioActivationHandle::unset()
         }
         actuator = nullptr;
     }
-    checkTime = 0;
 }
 
 void HelioActivationHandle::elapseBy(millis_t delta)
 {
-    if (delta && isActive()) {
-        if (!isInfinite()) {
-            if (delta < duration) { duration -= delta; }
-            else { delta = duration; duration = 0; }
+    if (delta && isValid() && isActive()) {
+        if (!isUntimed()) {
+            if (delta <= activation.duration) { activation.duration -= delta; }
+            else { delta = activation.duration; activation.duration = 0; }
         }
         checkTime += delta;
         elapsed += delta;
@@ -93,14 +85,14 @@ HelioActuator::HelioActuator(Helio_ActuatorType actuatorType,
                              hposi_t actuatorIndex,
                              int classTypeIn)
     : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType((typeof(classType))classTypeIn),
-      _enabled(false), _enableMode(Helio_EnableMode_Undefined), _rail(this), _panel(this)
+      _enabled(false), _enableMode(Helio_EnableMode_Undefined), _rail(this), _panel(this), _needsUpdate(false)
 { ; }
 
 HelioActuator::HelioActuator(const HelioActuatorData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))dataIn->id.object.classType),
-      _enabled(false),
+      _enabled(false), _enableMode(dataIn->enableMode),
       _contPowerUsage(&(dataIn->contPowerUsage)),
-      _rail(this), _panel(this)
+      _rail(this), _panel(this), _needsUpdate(false)
 {
     _rail.setObject(dataIn->railName);
     _panel.setObject(dataIn->panelName);
@@ -113,26 +105,44 @@ void HelioActuator::update()
     _rail.resolve();
     _panel.resolve();
 
-    // Enablement checking
-    bool wasEnabled = _enabled;
-    bool canEnable = _handles.size() && getCanEnable();
-    for (auto handleIter = _handles.begin(); handleIter != _handles.end() && !canEnable; ++handleIter) {
-        canEnable = (*handleIter)->forced;
+    millis_t time = millis(); time = max(1, time);
+
+    // Update running handles and elapse them as needed, also determine forced status
+    bool forced = false;
+    if (_handles.size()) {
+        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+            if (_enabled && (*handleIter)->isActive()) {
+                (*handleIter)->elapseTo(time);
+            }
+            if (!(*handleIter)->isValid() || (*handleIter)->isDone()) {
+                (*handleIter)->checkTime = 0;
+                (*handleIter)->actuator = nullptr;
+                handleIter = _handles.erase(handleIter) - 1;
+                setNeedsUpdate();
+                continue;
+            }
+            forced |= (*handleIter)->isForced();
+        }
     }
 
-    // If enabled and shouldn't be (unless force enabled)
-    if ((_enabled || _needsUpdate) && !canEnable) {
+    // Enablement checking
+    bool canEnable = _handles.size() && (forced || getCanEnable());
+
+    if (!canEnable && (_enabled || _needsUpdate)) { // If enabled and shouldn't be (unless force enabled)
         _disableActuator();
-    } else if (canEnable && (!_enabled || _needsUpdate)) {
-        float drivingIntensity = 0.0f; // Determine what driving intensity [-1,1] actuator should use
+    } else if (canEnable && (!_enabled || _needsUpdate)) { // If can enable and isn't (maybe force enabled)
+        // Determine what driving intensity [-1,1] actuator should use
+        float drivingIntensity = 0.0f;
 
         switch (_enableMode) {
             case Helio_EnableMode_Highest:
             case Helio_EnableMode_DesOrder: {
                 drivingIntensity = -__FLT_MAX__;
                 for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    auto handleIntensity = (*handleIter)->getDriveIntensity();
-                    if (handleIntensity > drivingIntensity) { drivingIntensity = handleIntensity; }
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        auto handleIntensity = (*handleIter)->getDriveIntensity();
+                        if (handleIntensity > drivingIntensity) { drivingIntensity = handleIntensity; }
+                    }
                 }
             } break;
 
@@ -140,51 +150,105 @@ void HelioActuator::update()
             case Helio_EnableMode_AscOrder: {
                 drivingIntensity = __FLT_MAX__;
                 for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    auto handleIntensity = (*handleIter)->getDriveIntensity();
-                    if (handleIntensity < drivingIntensity) { drivingIntensity = handleIntensity; }
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        auto handleIntensity = (*handleIter)->getDriveIntensity();
+                        if (handleIntensity < drivingIntensity) { drivingIntensity = handleIntensity; }
+                    }
                 }
             } break;
 
             case Helio_EnableMode_Average: {
+                int handleCount = 0;
                 for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    drivingIntensity += (*handleIter)->getDriveIntensity();
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        drivingIntensity += (*handleIter)->getDriveIntensity();
+                        ++handleCount;
+                    }
                 }
-                drivingIntensity /= _handles.size();
+                if (handleCount) { drivingIntensity /= handleCount; }
             } break;
 
             case Helio_EnableMode_Multiply: {
                 drivingIntensity = (*_handles.begin())->getDriveIntensity();
                 for (auto handleIter = _handles.begin() + 1; handleIter != _handles.end(); ++handleIter) {
-                    drivingIntensity *= (*handleIter)->getDriveIntensity();
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        drivingIntensity *= (*handleIter)->getDriveIntensity();
+                    }
                 }
             } break;
 
             case Helio_EnableMode_InOrder: {
-                drivingIntensity = (*_handles.begin())->getDriveIntensity();
+                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        drivingIntensity += (*handleIter)->getDriveIntensity();
+                        break;
+                    }
+                }
             } break;
 
             case Helio_EnableMode_RevOrder: {
-                drivingIntensity = (*(_handles.end() - 1))->getDriveIntensity();
+                for (auto handleIter = _handles.end() - 1; handleIter != _handles.begin() - 1; --handleIter) {
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
+                        drivingIntensity += (*handleIter)->getDriveIntensity();
+                        break;
+                    }
+                }
             } break;
 
             default:
                 break;
         }
 
+        switch (_enableMode) {
+            case Helio_EnableMode_InOrder:
+            case Helio_EnableMode_DesOrder: {
+                bool needsActiveUpdate = true;
+                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                    if ((*handleIter)->isActive() && !(*handleIter)->isDone()) {
+                        needsActiveUpdate = false; break;
+                    }
+                }
+                if (needsActiveUpdate) {
+                    for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                        if ((*handleIter)->isValid() && !(*handleIter)->isDone() &&
+                            (*handleIter)->checkTime == 0 && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                            (*handleIter)->checkTime = time;
+                            break;
+                        }
+                    }
+                }
+            } break;
+
+            case Helio_EnableMode_RevOrder:
+            case Helio_EnableMode_AscOrder: {
+                bool needsActiveUpdate = true;
+                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                    if ((*handleIter)->isActive() && !(*handleIter)->isDone()) {
+                        needsActiveUpdate = false; break;
+                    }
+                }
+                if (needsActiveUpdate) {
+                    for (auto handleIter = _handles.end() - 1; handleIter != _handles.begin() - 1; --handleIter) {
+                        if ((*handleIter)->isValid() && !(*handleIter)->isDone() &&
+                            (*handleIter)->checkTime == 0 && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                            (*handleIter)->checkTime = time;
+                            break;
+                        }
+                    }
+                }
+            } break;
+
+            default: {
+                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+                    if ((*handleIter)->isValid() && !(*handleIter)->isDone() && (*handleIter)->checkTime == 0) {
+                        (*handleIter)->checkTime = time;
+                    }
+                }
+            } break;
+        }
+
         _enableActuator(drivingIntensity);
     }
-
-    // Update running handles and elapse them as needed
-    if (_enabled && wasEnabled) {
-        millis_t time = millis();
-        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-            if ((*handleIter)->isActive()) {
-                (*handleIter)->elapseBy(time - (*handleIter)->checkTime);
-                if (getActuatorIsSerialFromMode(_enableMode)) { break; }
-            }
-        }
-    }
-
     _needsUpdate = false;
 }
 
@@ -247,40 +311,13 @@ void HelioActuator::saveToData(HelioData *dataOut)
 
 void HelioActuator::handleActivation()
 {
-    millis_t time = millis();
-
     if (_enabled) {
-        switch (_enableMode) {
-            case Helio_EnableMode_InOrder:
-                (*_handles.begin())->checkTime = max(1, time);
-                break;
-            case Helio_EnableMode_RevOrder:
-                (*(_handles.end() - 1))->checkTime = max(1, time);
-                break;
-            default: {
-                bool isSerial = getActuatorIsSerialFromMode(_enableMode);
-                for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    if ((*handleIter)->checkTime == 0 && (!isSerial || isFPEqual((*handleIter)->intensity, getDriveIntensity()))) {
-                        (*handleIter)->checkTime = max(1, time);
-                        if (isSerial) { break; }
-                    }
-                }
-            } break;
-        }
-
         getLoggerInstance()->logActivation(this);
     } else {
         for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-            if ((*handleIter)->isActive()) {
-                (*handleIter)->elapseBy(time - (*handleIter)->checkTime);
+            if ((*handleIter)->checkTime) {
                 (*handleIter)->checkTime = 0;
-
-                if ((*handleIter)->isDone()) {
-                    (*handleIter)->actuator = nullptr; // purposeful no-call to unset, handled here
-                    handleIter = _handles.erase(handleIter) - 1;
-                }
             }
-            if (getActuatorIsSerialFromMode(_enableMode)) { break; }
         }
 
         getLoggerInstance()->logDeactivation(this);
@@ -340,24 +377,29 @@ bool HelioRelayActuator::isEnabled(float tolerance) const
 void HelioRelayActuator::_enableActuator(float intensity)
 {
     bool wasEnabled = _enabled;
+    //intensity = roundf(intensity); // unnecessary frn
 
-    if (_outputPin.isValid() && !_enabled) {
-        if (!isFPEqual(intensity, 0.0f)) {
+    if (_outputPin.isValid()) {
+        if (intensity > FLT_EPSILON) {
             _enabled = true;
             _outputPin.activate();
-            if (!wasEnabled) { handleActivation(); }
         } else {
             _outputPin.deactivate();
         }
+
+        if (!wasEnabled) { handleActivation(); }
     }
 }
 
 void HelioRelayActuator::_disableActuator()
 {
-    if (_outputPin.isValid() && _enabled) {
+    bool wasEnabled = _enabled;
+
+    if (_outputPin.isValid()) {
         _enabled = false;
         _outputPin.deactivate();
-        handleActivation();
+
+        if (wasEnabled) { handleActivation(); }
     }
 }
 
@@ -433,32 +475,36 @@ void HelioRelayMotorActuator::_enableActuator(float intensity)
     bool wasEnabled = _enabled;
     intensity = constrain(intensity, -1.0f, 1.0f);
 
-    if (_outputPin.isValid() && _outputPin2.isValid() && (!_enabled || !isFPEqual(_intensity, intensity))) {
+    if (_outputPin.isValid() && _outputPin2.isValid()) {
         _intensity = intensity;
         if (!isFPEqual(_intensity, 0.0f)) {
             _enabled = true;
-            if (!signbit(_intensity)) {
+            if (_intensity > 0) {
                 _outputPin.activate();
                 _outputPin2.deactivate();
             } else {
                 _outputPin.deactivate();
                 _outputPin2.activate();
             }
-            if (!wasEnabled) { handleActivation(); }
         } else {
             _outputPin.deactivate();
             _outputPin2.deactivate();
         }
+
+        if (!wasEnabled) { handleActivation(); }
     }
 }
 
 void HelioRelayMotorActuator::_disableActuator()
 {
-    if (_outputPin.isValid() && _outputPin2.isValid() && _enabled) {
+    bool wasEnabled = _enabled;
+
+    if (_outputPin.isValid() && _outputPin2.isValid()) {
         _enabled = false;
         _outputPin.deactivate();
         _outputPin2.deactivate();
-        handleActivation();
+
+        if (wasEnabled) { handleActivation(); }
     }
 }
 
@@ -685,24 +731,23 @@ void HelioVariableActuator::_enableActuator(float intensity)
     bool wasEnabled = _enabled;
     intensity = constrain(intensity, 0.0f, 1.0f);
 
-    if (_outputPin.isValid() && (!_enabled || !isFPEqual(_intensity, intensity))) {
-        _intensity = intensity;
-        if (!isFPEqual(_intensity, 0.0f)) {
-            _enabled = true;
-            _outputPin.analogWrite(_intensity);
-            if (!wasEnabled) { handleActivation(); }
-        } else {
-            _outputPin.analogWrite_raw(0);
-        }
+    if (_outputPin.isValid()) {
+        _enabled = true;
+        _outputPin.analogWrite((_intensity = intensity));
+
+        if (!wasEnabled) { handleActivation(); }
     }
 }
 
 void HelioVariableActuator::_disableActuator()
 {
-    if (_outputPin.isValid() && _enabled) {
+    bool wasEnabled = _enabled;
+
+    if (_outputPin.isValid()) {
         _enabled = false;
         _outputPin.analogWrite_raw(0);
-        handleActivation();
+
+        if (wasEnabled) { handleActivation(); }
     }
 }
 

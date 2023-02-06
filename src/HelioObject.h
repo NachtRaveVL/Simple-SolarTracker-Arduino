@@ -40,9 +40,9 @@ struct HelioIdentity {
         Helio_PanelType panelType;                          // As panel type enumeration
         Helio_RailType railType;                            // As rail type enumeration
     } objTypeAs;                                            // Enumeration type union
-    hposi_t posIndex;                           // Position index
+    hposi_t posIndex;                                       // Position index
     String keyString;                                       // String key
-    hkey_t key;                                      // UInt Key
+    hkey_t key;                                             // UInt Key
 
     // Default constructor (incomplete id)
     HelioIdentity();
