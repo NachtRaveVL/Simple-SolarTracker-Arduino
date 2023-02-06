@@ -174,31 +174,38 @@ public:
 
     // A rate multiplier is used to adjust either the intensity or duration of activations,
     // which depends on whenever they operate in binary mode (on/off) or variably (ranged).
-    inline void setRateMultiplier(float rateMultiplier) { _rateMultiplier = rateMultiplier; }
+    inline void setRateMultiplier(float rateMultiplier) { _rateMultiplier = rateMultiplier; applySetup(); }
     inline float getRateMultiplier() const { return _rateMultiplier; }
 
     // Activations are set up first by calling one of these methods. This configures the
-    // direction as well as intensity that the actuator will operate upon, once enabled.
-    inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, direction, intensity, duration, force); }
-    inline void setupActivation(float intensity, millis_t duration = -1, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, intensity, duration, force); }
-    inline void setupActivation(millis_t duration, bool force = false) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
-    inline void setupActivation(bool force, millis_t duration = -1) { _actuatorHandle = HelioActivationHandle(_actuatorHandle.actuator, 1, duration, force); }
+    // direction, intensity, duration, and any run flags that the actuator will operate
+    // upon once enabled, pending any rate offsetting. These methods are re-entrant.
+    // The most recently used setup values are used for repeat activations.
+    inline void setupActivation(const HelioActivationHandle::Activation &activation) { _actSetup = activation; applySetup(); }
+    inline void setupActivation(const HelioActivationHandle &handle) { setupActivation(handle.activation); }
+    inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { setupActivation(HelioActivationHandle::Activation(direction, intensity, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
+    inline void setupActivation(float intensity, millis_t duration = -1, bool force = false) { setupActivation(HelioActivationHandle::Activation(intensity > FLT_EPSILON ? Helio_DirectionMode_Forward : intensity < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(intensity), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
+    inline void setupActivation(millis_t duration, bool force = false) { setupActivation(HelioActivationHandle::Activation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
+    inline void setupActivation(bool force, millis_t duration = -1) { setupActivation(HelioActivationHandle::Activation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
 
     // Enables activation handle with current setup, if not already active.
-    inline void enableActivation() { if (!_actuatorHandle.actuator) { _actuatorHandle = HelioAttachment::getObject<HelioActuator>(); } }
+    // Repeat activations will reuse most recent setupActivation() values.
+    void enableActivation();
     // Disables activation handle, if not already inactive.
-    inline void disableActivation() { _actuatorHandle.unset(); }
+    inline void disableActivation() { _actHandle.unset(); }
 
-    inline bool isActuatorEnabled(float tolerance = 0.0f) { return resolve() && HelioAttachment::get<HelioActuator>()->isEnabled(tolerance); }
-    inline bool isActivationEnabled() { return _actuatorHandle.isActive(); }
-    inline bool isEnabled(float tolerance = 0.0f) { return isActuatorEnabled(tolerance) && isActivationEnabled(); }
+    // Activation status based on handle activation
+    inline bool isActivated() const { return _actHandle.isActive(); }
 
-    // Sets an update slot to run during execution of actuator that can further refine duration value.
-    // Useful for rate-based or variable activations. Slot receives activation handle pointer as parameter.
-    void setUpdateSlot(const Slot<HelioActivationHandle *> &updateSlot);
-    inline void setUpdateFunction(void (*updateFunctionPtr)(HelioActivationHandle *)) { setUpdateSlot(FunctionSlot<HelioActivationHandle *>(updateFunctionPtr)); }
-    template<class U> inline void setUpdateMethod(void (U::*updateMethodPtr)(HelioActivationHandle *), U *updateClassInst = nullptr) { setUpdateSlot(MethodSlot<U,HelioActivationHandle *>(updateClassInst ? updateClassInst : reinterpret_cast<U *>(_parent), updateMethodPtr)); }
+    // Sets an update slot to run during execution of actuator that can further refine duration/intensity.
+    // Useful for rate-based or variable activations. Slot receives actuator attachment pointer as parameter.
+    // Guaranteed to be called with final finished activation.
+    void setUpdateSlot(const Slot<HelioActuatorAttachment *> &updateSlot);
+    inline void setUpdateFunction(void (*updateFunctionPtr)(HelioActuatorAttachment *)) { setUpdateSlot(FunctionSlot<HelioActuatorAttachment *>(updateFunctionPtr)); }
+    template<class U> inline void setUpdateMethod(void (U::*updateMethodPtr)(HelioActivationHandle *), U *updateClassInst = nullptr) { setUpdateSlot(MethodSlot<U,HelioActuatorAttachment *>(updateClassInst ? updateClassInst : reinterpret_cast<U *>(_parent), updateMethodPtr)); }
 
+    inline const HelioActivationHandle &getHandle() const { return _actHandle; }
+    inline const HelioActivationHandle::Activation &getSetup() const { return _actSetup; }
     inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
     inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
 
@@ -211,9 +218,13 @@ public:
     template<class U> inline HelioActuatorAttachment &operator=(const U *rhs) { setObject(rhs); return *this; }
 
 protected:
-    HelioActivationHandle _actuatorHandle;                  // Actuator activation handle (double ref to object when active)
-    Slot<HelioActivationHandle *> *_updateSlot;             // Update slot (owned)
+    HelioActivationHandle _actHandle;                       // Actuator activation handle (double ref to object when active)
+    HelioActivationHandle::Activation _actSetup;            // Actuator activation setup
+    Slot<HelioActuatorAttachment *> *_updateSlot;           // Update slot (owned)
     float _rateMultiplier;                                  // Rate multiplier
+    bool _calledLastUpdate;                                 // Last update call flag
+
+    void applySetup();
 };
 
 

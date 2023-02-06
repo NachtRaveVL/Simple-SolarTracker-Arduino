@@ -23,6 +23,12 @@ struct HelioMotorActuatorData;
 extern HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn);
 
 
+// Activation Flags
+enum Helio_ActivationFlags : unsigned char {
+    Helio_ActivationFlags_Forced        = 0x01,             // Force enable / ignore cursory canEnable checks
+    Helio_ActivationFlags_None          = 0x00              // Placeholder
+};
+
 // Activation Handle
 // Since actuators are shared objects, those wishing to enable any actuator must receive
 // a valid handle. Actuators may customize how they handle multiple activation handles.
@@ -31,15 +37,25 @@ extern HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 // forced flag is set (also see Actuator activation signal), but can be set up to ensure
 // actuators are enabled for a specified duration, which is able to be async updated.
 struct HelioActivationHandle {
-    SharedPtr<HelioActuator> actuator;  // Actuator owner, set only when activation requested (use operator= to set)
-    float intensity;                    // Normalized driving intensity ([0.0,1.0])
-    Helio_DirectionMode direction;      // Normalized driving direction
-    millis_t checkTime;                 // Last check timestamp, in milliseconds, else 0 for not started
-    millis_t duration;                  // Duration time remaining, in milliseconds, else -1 for non-diminishing/unlimited or 0 for finished
-    millis_t elapsed;                   // Elapsed time accumulator, in milliseconds, else 0
-    bool forced;                        // If activation should force enable and ignore cursory canEnable checks
+    SharedPtr<HelioActuator> actuator;                      // Actuator owner, set only when activation requested (use operator= to set)
+    struct Activation {
+        Helio_DirectionMode direction;                      // Normalized driving direction
+        float intensity;                                    // Normalized driving intensity ([0.0,1.0])
+        millis_t duration;                                  // Duration time remaining, in milliseconds, else -1 for non-diminishing/unlimited or 0 for finished
+        Helio_ActivationFlags flags;                        // Activation flags
 
-    // Handle constructor that specifies a normalized enablement, ranged: normalized [0.0,1.0] for specified direction
+        inline Activation(Helio_DirectionMode directionIn, float intensityIn, millis_t durationIn, Helio_ActivationFlags flagsIn) : direction(directionIn), intensity(intensityIn), duration(durationIn), flags(flagsIn) { ; }
+        inline Activation() : Activation(Helio_DirectionMode_Undefined, 0.0f, 0, Helio_ActivationFlags_None) { ; }
+
+        inline bool isValid() const { return direction != Helio_DirectionMode_Undefined; }
+        inline bool isDone() const { return duration == 0; }
+        inline bool isUntimed() const { return duration == -1; }
+        inline bool isForced() const { return flags & Helio_ActivationFlags_Forced; }
+    } activation;                                           // Activation data
+    millis_t checkTime;                                     // Last check timestamp, in milliseconds, else 0 for not started
+    millis_t elapsed;                                       // Elapsed time accumulator, in milliseconds, else 0
+
+    // Handle constructor that specifies a normalized enablement, ranged: [0.0,1.0] for specified direction
     HelioActivationHandle(SharedPtr<HelioActuator> actuator, Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false);
 
     // Handle constructor that specifies a binary enablement, ranged: (=0=,!0!) for disable/enable or (<=-1,=0=,>=1) for reverse/stop/forward
@@ -53,23 +69,27 @@ struct HelioActivationHandle {
     inline HelioActivationHandle() : HelioActivationHandle(nullptr, Helio_DirectionMode_Undefined, 0.0f, 0, false) { ; }
     HelioActivationHandle(const HelioActivationHandle &handle);
     ~HelioActivationHandle();
-    HelioActivationHandle &operator=(const HelioActivationHandle &handle);
+    inline HelioActivationHandle &operator=(const Activation &activationIn) { activation = activationIn; return *this; }
+    inline HelioActivationHandle &operator=(const HelioActivationHandle &handle) { activation = handle.activation; return operator=(handle.actuator); }
     HelioActivationHandle &operator=(SharedPtr<HelioActuator> actuator);
 
     // Disconnects activation from an actuator (un-registers self from actuator)
     void unset();
 
-    // Elapses time by delta, updating relevant operating values if needed
+    // Elapses activation by delta, updating relevant activation values
     void elapseBy(millis_t delta);
+    inline void elapseTo(millis_t time = millis()) { elapseBy(time - checkTime); }
 
     inline bool isActive() const { return actuator && checkTime > 0; }
-    inline bool isDone() const { return duration == 0; }
-    inline bool isInfinite() const { return duration == -1; }
-    inline millis_t getTimeElapsed(millis_t time = millis()) const { return isActive() ? (time - checkTime) + elapsed : elapsed; }
+    inline bool isValid() const { return activation.isValid(); }
+    inline bool isDone() const { return activation.isDone(); }
+    inline bool isUntimed() const { return activation.isUntimed(); }
+    inline bool isForced() const { return activation.isForced(); }
+    inline millis_t getTimeActive(millis_t time = millis()) const { return isActive() ? (time - checkTime) + elapsed : elapsed; }
 
     // De-normalized driving intensity value [-1.0,1.0]
-    inline float getDriveIntensity() const { return direction == Helio_DirectionMode_Forward ? intensity :
-                                                    direction == Helio_DirectionMode_Reverse ? -intensity : 0.0f; }
+    inline float getDriveIntensity() const { return activation.direction == Helio_DirectionMode_Forward ? activation.intensity :
+                                                    activation.direction == Helio_DirectionMode_Reverse ? -activation.intensity : 0.0f; }
 };
 
 
@@ -83,6 +103,8 @@ public:
     inline bool isRelayMotorClass() const { return classType == RelayMotor; }
     inline bool isVariableClass() const { return classType == Variable; }
     inline bool isVariableMotorClass() const { return classType == VariableMotor; }
+    inline bool isAnyBinaryClass() const { isRelayClass() || isRelayMotorClass(); }
+    inline bool isAnyVariableClass() const { isVariableClass() || isVariableMotorClass(); }
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioActuator(Helio_ActuatorType actuatorType,
