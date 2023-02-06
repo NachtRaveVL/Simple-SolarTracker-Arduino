@@ -56,14 +56,17 @@ HelioActivationHandle &HelioActivationHandle::operator=(SharedPtr<HelioActuator>
 
 void HelioActivationHandle::unset()
 {
-    if (isActive()) { elapseTo(); checkTime = 0; }
+    if (isActive()) { elapseTo(); }
+    checkTime = 0;
+
     if (actuator) {
         for (auto handleIter = actuator->_handles.end() - 1; handleIter != actuator->_handles.begin() - 1; --handleIter) {
             if ((*handleIter) == this) {
-                actuator->_handles.erase(handleIter); actuator->setNeedsUpdate();
+                actuator->_handles.erase(handleIter);
                 break;
             }
         }
+        actuator->setNeedsUpdate();
         actuator = nullptr;
     }
 }
@@ -72,10 +75,16 @@ void HelioActivationHandle::elapseBy(millis_t delta)
 {
     if (delta && isValid() && isActive()) {
         if (!isUntimed()) {
-            if (delta <= activation.duration) { activation.duration -= delta; }
-            else { delta = activation.duration; activation.duration = 0; }
+            if (delta <= activation.duration) {
+                activation.duration -= delta;
+                checkTime += delta;
+            } else {
+                delta = activation.duration;
+                activation.duration = 0;
+                checkTime = 0;
+                actuator->setNeedsUpdate();
+            }
         }
-        checkTime += delta;
         elapsed += delta;
     }
 }
@@ -115,7 +124,6 @@ void HelioActuator::update()
                 (*handleIter)->elapseTo(time);
             }
             if (!(*handleIter)->isValid() || (*handleIter)->isDone()) {
-                (*handleIter)->checkTime = 0;
                 (*handleIter)->actuator = nullptr;
                 handleIter = _handles.erase(handleIter) - 1;
                 setNeedsUpdate();
@@ -199,7 +207,7 @@ void HelioActuator::update()
                 break;
         }
 
-        // Enable/disable activation handles as needed
+        // Enable/disable activation handles as needed (serial modes only select 1 at a time)
         switch (_enableMode) {
             case Helio_EnableMode_InOrder:
             case Helio_EnableMode_DesOrder: {
@@ -233,7 +241,6 @@ void HelioActuator::update()
                 }
             } break;
         }
-
 
         _enableActuator(drivingIntensity);
     }
