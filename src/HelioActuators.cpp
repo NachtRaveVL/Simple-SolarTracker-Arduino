@@ -114,7 +114,7 @@ void HelioActuator::update()
     _rail.resolve();
     _panel.resolve();
 
-    millis_t time = millis(); time = max(1, time);
+    millis_t time = nzMillis();
 
     // Update running handles and elapse them as needed, determine forced status, and remove invalid/finished handles
     bool forced = false;
@@ -123,8 +123,8 @@ void HelioActuator::update()
             if (_enabled && (*handleIter)->isActive()) {
                 (*handleIter)->elapseTo(time);
             }
-            if (!(*handleIter)->isValid() || (*handleIter)->isDone()) {
-                (*handleIter)->actuator = nullptr;
+            if ((*handleIter)->actuator.get() != this || !(*handleIter)->isValid() || (*handleIter)->isDone()) {
+                if ((*handleIter)->actuator.get() == this) { (*handleIter)->actuator = nullptr; }
                 handleIter = _handles.erase(handleIter) - 1;
                 setNeedsUpdate();
                 continue;
@@ -440,7 +440,7 @@ void HelioRelayMotorActuator::update()
     _speed.updateIfNeeded(true);
 
     if (_travelTimeStart) {
-        millis_t time = millis(); time = max(1, time);
+        millis_t time = nzMillis();
         millis_t duration = time - _travelTimeStart;
         if (duration >= HELIO_ACT_TRAVELCALC_UPDATEMS) {
             handleTravelTime(time);
@@ -503,7 +503,7 @@ void HelioRelayMotorActuator::_disableActuator()
 
 void HelioRelayMotorActuator::handleActivation()
 {
-    millis_t time = millis(); time = max(1, time);
+    millis_t time = nzMillis();
     HelioActuator::handleActivation();
 
     if (_enabled) {

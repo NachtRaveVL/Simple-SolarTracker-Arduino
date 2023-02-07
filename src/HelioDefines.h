@@ -99,6 +99,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_OBJ_LINKS_MAXSIZE         8                   // Maximum array size for object linkage list, per obj (max # of linked objects)
 #define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
 #define HELIO_DRV_ACTUATORS_MAXSIZE     8                   // Maximum array size for driver actuators list (max # of actuators used)
+#define HELIO_SCH_TRACKING_MAXSIZE      4                   // Maximum array size for scheduler tracking process list (max # of panels)
 #define HELIO_SCH_REQACTUATORS_MAXSIZE  4                   // Maximum array size for scheduler required actuators list (max # of actuators active per process stage)
 #define HELIO_SYS_ONEWIRE_MAXSIZE       2                   // Maximum array size for pin OneWire list (max # of OneWire comm pins)
 #define HELIO_SYS_PINLOCKS_MAXSIZE      2                   // Maximum array size for pin locks list (max # of locks)
