@@ -76,6 +76,7 @@ typedef uint16_t hframe_t;                                  // Polling frame typ
 typedef typeof(INPUT) ard_pinmode_t;                        // Arduino pin mode type alias
 typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin status type alias
 
+// The following slot sizes apply to all architectures
 #define HELIO_NAME_MAXSIZE              32                  // Naming character maximum size (system name, crop name, etc.)
 #define HELIO_POS_MAXSIZE               32                  // Position indicies maximum size (max # of objs of same type)
 #define HELIO_URL_MAXSIZE               64                  // URL string maximum size (max url length)
@@ -83,7 +84,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_JSON_DOC_DEFSIZE          192                 // Default JSON document chunk data bytes (serialization buffer size)
 #define HELIO_STRING_BUFFER_SIZE        32                  // Size in bytes of string serialization buffers
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
-// The following slot sizes apply to all architectures
+// The following max sizes only matter for architectures that do not have STL support
 #define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
 #define HELIO_SENSOR_SIGNAL_SLOTS       6                   // Maximum number of slots for sensor's measurement signal
 #define HELIO_TRIGGER_SIGNAL_SLOTS      4                   // Maximum number of slots for trigger's state signal
@@ -92,12 +93,9 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_PUBLISH_SIGNAL_SLOTS      2                   // Maximum number of slots for data publish signal
 #define HELIO_PANEL_SIGNAL_SLOTS        2                   // Maximum number of slots for various signals
 #define HELIO_CAPACITY_SIGNAL_SLOTS     8                   // Maximum number of slots for rail capacity signal
-#define HELIO_RAILS_LINKS_BASESIZE      4                   // Base array size for rail's linkage list
-// The following max sizes only matter for architectures that do not have STL support
 #define HELIO_SYS_OBJECTS_MAXSIZE       16                  // Maximum array size for system objects (max # of objects in system)
 #define HELIO_CAL_CALIBSTORE_MAXSIZE    8                   // Maximum array size for calibration store objects (max # of different custom calibrations)
 #define HELIO_OBJ_LINKS_MAXSIZE         8                   // Maximum array size for object linkage list, per obj (max # of linked objects)
-#define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
 #define HELIO_DRV_ACTUATORS_MAXSIZE     8                   // Maximum array size for driver actuators list (max # of actuators used)
 #define HELIO_SCH_TRACKING_MAXSIZE      4                   // Maximum array size for scheduler tracking process list (max # of panels)
 #define HELIO_SCH_REQACTUATORS_MAXSIZE  4                   // Maximum array size for scheduler required actuators list (max # of actuators active per process stage)
@@ -112,11 +110,15 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_ACT_TRAVELCALC_UPDATEMS   250                 // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
 #define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
 
+#define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
+
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
 #define HELIO_POS_EXPORT_BEGFROM        1                   // Whenever exported/user-facing position indexing starts at 1 or 0 (aka display offset)
 
 #define HELIO_RANGE_TEMP_HALF           5.0f                // How far to go, in either direction, to form a range when Temp is expressed as a single number, in C (note: this also controls auto-balancer ranges)
+
+#define HELIO_RAILS_LINKS_BASESIZE      4                   // Base array size for rail's linkage list
 
 #define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
@@ -134,7 +136,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_SYS_FREESPACE_INTERVAL    240                 // How many minutes should pass before checking attached file systems have enough disk space (performs cleanup if not)
 #define HELIO_SYS_FREESPACE_LOWSPACE    256                 // How many kilobytes of disk space remaining will force cleanup of oldest log/data files first
 #define HELIO_SYS_FREESPACE_DAYSBACK    180                 // How many days back log/data files are allowed to be stored up to (any beyond this are deleted during cleanup)
-#define HELIO_SYS_DELAYFINE_SPINMILLIS  20                  // How many milliseconds away from stop time fine delays can use yield() up to before using a blocking spin-lock (ensures fine dosing)
+#define HELIO_SYS_DELAYFINE_SPINMILLIS  20                  // How many milliseconds away from stop time fine delays can use yield() up to before using a blocking spin-lock (used for fine timing)
 #define HELIO_SYS_DEBUGOUT_FLUSH_YIELD  DISABLED            // If debug output statements should flush and yield afterwards to force send through to serial monitor (mainly used for debugging)
 #define HELIO_SYS_MEM_LOGGING_ENABLE    DISABLED            // If system will periodically log memory remaining messages (mainly used for debugging)
 #define HELIO_SYS_DRY_RUN_ENABLE        DISABLED            // Disables pins from actually enabling in order to simply simulate (mainly used for debugging)
@@ -218,8 +220,8 @@ enum Helio_SystemMode : signed char {
     Helio_SystemMode_PositionCalc,                          // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
     Helio_SystemMode_SensorDependent,                       // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
 
-    Helio_SystemMode_Count,                                 // Internal use only
-    Helio_SystemMode_Undefined = -1                         // Internal use only
+    Helio_SystemMode_Count,                                 // Placeholder
+    Helio_SystemMode_Undefined = -1                         // Placeholder
 };
 
 // Measurement Units Mode
@@ -229,8 +231,8 @@ enum Helio_MeasurementMode : signed char {
     Helio_MeasurementMode_Metric,                           // Metric measurement mode (°C M L Kg Y-M-D Val.X etc)
     Helio_MeasurementMode_Scientific,                       // Scientific measurement mode (°K M L Kg Y-M-D Val.XX etc)
 
-    Helio_MeasurementMode_Count,                            // Internal use only
-    Helio_MeasurementMode_Undefined = -1,                   // Internal use only
+    Helio_MeasurementMode_Count,                            // Placeholder
+    Helio_MeasurementMode_Undefined = -1,                   // Placeholder
     Helio_MeasurementMode_Default = Helio_MeasurementMode_Metric // Default system measurement mode
 };
 
@@ -244,8 +246,8 @@ enum Helio_DisplayOutputMode : signed char {
     Helio_DisplayOutputMode_16x2LCD,                        // 16x2 i2c LCD (with layout: EN, RW, RS, BL, Data)
     Helio_DisplayOutputMode_16x2LCD_Swapped,                // 16x2 i2c LCD (with EN<->RS swapped, layout: RS, RW, EN, BL, Data)
 
-    Helio_DisplayOutputMode_Count,                          // Internal use only
-    Helio_DisplayOutputMode_Undefined = -1                  // Internal use only
+    Helio_DisplayOutputMode_Count,                          // Placeholder
+    Helio_DisplayOutputMode_Undefined = -1                  // Placeholder
 };
 
 // Control Input Mode
@@ -258,8 +260,8 @@ enum Helio_ControlInputMode : signed char {
     Helio_ControlInputMode_6xButton,                        // 6x standard momentary buttons, ribbon: {TODO} (X = pin 1)
     Helio_ControlInputMode_RotaryEncoder,                   // Rotary encoder, ribbon: {A,B,OK,L,R} (A = pin 1)
 
-    Helio_ControlInputMode_Count,                           // Internal use only
-    Helio_ControlInputMode_Undefined = -1                   // Internal use only
+    Helio_ControlInputMode_Count,                           // Placeholder
+    Helio_ControlInputMode_Undefined = -1                   // Placeholder
 };
 
 // Actuator Type
@@ -271,8 +273,8 @@ enum Helio_ActuatorType : signed char {
     Helio_ActuatorType_LinearActuator,                      // Panel axis linear actuator
     Helio_ActuatorType_RotaryServo,                         // Panel axis rotary servo
 
-    Helio_ActuatorType_Count,                               // Internal use only
-    Helio_ActuatorType_Undefined = -1                       // Internal use only
+    Helio_ActuatorType_Count,                               // Placeholder
+    Helio_ActuatorType_Undefined = -1                       // Placeholder
 };
 
 // Sensor Type
@@ -287,8 +289,8 @@ enum Helio_SensorType : signed char {
     Helio_SensorType_Endstop,                               // Track axis endstop (binary)
     Helio_SensorType_StrokePosition,                        // Actuator stroke position potentiometer (analog)
 
-    Helio_SensorType_Count,                                 // Internal use only
-    Helio_SensorType_Undefined = -1                         // Internal use only
+    Helio_SensorType_Count,                                 // Placeholder
+    Helio_SensorType_Undefined = -1                         // Placeholder
 };
 
 // Panel Type
@@ -299,8 +301,8 @@ enum Helio_PanelType : signed char {
     Helio_PanelType_Gimballed,                              // Dual axis gimballed panel (azimuth + elevation)
     Helio_PanelType_Equatorial,                             // Dual axis equatorial mounted panel (right-ascension + declination, external polar alignment required)
 
-    Helio_PanelType_Count,                                  // Internal use only
-    Helio_PanelType_Undefined = -1                          // Internal use only
+    Helio_PanelType_Count,                                  // Placeholder
+    Helio_PanelType_Undefined = -1                          // Placeholder
 };
 
 // Power Rail
@@ -311,8 +313,8 @@ enum Helio_RailType : signed char {
     Helio_RailType_DC5V,                                    // 5v DC-based power rail, for sensors, etc.
     Helio_RailType_DC12V,                                   // 12v DC-based power rail, for actuators, etc.
 
-    Helio_RailType_Count,                                   // Internal use only
-    Helio_RailType_Undefined = -1                           // Internal use only
+    Helio_RailType_Count,                                   // Placeholder
+    Helio_RailType_Undefined = -1                           // Placeholder
 };
 
 // Pin Mode
@@ -326,8 +328,8 @@ enum Helio_PinMode : signed char {
     Helio_PinMode_Analog_Input,                             // Analog input pin
     Helio_PinMode_Analog_Output,                            // Analog output pin
 
-    Helio_PinMode_Count,                                    // Internal use only
-    Helio_PinMode_Undefined = -1                            // Internal use only
+    Helio_PinMode_Count,                                    // Placeholder
+    Helio_PinMode_Undefined = -1                            // Placeholder
 };
 
 // Trigger Status
@@ -337,8 +339,8 @@ enum Helio_TriggerState : signed char {
     Helio_TriggerState_NotTriggered,                        // Not triggered
     Helio_TriggerState_Triggered,                           // Triggered
 
-    Helio_TriggerState_Count,                               // Internal use only
-    Helio_TriggerState_Undefined = -1                       // Internal use only
+    Helio_TriggerState_Count,                               // Placeholder
+    Helio_TriggerState_Undefined = -1                       // Placeholder
 };
 
 // Driving State
@@ -348,8 +350,8 @@ enum Helio_DrivingState : signed char {
     Helio_DrivingState_OnTarget,                            // On target
     Helio_DrivingState_GoLower,                             // Need to go lower / too high
 
-    Helio_DrivingState_Count,                               // Internal use only
-    Helio_DrivingState_Undefined = -1                       // Internal use only
+    Helio_DrivingState_Count,                               // Placeholder
+    Helio_DrivingState_Undefined = -1                       // Placeholder
 };
 
 // Panel State
@@ -360,8 +362,8 @@ enum Helio_PanelState : signed char {
     Helio_PanelState_TravelingToHome,                       // Traveling to home position
     Helio_PanelState_AlignedToHome,                         // Aligned to home position/stowed
 
-    Helio_PanelState_Count,                                 // Internal use only
-    Helio_PanelState_Undefined = -1                         // Internal use only
+    Helio_PanelState_Count,                                 // Placeholder
+    Helio_PanelState_Undefined = -1                         // Placeholder
 };
 
 // Enable Mode
@@ -377,8 +379,8 @@ enum Helio_EnableMode : signed char {
     Helio_EnableMode_DesOrder,                              // Serial activation using highest-to-lowest/descending-order drive intensities
     Helio_EnableMode_AscOrder,                              // Serial activation using lowest-to-highest/ascending-order drive intensities
 
-    Helio_EnableMode_Count,                                 // Internal use only
-    Helio_EnableMode_Undefined = -1,                        // Internal use only
+    Helio_EnableMode_Count,                                 // Placeholder
+    Helio_EnableMode_Undefined = -1,                        // Placeholder
     Helio_EnableMode_Serial = Helio_EnableMode_InOrder      // Serial (alias for in-order)
 };
 
@@ -389,8 +391,8 @@ enum Helio_DirectionMode : signed char {
     Helio_DirectionMode_Reverse,                            // Opposite/reverse direction mode
     Helio_DirectionMode_Stop,                               // Stationary/braking direction mode
 
-    Helio_DirectionMode_Count,                              // Internal use only
-    Helio_DirectionMode_Undefined = -1                      // Internal use only
+    Helio_DirectionMode_Count,                              // Placeholder
+    Helio_DirectionMode_Undefined = -1                      // Placeholder
 };
 
 // Units Category
@@ -403,8 +405,8 @@ enum Helio_UnitsCategory : signed char {
     Helio_UnitsCategory_Speed,                              // Speed based unit
     Helio_UnitsCategory_Power,                              // Power based unit
 
-    Helio_UnitsCategory_Count,                              // Internal use only
-    Helio_UnitsCategory_Undefined = -1                      // Internal use only
+    Helio_UnitsCategory_Count,                              // Placeholder
+    Helio_UnitsCategory_Undefined = -1                      // Placeholder
 };
 
 // Units Type
@@ -423,9 +425,9 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Power_Wattage,                          // Wattage power mode
     Helio_UnitsType_Power_Amperage,                         // Amperage current power mode
 
-    Helio_UnitsType_Count,                                  // Internal use only
+    Helio_UnitsType_Count,                                  // Placeholder
     Helio_UnitsType_Power_JoulesPerSecond = Helio_UnitsType_Power_Wattage, // Joules per second power mode alias
-    Helio_UnitsType_Undefined = -1                          // Internal use only
+    Helio_UnitsType_Undefined = -1                          // Placeholder
 };
 
 // Common forward decls

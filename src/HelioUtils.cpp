@@ -43,12 +43,15 @@ ActuatorTimedEnableTask::ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuat
 
 void ActuatorTimedEnableTask::exec()
 {
-    HelioActivationHandle handle(_actuator, _intensity, _duration);
+    HelioActivationHandle handle = _actuator->enableActuator(_intensity, _duration);
 
-    while (handle.actuator) {
-        // todo
-        yield();
+    while (!handle.isDone()) {
+        handle.elapseTo();
+        if (handle.getTimeLeft() > HELIO_SYS_DELAYFINE_SPINMILLIS) { yield(); }
     }
+
+    // Custom run loop allows calling this method directly - will disable actuator if needed
+    _actuator->update();
 }
 
 taskid_t scheduleActuatorTimedEnableOnce(SharedPtr<HelioActuator> actuator, float intensity, time_t duration)
