@@ -113,7 +113,7 @@ bool arrayElementsEqual(const T *arrayIn, size_t length, T value)
 }
 
 
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE>
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links)
 {
     Vector<HelioObject *, N> retVal;
@@ -127,7 +127,7 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
     return retVal;
 }
 
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE>
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType)
 {
     Vector<HelioObject *, N> retVal;

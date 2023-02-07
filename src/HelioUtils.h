@@ -328,10 +328,10 @@ inline String roundToString(float value, unsigned int additionalDecPlaces = 0) {
 // Linkages & Filtering
 
 // Returns linkages list filtered down to just actuators.
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE> Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);
 
 // Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel.
-template<size_t N = HELIO_OBJ_LINKSFILTER_DEFSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Returns the # of actuators of a certain type that operate on a specific panel.
 int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);

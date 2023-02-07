@@ -76,7 +76,7 @@ typedef uint16_t hframe_t;                                  // Polling frame typ
 typedef typeof(INPUT) ard_pinmode_t;                        // Arduino pin mode type alias
 typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin status type alias
 
-// The following slot sizes apply to all architectures
+// The following sizes apply to all architectures
 #define HELIO_NAME_MAXSIZE              32                  // Naming character maximum size (system name, crop name, etc.)
 #define HELIO_POS_MAXSIZE               32                  // Position indicies maximum size (max # of objs of same type)
 #define HELIO_URL_MAXSIZE               64                  // URL string maximum size (max url length)
@@ -84,7 +84,8 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_JSON_DOC_DEFSIZE          192                 // Default JSON document chunk data bytes (serialization buffer size)
 #define HELIO_STRING_BUFFER_SIZE        32                  // Size in bytes of string serialization buffers
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
-// The following max sizes only matter for architectures that do not have STL support
+// The following sizes only matter for architectures that do not have STL support
+#define HELIO_DEFAULT_MAXSIZE           8                   // Default maximum array/map size
 #define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
 #define HELIO_SENSOR_SIGNAL_SLOTS       6                   // Maximum number of slots for sensor's measurement signal
 #define HELIO_TRIGGER_SIGNAL_SLOTS      4                   // Maximum number of slots for trigger's state signal
@@ -103,14 +104,13 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_SYS_PINLOCKS_MAXSIZE      2                   // Maximum array size for pin locks list (max # of locks)
 #define HELIO_SYS_PINMUXERS_MAXSIZE     2                   // Maximum array size for pin muxers list (max # of muxers)
 
+
 #define HELIO_CONTROL_LOOP_INTERVAL     100                 // Run interval of main control loop, in milliseconds
 #define HELIO_DATA_LOOP_INTERVAL        2000                // Default run interval of data loop, in milliseconds (customizable later)
 #define HELIO_MISC_LOOP_INTERVAL        250                 // Run interval of misc loop, in milliseconds
 
 #define HELIO_ACT_TRAVELCALC_UPDATEMS   250                 // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
 #define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
-
-#define HELIO_OBJ_LINKSFILTER_DEFSIZE   8                   // Default array size for object linkage filtering
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
@@ -140,6 +140,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_SYS_DEBUGOUT_FLUSH_YIELD  DISABLED            // If debug output statements should flush and yield afterwards to force send through to serial monitor (mainly used for debugging)
 #define HELIO_SYS_MEM_LOGGING_ENABLE    DISABLED            // If system will periodically log memory remaining messages (mainly used for debugging)
 #define HELIO_SYS_DRY_RUN_ENABLE        DISABLED            // Disables pins from actually enabling in order to simply simulate (mainly used for debugging)
+
 
 #if defined(__APPLE__) || defined(__APPLE) || defined(__unix__) || defined(__unix)
 #define HELIO_BLDPATH_SEPARATOR         '/'                 // Path separator for nix-based build machines
