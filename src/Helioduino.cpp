@@ -1461,8 +1461,8 @@ void Helioduino::notifyDayChanged()
 
             // todo
             // if (panel && panel->isTrackClass()) {
-            //     auto trackPanel = static_pointer_cast<HelioTrackPanel>(iter->second);
-            //     if (trackPanel) {trackPanel->notifyDayChanged(); }
+            //     auto panel = static_pointer_cast<HelioPanel>(iter->second);
+            //     if (panel) {panel->notifyDayChanged(); }
             // }
         }
     }

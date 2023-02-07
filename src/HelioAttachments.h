@@ -196,6 +196,8 @@ public:
 
     // Activation status based on handle activation
     inline bool isActivated() const { return _actHandle.isActive(); }
+    inline millis_t getTimeLeft() const { return _actHandle.getTimeLeft(); }
+    inline millis_t getTimeActive(millis_t time = nzMillis()) const { return _actHandle.getTimeActive(time); }
 
     // Sets an update slot to run during execution of actuator that can further refine duration/intensity.
     // Useful for rate-based or variable activations. Slot receives actuator attachment pointer as parameter.

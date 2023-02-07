@@ -45,7 +45,7 @@ protected:
     bool _inDaytimeMode;                                    // Whenever in daytime tracking mode or not
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
-    Map<hkey_t, HelioTracking *, HELIO_SCH_TRACKRES_MAXSIZE> _trackings; // Trackings in progress
+    Map<hkey_t, HelioTracking *, HELIO_SCH_TRACKING_MAXSIZE> _trackings; // Trackings in progress
 
     friend class Helioduino;
 
@@ -60,28 +60,27 @@ protected:
 
 // Scheduler Tracking Process Log Type
 enum HelioTrackingLogType : signed char {
-    HelioTrackingLogType_WaterSetpoints,                     // Water setpoints
-    HelioTrackingLogType_WaterMeasures,                      // Water measurements
-    HelioTrackingLogType_AirSetpoints,                       // Air setpoints
-    HelioTrackingLogType_AirMeasures                         // Air measurements
+    HelioTrackingLogType_Setpoints,                         // Setpoints
+    HelioTrackingLogType_Measures,                          // Measurements
 };
 
 // Scheduler Tracking Process Broadcast Type
 enum HelioTrackingBroadcastType : signed char {
-    HelioTrackingBroadcastType_Began,                        // Began main process
-    HelioTrackingBroadcastType_Ended                         // Ended main process
+    HelioTrackingBroadcastType_Began,                       // Began main process
+    HelioTrackingBroadcastType_Ended                        // Ended main process
 };
 
 // Scheduler Process Base
-// Processes are created and managed by Scheduler to manage the tracking and lighting
-// sequences necessary for crops to grow.
+// Processes are created and managed by Scheduler to manage the day tracking
+// sequences necessary for panel alignment.
 struct HelioProcess {
-    SharedPtr<HelioTrackPanel> trackRes;                      // Track panel
+    SharedPtr<HelioPanel> panel;                            // Panel
+
     Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
 
     time_t stageStart;                                      // Stage start time
 
-    HelioProcess(SharedPtr<HelioTrackPanel> trackRes);
+    HelioProcess(SharedPtr<HelioPanel> panel);
 
     void clearActuatorReqs();
     void setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn);
@@ -91,16 +90,12 @@ struct HelioProcess {
 struct HelioTracking : public HelioProcess {
     enum : signed char {Init,TopOff,PreTrack,Track,Drain,Done,Unknown = -1} stage; // Current tracking stage
 
-    time_t canTrackAfter;                                    // Time next tracking can occur (UTC)
+    time_t canTrackAfter;                                   // Time next tracking can occur (UTC)
     time_t lastAirReport;                                   // Last time an air report was generated (UTC)
 
-    float phSetpoint;                                       // Calculated pH setpoint for attached crops
-    float tdsSetpoint;                                      // Calculated TDS setpoint for attached crops
-    float waterTempSetpoint;                                // Calculated water temp setpoint for attached crops
-    float airTempSetpoint;                                  // Calculated air temp setpoint for attached crops
-    float co2Setpoint;                                      // Calculated co2 level setpoint for attached crops
+    float axisSetpoints[2];                                 // Calculated axis setpoints for attached panel
 
-    HelioTracking(SharedPtr<HelioTrackPanel> trackRes);
+    HelioTracking(SharedPtr<HelioPanel> panel);
     ~HelioTracking();
 
     void recalcTracking();
@@ -117,12 +112,6 @@ private:
 // Scheduler Serialization Sub Data
 // A part of HSYS system data.
 struct HelioSchedulerSubData : public HelioSubData {
-    float baseTrackMultiplier;                               // Track aggressiveness base TDS/EC multiplier (applies to *ALL* tracking solutions in use - default: 1)
-    float weeklyDosingRates[HELIO_CROP_GROWWEEKS_MAX];      // Nutrient dosing rate percentages (applies to any nutrient premixes in use - default: 1)
-    float stdDosingRates[3];                                // Standard dosing rates for fresh water, pH up, and pH down (default: 1,1/2,1/2)
-    uint8_t totalTrackingsDay;                               // Total number of trackings per day, if any (else 0 for disable - default: 0)
-    uint8_t preTrackAeratorMins;                             // Minimum time to run aerators (if present) before track motors turn on, in minutes (default: 30)
-    uint8_t preLightSprayMins;                              // Minimum time to run sprayers/sprinklers (if present/needed) before grow lights turn on, in minutes (default: 60)
     time_t airReportInterval;                               // Interval between air sensor reports, in seconds (default: 8hrs)
 
     HelioSchedulerSubData();
