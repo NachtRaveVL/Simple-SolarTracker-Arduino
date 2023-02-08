@@ -26,9 +26,8 @@ void HelioScheduler::update()
         #endif
 
         {   DateTime currTime = getCurrentTime();
-            //bool daytimeMode = currTime.hour() >= HELIO_CROP_NIGHT_ENDHR && currTime.hour() < HELIO_CROP_NIGHT_BEGINHR;
-            //bool daytimeMode = calcSunriseSunset() TODO
-            bool daytimeMode = currTime.hour() >= 8 && currTime.hour() < 20;
+            bool daytimeMode = currTime.hour() >= HELIO_NIGHT_FINISH_HR && currTime.hour() < HELIO_NIGHT_START_HR;
+            // TODO: calcSunriseSunset()
 
             if (_inDaytimeMode != daytimeMode) {
                 _inDaytimeMode = daytimeMode;
@@ -129,7 +128,8 @@ void HelioScheduler::updateDayTracking()
 {
     auto currTime = getCurrentTime();
     _lastDayNum = currTime.day();
-    _inDaytimeMode = currTime.hour() >= 8 && currTime.hour() < 20; // TODO: fix with calcSunriseSunset
+    _inDaytimeMode = currTime.hour() >= HELIO_NIGHT_FINISH_HR && currTime.hour() < HELIO_NIGHT_START_HR;
+    // TODO: calcSunriseSunset()
 
     setNeedsScheduling();
 

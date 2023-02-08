@@ -28,11 +28,11 @@ struct HelioBitResolution {
 
     HelioBitResolution(uint8_t bitResolution);              // Bit resolution (# of bits)
 
-    // Transforms value from raw integer (or initial) value into normalized raw (or transformed) value.
-    inline float transform(int intValue) const { return constrain(intValue / (float)maxVal, 0.0f, 1.0f); }
+    // Transforms value from raw/integer (or initial) value into normalized (or transformed) value.
+    inline float transform(int value) const { return constrain(value / (float)maxVal, 0.0f, 1.0f); }
 
-    // Inverse transforms value from normalized raw (or transformed) value back into raw integer (or initial) value.
-    inline int inverseTransform(float rawValue) const { return constrain((int)((float)maxVal * rawValue), 0, maxVal); }
+    // Inverse transforms value from normalized (or transformed) value back into raw/integer (or initial) value.
+    inline int inverseTransform(float value) const { return constrain((int)((float)maxVal * value), 0, maxVal); }
 };
 
 
@@ -381,6 +381,8 @@ extern String controlInputModeToString(Helio_ControlInputMode controlInMode, boo
 // Converts back to control input mode enum from string.
 extern Helio_ControlInputMode controlInputModeFromString(String controlInModeStr);
 
+// Returns true for actuators that are motorized (thus must do track checks) as derived from actuator type enumeration.
+extern bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType);
 // Returns true for actuators that operate activation handles serially (as opposed to in-parallel) as derived from enabled mode enumeration.
 inline bool getActuatorIsSerialFromMode(Helio_EnableMode actuatorMode) { return actuatorMode >= Helio_EnableMode_Serial; }
 

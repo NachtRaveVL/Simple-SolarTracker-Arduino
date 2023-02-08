@@ -33,11 +33,16 @@
 #define JOIN_(X,Y) X##_##Y
 #define JOIN(X,Y) JOIN_(X,Y)
 #endif
+#ifndef TWO_PI                                              // Missing 2pi
+#define TWO_PI                          6.283185307179586476925286766559
+#endif
 #ifndef RANDOM_MAX                                          // Missing random max
-#ifdef RAND_MAX
-#define RANDOM_MAX RAND_MAX
+#if defined(RAND_MAX)
+#define RANDOM_MAX                      RAND_MAX
+#elif defined(INTPTR_MAX)
+#define RANDOM_MAX                      INTPTR_MAX
 #else
-#define RANDOM_MAX INTPTR_MAX
+#define RANDOM_MAX                      __INT_MAX__
 #endif
 #endif
 #if (defined(ESP32) || defined(ESP8266)) && !defined(ESP_PLATFORM) // Missing ESP_PLATFORM
@@ -111,6 +116,9 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 
 #define HELIO_ACT_TRAVELCALC_UPDATEMS   250                 // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
 #define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
+
+#define HELIO_NIGHT_START_HR            20                  // Hour of the day night starts (for resting panels, used if not able to calculate from lat/long/date)
+#define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from lat/long/date)
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
@@ -289,6 +297,7 @@ enum Helio_SensorType : signed char {
     Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
     Helio_SensorType_Endstop,                               // Track axis endstop (binary)
     Helio_SensorType_StrokePosition,                        // Actuator stroke position potentiometer (analog)
+    Helio_SensorType_TiltAngle,                             // Tilt angle sensor (analog)
 
     Helio_SensorType_Count,                                 // Placeholder
     Helio_SensorType_Undefined = -1                         // Placeholder
@@ -399,6 +408,7 @@ enum Helio_DirectionMode : signed char {
 // Units Category
 // Unit of measurement category. Specifies the kind of unit.
 enum Helio_UnitsCategory : signed char {
+    Helio_UnitsCategory_Angle,                              // Angle based unit
     Helio_UnitsCategory_Temperature,                        // Temperature based unit
     Helio_UnitsCategory_Humidity,                           // Humidity based unit
     Helio_UnitsCategory_HeatIndex,                          // Heat index based unit
@@ -415,7 +425,8 @@ enum Helio_UnitsCategory : signed char {
 enum Helio_UnitsType : signed char {
     Helio_UnitsType_Raw_0_1,                                // Raw value [0.0,1.0] mode
     Helio_UnitsType_Percentile_0_100,                       // Percentile [0.0,100.0] mode
-    Helio_UnitsType_Angle_0_360,                            // Angle [0.0,360.0) mode
+    Helio_UnitsType_Angle_Degrees,                          // Degrees angle [%360) mode
+    Helio_UnitsType_Angle_Radians,                          // Radians angle [%2pi) mode
     Helio_UnitsType_Temperature_Celsius,                    // Celsius temperature mode
     Helio_UnitsType_Temperature_Fahrenheit,                 // Fahrenheit temperature mode
     Helio_UnitsType_Temperature_Kelvin,                     // Kelvin temperature mode

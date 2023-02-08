@@ -235,6 +235,15 @@ protected:
 };
 
 
+// Angle Aware Interface
+class HelioAngleSensorAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getAngle(bool poll = false) = 0;
+
+    template<class U> inline void setAngleSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getAngleSensor(bool poll = false);
+};
+
 // Position Aware Interface
 class HelioPositionSensorAttachmentInterface {
 public:

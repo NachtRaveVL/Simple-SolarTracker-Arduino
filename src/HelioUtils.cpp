@@ -510,8 +510,13 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
                     *valueOut = valueIn * 100.0f;
                     return true;
 
-                case Helio_UnitsType_Angle_0_360:
+                case Helio_UnitsType_Angle_Degrees:
                     *valueOut = fmodf(valueIn * 360.0f, 360.0f);
+                    return true;
+
+                case Helio_UnitsType_Angle_Radians:
+                    *valueOut = fmodf(valueIn * TWO_PI, TWO_PI);
+                    return true;
 
                 default:
                     if (!isFPEqual(convertParam, FLT_UNDEF)) {
@@ -533,10 +538,29 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             }
             break;
 
-        case Helio_UnitsType_Angle_0_360:
+        case Helio_UnitsType_Angle_Degrees:
             switch (unitsOut) {
+                case Helio_UnitsType_Angle_Radians:
+                    *valueOut = valueIn * (TWO_PI / 360.0);
+                    return true;
+
                 case Helio_UnitsType_Raw_0_1:
                     *valueOut = valueIn / 360.0f;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Angle_Radians:
+            switch (unitsOut) {
+                case Helio_UnitsType_Angle_Degrees:
+                    *valueOut = valueIn * (360.0 / TWO_PI);
+                    return true;
+
+                case Helio_UnitsType_Raw_0_1:
+                    *valueOut = valueIn / TWO_PI;
                     return true;
 
                 default:
@@ -1026,6 +1050,18 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             break;
     }
     return !excludeSpecial ? SFP(HStr_Undefined) : String();
+}
+
+bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType)
+{
+    switch (actuatorType) {
+        case Helio_ActuatorType_LinearActuator:
+        case Helio_ActuatorType_PanelCover:
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial)

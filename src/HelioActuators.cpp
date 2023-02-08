@@ -14,8 +14,12 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
         switch (dataIn->id.object.classType) {
             case (int8_t)HelioActuator::Relay:
                 return new HelioRelayActuator((const HelioActuatorData *)dataIn);
+            case (int8_t)HelioActuator::RelayMotor:
+                return new HelioRelayMotorActuator((const HelioMotorActuatorData *)dataIn);
             case (int8_t)HelioActuator::Variable:
                 return new HelioVariableActuator((const HelioActuatorData *)dataIn);
+            case (int8_t)HelioActuator::VariableMotor:
+                //return new HelioVariableMotorActuator((const HelioMotorActuatorData *)dataIn);
             default: break;
         }
     }
@@ -275,6 +279,19 @@ HelioAttachment &HelioActuator::getParentPanel(bool resolve)
 {
     if (resolve) { _panel.resolve(); }
     return _panel;
+}
+
+void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
+{
+    if (getHelioInstance()) {
+        if (userCalibrationData && getHelioInstance()->setUserCalibrationData(userCalibrationData)) {
+            _calibrationData = getHelioInstance()->getUserCalibrationData(_id.key);
+        } else if (!userCalibrationData && _calibrationData && getHelioInstance()->dropUserCalibrationData(_calibrationData)) {
+            _calibrationData = nullptr;
+        }
+    } else {
+        _calibrationData = userCalibrationData;
+    }
 }
 
 Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> &HelioActuator::getActivationSignal()
