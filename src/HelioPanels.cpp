@@ -22,12 +22,21 @@ HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 
 
 HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, int classTypeIn)
-    : HelioObject(HelioIdentity(panelType, panelIndex)), classType((typeof(classType))classTypeIn)
-{ ; }
+    : HelioObject(HelioIdentity(panelType, panelIndex)), classType((typeof(classType))classTypeIn),
+      _powerUnits(defaultPowerUnits()), _panelState(Helio_PanelState_Undefined),
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
+{
+    _powerProd.setMeasurementUnits(HelioPanel::getPowerUnits());
+}
 
 HelioPanel::HelioPanel(const HelioPanelData *dataIn)
-    : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType))
-{ ; }
+    : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
+      _powerUnits(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())), _panelState(Helio_PanelState_Undefined),
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
+{
+    _powerProd.setMeasurementUnits(HelioPanel::getPowerUnits());
+    _powerProd.setObject(dataIn->powerSensor);
+}
 
 void HelioPanel::update()
 {

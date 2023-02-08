@@ -126,6 +126,21 @@ public:
     virtual HelioAttachment &getParentRail(bool resolve = true) override;
     virtual HelioAttachment &getParentPanel(bool resolve = true) override;
 
+    void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
+    inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
+
+    // Transformation methods that convert from normalized driving intensity to calibration units
+    inline float fromIntensity(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
+    inline void fromIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement fromIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void fromIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
+
+    // Transformation methods that convert from calibration units to normalized driving intensity
+    inline float toIntensity(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
+    inline void toIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement toIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void toIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
+
     inline Helio_ActuatorType getActuatorType() const { return _id.objTypeAs.actuatorType; }
     inline hposi_t getActuatorIndex() const { return _id.posIndex; }
 
@@ -142,6 +157,7 @@ protected:
     HelioSingleMeasurement _contPowerUsage;                 // Continuous power draw
     HelioAttachment _rail;                                  // Power rail attachment
     HelioAttachment _panel;                                 // Panel attachment
+    const HelioCalibrationData *_calibrationData;           // Calibration data
     Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> _activateSignal; // Activation update signal
 
     virtual HelioData *allocateData() const override;
@@ -272,11 +288,11 @@ protected:
 };
 
 
-// Throttled Motor Actuator
+// Variable/Throttled Motor Actuator
 // This actuator acts as a throttleable motor and can control speed & displacement.
 // Motors using this class have variable motor control but also can be paired with
 // a speed sensor for more precise running calculations.
-//class HelioThrottledMotorActuator : public HelioVariableActuator, public HelioMotorObjectInterface, public HelioSpeedSensorAttachmentInterface {
+//class HelioVariableMotorActuator : public HelioVariableActuator, public HelioMotorObjectInterface, public HelioSpeedSensorAttachmentInterface {
 // TODO
 //};
 

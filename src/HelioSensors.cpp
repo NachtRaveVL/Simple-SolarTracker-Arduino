@@ -36,7 +36,14 @@ Helio_UnitsType defaultMeasureUnitsForSensorType(Helio_SensorType sensorType, ui
         case Helio_SensorType_TemperatureHumidity:
             return defaultTemperatureUnits(measureMode);
         case Helio_SensorType_PowerUsage:
-            return Helio_UnitsType_Power_Wattage;
+        case Helio_SensorType_PowerProduction:
+            return defaultPowerUnits(measureMode);
+        case Helio_SensorType_WindSpeed:
+            return defaultSpeedUnits(measureMode);
+        case Helio_SensorType_StrokePosition:
+            return defaultDistanceUnits(measureMode);
+        case Helio_SensorType_TiltAngle:
+            return Helio_UnitsType_Angle_Degrees;
         default:
             return Helio_UnitsType_Undefined;
     }
@@ -59,9 +66,11 @@ Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorT
             return Helio_UnitsCategory_Speed;
         case Helio_SensorType_StrokePosition:
             return Helio_UnitsCategory_Distance;
-        default: break;
+        case Helio_SensorType_TiltAngle:
+            return Helio_UnitsCategory_Angle;
+        default:
+            return Helio_UnitsCategory_Undefined;
     }
-    return Helio_UnitsCategory_Undefined;
 }
 
 
@@ -313,9 +322,7 @@ void HelioAnalogSensor::_takeMeasurement(unsigned int taskId)
                 timestamp
             );
 
-            if (_calibrationData) {
-                _calibrationData->transform(&newMeasurement);
-            }
+            fromIntensity(&newMeasurement);
             convertUnits(&newMeasurement, outUnits);
 
             _lastMeasurement = newMeasurement;
@@ -551,14 +558,12 @@ void HelioDHTTempHumiditySensor::_takeMeasurement(unsigned int taskId)
             auto timestamp = unixNow();
 
             HelioTripleMeasurement newMeasurement(
-                tempRead, readUnits, humidRead, Helio_UnitsType_Percentile_0_100,
+                tempRead, readUnits,
+                humidRead, Helio_UnitsType_Percentile_0_100,
                 0.0f, Helio_UnitsType_Undefined,
                 timestamp
             );
 
-            if (_calibrationData) {
-                _calibrationData->transform(&newMeasurement.value[0], &newMeasurement.units[0]);
-            }
             convertUnits(&newMeasurement.value[0], &newMeasurement.units[0], outUnits[0]);
             convertUnits(&newMeasurement.value[1], &newMeasurement.units[1], outUnits[1]);
 

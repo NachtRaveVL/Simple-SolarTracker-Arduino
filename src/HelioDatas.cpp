@@ -36,8 +36,12 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
             switch (classType) {
                 case (int8_t)HelioActuator::Relay:
                     return new HelioActuatorData();
+                case (int8_t)HelioActuator::RelayMotor:
+                    return new HelioMotorActuatorData();
                 case (int8_t)HelioActuator::Variable:
                     return new HelioActuatorData();
+                case (int8_t)HelioActuator::VariableMotor:
+                    return new HelioMotorActuatorData();
                 default: break;
             }
             break;
@@ -57,11 +61,10 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
 
         case (int8_t)HelioIdentity::Panel:
             switch (classType) {
-                // todo
-                //case (int8_t)HelioPanel::SingleAxis:
-                //    return new HelioSingleAxisPanelData();
-                //case (int8_t)HelioPanel::DualAxis:
-                //    return new HelioDualAxisPanelData();
+                case (int8_t)HelioPanel::Tracking:
+                    return new HelioTrackingPanelData();
+                case (int8_t)HelioPanel::Reflecting:
+                    return new HelioReflectingPanelData();
                 default: break;
             }
             break;
@@ -215,7 +218,7 @@ void HelioCalibrationData::fromJSONObject(JsonObjectConst &objectIn)
 }
 
 void HelioCalibrationData::setFromTwoPoints(float point1MeasuredAt, float point1CalibratedTo,
-                                                  float point2MeasuredAt, float point2CalibratedTo)
+                                            float point2MeasuredAt, float point2CalibratedTo)
 {
     float aTerm = point2CalibratedTo - point1CalibratedTo;
     float bTerm = point2MeasuredAt - point1MeasuredAt;
