@@ -63,17 +63,17 @@ public:
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
 
-    // Transformation methods that convert from normalized reading intensity to calibration units
-    inline float fromIntensity(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
-    inline void fromIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement fromIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
-    inline void fromIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
+    // Transformation methods that convert from normalized reading intensity/driver value to calibration units
+    inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
+    inline void calibrationTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void calibrationTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
 
-    // Transformation methods that convert from calibration units to normalized reading intensity
-    inline float toIntensity(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
-    inline void toIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement toIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
-    inline void toIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
+    // Transformation methods that convert from calibration units to normalized reading intensity/driver value
+    inline float calibrationInvTransform(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
+    inline void calibrationInvTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void calibrationInvTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
 
     inline Helio_SensorType getSensorType() const { return _id.objTypeAs.sensorType; }
     inline hposi_t getSensorIndex() const { return _id.posIndex; }
