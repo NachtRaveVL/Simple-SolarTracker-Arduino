@@ -44,7 +44,7 @@ struct HelioActivationHandle {
         millis_t duration;                                  // Duration time remaining, in milliseconds, else -1 for non-diminishing/unlimited or 0 for finished
         Helio_ActivationFlags flags;                        // Activation flags
 
-        inline Activation(Helio_DirectionMode directionIn, float intensityIn, millis_t durationIn, Helio_ActivationFlags flagsIn) : direction(directionIn), intensity(intensityIn), duration(durationIn), flags(flagsIn) { ; }
+        inline Activation(Helio_DirectionMode directionIn, float intensityIn, millis_t durationIn, Helio_ActivationFlags flagsIn) : direction(directionIn), intensity(constrain(intensityIn, 0.0f, 1.0f)), duration(durationIn), flags(flagsIn) { ; }
         inline Activation() : Activation(Helio_DirectionMode_Undefined, 0.0f, 0, Helio_ActivationFlags_None) { ; }
 
         inline bool isValid() const { return direction != Helio_DirectionMode_Undefined; }
@@ -111,14 +111,25 @@ public:
 
     virtual bool getCanEnable() override;
 
+    // Activating actuators is done through handles, these methods only understanding normalized driving intensity [0.0,1.0]
     inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), direction, intensity, duration, force); }
     inline HelioActivationHandle enableActuator(float intensity, millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, intensity, duration, force); }
     inline HelioActivationHandle enableActuator(millis_t duration, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
     inline HelioActivationHandle enableActuator(bool force, millis_t duration = -1) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
 
+    // Actuators that have user calibrations, such as servos, can use these methods to correctly map calibrated values to driving intensities
+    inline HelioActivationHandle enableCalibratedActuator(float value, millis_t duration = -1, bool force = false) { return enableActuator(calibrationInvTransform(value), duration, force); }
+
+    // Actuators that see [+1,0,-1] mapping to [reverse,stop,forward], such as motors, can use these methods that properly handle directionality
+    inline HelioActivationHandle enableDirectionalActuator(float intensity, millis_t duration = -1, bool force = false) { return enableActuator(intensity > FLT_EPSILON ? Helio_DirectionMode_Forward : intensity < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(intensity), duration, force); }
+    inline HelioActivationHandle enableDirectionalCalibratedActuator(float value, millis_t duration = -1, bool force = false) { return enableDirectionalActuator(calibrationInvTransform(value)); }
+
     inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
     inline Helio_EnableMode getEnableMode() { return _enableMode; }
+
     inline bool isSerialMode() { return getActuatorIsSerialFromMode(getEnableMode()); }
+    inline bool isMotorType() { return getActuatorIsMotorFromType(getActuatorType()); }
+    inline bool isDirectionalType() { return isMotorType(); }
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() override;
@@ -129,17 +140,17 @@ public:
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
 
-    // Transformation methods that convert from normalized driving intensity to calibration units
-    inline float fromIntensity(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
-    inline void fromIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement fromIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
-    inline void fromIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
+    // Transformation methods that convert from normalized driving intensity/driver value to calibration units
+    inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
+    inline void calibrationTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void calibrationTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
 
-    // Transformation methods that convert from calibration units to normalized driving intensity
-    inline float toIntensity(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
-    inline void toIntensity(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement toIntensity(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
-    inline void toIntensity(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
+    // Transformation methods that convert from calibration units to normalized driving intensity/driver value
+    inline float calibrationInvTransform(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
+    inline void calibrationInvTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
+    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline void calibrationInvTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
 
     inline Helio_ActuatorType getActuatorType() const { return _id.objTypeAs.actuatorType; }
     inline hposi_t getActuatorIndex() const { return _id.posIndex; }

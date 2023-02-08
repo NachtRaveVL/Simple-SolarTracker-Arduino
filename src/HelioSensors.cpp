@@ -322,7 +322,7 @@ void HelioAnalogSensor::_takeMeasurement(unsigned int taskId)
                 timestamp
             );
 
-            fromIntensity(&newMeasurement);
+            calibrationTransform(&newMeasurement);
             convertUnits(&newMeasurement, outUnits);
 
             _lastMeasurement = newMeasurement;
@@ -564,6 +564,7 @@ void HelioDHTTempHumiditySensor::_takeMeasurement(unsigned int taskId)
                 timestamp
             );
 
+            calibrationTransform(&newMeasurement.value[0], &newMeasurement.units[0]);
             convertUnits(&newMeasurement.value[0], &newMeasurement.units[0], outUnits[0]);
             convertUnits(&newMeasurement.value[1], &newMeasurement.units[1], outUnits[1]);
 
