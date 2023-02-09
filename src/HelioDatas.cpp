@@ -92,7 +92,8 @@ HelioSystemData::HelioSystemData()
       systemName{0}, timeZoneOffset(0), pollingInterval(HELIO_DATA_LOOP_INTERVAL),
       autosaveEnabled(Helio_Autosave_Disabled), autosaveFallback(Helio_Autosave_Disabled), autosaveInterval(HELIO_SYS_AUTOSAVE_INTERVAL),
       wifiSSID{0}, wifiPassword{0}, wifiPasswordSeed(0),
-      macAddress{0}
+      macAddress{0},
+      latitude(DBL_UNDEF), longitude(DBL_UNDEF), altitude(DBL_UNDEF)
 {
     _size = sizeof(*this);
     HELIO_HARD_ASSERT(isSystemData(), SFP(HStr_Err_OperationFailure));
@@ -128,6 +129,9 @@ void HelioSystemData::toJSONObject(JsonObject &objectOut) const
     if (!arrayElementsEqual<uint8_t>(macAddress, 6, 0)) {
         objectOut[SFP(HStr_Key_MACAddress)] = commaStringFromArray(macAddress, 6);
     }
+    if (!isFPEqual(latitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Latitude)] = latitude; }
+    if (!isFPEqual(longitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Longitude)] = longitude; }
+    if (!isFPEqual(altitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Altitude)] = altitude; }
 
     JsonObject schedulerObj = objectOut.createNestedObject(SFP(HStr_Key_Scheduler));
     scheduler.toJSONObject(schedulerObj); if (!schedulerObj.size()) { objectOut.remove(SFP(HStr_Key_Scheduler)); }
@@ -165,6 +169,9 @@ void HelioSystemData::fromJSONObject(JsonObjectConst &objectIn)
     else if (wifiPasswordStr && wifiPasswordStr[0]) { strncpy((char *)wifiPassword, wifiPasswordStr, HELIO_NAME_MAXSIZE); wifiPasswordSeed = 0; }
     JsonVariantConst macAddressVar = objectIn[SFP(HStr_Key_MACAddress)];
     commaStringToArray(macAddressVar, macAddress, 6);
+    latitude = objectIn[SFP(HStr_Key_Latitude)] | latitude;
+    longitude = objectIn[SFP(HStr_Key_Longitude)] | longitude;
+    altitude = objectIn[SFP(HStr_Key_Altitude)] | altitude;
 
     JsonObjectConst schedulerObj = objectIn[SFP(HStr_Key_Scheduler)];
     if (!schedulerObj.isNull()) { scheduler.fromJSONObject(schedulerObj); }

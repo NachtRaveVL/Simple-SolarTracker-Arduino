@@ -9,11 +9,14 @@
 #ifndef FLT_EPSILON
 #define FLT_EPSILON                     0.00001f            // Single-precision floating point error tolerance
 #endif
-#ifndef FLT_UNDEF
-#define FLT_UNDEF                       __FLT_MAX__         // A floating point value to stand in for "undefined"
-#endif
 #ifndef DBL_EPSILON
 #define DBL_EPSILON                     0.0000000000001     // Double-precision floating point error tolerance
+#endif
+#ifndef FLT_UNDEF
+#define FLT_UNDEF                       __FLT_MAX__         // Single-precision floating point value to stand in for "undefined"
+#endif
+#ifndef DBL_UNDEF
+#define DBL_UNDEF                       __DBL_MAX__         // Double-precision floating point value to stand in for "undefined"
 #endif
 #ifndef ENABLED
 #define ENABLED                         0x1                 // Enabled define (convenience)
@@ -120,6 +123,8 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_NIGHT_START_HR            20                  // Hour of the day night starts (for resting panels, used if not able to calculate from lat/long/date)
 #define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from lat/long/date)
 
+#define HELIO_PANEL_ALIGN_DEGTOL        5                   // Degrees error tolerance for panel alignment queries
+
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
 #define HELIO_POS_EXPORT_BEGFROM        1                   // Whenever exported/user-facing position indexing starts at 1 or 0 (aka display offset)
@@ -144,6 +149,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_SYS_FREESPACE_INTERVAL    240                 // How many minutes should pass before checking attached file systems have enough disk space (performs cleanup if not)
 #define HELIO_SYS_FREESPACE_LOWSPACE    256                 // How many kilobytes of disk space remaining will force cleanup of oldest log/data files first
 #define HELIO_SYS_FREESPACE_DAYSBACK    180                 // How many days back log/data files are allowed to be stored up to (any beyond this are deleted during cleanup)
+#define HELIO_SYS_SUNRISESET_CALCITERS  3                   // # of iterations that sunrise/sunset calculations should run (higher # = more accurate but also more costly)
 #define HELIO_SYS_DELAYFINE_SPINMILLIS  20                  // How many milliseconds away from stop time fine delays can use yield() up to before using a blocking spin-lock (used for fine timing)
 #define HELIO_SYS_DEBUGOUT_FLUSH_YIELD  DISABLED            // If debug output statements should flush and yield afterwards to force send through to serial monitor (mainly used for debugging)
 #define HELIO_SYS_MEM_LOGGING_ENABLE    DISABLED            // If system will periodically log memory remaining messages (mainly used for debugging)

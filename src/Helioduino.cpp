@@ -1184,6 +1184,21 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
 }
 
 #endif
+
+void Helioduino::setSystemLocation(double latitude, double longitude, double altitude)
+{
+    HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
+    if (_systemData && (!isFPEqual(_systemData->latitude, latitude) || !isFPEqual(_systemData->longitude, longitude) || !isFPEqual(_systemData->altitude, altitude))) {
+        _systemData->_bumpRevIfNotAlreadyModded();
+
+        _systemData->latitude = latitude;
+        _systemData->longitude = longitude;
+        _systemData->altitude = altitude;
+
+        scheduler.broadcastDayChange();
+    }
+}
+
 #ifdef HELIO_USE_GUI
 
 int Helioduino::getControlInputPins() const
@@ -1445,6 +1460,12 @@ const uint8_t *Helioduino::getMACAddress() const
 
 #endif
 
+Location Helioduino::getSystemLocation() const
+{
+    HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
+    return _systemData ? Location(_systemData->latitude, _systemData->longitude, _systemData->altitude) : Location();
+}
+
 void Helioduino::notifyRTCTimeUpdated()
 {
     _rtcBattFail = false;
@@ -1454,19 +1475,7 @@ void Helioduino::notifyRTCTimeUpdated()
 }
 
 void Helioduino::notifyDayChanged()
-{
-    for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
-        if (iter->second->isPanelType()) {
-            auto panel = static_pointer_cast<HelioPanel>(iter->second);
-
-            // todo
-            // if (panel && panel->isTrackClass()) {
-            //     auto panel = static_pointer_cast<HelioPanel>(iter->second);
-            //     if (panel) {panel->notifyDayChanged(); }
-            // }
-        }
-    }
-}
+{ ; }
 
 void Helioduino::checkFreeMemory()
 {
