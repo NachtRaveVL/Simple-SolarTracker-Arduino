@@ -979,12 +979,12 @@ String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial)
 String systemModeToString(Helio_SystemMode systemMode, bool excludeSpecial)
 {
     switch (systemMode) {
-        case Helio_SystemMode_PositionCalc:
+        case Helio_SystemMode_PositionCalculating:
             //todo
-            //return SFP(HStr_Enum_PositionCalc);
-        case Helio_SystemMode_SensorDependent:
+            //return SFP(HStr_Enum_PositionCalculating);
+        case Helio_SystemMode_BrightnessBalancing:
             //todo
-            //return SFP(HStr_Enum_SensorDependent);
+            //return SFP(HStr_Enum_BrightnessBalancing);
         case Helio_SystemMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_SystemMode_Undefined:

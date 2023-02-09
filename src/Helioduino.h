@@ -316,7 +316,7 @@ public:
 
     // Initializes default empty system. Typically called near top of setup().
     // See individual enums for more info.
-    void init(Helio_SystemMode systemMode = Helio_SystemMode_PositionCalc,              // What mode of panel orientation is performed
+    void init(Helio_SystemMode systemMode = Helio_SystemMode_PositionCalculating,       // What mode of panel orientation is performed
               Helio_MeasurementMode measureMode = Helio_MeasurementMode_Default,        // What units of measurement should be used
               Helio_DisplayOutputMode dispOutMode = Helio_DisplayOutputMode_Disabled,   // What display output mode should be used
               Helio_ControlInputMode ctrlInMode = Helio_ControlInputMode_Disabled);     // What control input mode should be used
@@ -514,7 +514,7 @@ public:
 
     // Whenever the system is in operational mode (has been launched), or not
     inline bool inOperationalMode() const { return !_suspend; }
-    // System type mode (default: PositionCalc)
+    // System type mode (default: PositionCalculating)
     Helio_SystemMode getSystemMode() const;
     // System measurement mode (default: Metric)
     Helio_MeasurementMode getMeasurementMode() const;
