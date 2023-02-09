@@ -226,8 +226,8 @@ enum Helio_DHTType : signed char {
 // System Run Mode
 // Specifies the general solar setup, how orientation is determined, etc.
 enum Helio_SystemMode : signed char {
-    Helio_SystemMode_PositionCalc,                          // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
-    Helio_SystemMode_SensorDependent,                       // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
+    Helio_SystemMode_PositionCalculating,                   // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
+    Helio_SystemMode_BrightnessBalancing,                   // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
 
     Helio_SystemMode_Count,                                 // Placeholder
     Helio_SystemMode_Undefined = -1                         // Placeholder
@@ -242,7 +242,7 @@ enum Helio_MeasurementMode : signed char {
 
     Helio_MeasurementMode_Count,                            // Placeholder
     Helio_MeasurementMode_Undefined = -1,                   // Placeholder
-    Helio_MeasurementMode_Default = Helio_MeasurementMode_Metric // Default system measurement mode
+    Helio_MeasurementMode_Default = Helio_MeasurementMode_Metric // Default system measurement mode (alias, feel free to change)
 };
 
 // LCD/Display Output Mode
@@ -324,7 +324,8 @@ enum Helio_RailType : signed char {
     Helio_RailType_DC12V,                                   // 12v DC-based power rail, for actuators, etc.
 
     Helio_RailType_Count,                                   // Placeholder
-    Helio_RailType_Undefined = -1                           // Placeholder
+    Helio_RailType_Undefined = -1,                          // Placeholder
+    Helio_RailType_DefaultAC = Helio_RailType_AC110V        // Default AC rating for AC-based power rail (alias, feel free to change)
 };
 
 // Pin Mode

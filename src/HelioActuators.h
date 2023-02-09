@@ -111,18 +111,14 @@ public:
 
     virtual bool getCanEnable() override;
 
-    // Activating actuators is done through handles, these methods only understanding normalized driving intensity [0.0,1.0]
+    // Activating actuators is done through activation handles, which must stay memory
+    // resident in order for the actuator to pick up and process it. Enablement mode
+    // affects how handles are processed - in parallel, or in serial - and what the
+    // applied output is. See HelioActuatorAttachment for an abstraction of this process.
     inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), direction, intensity, duration, force); }
-    inline HelioActivationHandle enableActuator(float intensity, millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, intensity, duration, force); }
+    inline HelioActivationHandle enableActuator(float value, millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, calibrationInvTransform(value), duration, force); }
     inline HelioActivationHandle enableActuator(millis_t duration, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
     inline HelioActivationHandle enableActuator(bool force, millis_t duration = -1) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
-
-    // Actuators that have user calibrations, such as servos, can use these methods to correctly map calibrated values to driving intensities
-    inline HelioActivationHandle enableCalibratedActuator(float value, millis_t duration = -1, bool force = false) { return enableActuator(calibrationInvTransform(value), duration, force); }
-
-    // Actuators that see [+1,0,-1] mapping to [reverse,stop,forward], such as motors, can use these methods that properly handle directionality
-    inline HelioActivationHandle enableDirectionalActuator(float intensity, millis_t duration = -1, bool force = false) { return enableActuator(intensity > FLT_EPSILON ? Helio_DirectionMode_Forward : intensity < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(intensity), duration, force); }
-    inline HelioActivationHandle enableDirectionalCalibratedActuator(float value, millis_t duration = -1, bool force = false) { return enableDirectionalActuator(calibrationInvTransform(value)); }
 
     inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
     inline Helio_EnableMode getEnableMode() { return _enableMode; }
@@ -195,6 +191,8 @@ public:
     virtual bool getCanEnable() override;
     virtual float getDriveIntensity() override;
     virtual bool isEnabled(float tolerance = 0.0f) const override;
+
+    inline HelioActivationHandle enableActuator(float value, millis_t duration = -1, bool force = false) { return HelioActuator::enableActuator(calibrationInvTransform(value) > FLT_EPSILON ? Helio_DirectionMode_Forward : calibrationInvTransform(value) < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(calibrationInvTransform(value)), duration, force); }
 
     inline const HelioDigitalPin &getOutputPin() const { return _outputPin; }
 
