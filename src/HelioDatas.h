@@ -43,6 +43,9 @@ struct HelioSystemData : public HelioData {
     uint8_t wifiPassword[HELIO_NAME_MAXSIZE];               // WiFi password (xor encrypted)
     uint32_t wifiPasswordSeed;                              // Seed for WiFi password one-time pad
     uint8_t macAddress[6];                                  // Ethernet MAC address
+    double latitude;                                        // System latitude
+    double longitude;                                       // System longitude
+    double altitude;                                        // System altitude
 
     HelioSchedulerSubData scheduler;                        // Scheduler subdata
     HelioLoggerSubData logger;                              // Logger subdata

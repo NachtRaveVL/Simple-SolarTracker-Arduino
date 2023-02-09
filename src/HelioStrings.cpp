@@ -369,6 +369,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_AirTemperatureSensor[] PROGMEM = {"airTempSensor"};
             return flashStr_Key_AirTemperatureSensor;
         } break;
+        case HStr_Key_Altitude: {
+            static const char flashStr_Key_Altitude[] PROGMEM = {"altitude"};
+            return flashStr_Key_Altitude;
+        } break;
         case HStr_Key_AutosaveEnabled: {
             static const char flashStr_Key_AutosaveEnabled[] PROGMEM = {"autosaveEnabled"};
             return flashStr_Key_AutosaveEnabled;
@@ -461,6 +465,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_InputPin[] PROGMEM = {"inputPin"};
             return flashStr_Key_InputPin;
         } break;
+        case HStr_Key_Latitude: {
+            static const char flashStr_Key_Latitude[] PROGMEM = {"latitude"};
+            return flashStr_Key_Latitude;
+        } break;
         case HStr_Key_LastChangeDate: {
             static const char flashStr_Key_LastChangeDate[] PROGMEM = {"lastChangeDate"};
             return flashStr_Key_LastChangeDate;
@@ -488,6 +496,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_Logger: {
             static const char flashStr_Key_Logger[] PROGMEM = {"logger"};
             return flashStr_Key_Logger;
+        } break;
+        case HStr_Key_Longitude: {
+            static const char flashStr_Key_Longitude[] PROGMEM = {"longitude"};
+            return flashStr_Key_Longitude;
         } break;
         case HStr_Key_MACAddress: {
             static const char flashStr_Key_MACAddress[] PROGMEM = {"macAddress"};

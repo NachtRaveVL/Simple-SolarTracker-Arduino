@@ -398,6 +398,8 @@ extern Helio_SensorType sensorTypeFromString(String sensorTypeStr);
 
 // Returns axis count as derived from panel type enumeration.
 extern hposi_t getPanelAxisCountFromType(Helio_PanelType panelType);
+// Returns if panel coords are in equatorial (RA/dec) mode or not from panel type enumeration.
+inline bool getIsEquatorialCoordsFromType(Helio_PanelType panelType) { return panelType == Helio_PanelType_Equatorial; }
 
 // Converts from fluid panel enum to string, with optional exclude for special types (instead returning "").
 extern String panelTypeToString(Helio_PanelType panelType, bool excludeSpecial = false);

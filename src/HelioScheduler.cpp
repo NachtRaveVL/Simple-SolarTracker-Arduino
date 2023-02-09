@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioScheduler::HelioScheduler()
-    : _inDaytimeMode(false), _needsScheduling(false), _lastDayNum(-1)
+    : _needsScheduling(false), _inDaytimeMode(false), _lastDayNum(-1)
 { ; }
 
 HelioScheduler::~HelioScheduler()
@@ -26,8 +26,7 @@ void HelioScheduler::update()
         #endif
 
         {   DateTime currTime = getCurrentTime();
-            bool daytimeMode = currTime.hour() >= HELIO_NIGHT_FINISH_HR && currTime.hour() < HELIO_NIGHT_START_HR;
-            // TODO: calcSunriseSunset()
+            bool daytimeMode = _dailyTwilight.isDaytime();
 
             if (_inDaytimeMode != daytimeMode) {
                 _inDaytimeMode = daytimeMode;
@@ -51,9 +50,6 @@ void HelioScheduler::update()
 
         for (auto trackingIter = _trackings.begin(); trackingIter != _trackings.end(); ++trackingIter) {
             trackingIter->second->update();
-        }
-        for (auto lightingIter = _lightings.begin(); lightingIter != _lightings.end(); ++lightingIter) {
-            lightingIter->second->update();
         }
 
         #ifdef HELIO_USE_VERBOSE_OUTPUT
@@ -91,17 +87,6 @@ void HelioScheduler::setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> 
     }
 }
 
-void HelioScheduler::setBaseTrackMultiplier(float baseTrackMultiplier)
-{
-    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
-    if (hasSchedulerData()) {
-        Helioduino::_activeInstance->_systemData->_bumpRevIfNotAlreadyModded();
-        schedulerData()->baseTrackMultiplier = baseTrackMultiplier;
-
-        setNeedsScheduling();
-    }
-}
-
 void HelioScheduler::setAirReportInterval(TimeSpan interval)
 {
     HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
@@ -112,12 +97,6 @@ void HelioScheduler::setAirReportInterval(TimeSpan interval)
     }
 }
 
-float HelioScheduler::getBaseTrackMultiplier() const
-{
-    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
-    return hasSchedulerData() ? schedulerData()->baseTrackMultiplier : 1.0f;
-}
-
 TimeSpan HelioScheduler::getAirReportInterval() const
 {
     HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
@@ -126,10 +105,15 @@ TimeSpan HelioScheduler::getAirReportInterval() const
 
 void HelioScheduler::updateDayTracking()
 {
-    auto currTime = getCurrentTime();
-    _lastDayNum = currTime.day();
-    _inDaytimeMode = currTime.hour() >= HELIO_NIGHT_FINISH_HR && currTime.hour() < HELIO_NIGHT_START_HR;
-    // TODO: calcSunriseSunset()
+    _lastDayNum = getCurrentTime().day();
+
+    Location loc = getHelioInstance()->getSystemLocation();
+    if (loc.hasPosition()) {
+        double transit;
+        calcSunriseSunset((unsigned long)unixNow(), loc.latitude, loc.longitude, transit, _dailyTwilight.sunrise, _dailyTwilight.sunset,
+                          loc.hasAltitude() ? loc.altitude : SUNRISESET_STD_ALTITUDE, HELIO_SYS_SUNRISESET_CALCITERS);
+    }
+    _inDaytimeMode = _dailyTwilight.isDaytime();
 
     setNeedsScheduling();
 
@@ -143,33 +127,25 @@ void HelioScheduler::performScheduling()
     HELIO_HARD_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
 
     for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
-        if (iter->second->isPanelType() && ((HelioPanel *)(iter->second.get()))->isTrackClass()) {
+        if (iter->second->isPanelType()) {
             auto panel = static_pointer_cast<HelioPanel>(iter->second);
 
             {   auto trackingIter = _trackings.find(panel->getKey());
 
-                if (linksCountCrops(panel->getLinkages())) {
-                    if (trackingIter != _trackings.end()) {
-                        if (trackingIter->second) {
-                            trackingIter->second->recalcTracking();
-                        }
-                    } else {
-                        #ifdef HELIO_USE_VERBOSE_OUTPUT
-                            Serial.print(F("Scheduler::performScheduling Crop linkages found for: ")); Serial.print(iter->second->getKeyString());
-                            Serial.print(':'); Serial.print(' '); Serial.println(linksCountCrops(panel->getLinkages())); flushYield();
-                        #endif
-
-                        HelioTracking *tracking = new HelioTracking(panel);
-                        HELIO_SOFT_ASSERT(tracking, SFP(HStr_Err_AllocationFailure));
-                        if (tracking) { _trackings[panel->getKey()] = tracking; }
+                if (trackingIter != _trackings.end()) {
+                    if (trackingIter->second) {
+                        trackingIter->second->recalcTracking();
                     }
-                } else if (trackingIter != _trackings.end()) { // No crops to warrant process -> delete if exists
+                } else {
                     #ifdef HELIO_USE_VERBOSE_OUTPUT
-                        Serial.print(F("Scheduler::performScheduling NO more crop linkages found for: ")); Serial.println(iter->second->getKeyString()); flushYield();
+                        Serial.print(F("Scheduler::performScheduling Crop linkages found for: ")); Serial.print(iter->second->getKeyString());
+                        Serial.print(':'); Serial.print(' '); Serial.println(linksCountCrops(panel->getLinkages())); flushYield();
                     #endif
-                    if (trackingIter->second) { delete trackingIter->second; }
-                    _trackings.erase(trackingIter);
-                }
+
+                    HelioTracking *tracking = new HelioTracking(panel);
+                    HELIO_SOFT_ASSERT(tracking, SFP(HStr_Err_AllocationFailure));
+                    if (tracking) { _trackings[panel->getKey()] = tracking; }
+                }                
             }
         }
     }

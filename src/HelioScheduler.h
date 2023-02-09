@@ -35,15 +35,15 @@ public:
 
     inline void setNeedsScheduling();
     inline bool needsScheduling() { return _needsScheduling; }
-
     inline bool inDaytimeMode() const { return _inDaytimeMode; }
 
     float getBaseTrackMultiplier() const;
     TimeSpan getAirReportInterval() const;
 
 protected:
-    bool _inDaytimeMode;                                    // Whenever in daytime tracking mode or not
+    Twilight _dailyTwilight;                                // Daily twilight settings
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
+    bool _inDaytimeMode;                                    // Daytime mode flag
     int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
     Map<hkey_t, HelioTracking *, HELIO_SCH_TRACKING_MAXSIZE> _trackings; // Trackings in progress
 
