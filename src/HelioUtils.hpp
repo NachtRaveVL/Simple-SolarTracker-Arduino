@@ -203,14 +203,14 @@ inline HelioUIInterface *getUIInstance()
 
 #endif
 
-inline DateTime getCurrentTime()
+inline DateTime getCurrentTime(time_t time)
 {
-    return DateTime((uint32_t)(unixNow() + (getHelioInstance() ? getHelioInstance()->getTimeZoneOffset() * SECS_PER_HOUR : 0L)));
+    return DateTime((uint32_t)(time + (getHelioInstance() ? getHelioInstance()->getTimeZoneOffset() * SECS_PER_HOUR : 0L)));
 }
 
-inline time_t getCurrentDayStartTime()
+inline time_t getCurrentDayStartTime(time_t time)
 {
-    DateTime currTime = getCurrentTime();
+    DateTime currTime = getCurrentTime(time);
     return DateTime(currTime.year(), currTime.month(), currTime.day()).unixtime();
 }
 

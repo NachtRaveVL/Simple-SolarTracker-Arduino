@@ -690,9 +690,9 @@ void Helioduino::commonPostInit()
         setSyncProvider(rtcNow);
     }
 
-    scheduler.updateDayTracking(); // also calls setNeedsScheduling
+    scheduler.updateDayTracking(); // also calls setNeedsScheduling & setNeedsLayout
     logger.updateInitTracking();
-    publisher.setNeedsTabulation();
+    setNeedsTabulation();
 
     #ifdef HELIO_USE_WIFI
         if (!_systemData->wifiPasswordSeed && _systemData->wifiPassword[0]) {
@@ -747,6 +747,10 @@ void Helioduino::commonPostSave()
 {
     logger.logSystemSave();
 
+    if (_systemData) {
+        _systemData->_unsetModded();
+    }
+
     if (hasUserCalibrations()) {
         for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
             iter->second->_unsetModded();
@@ -763,6 +767,8 @@ void controlLoop()
 
         for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
             iter->second->update();
+
+            yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
         }
 
         Helioduino::_activeInstance->scheduler.update();
@@ -782,6 +788,7 @@ void dataLoop()
             Serial.println(F("dataLoop")); flushYield();
         #endif
 
+        bool recalcSunPos = Helioduino::_activeInstance->getSystemMode() == Helio_SystemMode_PositionCalculating;
         Helioduino::_activeInstance->publisher.advancePollingFrame();
 
         for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
@@ -789,7 +796,14 @@ void dataLoop()
                 auto sensor = static_pointer_cast<HelioSensor>(iter->second);
                 if (sensor->getNeedsPolling()) {
                     sensor->takeMeasurement(); // no force if already current for this frame #, we're just ensuring data for publisher
+
+                    yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
                 }
+            } else if (iter->second->isPanelType() && recalcSunPos) {
+                auto panel = static_pointer_cast<HelioPanel>(iter->second);
+                panel->recalcSunPosition();
+
+                yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
             }
         }
 
@@ -808,19 +822,6 @@ void miscLoop()
             Serial.println(F("miscLoop")); flushYield();
         #endif
 
-        Helioduino::_activeInstance->checkFreeMemory();
-        Helioduino::_activeInstance->checkFreeSpace();
-        Helioduino::_activeInstance->checkAutosave();
-
-        Helioduino::_activeInstance->publisher.update();
-
-        #ifdef HELIO_USE_GPS // FIXME: This may get removed if it doesn't work right, but it's probably close.
-            if (Helioduino::_gps && Helioduino::_gps->newNMEAreceived()) {
-                Helioduino::_gps->parse(Helioduino::_gps->lastNMEA());
-                // TODO: Update lat/long of controller (trigger possible event change, possibly back behind a frequency timer).
-            }
-        #endif
-
         #if HELIO_SYS_MEM_LOGGING_ENABLE
         {   static time_t _lastMemLog = unixNow();
             if (unixNow() >= _lastMemLog + 15) {
@@ -828,6 +829,25 @@ void miscLoop()
                 Helioduino::_activeInstance->logger.logMessage(String(F("Free memory: ")), String(freeMemory()));
             }
         }
+        #endif
+
+        Helioduino::_activeInstance->checkFreeMemory();
+        Helioduino::_activeInstance->checkFreeSpace();
+        Helioduino::_activeInstance->checkAutosave();
+
+        yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
+
+        Helioduino::_activeInstance->publisher.update();
+
+        yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
+
+        #ifdef HELIO_USE_GPS
+            if (Helioduino::_gps && Helioduino::_gps->newNMEAreceived()) {
+                Helioduino::_gps->parse(Helioduino::_gps->lastNMEA());
+                if (Helioduino::_gps->fix) {
+                    Helioduino::_activeInstance->setSystemLocation(Helioduino::_gps->lat, Helioduino::_gps->lon, Helioduino::_gps->altitude);
+                }
+            }
         #endif
 
         #ifdef HELIO_USE_VERBOSE_OUTPUT
@@ -913,10 +933,10 @@ bool Helioduino::registerObject(SharedPtr<HelioObject> obj)
         _objects[obj->getKey()] = obj;
 
         if (obj->isActuatorType() || obj->isPanelType()) {
-            scheduler.setNeedsScheduling();
+            setNeedsScheduling();
         }
         if (obj->isSensorType()) {
-            publisher.setNeedsTabulation();
+            setNeedsTabulation();
         }
 
         return true;
@@ -931,10 +951,10 @@ bool Helioduino::unregisterObject(SharedPtr<HelioObject> obj)
         _objects.erase(iter);
 
         if (obj->isActuatorType() || obj->isPanelType()) {
-            scheduler.setNeedsScheduling();
+            setNeedsScheduling();
         }
         if (obj->isSensorType()) {
-            publisher.setNeedsTabulation();
+            setNeedsTabulation();
         }
 
         return true;
@@ -1071,7 +1091,7 @@ void Helioduino::setSystemName(String systemName)
     if (_systemData && !systemName.equals(getSystemName())) {
         _systemData->_bumpRevIfNotAlreadyModded();
         strncpy(_systemData->systemName, systemName.c_str(), HELIO_NAME_MAXSIZE);
-        if (_activeUIInstance) { _activeUIInstance->setNeedsLayout(); }
+        setNeedsLayout();
     }
 }
 
@@ -1081,8 +1101,7 @@ void Helioduino::setTimeZoneOffset(int8_t timeZoneOffset)
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
         _systemData->_bumpRevIfNotAlreadyModded();
         _systemData->timeZoneOffset = timeZoneOffset;
-        scheduler.setNeedsScheduling();
-        if (_activeUIInstance) { _activeUIInstance->setNeedsLayout(); }
+        scheduler.broadcastDayChange();
     }
 }
 
@@ -1185,17 +1204,18 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
 
 #endif
 
-void Helioduino::setSystemLocation(double latitude, double longitude, double altitude)
+void Helioduino::setSystemLocation(double latitude, double longitude, double altitude, bool forceUpdate)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && (!isFPEqual(_systemData->latitude, latitude) || !isFPEqual(_systemData->longitude, longitude) || !isFPEqual(_systemData->altitude, altitude))) {
-        _systemData->_bumpRevIfNotAlreadyModded();
-
+        forceUpdate |= ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
+                       ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
+                       fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
+        if (forceUpdate) { _systemData->_bumpRevIfNotAlreadyModded(); }
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
-
-        scheduler.broadcastDayChange();
+        if (forceUpdate) { scheduler.broadcastDayChange(); }
     }
 }
 
@@ -1475,7 +1495,19 @@ void Helioduino::notifyRTCTimeUpdated()
 }
 
 void Helioduino::notifyDayChanged()
-{ ; }
+{
+    if (getSystemMode() == Helio_SystemMode_PositionCalculating) {
+        for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
+            if (iter->second->isPanelType()) {
+                auto panel = static_pointer_cast<HelioPanel>(iter->second);
+
+                if (panel) {
+                    panel->recalcSunPosition();
+                }
+            }
+        }
+    }
+}
 
 void Helioduino::checkFreeMemory()
 {
