@@ -179,7 +179,7 @@ protected:
 class HelioPanelObjectInterface {
 public:
     virtual bool canActivate(HelioActuator *actuator) = 0;
-    virtual bool isAligned() = 0;
+    virtual bool isAligned(bool poll = false) = 0;
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) = 0;
     virtual Helio_UnitsType getPowerUnits() const = 0;
