@@ -294,6 +294,17 @@ void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibration
     }
 }
 
+Pair<float,float> HelioActuator::getTrackExtents() const
+{
+    if (isActuatorType()) {
+        return make_pair<float,float>(calibrationTransform(0.025f), calibrationTransform(0.125f));
+    } else if (isDirectionalType()) {
+        return make_pair<float,float>(calibrationTransform(-1.0f), calibrationTransform(1.0f));
+    } else {
+        return make_pair<float,float>(calibrationTransform(0.0f), calibrationTransform(1.0f));
+    }
+}
+
 Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> &HelioActuator::getActivationSignal()
 {
     return _activateSignal;
@@ -374,7 +385,7 @@ bool HelioRelayActuator::getCanEnable()
     return _outputPin.isValid() && HelioActuator::getCanEnable();
 }
 
-float HelioRelayActuator::getDriveIntensity()
+float HelioRelayActuator::getDriveIntensity() const
 {
     return _enabled ? 1.0f : 0.0f;
 }
@@ -475,7 +486,7 @@ bool HelioRelayMotorActuator::getCanEnable()
     return false;
 }
 
-float HelioRelayMotorActuator::getDriveIntensity()
+float HelioRelayMotorActuator::getDriveIntensity() const
 {
     return _intensity;
 }
@@ -726,7 +737,7 @@ bool HelioVariableActuator::getCanEnable()
     return _outputPin.isValid() && HelioActuator::getCanEnable();
 }
 
-float HelioVariableActuator::getDriveIntensity()
+float HelioVariableActuator::getDriveIntensity() const
 {
     return _intensity;
 }

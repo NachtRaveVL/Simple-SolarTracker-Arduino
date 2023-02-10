@@ -59,11 +59,6 @@ inline void HelioActuatorObjectInterface::setContinuousPowerUsage(float contPowe
     setContinuousPowerUsage(HelioSingleMeasurement(contPowerUsage, contPowerUsageUnits));
 }
 
-inline bool HelioDriverObjectInterface::isOnTarget() const
-{
-    return getDrivingState() == Helio_DrivingState_OnTarget;
-}
-
 inline void HelioMotorObjectInterface::setContinuousSpeed(float contSpeed, Helio_UnitsType contSpeedUnits)
 {
     setContinuousSpeed(HelioSingleMeasurement(contSpeed, contSpeedUnits));
