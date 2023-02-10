@@ -541,7 +541,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Degrees:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Radians:
-                    *valueOut = valueIn * (TWO_PI / 360.0);
+                    *valueOut = valueIn * (PI / 180.0);
                     return true;
 
                 case Helio_UnitsType_Raw_0_1:
@@ -556,7 +556,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Radians:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Degrees:
-                    *valueOut = valueIn * (360.0 / TWO_PI);
+                    *valueOut = valueIn * (180.0 / PI);
                     return true;
 
                 case Helio_UnitsType_Raw_0_1:

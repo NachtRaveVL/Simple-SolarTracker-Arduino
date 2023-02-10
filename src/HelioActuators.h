@@ -98,8 +98,9 @@ public:
     inline bool isRelayMotorClass() const { return classType == RelayMotor; }
     inline bool isVariableClass() const { return classType == Variable; }
     inline bool isVariableMotorClass() const { return classType == VariableMotor; }
-    inline bool isAnyBinaryClass() const { isRelayClass() || isRelayMotorClass(); }
-    inline bool isAnyVariableClass() const { isVariableClass() || isVariableMotorClass(); }
+    inline bool isAnyBinaryClass() const { return isRelayClass() || isRelayMotorClass(); }
+    inline bool isAnyVariableClass() const { return isVariableClass() || isVariableMotorClass(); }
+    inline bool isAnyMotorClass() const { return isRelayMotorClass() || isVariableMotorClass(); }
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioActuator(Helio_ActuatorType actuatorType,
@@ -121,11 +122,12 @@ public:
     inline HelioActivationHandle enableActuator(bool force, millis_t duration = -1) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
 
     inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
-    inline Helio_EnableMode getEnableMode() { return _enableMode; }
+    inline Helio_EnableMode getEnableMode() const { return _enableMode; }
 
-    inline bool isSerialMode() { return getActuatorIsSerialFromMode(getEnableMode()); }
-    inline bool isMotorType() { return getActuatorIsMotorFromType(getActuatorType()); }
-    inline bool isDirectionalType() { return isMotorType(); }
+    inline bool isSerialMode() const { return getActuatorIsSerialFromMode(getEnableMode()); }
+    inline bool isMotorType() const { return getActuatorIsMotorFromType(getActuatorType()); }
+    inline bool isServoType() const { return getActuatorIsServoFromType(getActuatorType()); }
+    inline bool isDirectionalType() const { return isMotorType(); }
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() override;
@@ -135,6 +137,8 @@ public:
 
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
+    
+    virtual Pair<float,float> getTrackExtents() const;
 
     // Transformation methods that convert from normalized driving intensity/driver value to calibration units
     inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
@@ -147,6 +151,8 @@ public:
     inline void calibrationInvTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
     inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
     inline void calibrationInvTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
+
+    inline float getCalibratedValue() const { return calibrationTransform(getDriveIntensity()); }
 
     inline Helio_ActuatorType getActuatorType() const { return _id.objTypeAs.actuatorType; }
     inline hposi_t getActuatorIndex() const { return _id.posIndex; }
@@ -189,7 +195,7 @@ public:
     virtual ~HelioRelayActuator();
 
     virtual bool getCanEnable() override;
-    virtual float getDriveIntensity() override;
+    virtual float getDriveIntensity() const override;
     virtual bool isEnabled(float tolerance = 0.0f) const override;
 
     inline HelioActivationHandle enableActuator(float value, millis_t duration = -1, bool force = false) { return HelioActuator::enableActuator(calibrationInvTransform(value) > FLT_EPSILON ? Helio_DirectionMode_Forward : calibrationInvTransform(value) < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(calibrationInvTransform(value)), duration, force); }
@@ -222,7 +228,7 @@ public:
     virtual void update() override;
 
     virtual bool getCanEnable() override;
-    virtual float getDriveIntensity() override;
+    virtual float getDriveIntensity() const override;
 
     virtual bool canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
     virtual HelioActivationHandle travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
@@ -236,6 +242,8 @@ public:
 
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
     virtual const HelioSingleMeasurement &getContinuousSpeed() override;
+
+    virtual Pair<float,float> getTrackExtents() const override;
 
     virtual HelioSensorAttachment &getPosition(bool poll = false) override;
 
@@ -278,7 +286,7 @@ public:
     virtual ~HelioVariableActuator();
 
     virtual bool getCanEnable() override;
-    virtual float getDriveIntensity() override;
+    virtual float getDriveIntensity() const override;
     virtual bool isEnabled(float tolerance = 0.0f) const override;
 
     inline int getDriveIntensity_raw() const { return _outputPin.bitRes.inverseTransform(_intensity); }

@@ -57,8 +57,6 @@ protected:
     HelioSensorAttachment _sensor;                          // Sensor attachment
     Helio_TriggerState _triggerState;                       // Current trigger state
     Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> _triggerSignal; // Trigger signal
-
-    virtual void handleMeasurement(const HelioMeasurement *measurement) = 0;
 };
 
 

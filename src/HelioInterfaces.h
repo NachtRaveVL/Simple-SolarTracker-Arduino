@@ -150,7 +150,7 @@ public:
 class HelioActuatorObjectInterface {
 public:
     virtual bool getCanEnable() = 0;
-    virtual float getDriveIntensity() = 0;
+    virtual float getDriveIntensity() const = 0;
     virtual bool isEnabled(float tolerance = 0.0f) const = 0;
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) = 0;
@@ -203,14 +203,21 @@ class HelioDriverObjectInterface {
 public:
     virtual void setTargetSetpoint(float targetSetpoint) = 0;
     virtual void setTravelRate(float travelRate) = 0;
+
+    virtual float getMaximumOffset(bool poll = false) = 0;
     virtual Helio_DrivingState getDrivingState() const = 0;
-    inline bool isOnTarget() const;
+
+protected:
+    virtual void handleOffset(float travelDelta) = 0;
 };
 
 // Trigger Object Interface
 class HelioTriggerObjectInterface {
 public:
     virtual Helio_TriggerState getTriggerState() const = 0;
+
+protected:
+    virtual void handleMeasurement(const HelioMeasurement *measurement) = 0;
 };
 
 // Motor Object Interface

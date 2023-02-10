@@ -52,11 +52,11 @@ public:
     inline SharedPtr<HelioSensor> getAxisAngleSensor(hposi_t axisIndex = 0) { return _axisAngle[axisIndex].getObject(); }
     inline HelioSensorAttachment &getAxisAngle(hposi_t axisIndex = 0, bool resolve = true) { if (resolve) { _axisAngle[axisIndex].resolve(); } return _axisAngle[axisIndex]; }
 
-    inline hposi_t getAxisCount() { return getPanelAxisCountFromType(getPanelType()); }
-    inline bool isSingleAxis() { return getAxisCount() == 1; }
-    inline bool isMultiAxis() { return getAxisCount() > 1; }
-    inline bool isEquatorialCoords() { return getIsEquatorialCoordsFromType(getPanelType()); }
-    inline bool isHorizontalCoords() { return !isEquatorialCoords(); }
+    inline hposi_t getAxisCount() const { return getPanelAxisCountFromType(getPanelType()); }
+    inline bool isSingleAxis() const { return getAxisCount() == 1; }
+    inline bool isMultiAxis() const { return getAxisCount() > 1; }
+    inline bool isEquatorialCoords() const { return getIsEquatorialCoordsFromType(getPanelType()); }
+    inline bool isHorizontalCoords() const { return !isEquatorialCoords(); }
 
     // LDR methods only relevant if in brightness balancing (LDR) operation mode
     template<typename T> inline void setLDRSensor(T ldrSensor, hposi_t ldrIndex = 0) { getLDR(ldrIndex).setObject(ldrSensor); }
@@ -64,8 +64,8 @@ public:
     inline HelioSensorAttachment &getLDR(hposi_t ldrIndex = 0, bool resolve = true) { if (resolve) { _ldrSensors[ldrIndex].resolve(); } return _ldrSensors[ldrIndex]; }
     inline hposi_t getLDRCount() const { return (getPanelAxisCountFromType(getPanelType()) << 1); }
 
-    inline bool isLDRMode() { return _ldrSensors; }
-    inline bool isSPCMode() { return !isLDRMode(); }
+    inline bool isLDRMode() const { return _ldrSensors; }
+    inline bool isSPCMode() const { return !isLDRMode(); }
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
     virtual Helio_UnitsType getPowerUnits() const override;

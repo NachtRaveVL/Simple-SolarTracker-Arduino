@@ -199,25 +199,25 @@ void HelioProcess::clearActuatorReqs()
 
 void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn)
 {
-    for (auto activationIter = actuatorReqs.begin(); activationIter != actuatorReqs.end(); ++activationIter) {
+    for (auto attachIter = actuatorReqs.begin(); attachIter != actuatorReqs.end(); ++attachIter) {
         bool found = false;
-        auto key = activationIter->getKey();
+        auto key = attachIter->getKey();
     
-        for (auto activationInIter = actuatorReqsIn.begin(); activationInIter != actuatorReqsIn.end(); ++activationInIter) {
-            if (key == activationInIter->getKey()) {
+        for (auto attachInIter = actuatorReqsIn.begin(); attachInIter != actuatorReqsIn.end(); ++attachInIter) {
+            if (key == attachInIter->getKey()) {
                 found = true;
                 break;
             }
         }
     
         if (!found) { // disables actuators not found in new list
-            activationIter->disableActivation();
+            attachIter->disableActivation();
         }
     }
 
     {   actuatorReqs.clear();
-        for (auto activationInIter = actuatorReqsIn.begin(); activationInIter != actuatorReqsIn.end(); ++activationInIter) {
-            actuatorReqs.push_back(*activationInIter);
+        for (auto attachInIter = actuatorReqsIn.begin(); attachInIter != actuatorReqsIn.end(); ++attachInIter) {
+            actuatorReqs.push_back(*attachInIter);
             actuatorReqs.back().setParent(nullptr);
         }
     }
@@ -307,7 +307,7 @@ void HelioTracking::setupStaging()
         if (panel->getWaterPHSensor()) {
             auto phBalancer = panel->getServoDriver();
             if (!phBalancer) {
-                phBalancer = SharedPtr<HelioMotorDriver>(new HelioMotorDriver(panel->getWaterPHSensor(), phSetpoint, HELIO_RANGE_PH_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
+                phBalancer = SharedPtr<HelioIncrementalDriver>(new HelioIncrementalDriver(panel->getWaterPHSensor(), phSetpoint, HELIO_RANGE_PH_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
                 HELIO_SOFT_ASSERT(phBalancer, SFP(HStr_Err_AllocationFailure));
                 getSchedulerInstance()->setupServoDriver(panel.get(), phBalancer);
                 panel->setServoDriver(phBalancer);
@@ -321,7 +321,7 @@ void HelioTracking::setupStaging()
         if (panel->getWaterTDSSensor()) {
             auto tdsBalancer = panel->getWaterTDSBalancer();
             if (!tdsBalancer) {
-                tdsBalancer = SharedPtr<HelioMotorDriver>(new HelioMotorDriver(panel->getWaterTDSSensor(), tdsSetpoint, HELIO_RANGE_EC_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
+                tdsBalancer = SharedPtr<HelioIncrementalDriver>(new HelioIncrementalDriver(panel->getWaterTDSSensor(), tdsSetpoint, HELIO_RANGE_EC_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
                 HELIO_SOFT_ASSERT(tdsBalancer, SFP(HStr_Err_AllocationFailure));
                 getSchedulerInstance()->setupWaterTDSBalancer(panel.get(), tdsBalancer);
                 panel->setWaterTDSBalancer(tdsBalancer);
@@ -342,7 +342,7 @@ void HelioTracking::setupStaging()
     if ((stage == PreTrack || stage == Track) && panel->getWaterTemperatureSensor()) {
         auto waterTempBalancer = panel->getWaterTemperatureBalancer();
         if (!waterTempBalancer) {
-            waterTempBalancer = SharedPtr<HelioServoDriver>(new HelioServoDriver(panel->getWaterTemperatureSensor(), waterTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
+            waterTempBalancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getWaterTemperatureSensor(), waterTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
             HELIO_SOFT_ASSERT(waterTempBalancer, SFP(HStr_Err_AllocationFailure));
             getSchedulerInstance()->setupWaterTemperatureBalancer(panel.get(), waterTempBalancer);
             panel->setWaterTemperatureBalancer(waterTempBalancer);
@@ -360,7 +360,7 @@ void HelioTracking::setupStaging()
     if (panel->getAirTemperatureSensor()) {
         auto airTempBalancer = panel->getAirTemperatureBalancer();
         if (!airTempBalancer) {
-            airTempBalancer = SharedPtr<HelioServoDriver>(new HelioServoDriver(panel->getAirTemperatureSensor(), airTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
+            airTempBalancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getAirTemperatureSensor(), airTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
             HELIO_SOFT_ASSERT(airTempBalancer, SFP(HStr_Err_AllocationFailure));
             getSchedulerInstance()->setupAirTemperatureBalancer(panel.get(), airTempBalancer);
             panel->setAirTemperatureBalancer(airTempBalancer);
@@ -378,7 +378,7 @@ void HelioTracking::setupStaging()
     if (panel->getAirCO2Sensor()) {
         auto co2Balancer = panel->getAirTemperatureBalancer();
         if (!co2Balancer) {
-            co2Balancer = SharedPtr<HelioServoDriver>(new HelioServoDriver(panel->getAirCO2Sensor(), co2Setpoint, HELIO_RANGE_CO2_HALF, -HELIO_RANGE_CO2_HALF * 0.25f, HELIO_RANGE_CO2_HALF * 0.5f));
+            co2Balancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getAirCO2Sensor(), co2Setpoint, HELIO_RANGE_CO2_HALF, -HELIO_RANGE_CO2_HALF * 0.25f, HELIO_RANGE_CO2_HALF * 0.5f));
             HELIO_SOFT_ASSERT(co2Balancer, SFP(HStr_Err_AllocationFailure));
             getSchedulerInstance()->setupAirCO2Balancer(panel.get(), co2Balancer);
             panel->setAirCO2Balancer(co2Balancer);
@@ -537,7 +537,7 @@ void HelioTracking::update()
                     getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Aerator_Duration), String(getSchedulerInstance()->getPreTrackAeratorMins()), String('m'));
                 }
                 if (panel->getServoDriver() || panel->getWaterTDSBalancer()) {
-                    auto balancer = static_pointer_cast<HelioMotorDriver>(panel->getServoDriver() ? panel->getServoDriver() : panel->getWaterTDSBalancer());
+                    auto balancer = static_pointer_cast<HelioIncrementalDriver>(panel->getServoDriver() ? panel->getServoDriver() : panel->getWaterTDSBalancer());
                     if (balancer) {
                         getLoggerInstance()->logMessage(SFP(HStr_Log_Field_MixTime_Duration), timeSpanToString(TimeSpan(balancer->getMixTime())));
                     }
@@ -609,8 +609,8 @@ void HelioTracking::update()
     }
 
     if (actuatorReqs.size()) {
-        for (auto activationIter = actuatorReqs.begin(); activationIter != actuatorReqs.end(); ++activationIter) {
-            activationIter->enableActivation();
+        for (auto attachIter = actuatorReqs.begin(); attachIter != actuatorReqs.end(); ++attachIter) {
+            attachIter->enableActivation();
         }
     }
 
@@ -711,22 +711,13 @@ void HelioTracking::broadcastTracking(HelioTrackingBroadcastType broadcastType)
 
 
 HelioSchedulerSubData::HelioSchedulerSubData()
-    : HelioSubData(0), baseTrackMultiplier(1), weeklyDosingRates{1}, stdDosingRates{1,0.5,0.5},
-      totalTrackingsDay(0), preTrackAeratorMins(30), preLightSprayMins(60), airReportInterval(8 * SECS_PER_HOUR)
+    : HelioSubData(0), airReportInterval(8 * SECS_PER_HOUR)
 { ; }
 
 void HelioSchedulerSubData::toJSONObject(JsonObject &objectOut) const
 {
     //HelioSubData::toJSONObject(objectOut); // purposeful no call to base method (ignores type)
 
-    if (!isFPEqual(baseTrackMultiplier, 1.0f)) { objectOut[SFP(HStr_Key_BaseTrackMultiplier)] = baseTrackMultiplier; }
-    bool hasWeeklyDosings = arrayElementsEqual(weeklyDosingRates, HELIO_CROP_GROWWEEKS_MAX, 1.0f);
-    if (hasWeeklyDosings) { objectOut[SFP(HStr_Key_WeeklyDosingRates)] = commaStringFromArray(weeklyDosingRates, HELIO_CROP_GROWWEEKS_MAX); }
-    bool hasStandardDosings = !isFPEqual(stdDosingRates[0], 1.0f) || !isFPEqual(stdDosingRates[1], 0.5f) || !isFPEqual(stdDosingRates[2], 0.5f);
-    if (hasStandardDosings) { objectOut[SFP(HStr_Key_StdDosingRates)] = commaStringFromArray(stdDosingRates, 3); }
-    if (totalTrackingsDay > 0) { objectOut[SFP(HStr_Key_TotalTrackingsDay)] = totalTrackingsDay; }
-    if (preTrackAeratorMins != 30) { objectOut[SFP(HStr_Key_PreTrackAeratorMins)] = preTrackAeratorMins; }
-    if (preLightSprayMins != 60) { objectOut[SFP(HStr_Key_PreLightSprayMins)] = preLightSprayMins; }
     if (airReportInterval != (8 * SECS_PER_HOUR)) { objectOut[SFP(HStr_Key_AirReportInterval)] = airReportInterval; }
 }
 
@@ -734,13 +725,5 @@ void HelioSchedulerSubData::fromJSONObject(JsonObjectConst &objectIn)
 {
     //HelioSubData::fromJSONObject(objectIn); // purposeful no call to base method (ignores type)
 
-    baseTrackMultiplier = objectIn[SFP(HStr_Key_BaseTrackMultiplier)] | baseTrackMultiplier;
-    JsonVariantConst weeklyDosingRatesVar = objectIn[SFP(HStr_Key_WeeklyDosingRates)];
-    commaStringToArray(weeklyDosingRatesVar, weeklyDosingRates, HELIO_CROP_GROWWEEKS_MAX);
-    JsonVariantConst stdDosingRatesVar = objectIn[SFP(HStr_Key_StdDosingRates)];
-    commaStringToArray(stdDosingRatesVar, stdDosingRates, 3);
-    totalTrackingsDay = objectIn[SFP(HStr_Key_TotalTrackingsDay)] | totalTrackingsDay;
-    preTrackAeratorMins = objectIn[SFP(HStr_Key_PreTrackAeratorMins)] | preTrackAeratorMins;
-    preLightSprayMins = objectIn[SFP(HStr_Key_PreLightSprayMins)] | preLightSprayMins;
     airReportInterval = objectIn[SFP(HStr_Key_AirReportInterval)] | airReportInterval;
 }

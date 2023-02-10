@@ -186,7 +186,7 @@ public:
     inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { setupActivation(HelioActivationHandle::Activation(direction, intensity, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
     inline void setupActivation(millis_t duration, bool force = false) { setupActivation(HelioActivationHandle::Activation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
     inline void setupActivation(bool force, millis_t duration = -1) { setupActivation(HelioActivationHandle::Activation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
-    // These activation methods takes into account actuator settings such as user
+    // These activation methods take into account actuator settings such as user
     // calibration data and type checks in determining how to interpret passed value.
     void setupActivation(float value, millis_t duration = -1, bool force = false);
     inline void setupActivation(const HelioSingleMeasurement &measurement, millis_t duration = -1, bool force = false) { setupActivation(measurement.value, duration, force); }
