@@ -664,7 +664,7 @@ protected:
     uint16_t _sysDataAddress;                               // EEPROM system data address used in serialization (default: -1/disabled)
 
     Map<hkey_t, SharedPtr<HelioObject>, HELIO_SYS_OBJECTS_MAXSIZE> _objects; // Shared object collection, key'ed by HelioIdentity
-    Map<pintype_t, OneWire *, HELIO_SYS_ONEWIRE_MAXSIZE> _oneWires; // Pin OneWire mapping
+    Map<pintype_t, OneWire *, HELIO_SYS_ONEWIRES_MAXSIZE> _oneWires; // Pin OneWire mapping
     Map<pintype_t, pintype_t, HELIO_SYS_PINLOCKS_MAXSIZE> _pinLocks; // Pin locks mapping (existence = locked)
     Map<pintype_t, SharedPtr<HelioPinMuxer>, HELIO_SYS_PINMUXERS_MAXSIZE> _pinMuxers; // Pin muxers mapping
 

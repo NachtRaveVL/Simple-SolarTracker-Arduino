@@ -107,7 +107,7 @@ float HelioRail::getRailVoltage() const
     return getRailVoltageFromType(_id.objTypeAs.railType);
 }
 
-Signal<HelioRail *, HELIO_CAPACITY_SIGNAL_SLOTS> &HelioRail::getCapacitySignal()
+Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> &HelioRail::getCapacitySignal()
 {
     return _capacitySignal;
 }
