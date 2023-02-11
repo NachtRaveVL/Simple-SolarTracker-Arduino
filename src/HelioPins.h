@@ -51,19 +51,19 @@ struct HelioPin {
 
     inline bool isValid() const { return isValidPin(pin) && mode != Helio_PinMode_Undefined; }
     inline bool isMuxed() const { return isValidChannel(channel); }
-    inline bool isInput() const { return mode == Helio_PinMode_Digital_Input_Floating ||
+    inline bool isInput() const { return mode == Helio_PinMode_Digital_Input ||
                                          mode == Helio_PinMode_Digital_Input_PullUp ||
                                          mode == Helio_PinMode_Digital_Input_PullDown ||
                                          mode == Helio_PinMode_Analog_Input; }
     inline bool canRead() const { return isValid() && isInput(); }
-    inline bool isOutput() const { return mode == Helio_PinMode_Digital_Output_OpenDrain ||
+    inline bool isOutput() const { return mode == Helio_PinMode_Digital_Output ||
                                           mode == Helio_PinMode_Digital_Output_PushPull ||
                                           mode == Helio_PinMode_Analog_Output; }
     inline bool canWrite() const { return isValid() && isOutput(); }
-    inline bool isDigital() const { return mode == Helio_PinMode_Digital_Input_Floating ||
+    inline bool isDigital() const { return mode == Helio_PinMode_Digital_Input ||
                                            mode == Helio_PinMode_Digital_Input_PullUp ||
                                            mode == Helio_PinMode_Digital_Input_PullDown ||
-                                           mode == Helio_PinMode_Digital_Output_OpenDrain ||
+                                           mode == Helio_PinMode_Digital_Output ||
                                            mode == Helio_PinMode_Digital_Output_PushPull; }
     inline bool isAnalog() const { return mode == Helio_PinMode_Analog_Input ||
                                           mode == Helio_PinMode_Analog_Output; }

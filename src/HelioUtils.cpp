@@ -1163,13 +1163,13 @@ String railTypeToString(Helio_RailType railType, bool excludeSpecial)
 String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial)
 {
     switch (pinMode) {
-        case Helio_PinMode_Digital_Input_Floating:
+        case Helio_PinMode_Digital_Input:
             return SFP(HStr_Enum_DigitalInput);
         case Helio_PinMode_Digital_Input_PullUp:
             return SFP(HStr_Enum_DigitalInputPullUp);
         case Helio_PinMode_Digital_Input_PullDown:
             return SFP(HStr_Enum_DigitalInputPullDown);
-        case Helio_PinMode_Digital_Output_OpenDrain:
+        case Helio_PinMode_Digital_Output:
             return SFP(HStr_Enum_DigitalOutput);
         case Helio_PinMode_Digital_Output_PushPull:
             return SFP(HStr_Enum_DigitalOutputPushPull);
