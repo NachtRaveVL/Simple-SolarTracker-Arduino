@@ -617,10 +617,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_SpeedSensor[] PROGMEM = {"speedSensor"};
             return flashStr_Key_SpeedSensor;
         } break;
-        case HStr_Key_SpeedUnits: {
-            static const char flashStr_Key_SpeedUnits[] PROGMEM = {"speedUnits"};
-            return flashStr_Key_SpeedUnits;
-        } break;
         case HStr_Key_Spraying: {
             static const char flashStr_Key_Spraying[] PROGMEM = {"spraying"};
             return flashStr_Key_Spraying;
@@ -754,9 +750,25 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_AC220V[] PROGMEM = {"AC220V"};
             return flashStr_Enum_AC220V;
         } break;
+        case HStr_Enum_AnalogInput: {
+            static const char flashStr_Enum_AnalogInput[] PROGMEM = {"AnalogInput"};
+            return flashStr_Enum_AnalogInput;
+        } break;
+        case HStr_Enum_AnalogOutput: {
+            static const char flashStr_Enum_AnalogOutput[] PROGMEM = {"AnalogOutput"};
+            return flashStr_Enum_AnalogOutput;
+        } break;
         case HStr_Enum_Angle: {
             static const char flashStr_Enum_Angle[] PROGMEM = {"Angle"};
             return flashStr_Enum_Angle;
+        } break;
+        case HStr_Enum_AscOrder: {
+            static const char flashStr_Enum_AscOrder[] PROGMEM = {"AscOrder"};
+            return flashStr_Enum_AscOrder;
+        } break;
+        case HStr_Enum_Average: {
+            static const char flashStr_Enum_Average[] PROGMEM = {"Average"};
+            return flashStr_Enum_Average;
         } break;
         case HStr_Enum_BrightnessBalancing: {
             static const char flashStr_Enum_BrightnessBalancing[] PROGMEM = {"BrightnessBalancing"};
@@ -786,6 +798,30 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_DC5V[] PROGMEM = {"DC5V"};
             return flashStr_Enum_DC5V;
         } break;
+        case HStr_Enum_DesOrder: {
+            static const char flashStr_Enum_DesOrder[] PROGMEM = {"DesOrder"};
+            return flashStr_Enum_DesOrder;
+        } break;
+        case HStr_Enum_DigitalInput: {
+            static const char flashStr_Enum_DigitalInput[] PROGMEM = {"DigitalInput"};
+            return flashStr_Enum_DigitalInput;
+        } break;
+        case HStr_Enum_DigitalInputPullDown: {
+            static const char flashStr_Enum_DigitalInputPullDown[] PROGMEM = {"DigitalInputPullDown"};
+            return flashStr_Enum_DigitalInputPullDown;
+        } break;
+        case HStr_Enum_DigitalInputFloating: {
+            static const char flashStr_Enum_DigitalInputFloating[] PROGMEM = {"DigitalInputFloating"};
+            return flashStr_Enum_DigitalInputFloating;
+        } break;
+        case HStr_Enum_DigitalOutput: {
+            static const char flashStr_Enum_DigitalOutput[] PROGMEM = {"DigitalOutput"};
+            return flashStr_Enum_DigitalOutput;
+        } break;
+        case HStr_Enum_DigitalOutputPushPull: {
+            static const char flashStr_Enum_DigitalOutputPushPull[] PROGMEM = {"DigitalOutputPushPull"};
+            return flashStr_Enum_DigitalOutputPushPull;
+        } break;
         case HStr_Enum_Distance: {
             static const char flashStr_Enum_Distance[] PROGMEM = {"Distance"};
             return flashStr_Enum_Distance;
@@ -806,6 +842,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_HeatIndex[] PROGMEM = {"HeatIndex"};
             return flashStr_Enum_HeatIndex;
         } break;
+        case HStr_Enum_Highest: {
+            static const char flashStr_Enum_Highest[] PROGMEM = {"Highest"};
+            return flashStr_Enum_Highest;
+        } break;
         case HStr_Enum_Horizontal: {
             static const char flashStr_Enum_Horizontal[] PROGMEM = {"Horizontal"};
             return flashStr_Enum_Horizontal;
@@ -822,6 +862,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Imperial[] PROGMEM = {"Imperial"};
             return flashStr_Enum_Imperial;
         } break;
+        case HStr_Enum_InOrder: {
+            static const char flashStr_Enum_InOrder[] PROGMEM = {"InOrder"};
+            return flashStr_Enum_InOrder;
+        } break;
         case HStr_Enum_LightIntensity: {
             static const char flashStr_Enum_LightIntensity[] PROGMEM = {"LightIntensity"};
             return flashStr_Enum_LightIntensity;
@@ -830,9 +874,17 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_LinearActuator[] PROGMEM = {"LinearActuator"};
             return flashStr_Enum_LinearActuator;
         } break;
+        case HStr_Enum_Lowest: {
+            static const char flashStr_Enum_Lowest[] PROGMEM = {"Lowest"};
+            return flashStr_Enum_Lowest;
+        } break;
         case HStr_Enum_Metric: {
             static const char flashStr_Enum_Metric[] PROGMEM = {"Metric"};
             return flashStr_Enum_Metric;
+        } break;
+        case HStr_Enum_Multiply: {
+            static const char flashStr_Enum_Multiply[] PROGMEM = {"Multiply"};
+            return flashStr_Enum_Multiply;
         } break;
         case HStr_Enum_PanelHeater: {
             static const char flashStr_Enum_PanelHeater[] PROGMEM = {"PanelHeater"};
@@ -857,6 +909,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Enum_PowerLevel: {
             static const char flashStr_Enum_PowerLevel[] PROGMEM = {"PowerLevel"};
             return flashStr_Enum_PowerLevel;
+        } break;
+        case HStr_Enum_RevOrder: {
+            static const char flashStr_Enum_RevOrder[] PROGMEM = {"RevOrder"};
+            return flashStr_Enum_RevOrder;
         } break;
         case HStr_Enum_RotaryEncoder: {
             static const char flashStr_Enum_RotaryEncoder[] PROGMEM = {"RotaryEncoder"};

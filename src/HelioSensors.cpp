@@ -72,9 +72,7 @@ Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorT
 }
 
 
-HelioSensor::HelioSensor(Helio_SensorType sensorType,
-                         hposi_t sensorIndex,
-                         int classTypeIn)
+HelioSensor::HelioSensor(Helio_SensorType sensorType, hposi_t sensorIndex, int classTypeIn)
     : HelioObject(HelioIdentity(sensorType, sensorIndex)), classType((typeof(classType))classTypeIn),
       _isTakingMeasure(false), _panel(this), _calibrationData(nullptr)
 {
@@ -152,10 +150,7 @@ void HelioSensor::saveToData(HelioData *dataOut)
 }
 
 
-HelioBinarySensor::HelioBinarySensor(Helio_SensorType sensorType,
-                                     hposi_t sensorIndex,
-                                     HelioDigitalPin inputPin,
-                                     int classType)
+HelioBinarySensor::HelioBinarySensor(Helio_SensorType sensorType, hposi_t sensorIndex, HelioDigitalPin inputPin, int classType)
     : HelioSensor(sensorType, sensorIndex, classType),
       _inputPin(inputPin), _usingISR(false)
 {
@@ -251,11 +246,7 @@ void HelioBinarySensor::saveToData(HelioData *dataOut)
 }
 
 
-HelioAnalogSensor::HelioAnalogSensor(Helio_SensorType sensorType,
-                                     hposi_t sensorIndex,
-                                     HelioAnalogPin inputPin,
-                                     bool inputInversion,
-                                     int classType)
+HelioAnalogSensor::HelioAnalogSensor(Helio_SensorType sensorType, hposi_t sensorIndex, HelioAnalogPin inputPin, bool inputInversion, int classType)
     : HelioSensor(sensorType, sensorIndex, classType),
       _inputPin(inputPin), _inputInversion(inputInversion), _measurementUnits(defaultMeasureUnitsForSensorType(sensorType))
 {
@@ -369,12 +360,7 @@ void HelioAnalogSensor::saveToData(HelioData *dataOut)
 }
 
 
-HelioDigitalSensor::HelioDigitalSensor(Helio_SensorType sensorType,
-                                       hposi_t sensorIndex,
-                                       HelioDigitalPin inputPin,
-                                       uint8_t bitRes1W,
-                                       bool allocate1W,
-                                       int classType)
+HelioDigitalSensor::HelioDigitalSensor(Helio_SensorType sensorType, hposi_t sensorIndex, HelioDigitalPin inputPin, uint8_t bitRes1W, bool allocate1W, int classType)
     : HelioSensor(sensorType, sensorIndex, classType), _inputPin(inputPin), _oneWire(nullptr), _wireBitRes(bitRes1W), _wirePosIndex(-1), _wireDevAddress{0}
 {
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
@@ -485,11 +471,7 @@ void HelioDigitalSensor::saveToData(HelioData *dataOut)
 }
 
 
-HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex,
-                                                       HelioDigitalPin inputPin,
-                                                       Helio_DHTType dhtType,
-                                                       bool computeHeatIndex,
-                                                       int classType)
+HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex, HelioDigitalPin inputPin, Helio_DHTType dhtType, bool computeHeatIndex, int classType)
     : HelioDigitalSensor(Helio_SensorType_TemperatureHumidity, sensorIndex, inputPin, 9, false, classType),
       _dht(new DHT(inputPin.pin, dhtType)), _dhtType(dhtType), _computeHeatIndex(computeHeatIndex),
       _measurementUnits{defaultTemperatureUnits(), Helio_UnitsType_Percentile_0_100, defaultTemperatureUnits()}

@@ -232,8 +232,6 @@ public:
 
     virtual void setDistanceUnits(Helio_UnitsType distanceUnits) = 0;
     virtual Helio_UnitsType getDistanceUnits() const = 0;
-    virtual void setSpeedUnits(Helio_UnitsType speedUnits) = 0;
-    virtual Helio_UnitsType getSpeedUnits() const = 0;
 
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) = 0;
     virtual const HelioSingleMeasurement &getContinuousSpeed() = 0;

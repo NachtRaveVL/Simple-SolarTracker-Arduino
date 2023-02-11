@@ -721,6 +721,19 @@ Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units)
     return Helio_UnitsType_Undefined;
 }
 
+Helio_UnitsType rateUnitsFromBase(Helio_UnitsType units)
+{
+    switch (units) {
+        case Helio_UnitsType_Distance_Meters:
+            return Helio_UnitsType_Speed_MetersPerMin;
+        case Helio_UnitsType_Distance_Feet:
+            return Helio_UnitsType_Speed_FeetPerMin;
+        default:
+            break;
+    }
+    return Helio_UnitsType_Undefined;
+}
+
 Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode)
 {
     if (measureMode == Helio_MeasurementMode_Undefined) {
@@ -751,23 +764,6 @@ Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode)
         case Helio_MeasurementMode_Metric:
         case Helio_MeasurementMode_Scientific:
             return Helio_UnitsType_Distance_Meters;
-        default:
-            return Helio_UnitsType_Undefined;
-    }
-}
-
-Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode)
-{
-    if (measureMode == Helio_MeasurementMode_Undefined) {
-        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
-    }
-
-    switch (measureMode) {
-        case Helio_MeasurementMode_Imperial:
-            return Helio_UnitsType_Speed_FeetPerMin;
-        case Helio_MeasurementMode_Metric:
-        case Helio_MeasurementMode_Scientific:
-            return Helio_UnitsType_Speed_MetersPerMin;
         default:
             return Helio_UnitsType_Undefined;
     }
@@ -961,34 +957,6 @@ bool checkPinIsAnalogOutput(pintype_t pin)
     #endif
 }
 
-
-String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial)
-{
-    switch (pinMode) {
-        // TODO
-        // case Helio_PinMode_Digital_Input_PullUp:
-        //     return SFP(HStr_Enum_DigitalInputPullUp);
-        // case Helio_PinMode_Digital_Input_PullDown:
-        //     return SFP(HStr_Enum_DigitalInputPullDown);
-        // case Helio_PinMode_Digital_Input_Floating:
-        //     return SFP(HStr_Enum_DigitalInputFloating);
-        // case Helio_PinMode_Digital_Output_OpenDrain:
-        //     return SFP(HStr_Enum_DigitalOutputOpenDrain);
-        // case Helio_PinMode_Digital_Output_PushPull:
-        //     return SFP(HStr_Enum_DigitalOutputPushPull);
-        // case Helio_PinMode_Analog_Input:
-        //     return SFP(HStr_Enum_AnalogInput);
-        // case Helio_PinMode_Analog_Output:
-        //     return SFP(HStr_Enum_AnalogOutput);
-        case Helio_PinMode_Count:
-            return !excludeSpecial ? SFP(HStr_Count) : String();
-        case Helio_PinMode_Undefined:
-            break;
-        default:
-            return String((int)pinMode);
-    }
-    return !excludeSpecial ? SFP(HStr_Undefined) : String();
-}
 
 String systemModeToString(Helio_SystemMode systemMode, bool excludeSpecial)
 {
@@ -1192,6 +1160,62 @@ String railTypeToString(Helio_RailType railType, bool excludeSpecial)
     return !excludeSpecial ? SFP(HStr_Undefined) : String();
 }
 
+String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial)
+{
+    switch (pinMode) {
+        case Helio_PinMode_Digital_Input_PullUp:
+            return SFP(HStr_Enum_DigitalInput);
+        case Helio_PinMode_Digital_Input_PullDown:
+            return SFP(HStr_Enum_DigitalInputPullDown);
+        case Helio_PinMode_Digital_Input_Floating:
+            return SFP(HStr_Enum_DigitalInputFloating);
+        case Helio_PinMode_Digital_Output_OpenDrain:
+            return SFP(HStr_Enum_DigitalOutput);
+        case Helio_PinMode_Digital_Output_PushPull:
+            return SFP(HStr_Enum_DigitalOutputPushPull);
+        case Helio_PinMode_Analog_Input:
+            return SFP(HStr_Enum_AnalogInput);
+        case Helio_PinMode_Analog_Output:
+            return SFP(HStr_Enum_AnalogOutput);
+        case Helio_PinMode_Count:
+            return !excludeSpecial ? SFP(HStr_Count) : String();
+        case Helio_PinMode_Undefined:
+            break;
+        default:
+            return String((int)pinMode);
+    }
+    return !excludeSpecial ? SFP(HStr_Undefined) : String();
+}
+
+String enableModeToString(Helio_EnableMode enableMode, bool excludeSpecial)
+{
+    switch (enableMode) {
+        case Helio_EnableMode_Highest:
+            return SFP(HStr_Enum_Highest);
+        case Helio_EnableMode_Lowest:
+            return SFP(HStr_Enum_Lowest);
+        case Helio_EnableMode_Average:
+            return SFP(HStr_Enum_Average);
+        case Helio_EnableMode_Multiply:
+            return SFP(HStr_Enum_Multiply);
+        case Helio_EnableMode_InOrder:
+            return SFP(HStr_Enum_InOrder);
+        case Helio_EnableMode_RevOrder:
+            return SFP(HStr_Enum_RevOrder);
+        case Helio_EnableMode_DesOrder:
+            return SFP(HStr_Enum_DesOrder);
+        case Helio_EnableMode_AscOrder:
+            return SFP(HStr_Enum_AscOrder);
+        case Helio_EnableMode_Count:
+            return !excludeSpecial ? SFP(HStr_Count) : String();
+        case Helio_EnableMode_Undefined:
+            break;
+        default:
+            return String((int)enableMode);
+    }
+    return !excludeSpecial ? SFP(HStr_Undefined) : String();
+}
+
 String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpecial)
 {
     switch (unitsCategory) {
@@ -1282,12 +1306,6 @@ hposi_t positionIndexFromString(String positionIndexStr)
 
 
 // All remaining methods generated from minimum spanning trie
-
-Helio_PinMode pinModeFromString(String pinModeStr)
-{
-    // TODO
-    return (Helio_PinMode)pinModeStr.toInt();
-}
 
 Helio_SystemMode systemModeFromString(String systemModeStr)
 {
@@ -1534,6 +1552,18 @@ Helio_RailType railTypeFromString(String railTypeStr) {
             break;
     }
     return Helio_RailType_Undefined;
+}
+
+Helio_PinMode pinModeFromString(String pinModeStr)
+{
+    // TODO
+    return (Helio_PinMode)pinModeStr.toInt();
+}
+
+Helio_EnableMode enableModeFromString(String enableModeStr)
+{
+    // TODO
+    return (Helio_EnableMode)enableModeStr.toInt();
 }
 
 Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)

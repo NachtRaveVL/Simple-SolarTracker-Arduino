@@ -144,10 +144,7 @@ void HelioRail::handleLimit(Helio_TriggerState limitState)
 }
 
 
-HelioSimpleRail::HelioSimpleRail(Helio_RailType railType,
-                                             hposi_t railIndex,
-                                             int maxActiveAtOnce,
-                                             int classType)
+HelioSimpleRail::HelioSimpleRail(Helio_RailType railType, hposi_t railIndex, int maxActiveAtOnce, int classType)
     : HelioRail(railType, railIndex, classType), _activeCount(0), _maxActiveAtOnce(maxActiveAtOnce)
 { ; }
 
@@ -192,10 +189,7 @@ void HelioSimpleRail::handleActivation(HelioActuator *actuator)
 }
 
 
-HelioRegulatedRail::HelioRegulatedRail(Helio_RailType railType,
-                                                   hposi_t railIndex,
-                                                   float maxPower,
-                                                   int classType)
+HelioRegulatedRail::HelioRegulatedRail(Helio_RailType railType, hposi_t railIndex, float maxPower, int classType)
     : HelioRail(railType, railIndex, classType), _maxPower(maxPower), _powerUsage(this), _limitTrigger(this)
 {
     _powerUsage.setMeasurementUnits(getPowerUnits(), getRailVoltage());
