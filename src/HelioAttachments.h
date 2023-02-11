@@ -33,13 +33,14 @@ public:
 
     inline bool isUnresolved() const { return !_obj; }
     inline bool isResolved() const { return (bool)_obj; }
-    inline bool needsResolved() const { return isUnresolved() && _key != (hkey_t)-1; }
+    inline bool needsResolved() const { return isUnresolved() && _key != hkey_none; }
     inline bool resolve() { return isResolved() || (bool)getObject(); }
     void unresolve();
+    template<class U> inline void unresolveIf(U obj) { if (operator==(obj)) { unresolve(); } }
 
-    template<class U> inline void setObject(U obj) { (*this) = obj; }
+    template<class U> inline void setObject(U obj) { operator=(obj); }
     template<class U = HelioObjInterface> inline SharedPtr<U> getObject() { return reinterpret_pointer_cast<U>(_getObject()); }
-    template<class U = HelioObjInterface> inline U* get() { return getObject<U>().get(); }
+    template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
     inline HelioIdentity getId() const { return _obj ? _obj->getId() : (_keyStr ? HelioIdentity(_keyStr) : HelioIdentity(_key)); }
     inline hkey_t getKey() const { return _key; }
@@ -57,9 +58,9 @@ public:
 
     inline bool operator==(const HelioIdentity &rhs) const { return _key == rhs.key; }
     inline bool operator==(const char *rhs) const { return _key == stringHash(rhs); }
-    template<class U> inline bool operator==(const SharedPtr<U> &rhs) const { return _key == (rhs ? rhs->getKey() : (hkey_t)-1); }
-    inline bool operator==(const HelioObjInterface *rhs) const { return _key == (rhs ? rhs->getKey() : (hkey_t)-1); }
-    inline bool operator==(nullptr_t) const { return _key == (hkey_t)-1; }
+    template<class U> inline bool operator==(const SharedPtr<U> &rhs) const { return _key == (rhs ? rhs->getKey() : hkey_none); }
+    inline bool operator==(const HelioObjInterface *rhs) const { return _key == (rhs ? rhs->getKey() : hkey_none); }
+    inline bool operator==(nullptr_t) const { return _key == hkey_none; }
 
 protected:
     hkey_t _key;                                            // Object key
@@ -93,12 +94,14 @@ public:
     inline bool isResolved() const { return (bool)_obj; }
     inline bool needsResolved() const { return _obj.needsResolved(); }
     inline bool resolve() { return isResolved() || (bool)getObject(); }
+    inline void unresolve() { _obj.unresolve(); } 
+    template<class U> inline void unresolveIf(U obj) { _obj.unresolveIf(obj); }
 
     template<class U> void setObject(U obj);
     template<class U = HelioObjInterface> SharedPtr<U> getObject();
-    template<class U = HelioObjInterface> inline U* get() { return getObject<U>().get(); }
+    template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
-    void setParent(HelioObjInterface *parent);
+    virtual void setParent(HelioObjInterface *parent) override;
     inline HelioObjInterface *getParent() { return _parent; }
 
     inline HelioIdentity getId() const { return _obj.getId(); }
@@ -120,7 +123,6 @@ public:
 
 protected:
     HelioDLinkObject _obj;                                  // Dynamic link object
-    HelioObjInterface *_parent;                             // Parent object pointer (strong due to reverse ownership)
 };
 
 
@@ -201,6 +203,14 @@ public:
     inline bool isActivated() const { return _actHandle.isActive(); }
     inline millis_t getTimeLeft() const { return _actHandle.getTimeLeft(); }
     inline millis_t getTimeActive(millis_t time = nzMillis()) const { return _actHandle.getTimeActive(time); }
+
+    // Currently active driving intensity / calibrated value, from actuator
+    inline float getActiveDriveIntensity() { return resolve() ? get()->getDriveIntensity() : 0.0f; }
+    inline float getActiveCalibratedValue() { return resolve() ? get()->getCalibratedValue() : 0.0f; }
+
+    // Currently setup driving intensity [-1.0,1.0] / calibrated value [calibMin,calibMax], from activation
+    inline float getSetupDriveIntensity() const { return _actSetup.intensity; }
+    inline float getSetupCalibratedValue() { return resolve() ? get()->calibrationTransform(_actSetup.intensity) : 0.0f; }
 
     // Sets an update slot to run during execution of actuator that can further refine duration/intensity.
     // Useful for rate-based or variable activations. Slot receives actuator attachment pointer as parameter.

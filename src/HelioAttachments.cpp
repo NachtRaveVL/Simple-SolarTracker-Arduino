@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioDLinkObject::HelioDLinkObject()
-    : _key((hkey_t)-1), _obj(nullptr), _keyStr(nullptr)
+    : _key(hkey_none), _obj(nullptr), _keyStr(nullptr)
 { ; }
 
 HelioDLinkObject::HelioDLinkObject(const HelioDLinkObject &obj)
@@ -43,7 +43,7 @@ void HelioDLinkObject::unresolve()
 SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
 {
     if (_obj) { return _obj; }
-    if (_key == (hkey_t)-1) { return nullptr; }
+    if (_key == hkey_none) { return nullptr; }
     if (Helioduino::_activeInstance) {
         _obj = static_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
     }
@@ -55,33 +55,33 @@ SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
 
 
 HelioAttachment::HelioAttachment(HelioObjInterface *parent)
-    : _parent(parent), _obj()
+    : HelioSubObject(parent), _obj()
 { ; }
 
 HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
-    : _parent(attachment._parent), _obj()
+    : HelioSubObject(attachment._parent), _obj()
 {
     setObject(attachment._obj);
 }
 
 HelioAttachment::~HelioAttachment()
 {
-    if (isResolved() && _parent) {
-        _obj->removeLinkage((HelioObject *)_parent);
+    if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) {
+        _obj.get<HelioObject>()->removeLinkage((HelioObject *)_parent);
     }
 }
 
 void HelioAttachment::attachObject()
 {
-    if (resolve() && _parent) { // purposeful resolve in front
-        _obj->addLinkage((HelioObject *)_parent);
+    if (resolve() && _obj->isObject() && _parent && _parent->isObject()) { // purposeful resolve in front
+        _obj.get<HelioObject>()->addLinkage((HelioObject *)_parent);
     }
 }
 
 void HelioAttachment::detachObject()
 {
-    if (isResolved() && _parent) {
-        _obj->removeLinkage((HelioObject *)_parent);
+    if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) {
+        _obj.get<HelioObject>()->removeLinkage((HelioObject *)_parent);
     }
     // note: used to set _obj to nullptr here, but found that it's best not to -> avoids additional operator= calls during typical detach scenarios
 }
@@ -94,11 +94,11 @@ void HelioAttachment::updateIfNeeded(bool poll)
 void HelioAttachment::setParent(HelioObjInterface *parent)
 {
     if (_parent != parent) {
-        if (isResolved() && _parent) { _obj->removeLinkage((HelioObject *)_parent); }
+        if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) { _obj.get<HelioObject>()->removeLinkage((HelioObject *)_parent); }
 
         _parent = parent;
 
-        if (isResolved() && _parent) { _obj->addLinkage((HelioObject *)_parent); }
+        if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) { _obj.get<HelioObject>()->addLinkage((HelioObject *)_parent); }
     }
 }
 

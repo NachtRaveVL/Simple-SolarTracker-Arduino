@@ -7,7 +7,7 @@
 
 HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 {
-    if (dataIn && dataIn->id.object.idType == -1) return nullptr;
+    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -376,7 +376,7 @@ void HelioRegulatedRailData::toJSONObject(JsonObject &objectOut) const
 
     objectOut[SFP(HStr_Key_MaxPower)] = maxPower;
     if (powerSensor[0]) { objectOut[SFP(HStr_Key_PowerSensor)] = charsToString(powerSensor, HELIO_NAME_MAXSIZE); }
-    if (limitTrigger.type != -1) {
+    if (isValidType(limitTrigger.type)) {
         JsonObject limitTriggerObj = objectOut.createNestedObject(SFP(HStr_Key_LimitTrigger));
         limitTrigger.toJSONObject(limitTriggerObj);
     }

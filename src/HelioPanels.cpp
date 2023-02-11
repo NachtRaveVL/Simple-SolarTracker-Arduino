@@ -7,7 +7,7 @@
 
 HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 {
-    if (dataIn && dataIn->id.object.idType == -1) return nullptr;
+    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -71,8 +71,8 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
 
 HelioPanel::~HelioPanel()
 {
-    if (_sunPosition) { delete[] _sunPosition; _sunPosition = nullptr; }
-    if (_ldrSensors) { delete[] _ldrSensors; _ldrSensors = nullptr; }
+    if (_sunPosition) { delete [] _sunPosition; _sunPosition = nullptr; }
+    if (_ldrSensors) { delete [] _ldrSensors; _ldrSensors = nullptr; }
 }
 
 void HelioPanel::update()

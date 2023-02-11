@@ -7,8 +7,8 @@
 
 HelioMeasurement *newMeasurementObjectFromSubData(const HelioMeasurementData *dataIn)
 {
-    if (dataIn && dataIn->type == -1) return nullptr;
-    HELIO_SOFT_ASSERT(dataIn && dataIn->type >= 0, SFP(HStr_Err_InvalidParameter));
+    if (!dataIn || !isValidType(dataIn->type)) return nullptr;
+    HELIO_SOFT_ASSERT(dataIn && isValidType(dataIn->type), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn) {
         switch (dataIn->type) {
