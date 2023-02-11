@@ -773,7 +773,7 @@ Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode)
     }
 }
 
-Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined)
+Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode)
 {
     if (measureMode == Helio_MeasurementMode_Undefined) {
         measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
@@ -966,6 +966,20 @@ String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial)
 {
     switch (pinMode) {
         // TODO
+        // case Helio_PinMode_Digital_Input_PullUp:
+        //     return SFP(HStr_Enum_DigitalInputPullUp);
+        // case Helio_PinMode_Digital_Input_PullDown:
+        //     return SFP(HStr_Enum_DigitalInputPullDown);
+        // case Helio_PinMode_Digital_Input_Floating:
+        //     return SFP(HStr_Enum_DigitalInputFloating);
+        // case Helio_PinMode_Digital_Output_OpenDrain:
+        //     return SFP(HStr_Enum_DigitalOutputOpenDrain);
+        // case Helio_PinMode_Digital_Output_PushPull:
+        //     return SFP(HStr_Enum_DigitalOutputPushPull);
+        // case Helio_PinMode_Analog_Input:
+        //     return SFP(HStr_Enum_AnalogInput);
+        // case Helio_PinMode_Analog_Output:
+        //     return SFP(HStr_Enum_AnalogOutput);
         case Helio_PinMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_PinMode_Undefined:

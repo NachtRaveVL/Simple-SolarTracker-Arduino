@@ -7,8 +7,12 @@
 #define HelioPanels_H
 
 class HelioPanel;
+class HelioTrackingPanel;
+class HelioReflectingPanel;
 
 struct HelioPanelData;
+struct HelioTrackingPanelData;
+struct HelioReflectingPanelData;
 
 #include "Helioduino.h"
 #include "HelioTriggers.h"

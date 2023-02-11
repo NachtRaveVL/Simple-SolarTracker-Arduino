@@ -5,6 +5,14 @@
 
 #include "Helioduino.h"
 
+inline bool Twilight::isDaytime(time_t time) const {
+    DateTime currTime = isUTC ? DateTime((uint32_t)time) : DateTime((uint32_t)(time + (getHelioInstance() ? getHelioInstance()->getTimeZoneOffset() * SECS_PER_HOUR : 0L)));
+    double currHour = currTime.hour() + (currTime.minute() / 60.0) + (currTime.second() / 3600.0);
+    return sunrise <= sunset ? currHour >= sunrise && currHour <= sunset
+                             : currHour >= sunrise || currHour <= sunset;
+}
+
+
 inline void Helioduino::returnPinLock(pintype_t pin)
 {
     _pinLocks.erase(pin);

@@ -163,6 +163,77 @@ void HelioSignalAttachment<ParameterType,Slots>::setHandleSlot(const Slot<Parame
 }
 
 
+inline void HelioActuatorAttachment::setupActivation(const HelioActivation &activation)
+{
+    _actSetup = activation; applySetup();
+}
+
+inline void HelioActuatorAttachment::setupActivation(const HelioActivationHandle &handle)
+{
+    setupActivation(handle.activation);
+}
+
+inline void HelioActuatorAttachment::setupActivation(Helio_DirectionMode direction, float intensity, millis_t duration, bool force)
+{
+    setupActivation(HelioActivation(direction, intensity, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+}
+
+inline void HelioActuatorAttachment::setupActivation(millis_t duration, bool force)
+{
+    setupActivation(HelioActivation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+}
+
+inline void HelioActuatorAttachment::setupActivation(bool force, millis_t duration)
+{
+    setupActivation(HelioActivation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+}
+
+inline void HelioActuatorAttachment::setupActivation(const HelioSingleMeasurement &measurement, millis_t duration, bool force)
+{
+    setupActivation(measurement.value, duration, force);
+}
+
+inline void HelioActuatorAttachment::disableActivation()
+{
+    _actHandle.unset();
+}
+
+inline bool HelioActuatorAttachment::isActivated() const
+{
+    return _actHandle.isActive();
+}
+
+inline millis_t HelioActuatorAttachment::getTimeLeft() const
+{
+    return _actHandle.getTimeLeft();
+}
+
+inline millis_t HelioActuatorAttachment::getTimeActive(millis_t time) const
+{
+    return _actHandle.getTimeActive(time);
+}
+
+inline float HelioActuatorAttachment::getActiveDriveIntensity()
+{
+    return resolve() ? get()->getDriveIntensity() : 0.0f;
+}
+
+inline float HelioActuatorAttachment::getActiveCalibratedValue()
+{
+    return resolve() ? get()->getCalibratedValue() : 0.0f;
+}
+
+inline float HelioActuatorAttachment::getSetupDriveIntensity() const
+{
+    return _actSetup.intensity;
+}
+
+inline float HelioActuatorAttachment::getSetupCalibratedValue()
+{
+    return resolve() ? get()->calibrationTransform(_actSetup.intensity) : 0.0f;
+}
+
+
 inline Helio_TriggerState HelioTriggerAttachment::getTriggerState()
 {
     return resolve() ? get()->getTriggerState() : Helio_TriggerState_Undefined;
