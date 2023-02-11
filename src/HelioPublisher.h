@@ -12,6 +12,7 @@ struct HelioPublisherSubData;
 struct HelioDataColumn;
 
 #include "Helioduino.h"
+#include "HelioMeasurements.h"
 
 // Data Publisher
 // The Publisher allows for data collection and publishing capabilities. The data output

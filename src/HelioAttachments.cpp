@@ -140,12 +140,12 @@ void HelioActuatorAttachment::setupActivation(float value, millis_t duration, bo
         value = get()->calibrationInvTransform(value);
 
         if (get()->isDirectionalType()) {
-            setupActivation(HelioActivationHandle::Activation(value > FLT_EPSILON ? Helio_DirectionMode_Forward : value < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(value), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+            setupActivation(HelioActivation(value > FLT_EPSILON ? Helio_DirectionMode_Forward : value < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(value), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
             return;
         }
     }
 
-    setupActivation(HelioActivationHandle::Activation(Helio_DirectionMode_Forward, value, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+    setupActivation(HelioActivation(Helio_DirectionMode_Forward, value, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
 }
 
 void HelioActuatorAttachment::enableActivation()

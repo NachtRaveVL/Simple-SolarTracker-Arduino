@@ -471,6 +471,7 @@ struct HelioObjectData;
 struct HelioPin;
 struct HelioDigitalPin;
 struct HelioAnalogPin;
+struct HelioActivation;
 struct HelioActivationHandle;
 struct HelioMeasurement;
 struct HelioSingleMeasurement;
