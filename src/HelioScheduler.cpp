@@ -197,7 +197,7 @@ void HelioProcess::clearActuatorReqs()
     }
 }
 
-void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn)
+void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> &actuatorReqsIn)
 {
     for (auto attachIter = actuatorReqs.begin(); attachIter != actuatorReqs.end(); ++attachIter) {
         bool found = false;
@@ -412,12 +412,12 @@ void HelioTracking::setupStaging()
 
         case TopOff: {
             if (!panel->isFilled()) {
-                Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-                auto topOffMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_FreshWater);
+                Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+                auto topOffMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_FreshWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // fresh water motors
+                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // fresh water motors
                 if (!newActuatorReqs.size()) {
-                    linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_PeristalticMotor); // fresh water peristaltic motors
+                    linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_PeristalticMotor); // fresh water peristaltic motors
                 }
 
                 HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no fresh water motors
@@ -428,34 +428,34 @@ void HelioTracking::setupStaging()
         } break;
 
         case PreTrack: {
-            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-            auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+            auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
 
-            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
+            linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
 
             setActuatorReqs(newActuatorReqs);
         } break;
 
         case Track: {
-            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
 
-            {   auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_TrackWater);
+            {   auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_TrackWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // track water motor
+                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // track water motor
             }
 
             if (!newActuatorReqs.size() && getHelioInstance()->getSystemMode() == Helio_SystemMode_DrainToWaste) { // prefers track water motors, else direct to waste is track
-                auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
+                auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
 
-                linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // DTW track water motor
+                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // DTW track water motor
             }
 
             HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no track water motors
 
             #if HELIO_SCH_AERATORS_TRACKRUN
-                {   auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
+                {   auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
 
-                    linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
+                    linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
                 }
             #endif
 
@@ -463,10 +463,10 @@ void HelioTracking::setupStaging()
         } break;
 
         case Drain: {
-            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> newActuatorReqs;
-            auto drainMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+            auto drainMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
 
-            linksResolveActuatorsByType<HELIO_SCH_REQACTUATORS_MAXSIZE>(drainMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // drainage water motor
+            linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(drainMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // drainage water motor
 
             HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no drainage water motors
             setActuatorReqs(newActuatorReqs);

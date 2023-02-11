@@ -51,14 +51,14 @@ public:
     inline hposi_t getRailIndex() const { return _id.posIndex; }
     virtual float getRailVoltage() const override;
 
-    Signal<HelioRail *, HELIO_CAPACITY_SIGNAL_SLOTS> &getCapacitySignal();
+    Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> &getCapacitySignal();
 
 protected:
     Helio_UnitsType _powerUnits;                            // Power units preferred
 
     Helio_TriggerState _limitState;                         // Current limit state
 
-    Signal<HelioRail *, HELIO_CAPACITY_SIGNAL_SLOTS> _capacitySignal; // Capacity changed signal
+    Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> _capacitySignal; // Capacity changed signal
 
     virtual HelioData *allocateData() const override;
     virtual void saveToData(HelioData *dataOut) override;

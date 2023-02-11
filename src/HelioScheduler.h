@@ -45,7 +45,7 @@ protected:
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     bool _inDaytimeMode;                                    // Daytime mode flag
     int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
-    Map<hkey_t, HelioTracking *, HELIO_SCH_TRACKING_MAXSIZE> _trackings; // Trackings in progress
+    Map<hkey_t, HelioTracking *, HELIO_SCH_PROCS_MAXSIZE> _trackings; // Trackings in progress
 
     friend class Helioduino;
 
@@ -76,14 +76,14 @@ enum HelioTrackingBroadcastType : signed char {
 struct HelioProcess {
     SharedPtr<HelioPanel> panel;                            // Panel
 
-    Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
+    Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> actuatorReqs; // Actuators required for this stage (keep-enabled list)
 
     time_t stageStart;                                      // Stage start time
 
     HelioProcess(SharedPtr<HelioPanel> panel);
 
     void clearActuatorReqs();
-    void setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTUATORS_MAXSIZE> &actuatorReqsIn);
+    void setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> &actuatorReqsIn);
 };
 
 // Scheduler Tracking Process
