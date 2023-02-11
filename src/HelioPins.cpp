@@ -59,7 +59,7 @@ void HelioPin::init()
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid()) {
             switch (mode) {
-                case Helio_PinMode_Digital_Input_Floating:
+                case Helio_PinMode_Digital_Input:
                 case Helio_PinMode_Analog_Input:
                     pinMode(pin, INPUT);
                     break;
@@ -76,7 +76,7 @@ void HelioPin::init()
                     #endif
                     break;
 
-                case Helio_PinMode_Digital_Output_OpenDrain:
+                case Helio_PinMode_Digital_Output:
                 case Helio_PinMode_Digital_Output_PushPull:
                 case Helio_PinMode_Analog_Output:
                     pinMode(pin, OUTPUT);
@@ -112,21 +112,21 @@ HelioDigitalPin::HelioDigitalPin()
 
 HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, uint8_t muxChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (pinMode != INPUT ? (pinMode == INPUT_PULLUP ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
-                                                                         : Helio_PinMode_Digital_Input_Floating)
-                                                     : (pinMode == OUTPUT ? Helio_PinMode_Digital_Output_OpenDrain : Helio_PinMode_Digital_Output_PushPull), muxChannel),
+                                                                         : Helio_PinMode_Digital_Input)
+                                                     : (pinMode == OUTPUT ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), muxChannel),
       activeLow(pinMode == INPUT || pinMode == INPUT_PULLUP || pinMode == OUTPUT)
 { ; }
 
 HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, uint8_t muxChannel)
     : HelioPin(Digital, pinNumber, pinMode, muxChannel),
-      activeLow(pinMode == Helio_PinMode_Digital_Input_Floating ||
+      activeLow(pinMode == Helio_PinMode_Digital_Input ||
                 pinMode == Helio_PinMode_Digital_Input_PullUp ||
-                pinMode == Helio_PinMode_Digital_Output_OpenDrain)
+                pinMode == Helio_PinMode_Digital_Output)
 { ; }
 
 HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, bool isActiveLow, uint8_t muxChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (isActiveLow ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
-                                                     : (isActiveLow ? Helio_PinMode_Digital_Output_OpenDrain : Helio_PinMode_Digital_Output_PushPull), muxChannel),
+                                                     : (isActiveLow ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), muxChannel),
       activeLow(isActiveLow)
 { ; }
 
