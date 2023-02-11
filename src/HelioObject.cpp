@@ -91,7 +91,7 @@ void HelioObject::allocateLinkages(size_t size)
                 }
             }
             for (; linksIndex < size; ++linksIndex) {
-                newLinks[linksIndex] = make_pair((HelioObject *)nullptr, (int8_t)1);
+                newLinks[linksIndex] = make_pair((HelioObject *)nullptr, (int8_t)0);
             }
         }
 
@@ -114,7 +114,7 @@ bool HelioObject::addLinkage(HelioObject *obj)
         }
         if (linksIndex >= _linksSize) { allocateLinkages(_linksSize << 1); } // grow *2 if too small
         if (linksIndex < _linksSize) {
-            _links[linksIndex] = make_pair(obj, (int8_t)0);
+            _links[linksIndex] = make_pair(obj, (int8_t)1);
             return true;
         }
     }
@@ -151,6 +151,25 @@ bool HelioObject::hasLinkage(HelioObject *obj) const
     return false;
 }
 
+void HelioObject::unresolveAny(HelioObject *obj)
+{
+    if (_links) {
+        HelioObject *lastObject = nullptr;
+        for (hposi_t linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
+            HelioObject *object = _links[linksIndex].first;
+            if (object != obj) {
+                object->unresolveAny(obj); // may clobber indexing
+
+                if (linksIndex && _links[linksIndex].first != object) {
+                    while (linksIndex && _links[linksIndex].first != lastObject) { --linksIndex; }
+                    object = lastObject;
+                }
+            }
+            lastObject = object;
+        }
+    }
+}
+
 HelioIdentity HelioObject::getId() const
 {
     return _id;
@@ -172,6 +191,11 @@ SharedPtr<HelioObjInterface> HelioObject::getSharedPtr() const
                               : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
 }
 
+bool HelioObject::isObject() const
+{
+    return true;
+}
+
 HelioData *HelioObject::allocateData() const
 {
     HELIO_HARD_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
@@ -188,6 +212,9 @@ void HelioObject::saveToData(HelioData *dataOut)
     }
 }
 
+
+void HelioSubObject::unresolveAny(HelioObject *obj)
+{ ; }
 
 HelioIdentity HelioSubObject::getId() const
 {
@@ -207,6 +234,11 @@ String HelioSubObject::getKeyString() const
 SharedPtr<HelioObjInterface> HelioSubObject::getSharedPtr() const
 {
     return SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
+}
+
+bool HelioSubObject::isObject() const
+{
+    return false;
 }
 
 void HelioSubObject::setParent(HelioObjInterface *parent)

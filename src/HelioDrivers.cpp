@@ -114,13 +114,13 @@ void HelioDriver::disableAllActivations()
 //     : HelioDriver(sensor, targetSetpoint, targetRange, measurementRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
 // { ; }
 
-void HelioAbsoluteDriver::handleOffset(float targetOffset)
+void HelioAbsoluteDriver::handleOffset(float maximumOffset)
 {
     if (!_enabled) { return; }
 
     auto hadDrivingState = _drivingState;
-    _drivingState = targetOffset < -FLT_EPSILON ? Helio_DrivingState_GoHigher :
-                    targetOffset > FLT_EPSILON ? Helio_DrivingState_GoLower :
+    _drivingState = maximumOffset < -FLT_EPSILON ? Helio_DrivingState_GoHigher :
+                    maximumOffset > FLT_EPSILON ? Helio_DrivingState_GoLower :
                     Helio_DrivingState_OnTarget;
 
     if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {
@@ -159,12 +159,12 @@ void HelioAbsoluteDriver::handleOffset(float targetOffset)
     }
 }
 
-void HelioIncrementalDriver::handleOffset(float targetOffset) {
+void HelioIncrementalDriver::handleOffset(float maximumOffset) {
     if (!_enabled) { return; }
 
     auto hadDrivingState = _drivingState;
-    _drivingState = targetOffset < -(_targetRange * 0.5f) ? Helio_DrivingState_GoHigher :
-                    targetOffset > (_targetRange * 0.5f) ? Helio_DrivingState_GoLower :
+    _drivingState = maximumOffset < -(_targetRange * 0.5f) ? Helio_DrivingState_GoHigher :
+                    maximumOffset > (_targetRange * 0.5f) ? Helio_DrivingState_GoLower :
                     Helio_DrivingState_OnTarget;
 
     if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {

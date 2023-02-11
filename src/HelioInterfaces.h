@@ -53,13 +53,15 @@ struct HelioJSONSerializableInterface {
 // Object Interface
 class HelioObjInterface {
 public:
+    virtual void unresolveAny(HelioObject *obj) = 0;
+
     virtual HelioIdentity getId() const = 0;
     virtual hkey_t getKey() const = 0;
     virtual String getKeyString() const = 0;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const = 0;
 
-    inline bool isSubObject() const { return getId().isUnknownType(); }
-    inline bool isObject() const { return !isSubObject(); }
+    virtual bool isObject() const = 0;
+    inline bool isSubObject() const { return !isObject(); }
 };
 
 // UI Interface
