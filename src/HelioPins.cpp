@@ -59,6 +59,11 @@ void HelioPin::init()
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid()) {
             switch (mode) {
+                case Helio_PinMode_Digital_Input_Floating:
+                case Helio_PinMode_Analog_Input:
+                    pinMode(pin, INPUT);
+                    break;
+
                 case Helio_PinMode_Digital_Input_PullUp:
                     pinMode(pin, INPUT_PULLUP);
                     break;
@@ -69,11 +74,6 @@ void HelioPin::init()
                     #else
                         pinMode(pin, INPUT);
                     #endif
-                    break;
-
-                case Helio_PinMode_Digital_Input_Floating:
-                case Helio_PinMode_Analog_Input:
-                    pinMode(pin, INPUT);
                     break;
 
                 case Helio_PinMode_Digital_Output_OpenDrain:
