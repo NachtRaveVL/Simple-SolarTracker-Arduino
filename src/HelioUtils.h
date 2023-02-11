@@ -382,9 +382,9 @@ extern String controlInputModeToString(Helio_ControlInputMode controlInMode, boo
 extern Helio_ControlInputMode controlInputModeFromString(String controlInModeStr);
 
 // Returns true for actuators that are motorized (thus must do track checks) as derived from actuator type enumeration.
-extern bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType);
+inline bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_LinearActuator || actuatorType == Helio_ActuatorType_ContinuousServo; }
 // Returns true for actuators that are servo based (thus have a 2.5%-12.5% phase calibration) as derived from actuator type enumeration.
-inline bool getActuatorIsServoFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_RotaryServo; }
+inline bool getActuatorIsServoFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_PositionalServo || actuatorType == Helio_ActuatorType_ContinuousServo; }
 // Returns true for actuators that operate activation handles serially (as opposed to in-parallel) as derived from enabled mode enumeration.
 inline bool getActuatorIsSerialFromMode(Helio_EnableMode actuatorMode) { return actuatorMode >= Helio_EnableMode_Serial; }
 

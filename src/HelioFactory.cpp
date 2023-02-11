@@ -43,16 +43,16 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addPowerLevelMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
-    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerUsage));
+    hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerLevel));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
     if (inputPinIsAnalog && isValidIndex(positionIndex)) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
-            Helio_SensorType_PowerUsage,
+            Helio_SensorType_PowerLevel,
             positionIndex,
             HelioAnalogPin(inputPin, INPUT, inputBitRes)
         ));

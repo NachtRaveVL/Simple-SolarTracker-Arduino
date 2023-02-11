@@ -138,7 +138,7 @@ public:
 
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
-    
+
     virtual Pair<float,float> getTrackExtents() const;
 
     // Transformation methods that convert from normalized driving intensity/driver value to calibration units

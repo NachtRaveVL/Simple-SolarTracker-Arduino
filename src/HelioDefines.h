@@ -292,11 +292,11 @@ enum Helio_ControlInputMode : signed char {
 // Actuator Type
 // Control actuator type. Specifies the various controllable equipment and their usage.
 enum Helio_ActuatorType : signed char {
-    Helio_ActuatorType_PanelCover,                          // Panel cover actuator
-    Helio_ActuatorType_PanelHeater,                         // Panel heater actuator
-    Helio_ActuatorType_PanelCleaner,                        // Panel cleaner actuator
-    Helio_ActuatorType_LinearActuator,                      // Panel axis linear actuator
-    Helio_ActuatorType_RotaryServo,                         // Panel axis rotary servo
+    Helio_ActuatorType_ContinuousServo,                     // Continuous servo (motor)
+    Helio_ActuatorType_LinearActuator,                      // Linear actuator (motor)
+    Helio_ActuatorType_PanelHeater,                         // Panel heater (binary/analog)
+    Helio_ActuatorType_PanelSprayer,                        // Panel sprayer/cleaner (binary/analog)
+    Helio_ActuatorType_PositionalServo,                     // Positional servo (analog)
 
     Helio_ActuatorType_Count,                               // Placeholder
     Helio_ActuatorType_Undefined = -1                       // Placeholder
@@ -305,15 +305,14 @@ enum Helio_ActuatorType : signed char {
 // Sensor Type
 // Sensor device type. Specifies the various sensors and the kinds of things they measure.
 enum Helio_SensorType : signed char {
+    Helio_SensorType_Endstop,                               // Positional endstop (binary)
+    Helio_SensorType_IceDetector,                           // Ice detector/meter (binary/analog)
     Helio_SensorType_LightIntensity,                        // Light dependent resistor (LDR, analog)
-    Helio_SensorType_PowerUsage,                            // Power usage meter (analog)
-    Helio_SensorType_PowerProduction,                       // Power production meter (analog)
+    Helio_SensorType_PowerLevel,                            // Power level meter (analog)
+    Helio_SensorType_StrokePosition,                        // Stroke position potentiometer (analog)
     Helio_SensorType_TemperatureHumidity,                   // Temperature and humidity sensor (digital)
-    Helio_SensorType_IceDetector,                           // Ice detector (binary/analog)
-    Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
-    Helio_SensorType_Endstop,                               // Track axis endstop (binary)
-    Helio_SensorType_StrokePosition,                        // Actuator stroke position potentiometer (analog)
     Helio_SensorType_TiltAngle,                             // Tilt angle sensor (analog)
+    Helio_SensorType_WindSpeed,                             // Wind speed meter (binary/analog)
 
     Helio_SensorType_Count,                                 // Placeholder
     Helio_SensorType_Undefined = -1                         // Placeholder
@@ -334,10 +333,13 @@ enum Helio_PanelType : signed char {
 // Power Rail
 // Common power rails. Specifies an isolated operational power rail unit.
 enum Helio_RailType : signed char {
-    Helio_RailType_AC110V,                                  // 110~120V AC-based power rail, for heaters, etc.
-    Helio_RailType_AC220V,                                  // 110~120V AC-based power rail, for heaters, etc.
-    Helio_RailType_DC5V,                                    // 5v DC-based power rail, for sensors, etc.
-    Helio_RailType_DC12V,                                   // 12v DC-based power rail, for actuators, etc.
+    Helio_RailType_AC110V,                                  // ~110V AC-based power rail
+    Helio_RailType_AC220V,                                  // ~220V AC-based power rail
+    Helio_RailType_DC3V3,                                   // 3.3v DC-based power rail
+    Helio_RailType_DC5V,                                    // 5v DC-based power rail
+    Helio_RailType_DC12V,                                   // 12v DC-based power rail
+    Helio_RailType_DC24V,                                   // 24v DC-based power rail
+    Helio_RailType_DC48V,                                   // 48v DC-based power rail
 
     Helio_RailType_Count,                                   // Placeholder
     Helio_RailType_Undefined = -1,                          // Placeholder
@@ -426,12 +428,12 @@ enum Helio_DirectionMode : signed char {
 // Unit of measurement category. Specifies the kind of unit.
 enum Helio_UnitsCategory : signed char {
     Helio_UnitsCategory_Angle,                              // Angle based unit
-    Helio_UnitsCategory_Temperature,                        // Temperature based unit
-    Helio_UnitsCategory_Humidity,                           // Humidity based unit
-    Helio_UnitsCategory_HeatIndex,                          // Heat index based unit
     Helio_UnitsCategory_Distance,                           // Distance/position based unit
-    Helio_UnitsCategory_Speed,                              // Speed based unit
+    Helio_UnitsCategory_HeatIndex,                          // Heat index based unit
+    Helio_UnitsCategory_Humidity,                           // Humidity based unit
     Helio_UnitsCategory_Power,                              // Power based unit
+    Helio_UnitsCategory_Speed,                              // Speed based unit
+    Helio_UnitsCategory_Temperature,                        // Temperature based unit
 
     Helio_UnitsCategory_Count,                              // Placeholder
     Helio_UnitsCategory_Undefined = -1                      // Placeholder
@@ -444,15 +446,15 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Percentile_0_100,                       // Percentile [0.0,100.0] mode
     Helio_UnitsType_Angle_Degrees,                          // Degrees angle [%360) mode
     Helio_UnitsType_Angle_Radians,                          // Radians angle [%2pi) mode
+    Helio_UnitsType_Distance_Feet,                          // Feet distance mode
+    Helio_UnitsType_Distance_Meters,                        // Meters distance mode
+    Helio_UnitsType_Power_Amperage,                         // Amperage current power mode
+    Helio_UnitsType_Power_Wattage,                          // Wattage power mode
+    Helio_UnitsType_Speed_FeetPerMin,                       // Feet per minute speed mode
+    Helio_UnitsType_Speed_MetersPerMin,                     // Meters per minute speed mode
     Helio_UnitsType_Temperature_Celsius,                    // Celsius temperature mode
     Helio_UnitsType_Temperature_Fahrenheit,                 // Fahrenheit temperature mode
     Helio_UnitsType_Temperature_Kelvin,                     // Kelvin temperature mode
-    Helio_UnitsType_Distance_Meters,                        // Meters distance mode
-    Helio_UnitsType_Distance_Feet,                          // Feet distance mode
-    Helio_UnitsType_Speed_MetersPerMin,                     // Meters per minute speed mode
-    Helio_UnitsType_Speed_FeetPerMin,                       // Feet per minute speed mode
-    Helio_UnitsType_Power_Wattage,                          // Wattage power mode
-    Helio_UnitsType_Power_Amperage,                         // Amperage current power mode
 
     Helio_UnitsType_Count,                                  // Placeholder
     Helio_UnitsType_Power_JoulesPerSecond = Helio_UnitsType_Power_Wattage, // Joules per second power mode alias

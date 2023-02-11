@@ -296,7 +296,7 @@ void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibration
 
 Pair<float,float> HelioActuator::getTrackExtents() const
 {
-    if (isActuatorType()) {
+    if (isServoType()) {
         return make_pair<float,float>(calibrationTransform(0.025f), calibrationTransform(0.125f));
     } else if (isDirectionalType()) {
         return make_pair<float,float>(calibrationTransform(-1.0f), calibrationTransform(1.0f));

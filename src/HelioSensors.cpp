@@ -35,8 +35,7 @@ Helio_UnitsType defaultMeasureUnitsForSensorType(Helio_SensorType sensorType, ui
     switch (sensorType) {
         case Helio_SensorType_TemperatureHumidity:
             return defaultTemperatureUnits(measureMode);
-        case Helio_SensorType_PowerUsage:
-        case Helio_SensorType_PowerProduction:
+        case Helio_SensorType_PowerLevel:
             return defaultPowerUnits(measureMode);
         case Helio_SensorType_WindSpeed:
             return defaultSpeedUnits(measureMode);
@@ -59,8 +58,7 @@ Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorT
                 case 2: return Helio_UnitsCategory_HeatIndex;
                 default: break;
             }
-        case Helio_SensorType_PowerUsage:
-        case Helio_SensorType_PowerProduction:
+        case Helio_SensorType_PowerLevel:
             return Helio_UnitsCategory_Power;
         case Helio_SensorType_WindSpeed:
             return Helio_UnitsCategory_Speed;
