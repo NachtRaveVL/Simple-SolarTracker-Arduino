@@ -980,11 +980,9 @@ String systemModeToString(Helio_SystemMode systemMode, bool excludeSpecial)
 {
     switch (systemMode) {
         case Helio_SystemMode_PositionCalculating:
-            //todo
-            //return SFP(HStr_Enum_PositionCalculating);
+            return SFP(HStr_Enum_PositionCalculating);
         case Helio_SystemMode_BrightnessBalancing:
-            //todo
-            //return SFP(HStr_Enum_BrightnessBalancing);
+            return SFP(HStr_Enum_BrightnessBalancing);
         case Helio_SystemMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_SystemMode_Undefined:
@@ -1052,31 +1050,19 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
     return !excludeSpecial ? SFP(HStr_Undefined) : String();
 }
 
-bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType)
-{
-    switch (actuatorType) {
-        case Helio_ActuatorType_LinearActuator:
-        case Helio_ActuatorType_PanelCover:
-            return true;
-
-        default:
-            return false;
-    }
-}
-
 String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial)
 {
     switch (actuatorType) {
-        case Helio_ActuatorType_PanelCover:
-            // todo return SFP(HStr_Enum_XXX);
-        case Helio_ActuatorType_PanelHeater:
-            // todo return SFP(HStr_Enum_XXX);
-        case Helio_ActuatorType_PanelCleaner:
-            // todo return SFP(HStr_Enum_XXX);
+        case Helio_ActuatorType_ContinuousServo:
+            return SFP(HStr_Enum_ContinuousServo);
         case Helio_ActuatorType_LinearActuator:
-            // todo return SFP(HStr_Enum_XXX);
-        case Helio_ActuatorType_RotaryServo:
-            // todo return SFP(HStr_Enum_XXX);
+            return SFP(HStr_Enum_LinearActuator);
+        case Helio_ActuatorType_PanelHeater:
+            return SFP(HStr_Enum_PanelHeater);
+        case Helio_ActuatorType_PanelSprayer:
+            return SFP(HStr_Enum_PanelSprayer);
+        case Helio_ActuatorType_PositionalServo:
+            return SFP(HStr_Enum_PositionalServo);
         case Helio_ActuatorType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_ActuatorType_Undefined:
@@ -1088,11 +1074,22 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
 String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
 {
     switch (sensorType) {
-        // todo
+        case Helio_SensorType_Endstop:
+            return SFP(HStr_Enum_Endstop);
+        case Helio_SensorType_IceDetector:
+            return SFP(HStr_Enum_IceDetector);
+        case Helio_SensorType_LightIntensity:
+            return SFP(HStr_Enum_LightIntensity);
+        case Helio_SensorType_PowerLevel:
+            return SFP(HStr_Enum_PowerLevel);
+        case Helio_SensorType_StrokePosition:
+            return SFP(HStr_Enum_StokePosition);
         case Helio_SensorType_TemperatureHumidity:
             return SFP(HStr_Enum_TemperatureHumidity);
-        case Helio_SensorType_PowerUsage:
-            return SFP(HStr_Enum_PowerUsageMeter);
+        case Helio_SensorType_TiltAngle:
+            return SFP(HStr_Enum_TiltAngle);
+        case Helio_SensorType_WindSpeed:
+            return SFP(HStr_Enum_WindSpeed);
         case Helio_SensorType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_SensorType_Undefined:
@@ -1118,7 +1115,14 @@ hposi_t getPanelAxisCountFromType(Helio_PanelType panelType)
 String panelTypeToString(Helio_PanelType panelType, bool excludeSpecial)
 {
     switch (panelType) {
-        // todo
+        case Helio_PanelType_Horizontal:
+            return SFP(HStr_Enum_Horizontal);
+        case Helio_PanelType_Vertical:
+            return SFP(HStr_Enum_Vertical);
+        case Helio_PanelType_Gimballed:
+            return SFP(HStr_Enum_Gimballed);
+        case Helio_PanelType_Equatorial:
+            return SFP(HStr_Enum_Equatorial);
         case Helio_PanelType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_PanelType_Undefined:
@@ -1134,10 +1138,16 @@ float getRailVoltageFromType(Helio_RailType railType)
             return 110.0f;
         case Helio_RailType_AC220V:
             return 220.0f;
+        case Helio_RailType_DC3V3:
+            return 3.3f;
         case Helio_RailType_DC5V:
             return 5.0f;
         case Helio_RailType_DC12V:
             return 12.0f;
+        case Helio_RailType_DC24V:
+            return 24.0f;
+        case Helio_RailType_DC48V:
+            return 48.0f;
         default:
             return 0.0f;
     }
@@ -1150,10 +1160,16 @@ String railTypeToString(Helio_RailType railType, bool excludeSpecial)
             return SFP(HStr_Enum_AC110V);
         case Helio_RailType_AC220V:
             return SFP(HStr_Enum_AC220V);
+        case Helio_RailType_DC3V3:
+            return SFP(HStr_Enum_DC3V3);
         case Helio_RailType_DC5V:
             return SFP(HStr_Enum_DC5V);
         case Helio_RailType_DC12V:
             return SFP(HStr_Enum_DC12V);
+        case Helio_RailType_DC24V:
+            return SFP(HStr_Enum_DC24V);
+        case Helio_RailType_DC48V:
+            return SFP(HStr_Enum_DC48V);
         case Helio_RailType_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_RailType_Undefined:
@@ -1165,18 +1181,20 @@ String railTypeToString(Helio_RailType railType, bool excludeSpecial)
 String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpecial)
 {
     switch (unitsCategory) {
-        case Helio_UnitsCategory_Temperature:
-            return SFP(HStr_Enum_Temperature);
-        case Helio_UnitsCategory_Humidity:
-            return SFP(HStr_Enum_Humidity);
-        case Helio_UnitsCategory_HeatIndex:
-            return SFP(HStr_Enum_HeatIndex);
+        case Helio_UnitsCategory_Angle:
+            return SFP(HStr_Enum_Angle);
         case Helio_UnitsCategory_Distance:
             return SFP(HStr_Enum_Distance);
-        case Helio_UnitsCategory_Speed:
-            return SFP(HStr_Enum_Speed);
+        case Helio_UnitsCategory_HeatIndex:
+            return SFP(HStr_Enum_HeatIndex);
+        case Helio_UnitsCategory_Humidity:
+            return SFP(HStr_Enum_Humidity);
         case Helio_UnitsCategory_Power:
             return SFP(HStr_Enum_Power);
+        case Helio_UnitsCategory_Speed:
+            return SFP(HStr_Enum_Speed);
+        case Helio_UnitsCategory_Temperature:
+            return SFP(HStr_Enum_Temperature);
         case Helio_UnitsCategory_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_UnitsCategory_Undefined:
@@ -1192,24 +1210,28 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             return SFP(HStr_raw);
         case Helio_UnitsType_Percentile_0_100:
             return SFP(HStr_Unit_Percentile);
+        case Helio_UnitsType_Angle_Degrees:
+            return SFP(HStr_Unit_Degrees);
+        case Helio_UnitsType_Angle_Radians:
+            return SFP(HStr_Unit_Radians);
+        case Helio_UnitsType_Distance_Feet:
+            return SFP(HStr_Unit_Feet);
+        case Helio_UnitsType_Distance_Meters:
+            return SFP(HStr_Unit_Meters);
+        case Helio_UnitsType_Power_Amperage:
+            return SFP(HStr_Unit_Amperage);
+        case Helio_UnitsType_Power_Wattage:
+            return SFP(HStr_Unit_Wattage);  // alt: J/s
+        case Helio_UnitsType_Speed_FeetPerMin:
+            return SFP(HStr_Unit_FeetPerMin);
+        case Helio_UnitsType_Speed_MetersPerMin:
+            return SFP(HStr_Unit_MetersPerMin);
         case Helio_UnitsType_Temperature_Celsius:
             return SFP(HStr_Unit_Celsius);
         case Helio_UnitsType_Temperature_Fahrenheit:
             return SFP(HStr_Unit_Fahrenheit);
         case Helio_UnitsType_Temperature_Kelvin:
             return SFP(HStr_Unit_Kelvin);
-        case Helio_UnitsType_Distance_Meters:
-            return SFP(HStr_Unit_Meters);
-        case Helio_UnitsType_Distance_Feet:
-            return SFP(HStr_Unit_Feet);
-        case Helio_UnitsType_Speed_MetersPerMin:
-            return SFP(HStr_Unit_MetersPerMin);
-        case Helio_UnitsType_Speed_FeetPerMin:
-            return SFP(HStr_Unit_FeetPerMin);
-        case Helio_UnitsType_Power_Wattage:
-            return SFP(HStr_Unit_Wattage); // alt: J/s
-        case Helio_UnitsType_Power_Amperage:
-            return SFP(HStr_Unit_Amperage);
         case Helio_UnitsType_Count:
             return !excludeSpecial ? SFP(HStr_Unit_Count) : String();
         case Helio_UnitsType_Undefined:
