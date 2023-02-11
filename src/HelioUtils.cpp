@@ -1259,7 +1259,7 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
         case Helio_UnitsType_Power_Amperage:
             return SFP(HStr_Unit_Amperage);
         case Helio_UnitsType_Power_Wattage:
-            return SFP(HStr_Unit_Wattage);  // alt: J/s
+            return SFP(HStr_Unit_Wattage); // alt: J/s
         case Helio_UnitsType_Speed_FeetPerMin:
             return SFP(HStr_Unit_FeetPerMin);
         case Helio_UnitsType_Speed_MetersPerMin:
