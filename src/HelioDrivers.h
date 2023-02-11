@@ -81,7 +81,7 @@ public:
 protected:
     millis_t _lastUpdate;
 
-    virtual void handleOffset(float travelDelta) override;
+    virtual void handleOffset(float maximumOffset) override;
 };
 
 // Incremental Driver
@@ -98,7 +98,7 @@ protected:
     float _targetRange;                                     // Target range
     float _travelRange;                                     // Travel range
 
-    virtual void handleOffset(float travelDelta) override;
+    virtual void handleOffset(float maximumOffset) override;
 };
 
 #endif // /ifndef HelioDrivers_H

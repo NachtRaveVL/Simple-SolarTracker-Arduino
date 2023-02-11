@@ -760,7 +760,7 @@ void Helioduino::commonPostSave()
 
 // Runloops
 
-// Super tight updates (buzzer/gps/etc) need to go here
+// Super tight updates (buzzer/gps/etc) that need to be ran often
 inline void tightUpdates()
 {
     // TODO: put in link to buzzer update here
@@ -869,10 +869,10 @@ void miscLoop()
         #ifdef HELIO_USE_GPS
             yieldIfNeeded(lastYield);
 
-            if (Helioduino::_gps && Helioduino::_gps->newNMEAreceived()) {
-                Helioduino::_gps->parse(Helioduino::_gps->lastNMEA());
-                if (Helioduino::_gps->fix) {
-                    Helioduino::_activeInstance->setSystemLocation(Helioduino::_gps->lat, Helioduino::_gps->lon, Helioduino::_gps->altitude);
+            if (Helioduino::_activeInstance->_gps && Helioduino::_activeInstance->_gps->newNMEAreceived()) {
+                Helioduino::_activeInstance->_gps->parse(Helioduino::_activeInstance->_gps->lastNMEA());
+                if (Helioduino::_activeInstance->_gps->fix) {
+                    Helioduino::_activeInstance->setSystemLocation(Helioduino::_activeInstance->_gps->lat, Helioduino::_activeInstance->_gps->lon, Helioduino::_activeInstance->_gps->altitude);
                 }
             }
         #endif

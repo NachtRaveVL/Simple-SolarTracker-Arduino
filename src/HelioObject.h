@@ -108,10 +108,14 @@ public:
     // Objects are considered strong pointers, since existence -> SharedPtr ref to this instance exists.
     inline Pair<uint8_t, Pair<HelioObject *, int8_t> *> getLinkages() const { return make_pair(_linksSize, _links); }
 
+    virtual void unresolveAny(HelioObject *obj) override;   // Unresolves any dlinks to obj prior to caching
+    inline void unresolve() { unresolveAny(this); }         // Unresolves this instance from any dlinks
+
     virtual HelioIdentity getId() const override;           // Returns the unique Identity of the object
     virtual hkey_t getKey() const override;                 // Returns the unique key of the object
     virtual String getKeyString() const override;           // Returns the key string of the object
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override; // Returns the SharedPtr instance of the object
+    virtual bool isObject() const override;
 
 protected:
     HelioIdentity _id;                                      // Object id
@@ -134,10 +138,13 @@ class HelioSubObject : public HelioObjInterface {
 public:
     inline HelioSubObject(HelioObjInterface *parent = nullptr) : _parent(parent) { ; }
 
+    virtual void unresolveAny(HelioObject *obj) override;
+
     virtual HelioIdentity getId() const override;
     virtual hkey_t getKey() const override;
     virtual String getKeyString() const override;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override;
+    virtual bool isObject() const override;
 
     virtual void setParent(HelioObjInterface *parent);
     inline HelioObjInterface *getParent() const { return _parent; }
