@@ -362,7 +362,7 @@ void HelioRelayActuator::saveToData(HelioData *dataOut)
 
 
 HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, HelioDigitalPin forwardOutputPin, HelioDigitalPin reverseOutputPin, int classType)
-    :  HelioRelayActuator(actuatorType, actuatorIndex, forwardOutputPin, classType), _outputPin2(reverseOutputPin),
+    : HelioRelayActuator(actuatorType, actuatorIndex, forwardOutputPin, classType), _outputPin2(reverseOutputPin),
        _distanceUnits(defaultDistanceUnits()), _position(this), _speed(this), _minTrigger(this), _maxTrigger(this),
        _travelPositionStart(0.0f), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {

@@ -104,7 +104,7 @@ void HelioAttachment::setParent(HelioObjInterface *parent)
 
 
 HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
-    :  HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(parent, &HelioActuator::getActivationSignal),
+    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(parent, &HelioActuator::getActivationSignal),
        _actHandle(), _actSetup(), _updateSlot(nullptr), _rateMultiplier(1.0f), _calledLastUpdate(false)
 { ; }
 
