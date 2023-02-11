@@ -179,7 +179,7 @@ enum Helio_String : unsigned short {
     HStr_Enum_DesOrder,
     HStr_Enum_DigitalInput,
     HStr_Enum_DigitalInputPullDown,
-    HStr_Enum_DigitalInputFloating,
+    HStr_Enum_DigitalInputPullUp,
     HStr_Enum_DigitalOutput,
     HStr_Enum_DigitalOutputPushPull,
     HStr_Enum_Distance,
