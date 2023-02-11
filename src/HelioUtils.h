@@ -306,15 +306,17 @@ inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType o
 // Convert param used in certain unit conversions. Returns conversion success flag.
 inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) { return convertUnits(measureIn->value, &measureOut->value, measureIn->units, outUnits, &measureOut->units, convertParam); }
 
-// Returns the base units from a rate unit (e.g. mm/s -> mm).
+// Returns the base units from a rate unit (e.g. mm/min -> mm).
 extern Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units);
+// Returns the rate units from a base unit (e.g. mm -> mm/min).
+extern Helio_UnitsType rateUnitsFromBase(Helio_UnitsType units);
 
 // Returns default temperature units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default distance units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default speed units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-extern Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+inline Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return rateUnitsFromBase(defaultDistanceUnits(measureMode)); }
 // Returns default power units to use based on measureMode (if undefined then uses active Hydruino instance's measurement mode, else default mode).
 extern Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
 // Returns default decimal places rounded to based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
@@ -356,11 +358,6 @@ inline bool checkPinCanInterrupt(pintype_t pin);
 
 // Enums & Conversions
 
-// Converts from pin mode enum to string, with optional exclude for special types (instead returning "").
-extern String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial = false);
-// Converts back to pin mode enum from string.
-extern Helio_PinMode pinModeFromString(String pinModeStr);
-
 // Converts from system mode enum to string, with optional exclude for special types (instead returning "").
 extern String systemModeToString(Helio_SystemMode systemMode, bool excludeSpecial = false);
 // Converts back to system mode enum from string.
@@ -382,9 +379,9 @@ extern String controlInputModeToString(Helio_ControlInputMode controlInMode, boo
 extern Helio_ControlInputMode controlInputModeFromString(String controlInModeStr);
 
 // Returns true for actuators that are motorized (thus must do track checks) as derived from actuator type enumeration.
-inline bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_LinearActuator || actuatorType == Helio_ActuatorType_ContinuousServo; }
+inline bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_ContinuousServo || actuatorType == Helio_ActuatorType_LinearActuator; }
 // Returns true for actuators that are servo based (thus have a 2.5%-12.5% phase calibration) as derived from actuator type enumeration.
-inline bool getActuatorIsServoFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_PositionalServo || actuatorType == Helio_ActuatorType_ContinuousServo; }
+inline bool getActuatorIsServoFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_ContinuousServo || actuatorType == Helio_ActuatorType_PositionalServo; }
 // Returns true for actuators that operate activation handles serially (as opposed to in-parallel) as derived from enabled mode enumeration.
 inline bool getActuatorIsSerialFromMode(Helio_EnableMode actuatorMode) { return actuatorMode >= Helio_EnableMode_Serial; }
 
@@ -415,6 +412,16 @@ extern float getRailVoltageFromType(Helio_RailType railType);
 extern String railTypeToString(Helio_RailType railType, bool excludeSpecial = false);
 // Converts back to power rail enum from string.
 extern Helio_RailType railTypeFromString(String railTypeStr);
+
+// Converts from pin mode enum to string, with optional exclude for special types (instead returning "").
+extern String pinModeToString(Helio_PinMode pinMode, bool excludeSpecial = false);
+// Converts back to pin mode enum from string.
+extern Helio_PinMode pinModeFromString(String pinModeStr);
+
+// Converts from actuator enable mode enum to string, with optional exclude for special types (instead returning "").
+extern String enableModeToString(Helio_EnableMode enableMode, bool excludeSpecial = false);
+// Converts back to actuator enable mode enum from string.
+extern Helio_EnableMode enableModeFromString(String enableModeStr);
 
 // Converts from units category enum to string, with optional exclude for special types (instead returning "").
 extern String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpecial = false);

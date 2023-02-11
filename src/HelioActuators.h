@@ -172,8 +172,7 @@ public:
 
     virtual void setDistanceUnits(Helio_UnitsType distanceUnits) override;
     virtual Helio_UnitsType getDistanceUnits() const override;
-    virtual void setSpeedUnits(Helio_UnitsType speedUnits) override;
-    virtual Helio_UnitsType getSpeedUnits() const override;
+    inline Helio_UnitsType getSpeedUnits() const { return rateUnitsFromBase(getDistanceUnits()); }
 
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
     virtual const HelioSingleMeasurement &getContinuousSpeed() override;
@@ -181,17 +180,24 @@ public:
     virtual Pair<float,float> getTrackExtents() const override;
 
     virtual HelioSensorAttachment &getPosition(bool poll = false) override;
-
     virtual HelioSensorAttachment &getSpeed(bool poll = false) override;
+
+    template<typename T> inline void setMinTrigger(T minTrigger) { _minTrigger = minTrigger; }
+    inline SharedPtr<HelioTrigger> getMinTrigger() { return _minTrigger.getObject(); }
+
+    template<typename T> inline void setMaxTrigger(T maxTrigger) { _maxTrigger = maxTrigger; }
+    inline SharedPtr<HelioTrigger> getMaxTrigger() { return _maxTrigger.getObject(); }
 
 protected:
     HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse/H-bridge pin B)
     float _intensity;                                       // Current set intensity
     Helio_UnitsType _distanceUnits;                         // Distance units preferred
-    Helio_UnitsType _speedUnits;                            // Speed units preferred
-    HelioSingleMeasurement _contSpeed;                      // Continuous speed
+    HelioSingleMeasurement _contSpeed;                      // Continuous speed (dist units per min)
     HelioSensorAttachment _position;                        // Position sensor attachment
     HelioSensorAttachment _speed;                           // Speed rate sensor attachment
+    HelioTriggerAttachment _minTrigger;                     // Minimum travel trigger attachment
+    HelioTriggerAttachment _maxTrigger;                     // Maximum travel trigger attachment
+
     float _travelPositionStart;                             // Start for travel distance
     float _travelDistanceAccum;                             // Accumulator for total distance traveled
     millis_t _travelTimeStart;                              // Time millis motor was activated at
@@ -268,10 +274,11 @@ struct HelioMotorActuatorData : public HelioActuatorData
 {
     HelioPinData outputPin2;
     Helio_UnitsType distanceUnits;
-    Helio_UnitsType speedUnits;
     HelioMeasurementData contSpeed;
     char positionSensor[HELIO_NAME_MAXSIZE];
     char speedSensor[HELIO_NAME_MAXSIZE];
+    HelioTriggerSubData minTrigger;
+    HelioTriggerSubData maxTrigger;
 
     HelioMotorActuatorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
