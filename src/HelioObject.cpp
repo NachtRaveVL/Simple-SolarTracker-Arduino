@@ -7,7 +7,7 @@
 
 HelioObject *newObjectFromData(const HelioData *dataIn)
 {
-    if (dataIn && dataIn->id.object.idType == -1) return nullptr;
+    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -28,63 +28,6 @@ HelioObject *newObjectFromData(const HelioData *dataIn)
     return nullptr;
 }
 
-
-HelioIdentity::HelioIdentity()
-    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(), key((hkey_t)-1)
-{ ; }
-
-HelioIdentity::HelioIdentity(hkey_t key)
-    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(), key(key)
-{ ; }
-
-HelioIdentity::HelioIdentity(const char *idKeyStr)
-    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(idKeyStr), key(stringHash(idKeyStr))
-{
-    // TODO: Advanced string detokenization (may not be needed tho)
-}
-
-HelioIdentity::HelioIdentity(String idKey)
-    : type(Unknown), objTypeAs{.actuatorType=(Helio_ActuatorType)-1}, posIndex(-1), keyString(idKey), key(stringHash(idKey.c_str()))
-{ ; }
-
-HelioIdentity::HelioIdentity(const HelioIdentity &id, hposi_t positionIndex)
-    : type(id.type), objTypeAs{.actuatorType=id.objTypeAs.actuatorType}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
-
-HelioIdentity::HelioIdentity(Helio_ActuatorType actuatorTypeIn, hposi_t positionIndex)
-    : type(Actuator), objTypeAs{.actuatorType=actuatorTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
-
-HelioIdentity::HelioIdentity(Helio_SensorType sensorTypeIn, hposi_t positionIndex)
-    : type(Sensor), objTypeAs{.sensorType=sensorTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
-
-HelioIdentity::HelioIdentity(Helio_PanelType panelTypeIn, hposi_t positionIndex)
-    : type(Panel), objTypeAs{.panelType=panelTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
-
-HelioIdentity::HelioIdentity(Helio_RailType railTypeIn, hposi_t positionIndex)
-    : type(Rail), objTypeAs{.railType=railTypeIn}, posIndex(positionIndex), keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
-
-HelioIdentity::HelioIdentity(const HelioData *dataIn)
-    : type((typeof(type))(dataIn->id.object.idType)),
-      objTypeAs{.actuatorType=(Helio_ActuatorType)(dataIn->id.object.objType)},
-      posIndex(dataIn->id.object.posIndex),
-      keyString(), key((hkey_t)-1)
-{
-    regenKey();
-}
 
 hkey_t HelioIdentity::regenKey()
 {
@@ -111,14 +54,6 @@ hkey_t HelioIdentity::regenKey()
     return key;
 }
 
-
-HelioObject::HelioObject(HelioIdentity id)
-    : _id(id), _linksSize(0), _links(nullptr)
-{ ; }
-
-HelioObject::HelioObject(const HelioData *data)
-    : _id(data), _linksSize(0), _links(nullptr)
-{ ; }
 
 HelioObject::~HelioObject()
 {
@@ -149,14 +84,14 @@ void HelioObject::allocateLinkages(size_t size)
         if (size) {
             HELIO_HARD_ASSERT(newLinks, SFP(HStr_Err_AllocationFailure));
 
-            int linksIndex = 0;
+            hposi_t linksIndex = 0;
             if (_links) {
                 for (; linksIndex < _linksSize && linksIndex < size; ++linksIndex) {
                     newLinks[linksIndex] = _links[linksIndex];
                 }
             }
             for (; linksIndex < size; ++linksIndex) {
-                newLinks[linksIndex] = make_pair((HelioObject *)nullptr, (int8_t)0);
+                newLinks[linksIndex] = make_pair((HelioObject *)nullptr, (int8_t)1);
             }
         }
 
@@ -170,14 +105,14 @@ bool HelioObject::addLinkage(HelioObject *obj)
 {
     if (!_links) { allocateLinkages(); }
     if (_links) {
-        if (_links[_linksSize-1].first) { allocateLinkages(_linksSize << 1); } // grow *2 if too small
-        int linksIndex = 0;
+        hposi_t linksIndex = 0;
         for (; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
             if (_links[linksIndex].first == obj) {
                 _links[linksIndex].second++;
                 return true;
             }
         }
+        if (linksIndex >= _linksSize) { allocateLinkages(_linksSize << 1); } // grow *2 if too small
         if (linksIndex < _linksSize) {
             _links[linksIndex] = make_pair(obj, (int8_t)0);
             return true;
@@ -189,12 +124,14 @@ bool HelioObject::addLinkage(HelioObject *obj)
 bool HelioObject::removeLinkage(HelioObject *obj)
 {
     if (_links) {
-        for (int linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
+        for (hposi_t linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
             if (_links[linksIndex].first == obj) {
-                for (int linksSubIndex = linksIndex; linksSubIndex < _linksSize - 1; ++linksSubIndex) {
-                    _links[linksSubIndex] = _links[linksSubIndex + 1];
+                if (--_links[linksIndex].second <= 0) {
+                    for (int linksSubIndex = linksIndex; linksSubIndex < _linksSize - 1; ++linksSubIndex) {
+                        _links[linksSubIndex] = _links[linksSubIndex + 1];
+                    }
+                    _links[_linksSize - 1] = make_pair((HelioObject *)nullptr, (int8_t)0);
                 }
-                _links[_linksSize - 1] = make_pair((HelioObject *)nullptr, (int8_t)0);
                 return true;
             }
         }
@@ -205,7 +142,7 @@ bool HelioObject::removeLinkage(HelioObject *obj)
 bool HelioObject::hasLinkage(HelioObject *obj) const
 {
     if (_links) {
-        for (int linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
+        for (hposi_t linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
             if (_links[linksIndex].first == obj) {
                 return true;
             }
@@ -243,9 +180,9 @@ HelioData *HelioObject::allocateData() const
 
 void HelioObject::saveToData(HelioData *dataOut)
 {
-    dataOut->id.object.idType = (int8_t)_id.type;
-    dataOut->id.object.objType = (int8_t)_id.objTypeAs.actuatorType;
-    dataOut->id.object.posIndex = (int8_t)_id.posIndex;
+    dataOut->id.object.idType = (hid_t)_id.type;
+    dataOut->id.object.objType = _id.objTypeAs.idType;
+    dataOut->id.object.posIndex = _id.posIndex;
     if (_id.keyString.length()) {
         strncpy(((HelioObjectData *)dataOut)->name, _id.keyString.c_str(), HELIO_NAME_MAXSIZE);
     }
@@ -272,15 +209,11 @@ SharedPtr<HelioObjInterface> HelioSubObject::getSharedPtr() const
     return SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
 }
 
-bool HelioSubObject::addLinkage(HelioObject *obj)
+void HelioSubObject::setParent(HelioObjInterface *parent)
 {
-    return false;
+    _parent = parent;
 }
 
-bool HelioSubObject::removeLinkage(HelioObject *obj)
-{
-    return false;
-}
 
 HelioObjectData::HelioObjectData()
     : HelioData(), name{0}

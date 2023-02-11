@@ -10,9 +10,9 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t output
     bool outputPinIsDigital = checkPinIsDigital(outputPin);
     hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelHeater));
     HELIO_HARD_ASSERT(outputPinIsDigital, SFP(HStr_Err_InvalidPinOrType));
-    HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
-    if (outputPinIsDigital && positionIndex != -1) {
+    if (outputPinIsDigital && isValidIndex(positionIndex)) {
         auto actuator = SharedPtr<HelioRelayActuator>(new HelioRelayActuator(
             Helio_ActuatorType_PanelHeater,
             positionIndex,
@@ -29,9 +29,9 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_TemperatureHumidity));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
-    HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
-    if (inputPinIsAnalog && positionIndex != -1) {
+    if (inputPinIsAnalog && isValidIndex(positionIndex)) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_TemperatureHumidity,
             positionIndex,
@@ -48,9 +48,9 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageMeter(pintype_t inputPin
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerUsage));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
-    HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
-    if (inputPinIsAnalog && positionIndex != -1) {
+    if (inputPinIsAnalog && isValidIndex(positionIndex)) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_PowerUsage,
             positionIndex,
@@ -70,9 +70,9 @@ SharedPtr<HelioSimpleRail> HelioFactory::addSimplePowerRail(Helio_RailType railT
     hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
     HELIO_SOFT_ASSERT((int)railType >= 0 && railType <= Helio_RailType_Count, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(maxActiveAtOnce > 0, SFP(HStr_Err_InvalidParameter));
-    HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
-    if ((int)railType >= 0 && railType < Helio_RailType_Count && maxActiveAtOnce > 0 && positionIndex != -1) {
+    if ((int)railType >= 0 && railType < Helio_RailType_Count && maxActiveAtOnce > 0 && isValidIndex(positionIndex)) {
         auto rail = SharedPtr<HelioSimpleRail>(new HelioSimpleRail(
             railType,
             positionIndex,
@@ -89,9 +89,9 @@ SharedPtr<HelioRegulatedRail> HelioFactory::addRegulatedPowerRail(Helio_RailType
     hposi_t positionIndex = getHelioInstance()->firstPositionOpen(HelioIdentity(railType));
     HELIO_SOFT_ASSERT((int)railType >= 0 && railType <= Helio_RailType_Count, SFP(HStr_Err_InvalidParameter));
     HELIO_SOFT_ASSERT(maxPower > FLT_EPSILON, SFP(HStr_Err_InvalidParameter));
-    HELIO_SOFT_ASSERT(positionIndex != -1, SFP(HStr_Err_NoPositionsAvailable));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
-    if ((int)railType >= 0 && railType < Helio_RailType_Count && maxPower > FLT_EPSILON && positionIndex != -1) {
+    if ((int)railType >= 0 && railType < Helio_RailType_Count && maxPower > FLT_EPSILON && isValidIndex(positionIndex)) {
         auto rail = SharedPtr<HelioRegulatedRail>(new HelioRegulatedRail(
             railType,
             positionIndex,

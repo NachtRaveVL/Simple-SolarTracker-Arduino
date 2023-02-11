@@ -53,7 +53,7 @@ public:
     virtual bool takeMeasurement(bool force = false) = 0;
     virtual const HelioMeasurement *getLatestMeasurement() const = 0;
     virtual bool isTakingMeasurement() const override;
-    virtual bool getNeedsPolling(uint32_t allowance = 0) const override;
+    virtual bool getNeedsPolling(hframe_t allowance = 0) const override;
 
     virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) = 0;
     virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const = 0;

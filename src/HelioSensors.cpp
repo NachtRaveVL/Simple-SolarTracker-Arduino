@@ -7,7 +7,7 @@
 
 HelioSensor *newSensorObjectFromData(const HelioSensorData *dataIn)
 {
-    if (dataIn && dataIn->id.object.idType == -1) return nullptr;
+    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -108,7 +108,7 @@ bool HelioSensor::isTakingMeasurement() const
     return _isTakingMeasure;
 }
 
-bool HelioSensor::getNeedsPolling(uint32_t allowance) const
+bool HelioSensor::getNeedsPolling(hframe_t allowance) const
 {
     auto latestMeasurement = getLatestMeasurement();
     return getHelioInstance() && latestMeasurement ? getHelioInstance()->isPollingFrameOld(latestMeasurement->frame, allowance) : false;

@@ -48,9 +48,11 @@ struct HelioActivationHandle {
         inline Activation() : Activation(Helio_DirectionMode_Undefined, 0.0f, 0, Helio_ActivationFlags_None) { ; }
 
         inline bool isValid() const { return direction != Helio_DirectionMode_Undefined; }
-        inline bool isDone() const { return duration == 0; }
+        inline bool isDone() const { return duration == millis_none; }
         inline bool isUntimed() const { return duration == -1; }
         inline bool isForced() const { return flags & Helio_ActivationFlags_Forced; }
+        inline float getDriveIntensity() const { return direction == Helio_DirectionMode_Forward ? intensity :
+                                                        direction == Helio_DirectionMode_Reverse ? -intensity : 0.0f; }
     } activation;                                           // Activation data
     millis_t checkTime;                                     // Last check timestamp, in milliseconds, else 0 for not started
     millis_t elapsed;                                       // Elapsed time accumulator, in milliseconds, else 0
@@ -83,8 +85,7 @@ struct HelioActivationHandle {
     inline millis_t getTimeActive(millis_t time = nzMillis()) const { return isActive() ? (time - checkTime) + elapsed : elapsed; }
 
     // De-normalized driving intensity value [-1.0,1.0]
-    inline float getDriveIntensity() const { return activation.direction == Helio_DirectionMode_Forward ? activation.intensity :
-                                                    activation.direction == Helio_DirectionMode_Reverse ? -activation.intensity : 0.0f; }
+    inline float getDriveIntensity() const { return activation.getDriveIntensity(); }
 };
 
 

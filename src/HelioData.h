@@ -30,10 +30,10 @@ struct HelioData : public HelioJSONSerializableInterface {
     union {
         char chars[4];                                      // Standalone data structure 4-char identifier
         struct {
-          int8_t idType;                                    // Object ID type enum value (e.g. actuator, sensor, etc.)
-          int8_t objType;                                   // Object type enum value (e.g. actuatorType, sensorType, etc.)
-          int8_t posIndex;                                  // Object position index # (zero-ordinal)
-          int8_t classType;                                 // Object class type enum value (e.g. motor, dht1w, etc.)
+          hid_t idType;                                     // Object ID type enum value (e.g. actuator, sensor, etc.)
+          hid_t objType;                                    // Object type enum value (e.g. actuatorType, sensorType, etc.)
+          hposi_t posIndex;                                 // Object position index # (zero-ordinal)
+          hid_t classType;                                  // Object class type enum value (e.g. motor, dht1w, etc.)
         } object;
     } id;                                                   // Identifier union
     uint16_t _size;                                         // The size (in bytes) of the data
@@ -53,10 +53,10 @@ struct HelioData : public HelioJSONSerializableInterface {
               char id3,                                     // 4-char identifier, index 3
               uint8_t version = 1,                          // Data structure version #
               uint8_t revision = 1);                        // Stored data revision #
-    HelioData(int8_t idType,                                // ID type enum value
-              int8_t objType,                               // Object type enum value
-              int8_t posIndex,                              // Object position index #
-              int8_t classType,                             // Class type enum value
+    HelioData(hid_t idType,                                 // ID type enum value
+              hid_t objType,                                // Object type enum value
+              hposi_t posIndex,                             // Object position index #
+              hid_t classType,                              // Class type enum value
               uint8_t version = 1,                          // Data structure version #
               uint8_t revision = 1);                        // Stored data revision #
     HelioData(const HelioIdentity &id);                     // Identity constructor
@@ -76,10 +76,10 @@ struct HelioData : public HelioJSONSerializableInterface {
 // entire data object hierarchy, useful for triggers, measurements, etc.
 // NOTE: NON-CONST VALUE TYPES ONLY, NO VIRTUALS. All data *MUST* be able to use default operator=.
 struct HelioSubData {
-    int8_t type;                                            // Sub data type (or -1 if unused).
+    hid_t type;                                             // Sub data type (or hid_none/-1 if unused)
 
     HelioSubData();
-    HelioSubData(int8_t dataType);
+    HelioSubData(hid_t dataType);
     void toJSONObject(JsonObject &objectOut) const;
     void fromJSONObject(JsonObjectConst &objectIn);
 };

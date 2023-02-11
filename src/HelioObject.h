@@ -39,46 +39,42 @@ struct HelioIdentity {
         Helio_SensorType sensorType;                        // As sensor type enumeration
         Helio_PanelType panelType;                          // As panel type enumeration
         Helio_RailType railType;                            // As rail type enumeration
-    } objTypeAs;                                            // Enumeration type union
+        hid_t idType;                                       // As standard id type enumeration
+    } objTypeAs;                                            // Object type union
     hposi_t posIndex;                                       // Position index
     String keyString;                                       // String key
     hkey_t key;                                             // UInt Key
 
-    // Default constructor (incomplete id)
-    HelioIdentity();
-
-    // Copy key (incomplete id)
-    HelioIdentity(hkey_t key);
-
+    // Default/copy key (incomplete id)
+    inline HelioIdentity(hkey_t key = -1) : type(Unknown), objTypeAs{.idType=Unknown}, posIndex(-1), keyString(), key(key) { ; }
     // Copy into keyStr (incomplete id)
-    HelioIdentity(const char *idKeyStr);
+    inline HelioIdentity(const char *idKeyStr) : type(Unknown), objTypeAs{.idType=Unknown}, posIndex(-1), keyString(idKeyStr), key(stringHash(idKeyStr)) { ; }
     // Copy into keyStr (incomplete id)
-    HelioIdentity(String idKey);
+    inline HelioIdentity(String idKey) : type(Unknown), objTypeAs{.idType=Unknown}, posIndex(-1), keyString(idKey), key(stringHash(idKey.c_str())) { ; }
 
     // Copy id with new position index
-    HelioIdentity(const HelioIdentity &id,
-                  hposi_t positionIndex);
+    inline HelioIdentity(const HelioIdentity &id, hposi_t positionIndex) : type(id.type), objTypeAs{.idType=id.objTypeAs.idType}, posIndex(positionIndex), keyString(), key(hkey_none) { regenKey(); }
 
     // Actuator id constructor
-    HelioIdentity(Helio_ActuatorType actuatorType,
-                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
+    inline HelioIdentity(Helio_ActuatorType actuatorTypeIn,
+                         hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG) : type(Actuator), objTypeAs{.actuatorType=actuatorTypeIn}, posIndex(positionIndex), keyString(), key(hkey_none) { regenKey(); }
     // Sensor id constructor
-    HelioIdentity(Helio_SensorType sensorType,
-                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
+    inline HelioIdentity(Helio_SensorType sensorTypeIn,
+                         hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG) : type(Sensor), objTypeAs{.sensorType=sensorTypeIn}, posIndex(positionIndex), keyString(), key(hkey_none) { regenKey(); }
     // Panel id constructor
-    HelioIdentity(Helio_PanelType panelType,
-                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
+    inline HelioIdentity(Helio_PanelType panelTypeIn,
+                         hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG) : type(Panel), objTypeAs{.panelType=panelTypeIn}, posIndex(positionIndex), keyString(), key(hkey_none) { regenKey(); }
     // Rail id constructor
-    HelioIdentity(Helio_RailType railType,
-                  hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG);
+    inline HelioIdentity(Helio_RailType railTypeIn,
+                         hposi_t positionIndex = HELIO_POS_SEARCH_FROMBEG) : type(Rail), objTypeAs{.railType=railTypeIn}, posIndex(positionIndex), keyString(), key(hkey_none) { regenKey(); }
 
     // Data constructor
-    HelioIdentity(const HelioData *dataIn);
+    inline HelioIdentity(const HelioData *dataIn) : type((typeof(type))(dataIn->id.object.idType)), objTypeAs{.idType=dataIn->id.object.objType}, posIndex(dataIn->id.object.posIndex), keyString(), key(hkey_none) { regenKey(); }
 
     // Used to update key value after modification, returning new key by convenience
     hkey_t regenKey();
 
-    inline operator bool() const { return key != (hkey_t)-1; }
+    inline operator bool() const { return key != hkey_none; }
     inline bool operator==(const HelioIdentity &otherId) const { return key == otherId.key; }
     inline bool operator!=(const HelioIdentity &otherId) const { return key != otherId.key; }
 };
@@ -94,8 +90,8 @@ public:
     inline bool isRailType() const { return _id.isRailType(); }
     inline bool isUnknownType() const { return _id.isUnknownType(); }
 
-    HelioObject(HelioIdentity id);                          // Standard constructor
-    HelioObject(const HelioData *dataIn);                   // Data constructor
+    inline HelioObject(HelioIdentity id) : _id(id), _linksSize(0), _links(nullptr) { ; }
+    inline HelioObject(const HelioData *data) : _id(data), _linksSize(0), _links(nullptr) { ; }
     virtual ~HelioObject();                                 // Destructor
 
     virtual void update();                                  // Called over intervals of time by runloop
@@ -104,8 +100,8 @@ public:
     HelioData *newSaveData();                               // Saves object state to proper backing data
 
     void allocateLinkages(size_t size = 1);                 // Allocates linkage list of specified size (reallocates)
-    virtual bool addLinkage(HelioObject *obj) override;     // Adds linkage to this object, returns true upon initial add
-    virtual bool removeLinkage(HelioObject *obj) override;  // Removes linkage from this object, returns true upon last remove
+    virtual bool addLinkage(HelioObject *obj);              // Adds linkage to this object, returns true upon initial add
+    virtual bool removeLinkage(HelioObject *obj);           // Removes linkage from this object, returns true upon last remove
     bool hasLinkage(HelioObject *obj) const;                // Checks object linkage to this object
 
     // Returns the linkages this object contains, along with refcount for how many times it has registered itself as linked (via attachment points).
@@ -113,7 +109,7 @@ public:
     inline Pair<uint8_t, Pair<HelioObject *, int8_t> *> getLinkages() const { return make_pair(_linksSize, _links); }
 
     virtual HelioIdentity getId() const override;           // Returns the unique Identity of the object
-    virtual hkey_t getKey() const override;          // Returns the unique key of the object
+    virtual hkey_t getKey() const override;                 // Returns the unique key of the object
     virtual String getKeyString() const override;           // Returns the key string of the object
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override; // Returns the SharedPtr instance of the object
 
@@ -126,7 +122,8 @@ protected:
     virtual void saveToData(HelioData *dataOut);            // *ALL* derived classes must override and implement
 
 private:
-    HelioObject() = default;                                // Private constructor to disable derived/public access
+    // Private constructor to disable derived/public access
+    inline HelioObject() : _id(), _linksSize(0), _links(nullptr) { ; }
 };
 
 
@@ -135,13 +132,18 @@ private:
 // but want to replicate some of the same functionality. Not required to be inherited from.
 class HelioSubObject : public HelioObjInterface {
 public:
+    inline HelioSubObject(HelioObjInterface *parent = nullptr) : _parent(parent) { ; }
+
     virtual HelioIdentity getId() const override;
     virtual hkey_t getKey() const override;
     virtual String getKeyString() const override;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override;
 
-    virtual bool addLinkage(HelioObject *obj) override;
-    virtual bool removeLinkage(HelioObject *obj) override;
+    virtual void setParent(HelioObjInterface *parent);
+    inline HelioObjInterface *getParent() const { return _parent; }
+
+protected:
+    HelioObjInterface *_parent;                             // Parent object pointer (reverse ownership)
 };
 
 

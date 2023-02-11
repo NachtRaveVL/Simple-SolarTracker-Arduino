@@ -758,17 +758,37 @@ void Helioduino::commonPostSave()
     }
 }
 
+// Runloops
+
+// Super tight updates (buzzer/gps/etc) need to go here
+inline void tightUpdates()
+{
+    // TODO: put in link to buzzer update here
+    #ifdef HELIO_USE_GPS
+        if (Helioduino::_activeInstance->_gps) { while(Helioduino::_activeInstance->_gps->available()) { Helioduino::_activeInstance->_gps->read(); } }
+    #endif
+}
+
+// Yields upon time limit exceed
+inline void yieldIfNeeded(millis_t &lastYield)
+{
+    tightUpdates();
+    millis_t time = millis();
+    if (time - lastYield >= HELIO_SYS_YIELD_AFTERMILLIS) { lastYield = time; yield(); }
+}
+
 void controlLoop()
 {
     if (Helioduino::_activeInstance && !Helioduino::_activeInstance->_suspend) {
         #ifdef HELIO_USE_VERBOSE_OUTPUT
             Serial.println(F("controlLoop")); flushYield();
         #endif
+        millis_t lastYield = millis();
 
         for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
             iter->second->update();
 
-            yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
+            yieldIfNeeded(lastYield);
         }
 
         Helioduino::_activeInstance->scheduler.update();
@@ -778,6 +798,7 @@ void controlLoop()
         #endif
     }
 
+    tightUpdates();
     yield();
 }
 
@@ -787,6 +808,7 @@ void dataLoop()
         #ifdef HELIO_USE_VERBOSE_OUTPUT
             Serial.println(F("dataLoop")); flushYield();
         #endif
+        millis_t lastYield = millis();
 
         bool recalcSunPos = Helioduino::_activeInstance->getSystemMode() == Helio_SystemMode_PositionCalculating;
         Helioduino::_activeInstance->publisher.advancePollingFrame();
@@ -796,15 +818,13 @@ void dataLoop()
                 auto sensor = static_pointer_cast<HelioSensor>(iter->second);
                 if (sensor->getNeedsPolling()) {
                     sensor->takeMeasurement(); // no force if already current for this frame #, we're just ensuring data for publisher
-
-                    yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
                 }
             } else if (iter->second->isPanelType() && recalcSunPos) {
                 auto panel = static_pointer_cast<HelioPanel>(iter->second);
                 panel->recalcSunPosition();
-
-                yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
             }
+
+            yieldIfNeeded(lastYield);
         }
 
         #ifdef HELIO_USE_VERBOSE_OUTPUT
@@ -812,6 +832,7 @@ void dataLoop()
         #endif
     }
 
+    tightUpdates();
     yield();
 }
 
@@ -821,6 +842,7 @@ void miscLoop()
         #ifdef HELIO_USE_VERBOSE_OUTPUT
             Serial.println(F("miscLoop")); flushYield();
         #endif
+        millis_t lastYield = millis();
 
         #if HELIO_SYS_MEM_LOGGING_ENABLE
         {   static time_t _lastMemLog = unixNow();
@@ -830,18 +852,23 @@ void miscLoop()
             }
         }
         #endif
-
         Helioduino::_activeInstance->checkFreeMemory();
+
+        yieldIfNeeded(lastYield);
+
         Helioduino::_activeInstance->checkFreeSpace();
+
+        yieldIfNeeded(lastYield);
+
         Helioduino::_activeInstance->checkAutosave();
 
-        yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
+        yieldIfNeeded(lastYield);
 
         Helioduino::_activeInstance->publisher.update();
 
-        yield(); // This allows cursory checks/updates for finely-timed tasks to run more often
-
         #ifdef HELIO_USE_GPS
+            yieldIfNeeded(lastYield);
+
             if (Helioduino::_gps && Helioduino::_gps->newNMEAreceived()) {
                 Helioduino::_gps->parse(Helioduino::_gps->lastNMEA());
                 if (Helioduino::_gps->fix) {
@@ -855,6 +882,7 @@ void miscLoop()
         #endif
     }
 
+    tightUpdates();
     yield();
 }
 
@@ -921,9 +949,8 @@ void Helioduino::update()
     #ifdef HELIO_USE_MQTT
         if (publisher._mqttClient) { publisher._mqttClient->loop(); }
     #endif
-    #ifdef HELIO_USE_GPS // FIXME: This may get removed if it doesn't work right.
-        if (_gps) { while(_gps->available()) { _gps->read(); } }
-    #endif
+
+    tightUpdates();
 }
 
 bool Helioduino::registerObject(SharedPtr<HelioObject> obj)

@@ -67,7 +67,7 @@ protected:
     MQTTClient *_mqttClient;                                // MQTT client object (strong)
 #endif
     String _dataFilename;                                   // Resolved data file name (based on day)
-    hframe_t _pollingFrame;                       // Polling frame that publishing is caught up to
+    hframe_t _pollingFrame;                                 // Polling frame that publishing is caught up to
     bool _needsTabulation;                                  // Needs tabulation tracking flag
     uint8_t _columnCount;                                   // Data columns count
     HelioDataColumn *_dataColumns;                          // Data columns (owned)
@@ -94,7 +94,7 @@ protected:
 // Publisher Data Column
 // Data column worth of storage. Intended to be array allocated.
 struct HelioDataColumn {
-    hkey_t sensorKey;                                // Key to sensor object
+    hkey_t sensorKey;                                       // Key to sensor object
     HelioSingleMeasurement measurement;                     // Storage polling frame measurement
 };
 

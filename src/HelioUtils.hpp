@@ -118,7 +118,7 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
 {
     Vector<HelioObject *, N> retVal;
 
-    for (int linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
         if (links.second[linksIndex].first->isActuatorType()) {
             retVal.push_back(links.second[linksIndex].first);
         }
@@ -132,7 +132,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
 {
     Vector<HelioObject *, N> retVal;
 
-    for (int linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 

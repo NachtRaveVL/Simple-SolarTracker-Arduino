@@ -58,8 +58,8 @@ public:
     virtual String getKeyString() const = 0;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const = 0;
 
-    virtual bool addLinkage(HelioObject *obj) = 0;
-    virtual bool removeLinkage(HelioObject *obj) = 0;
+    inline bool isSubObject() const { return getId().isUnknownType(); }
+    inline bool isObject() const { return !isSubObject(); }
 };
 
 // UI Interface
@@ -169,7 +169,7 @@ public:
     virtual bool takeMeasurement(bool force = false) = 0;
     virtual const HelioMeasurement *getLatestMeasurement() const = 0;
     virtual bool isTakingMeasurement() const = 0;
-    virtual bool getNeedsPolling(uint32_t allowance = 0) const = 0;
+    virtual bool getNeedsPolling(hframe_t allowance = 0) const = 0;
 
 protected:
     //virtual void handleMeasurement() = 0;
@@ -208,7 +208,7 @@ public:
     virtual Helio_DrivingState getDrivingState() const = 0;
 
 protected:
-    virtual void handleOffset(float travelDelta) = 0;
+    virtual void handleOffset(float maximumOffset) = 0;
 };
 
 // Trigger Object Interface

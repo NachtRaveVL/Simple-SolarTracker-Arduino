@@ -201,7 +201,7 @@ hkey_t stringHash(String string)
     for(int index = 0; index < string.length(); ++index) {
         hash = ((hash << 5) + hash) + (hkey_t)string[index]; // Good 'ol DJB2
     }
-    return hash != (hkey_t)-1 ? hash : 5381;
+    return hash != hkey_none ? hash : 5381;
 }
 
 String addressToString(uintptr_t addr)
@@ -809,7 +809,7 @@ int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> 
 {
     int retVal = 0;
 
-    for (int linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
