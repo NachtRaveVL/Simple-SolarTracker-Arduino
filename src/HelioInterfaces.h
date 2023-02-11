@@ -290,7 +290,6 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getMaxEndstop(bool poll = false);
 };
 
-
 // Power Production Aware Interface
 class HelioPowerProductionSensorAttachmentInterface {
 public:
