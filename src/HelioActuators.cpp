@@ -215,10 +215,10 @@ HelioAttachment &HelioActuator::getParentPanel(bool resolve)
 
 void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
 {
-    if (getHelioInstance()) {
-        if (userCalibrationData && getHelioInstance()->setUserCalibrationData(userCalibrationData)) {
-            _calibrationData = getHelioInstance()->getUserCalibrationData(_id.key);
-        } else if (!userCalibrationData && _calibrationData && getHelioInstance()->dropUserCalibrationData(_calibrationData)) {
+    if (getController()) {
+        if (userCalibrationData && getController()->setUserCalibrationData(userCalibrationData)) {
+            _calibrationData = getController()->getUserCalibrationData(_id.key);
+        } else if (!userCalibrationData && _calibrationData && getController()->dropUserCalibrationData(_calibrationData)) {
             _calibrationData = nullptr;
         }
     } else {
@@ -267,13 +267,13 @@ void HelioActuator::saveToData(HelioData *dataOut)
 void HelioActuator::handleActivation()
 {
     if (_enabled) {
-        getLoggerInstance()->logActivation(this);
+        getLogger()->logActivation(this);
     } else {
         for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
             if ((*handleIter)->checkTime) { (*handleIter)->checkTime = 0; }
         }
 
-        getLoggerInstance()->logDeactivation(this);
+        getLogger()->logDeactivation(this);
     }
 
     #ifdef HELIO_USE_MULTITASKING
@@ -366,8 +366,8 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType
        _distanceUnits(defaultDistanceUnits()), _position(this), _speed(this), _minTrigger(this), _maxTrigger(this),
        _travelPositionStart(0.0f), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
-    _position.setMeasurementUnits(getDistanceUnits());
-    _speed.setMeasurementUnits(getSpeedUnits());
+    _position.setMeasureUnits(getDistanceUnits());
+    _speed.setMeasureUnits(getSpeedUnits());
 }
 
 HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn)
@@ -377,8 +377,8 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *d
       _position(this), _speed(this), _minTrigger(this), _maxTrigger(this),
       _travelPositionStart(0.0f), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
-    _position.setMeasurementUnits(getDistanceUnits());
-    _speed.setMeasurementUnits(getSpeedUnits());
+    _position.setMeasureUnits(getDistanceUnits());
+    _speed.setMeasureUnits(getSpeedUnits());
 
     _position.setObject(dataIn->positionSensor);
     _speed.setObject(dataIn->speedSensor);
@@ -474,10 +474,10 @@ void HelioRelayMotorActuator::handleActivation()
         _travelTimeAccum = 0;
         float duration = time - _travelTimeStart;
 
-        getLoggerInstance()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
-        if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
-        getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistanceAccum, baseUnitsFromRate(getSpeedUnits()), 1));
-        getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
+        getLogger()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
+        if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+        getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistanceAccum, baseUnits(getSpeedUnits()), 1));
+        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
     }
 }
 
@@ -495,7 +495,7 @@ bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, float dis
 HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
 {
     if (getPanel() && _contSpeed.value > FLT_EPSILON) {
-        convertUnits(&distance, &distanceUnits, baseUnitsFromRate(getSpeedUnits()));
+        convertUnits(&distance, &distanceUnits, baseUnits(getSpeedUnits()));
         return travel(direction, (millis_t)((distance / _contSpeed.value) * secondsToMillis(SECS_PER_MIN)));
     }
     return HelioActivationHandle();
@@ -504,7 +504,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
 bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, millis_t time)
 {
     if (getPanel() && _contSpeed.value > FLT_EPSILON) {
-        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()));
+        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()));
     }
     return false;
 }
@@ -513,20 +513,20 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
 {
     if (getPanel()) {
         #ifdef HELIO_USE_MULTITASKING
-            getLoggerInstance()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+            getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
+            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
             if (_contSpeed.value > FLT_EPSILON) {
-                getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
+                getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
-            getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
+            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
             return enableActuator(direction, 1.0f, time);
         #else
-            getLoggerInstance()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getPanel()) { getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+            getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
+            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
             if (_contSpeed.value > FLT_EPSILON) {
-                getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnitsFromRate(getSpeedUnits()), 1));
+                getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
-            getLoggerInstance()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
+            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
             return enableActuator(direction, 1.0f, time);
         #endif
     }
@@ -538,8 +538,8 @@ void HelioRelayMotorActuator::setDistanceUnits(Helio_UnitsType distanceUnits)
         _distanceUnits = distanceUnits;
 
         convertUnits(&_contSpeed, getSpeedUnits());
-        _position.setMeasurementUnits(getDistanceUnits());
-        _speed.setMeasurementUnits(getSpeedUnits());
+        _position.setMeasureUnits(getDistanceUnits());
+        _speed.setMeasureUnits(getSpeedUnits());
     }
 }
 
@@ -710,7 +710,7 @@ void HelioActuatorData::toJSONObject(JsonObject &objectOut) const
     }
     if (enableMode != Helio_EnableMode_Undefined) { objectOut[SFP(HStr_Key_EnableMode)] = enableModeToString(enableMode); }
     if (contPowerUsage.value > FLT_EPSILON) {
-        JsonObject contPowerUsageObj = objectOut.createNestedObject(SFP(HStr_Key_ContinousPowerUsage));
+        JsonObject contPowerUsageObj = objectOut.createNestedObject(SFP(HStr_Key_ContinuousPowerUsage));
         contPowerUsage.toJSONObject(contPowerUsageObj);
     }
     if (railName[0]) { objectOut[SFP(HStr_Key_RailName)] = charsToString(railName, HELIO_NAME_MAXSIZE); }
@@ -724,7 +724,7 @@ void HelioActuatorData::fromJSONObject(JsonObjectConst &objectIn)
     JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
     if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
     enableMode = enableModeFromString(objectIn[SFP(HStr_Key_EnableMode)]);
-    JsonVariantConst contPowerUsageVar = objectIn[SFP(HStr_Key_ContinousPowerUsage)];
+    JsonVariantConst contPowerUsageVar = objectIn[SFP(HStr_Key_ContinuousPowerUsage)];
     if (!contPowerUsageVar.isNull()) { contPowerUsage.fromJSONVariant(contPowerUsageVar); }
     const char *railNameStr = objectIn[SFP(HStr_Key_RailName)];
     if (railNameStr && railNameStr[0]) { strncpy(railName, railNameStr, HELIO_NAME_MAXSIZE); }
@@ -748,7 +748,7 @@ void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
     }
     if (distanceUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_DistanceUnits)] = unitsTypeToSymbol(distanceUnits); }
     if (contSpeed.value > FLT_EPSILON) {
-        JsonObject contSpeedObj = objectOut.createNestedObject(SFP(HStr_Key_ContinousSpeed));
+        JsonObject contSpeedObj = objectOut.createNestedObject(SFP(HStr_Key_ContinuousSpeed));
         contSpeed.toJSONObject(contSpeedObj);
     }
     if (positionSensor[0]) { objectOut[SFP(HStr_Key_PositionSensor)] = charsToString(positionSensor, HELIO_NAME_MAXSIZE); }
@@ -762,7 +762,7 @@ void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
     JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
     if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
     distanceUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_DistanceUnits)]);
-    JsonVariantConst contSpeedVar = objectIn[SFP(HStr_Key_ContinousSpeed)];
+    JsonVariantConst contSpeedVar = objectIn[SFP(HStr_Key_ContinuousSpeed)];
     if (!contSpeedVar.isNull()) { contSpeed.fromJSONVariant(contSpeedVar); }
     const char *positionSensorStr = objectIn[SFP(HStr_Key_PositionSensor)];
     if (positionSensorStr && positionSensorStr[0]) { strncpy(positionSensor, positionSensorStr, HELIO_NAME_MAXSIZE); }

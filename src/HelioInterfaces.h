@@ -17,28 +17,40 @@ struct HelioDigitalOutputPinInterface;
 struct HelioAnalogInputPinInterface;
 struct HelioAnalogOutputPinInterface;
 
-class HelioActuatorAttachmentInterface;
-class HelioSensorAttachmentInterface;
-class HelioPanelAttachmentInterface;
-class HelioRailAttachmentInterface;
+class HelioAngleUnitsInterface;
+class HelioDistanceUnitsInterface;
+class HelioMeasureUnitsInterface;
+class HelioPowerUnitsInterface;
+class HelioTemperatureUnitsInterface;
 
 class HelioActuatorObjectInterface;
 class HelioSensorObjectInterface;
 class HelioPanelObjectInterface;
 class HelioRailObjectInterface;
-
+class HelioDriverObjectInterface;
 class HelioTriggerObjectInterface;
 class HelioMotorObjectInterface;
 
+class HelioActuatorAttachmentInterface;
+class HelioSensorAttachmentInterface;
+class HelioPanelAttachmentInterface;
+class HelioRailAttachmentInterface;
+
+class HelioAngleSensorAttachmentInterface;
 class HelioPositionSensorAttachmentInterface;
 class HelioSpeedSensorAttachmentInterface;
-class HelioMinEndstopAttachmentInterface;
-class HelioMaxEndstopAttachmentInterface;
+class HelioMinEndstopSensorAttachmentInterface;
+class HelioMaxEndstopSensorAttachmentInterface;
+class HelioPowerProductionSensorAttachmentInterface;
 class HelioPowerUsageSensorAttachmentInterface;
-class HelioAirTemperatureSensorAttachmentInterface;
-class HelioAirHumiditySensorAttachmentInterface;
+class HelioTemperatureSensorAttachmentInterface;
+
+class HelioMinTravelTriggerAttachmentInterface;
+class HelioMaxTravelTriggerAttachmentInterface;
+class HelioLimitTriggerAttachmentInterface;
 
 #include "Helioduino.h"
+#include "HelioUtils.h"
 
 // JSON Serializable Interface
 struct HelioJSONSerializableInterface {
@@ -111,40 +123,62 @@ struct HelioAnalogOutputPinInterface {
 };
 
 
-// Actuator Attachment Interface
-class HelioActuatorAttachmentInterface {
+// Angle Units Interface
+class HelioAngleUnitsInterface {
 public:
-    virtual HelioAttachment &getParentActuator(bool resolve = true) = 0;
+    virtual void setAngleUnits(Helio_UnitsType angleUnits) = 0;
+    inline Helio_UnitsType getAngleUnits() const { return _angleUnits; }
 
-    template<class U> inline void setActuator(U actuator);
-    template<class U = HelioActuator> inline SharedPtr<U> getActuator(bool resolve = true);
+protected:
+    Helio_UnitsType _angleUnits;
+    inline HelioAngleUnitsInterface(Helio_UnitsType angleUnits = defaultAngleUnits()) : _angleUnits(angleUnits) { ; }
 };
 
-// Sensor Attachment Interface
-class HelioSensorAttachmentInterface {
+// Distance Units Interface
+class HelioDistanceUnitsInterface {
 public:
-    virtual HelioAttachment &getParentSensor(bool resolve = true) = 0;
+    virtual void setDistanceUnits(Helio_UnitsType distanceUnits) = 0;
+    inline Helio_UnitsType getDistanceUnits() const { return _distanceUnits; }
+    inline Helio_UnitsType getSpeedUnits() const { return rateUnits(_distanceUnits); }
 
-    template<class U> inline void setSensor(U sensor);
-    template<class U = HelioSensor> inline SharedPtr<U> getSensor(bool resolve = true);
+protected:
+    Helio_UnitsType _distanceUnits;
+    inline HelioDistanceUnitsInterface(Helio_UnitsType distanceUnits = defaultDistanceUnits()) : _distanceUnits(distanceUnits) { ; }
 };
 
-// Panel Attachment Interface
-class HelioPanelAttachmentInterface {
+// Measure Units Interface
+class HelioMeasureUnitsInterface {
 public:
-    virtual HelioAttachment &getParentPanel(bool resolve = true) = 0;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits) = 0;
+    inline Helio_UnitsType getMeasureUnits() const { return _measureUnits; }
+    inline Helio_UnitsType getRateUnits() const { rateUnits(_measureUnits); }
+    inline Helio_UnitsType getBaseUnits() const { baseUnits(_measureUnits); }
 
-    template<class U> inline void setPanel(U panel);
-    template<class U = HelioPanel> inline SharedPtr<U> getPanel(bool resolve = true);
+protected:
+    Helio_UnitsType _measureUnits;
+    inline HelioMeasureUnitsInterface(Helio_UnitsType measureUnits = Helio_UnitsType_Undefined) : _measureUnits(measureUnits) { ; }
 };
 
-// Rail Attachment Interface
-class HelioRailAttachmentInterface {
+// Power Units Interface
+class HelioPowerUnitsInterface {
 public:
-    virtual HelioAttachment &getParentRail(bool resolve = true) = 0;
+    virtual void setPowerUnits(Helio_UnitsType powerUnits) = 0;
+    inline Helio_UnitsType getPowerUnits() const { return _powerUnits; }
 
-    template<class U> inline void setRail(U rail);
-    template<class U = HelioRail> inline SharedPtr<U> getRail(bool resolve = true);
+protected:
+    Helio_UnitsType _powerUnits;
+    inline HelioPowerUnitsInterface(Helio_UnitsType powerUnits = defaultPowerUnits()) : _powerUnits(powerUnits) { ; }
+};
+
+// Temperature Units Interface
+class HelioTemperatureUnitsInterface {
+public:
+    virtual void setTemperatureUnits(Helio_UnitsType temperatureUnits) = 0;
+    inline Helio_UnitsType getTemperatureUnits() const { return _temperatureUnits; }
+
+protected:
+    Helio_UnitsType _temperatureUnits;
+    inline HelioTemperatureUnitsInterface(Helio_UnitsType temperatureUnits = defaultTemperatureUnits()) : _temperatureUnits(temperatureUnits) { ; }
 };
 
 
@@ -199,8 +233,7 @@ public:
     virtual float getRailVoltage() const = 0;
 };
 
-
-// Balancer Object Interface
+// Driver Object Interface
 class HelioDriverObjectInterface {
 public:
     virtual void setTargetSetpoint(float targetSetpoint) = 0;
@@ -221,6 +254,7 @@ public:
 protected:
     virtual void handleMeasurement(const HelioMeasurement *measurement) = 0;
 };
+
 
 // Motor Object Interface
 class HelioMotorObjectInterface {
@@ -243,7 +277,44 @@ protected:
 };
 
 
-// Angle Aware Interface
+// Actuator Attachment Interface
+class HelioActuatorAttachmentInterface {
+public:
+    virtual HelioAttachment &getParentActuator(bool resolve = true) = 0;
+
+    template<class U> inline void setActuator(U actuator);
+    template<class U = HelioActuator> inline SharedPtr<U> getActuator(bool resolve = true);
+};
+
+// Sensor Attachment Interface
+class HelioSensorAttachmentInterface {
+public:
+    virtual HelioAttachment &getParentSensor(bool resolve = true) = 0;
+
+    template<class U> inline void setSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getSensor(bool resolve = true);
+};
+
+// Panel Attachment Interface
+class HelioPanelAttachmentInterface {
+public:
+    virtual HelioAttachment &getParentPanel(bool resolve = true) = 0;
+
+    template<class U> inline void setPanel(U panel);
+    template<class U = HelioPanel> inline SharedPtr<U> getPanel(bool resolve = true);
+};
+
+// Rail Attachment Interface
+class HelioRailAttachmentInterface {
+public:
+    virtual HelioAttachment &getParentRail(bool resolve = true) = 0;
+
+    template<class U> inline void setRail(U rail);
+    template<class U = HelioRail> inline SharedPtr<U> getRail(bool resolve = true);
+};
+
+
+// Angle Sensor Attachment Interface
 class HelioAngleSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getAngle(bool poll = false) = 0;
@@ -252,7 +323,7 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getAngleSensor(bool poll = false);
 };
 
-// Position Aware Interface
+// Position Sensor Attachment Interface
 class HelioPositionSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getPosition(bool poll = false) = 0;
@@ -261,7 +332,7 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getPositionSensor(bool poll = false);
 };
 
-// Speed Aware Interface
+// Speed Sensor Attachment Interface
 class HelioSpeedSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getSpeed(bool poll = false) = 0;
@@ -270,8 +341,8 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getSpeedSensor(bool poll = false);
 };
 
-// Min Endstop Interface
-class HelioMinEndstopAttachmentInterface {
+// Min Endstop Sensor Attachment Interface
+class HelioMinEndstopSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getMinimum(bool poll = false) = 0;
 
@@ -279,8 +350,8 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getMinEndstop(bool poll = false);
 };
 
-// Max Endstop Interface
-class HelioMaxEndstopAttachmentInterface {
+// Max Endstop Sensor Attachment Interface
+class HelioMaxEndstopSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getMaximum(bool poll = false) = 0;
 
@@ -288,7 +359,7 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getMaxEndstop(bool poll = false);
 };
 
-// Power Production Aware Interface
+// Power Production Sensor Attachment Interface
 class HelioPowerProductionSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getPowerProduction(bool poll = false) = 0;
@@ -297,7 +368,7 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getPowerProductionSensor(bool poll = false);
 };
 
-// Power Usage Aware Interface
+// Power Usage Sensor Attachment Interface
 class HelioPowerUsageSensorAttachmentInterface {
 public:
     virtual HelioSensorAttachment &getPowerUsage(bool poll = false) = 0;
@@ -306,22 +377,13 @@ public:
     template<class U = HelioSensor> inline SharedPtr<U> getPowerUsageSensor(bool poll = false);
 };
 
-// Air Temperature Aware Interface
-class HelioAirTemperatureSensorAttachmentInterface {
+// Temperature Sensor Attachment Interface
+class HelioTemperatureSensorAttachmentInterface {
 public:
-    virtual HelioSensorAttachment &getAirTemperature(bool poll = false) = 0;
+    virtual HelioSensorAttachment &getTemperature(bool poll = false) = 0;
 
-    template<class U> inline void setAirTemperatureSensor(U sensor);
-    template<class U = HelioSensor> inline SharedPtr<U> getAirTemperatureSensor(bool poll = false);
-};
-
-// Air Humidity Aware Interface
-class HelioAirHumiditySensorAttachmentInterface {
-public:
-    virtual HelioSensorAttachment &getAirHumidity(bool poll = false) = 0;
-
-    template<class U> inline void setAirHumiditySensor(U sensor);
-    template<class U = HelioSensor> inline SharedPtr<U> getAirHumiditySensor(bool poll = false);
+    template<class U> inline void setTemperatureSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getTemperatureSensor(bool poll = false);
 };
 
 #endif // /ifndef HelioInterfaces_H

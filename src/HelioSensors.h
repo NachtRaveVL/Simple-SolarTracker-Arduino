@@ -24,10 +24,10 @@ struct HelioDHTTempHumiditySensorData;
 // Creates sensor object from passed sensor data (return ownership transfer - user code *must* delete returned object)
 extern HelioSensor *newSensorObjectFromData(const HelioSensorData *dataIn);
 
-// Returns default measurement units to use based on sensorType, optional row index, and measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-extern Helio_UnitsType defaultMeasureUnitsForSensorType(Helio_SensorType sensorType, uint8_t measurementRow = 0, Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
-// Returns default measurement category to use based on sensorType and optional row index (note: this may not accurately produce the correct category, e.g. an ultrasonic distance sensor being used for distance and not volume).
-extern Helio_UnitsCategory defaultMeasureCategoryForSensorType(Helio_SensorType sensorType, uint8_t measurementRow = 0);
+// Returns default measurement units based on sensorType, optional row index, and measureMode (if undefined then uses active controller's measurement mode, else default measurement mode).
+extern Helio_UnitsType defaultUnitsForSensor(Helio_SensorType sensorType, uint8_t measureRow = 0, Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+// Returns default measurement category based on sensorType and optional row index (note: this may not accurately produce the correct category, e.g. an ultrasonic distance sensor being used for distance and not volume).
+extern Helio_UnitsCategory defaultCategoryForSensor(Helio_SensorType sensorType, uint8_t measureRow = 0);
 
 
 // Sensor Base
@@ -55,8 +55,8 @@ public:
     virtual bool isTakingMeasurement() const override;
     virtual bool getNeedsPolling(hframe_t allowance = 0) const override;
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) = 0;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const = 0;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow = 0) = 0;
+    virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const = 0;
 
     virtual HelioAttachment &getParentPanel(bool resolve = true) override;
 
@@ -106,8 +106,8 @@ public:
     virtual bool takeMeasurement(bool force = false) override;
     virtual const HelioMeasurement *getLatestMeasurement() const override;
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow = 0) override;
+    virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const override;
 
     bool tryRegisterAsISR();
 
@@ -121,7 +121,7 @@ protected:
     HelioDigitalPin _inputPin;                              // Digital input pin
     bool _usingISR;                                         // Using ISR flag
     HelioBinaryMeasurement _lastMeasurement;                // Latest successful measurement
-    Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> _stateSignal; // State changed signal
+    Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> _stateSignal;   // State changed signal
 
     virtual void saveToData(HelioData *dataOut) override;
 };
@@ -143,8 +143,8 @@ public:
     virtual bool takeMeasurement(bool force = false) override;
     virtual const HelioMeasurement *getLatestMeasurement() const override;
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow = 0) override;
+    virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const override;
 
     inline const HelioAnalogPin &getInputPin() const { return _inputPin; }
     inline bool getInputInversion() const { return _inputInversion; }
@@ -153,7 +153,7 @@ protected:
     HelioAnalogPin _inputPin;                               // Analog input pin
     bool _inputInversion;                                   // Analog input inversion
     HelioSingleMeasurement _lastMeasurement;                // Latest successful measurement
-    Helio_UnitsType _measurementUnits;                      // Measurement units preferred
+    Helio_UnitsType _measureUnits;                          // Measurement units preferred
 
     void _takeMeasurement(unsigned int taskId);
 
@@ -185,7 +185,7 @@ protected:
     HelioDigitalPin _inputPin;                              // Digital input pin
     OneWire *_oneWire;                                      // OneWire comm instance (strong, nullptr when not used)
     uint8_t _wireBitRes;                                    // OneWire bit resolution
-    hposi_t _wirePosIndex;                      // OneWire sensor position index
+    hposi_t _wirePosIndex;                                  // OneWire sensor position index
     uint8_t _wireDevAddress[8];                             // OneWire sensor device address
 
     void resolveDeviceAddress();
@@ -209,12 +209,12 @@ public:
     virtual bool takeMeasurement(bool force = false) override;
     virtual const HelioMeasurement *getLatestMeasurement() const override;
 
-    inline uint8_t getMeasurementRowForTemperature() const { return 0; }
-    inline uint8_t getMeasurementRowForHumidity() const { return 1; }
-    inline uint8_t getMeasurementRowForHeatIndex() const { return 2; }
+    inline uint8_t getMeasureRowForTemperature() const { return 0; }
+    inline uint8_t getMeasureRowForHumidity() const { return 1; }
+    inline uint8_t getMeasureRowForHeatIndex() const { return 2; }
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow) override;
+    virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const override;
 
     virtual bool setWirePositionIndex(hposi_t wirePosIndex) override; // disabled
     virtual hposi_t getWirePositionIndex() const override; // disabled
@@ -230,7 +230,7 @@ protected:
     DHT *_dht;                                              // DHT sensor instance (owned)
     bool _computeHeatIndex;                                 // Flag to compute heat index
     HelioTripleMeasurement _lastMeasurement;                // Latest successful measurement
-    Helio_UnitsType _measurementUnits[3];                   // Measurement units preferred
+    Helio_UnitsType _measureUnits[3];                       // Measurement units preferred
 
     void _takeMeasurement(unsigned int taskId);
 
@@ -261,7 +261,7 @@ struct HelioBinarySensorData : public HelioSensorData {
 // Analog Sensor Serialization Data
 struct HelioAnalogSensorData : public HelioSensorData {
     bool inputInversion;
-    Helio_UnitsType measurementUnits;
+    Helio_UnitsType measureUnits;
 
     HelioAnalogSensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -283,7 +283,7 @@ struct HelioDigitalSensorData : public HelioSensorData {
 struct HelioDHTTempHumiditySensorData : public HelioDigitalSensorData {
     Helio_DHTType dhtType;
     bool computeHeatIndex;
-    Helio_UnitsType measurementUnits;
+    Helio_UnitsType measureUnits;
 
     HelioDHTTempHumiditySensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

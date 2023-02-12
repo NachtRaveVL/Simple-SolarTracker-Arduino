@@ -27,7 +27,7 @@ HelioMeasurement *newMeasurementObjectFromSubData(const HelioMeasurementData *da
     return nullptr;
 }
 
-float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measurementRow, float binTrue)
+float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measureRow, float binTrue)
 {
     if (measurement) {
         switch (measurement->type) {
@@ -36,16 +36,16 @@ float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measureme
             case HelioMeasurement::Single:
                 return ((HelioSingleMeasurement *)measurement)->value;
             case HelioMeasurement::Double:
-                return ((HelioDoubleMeasurement *)measurement)->value[measurementRow];
+                return ((HelioDoubleMeasurement *)measurement)->value[measureRow];
             case HelioMeasurement::Triple:
-                return ((HelioTripleMeasurement *)measurement)->value[measurementRow];
+                return ((HelioTripleMeasurement *)measurement)->value[measureRow];
             default: break;
         }
     }
     return 0.0f;
 }
 
-Helio_UnitsType getMeasurementUnits(const HelioMeasurement *measurement, uint8_t measurementRow, Helio_UnitsType binUnits)
+Helio_UnitsType getMeasureUnits(const HelioMeasurement *measurement, uint8_t measureRow, Helio_UnitsType binUnits)
 {
     if (measurement) {
         switch (measurement->type) {
@@ -54,21 +54,21 @@ Helio_UnitsType getMeasurementUnits(const HelioMeasurement *measurement, uint8_t
             case HelioMeasurement::Single:
                 return ((HelioSingleMeasurement *)measurement)->units;
             case HelioMeasurement::Double:
-                return ((HelioDoubleMeasurement *)measurement)->units[measurementRow];
+                return ((HelioDoubleMeasurement *)measurement)->units[measureRow];
             case HelioMeasurement::Triple:
-                return ((HelioTripleMeasurement *)measurement)->units[measurementRow];
+                return ((HelioTripleMeasurement *)measurement)->units[measureRow];
             default: break;
         }
     }
     return Helio_UnitsType_Undefined;
 }
 
-uint8_t getMeasurementRowCount(const HelioMeasurement *measurement)
+uint8_t getMeasureRowCount(const HelioMeasurement *measurement)
 {
     return measurement ? max(1, (int)(measurement->type)) : 0;
 }
 
-HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measurementRow, float binTrue, Helio_UnitsType binUnits)
+HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measureRow, float binTrue, Helio_UnitsType binUnits)
 {
     if (measurement) {
         switch (measurement->type) {
@@ -77,9 +77,9 @@ HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measuremen
             case HelioMeasurement::Single:
                 return *((const HelioSingleMeasurement *)measurement);
             case HelioMeasurement::Double:
-                return ((HelioDoubleMeasurement *)measurement)->getAsSingleMeasurement(measurementRow);
+                return ((HelioDoubleMeasurement *)measurement)->getAsSingleMeasurement(measureRow);
             case HelioMeasurement::Triple:
-                return ((HelioTripleMeasurement *)measurement)->getAsSingleMeasurement(measurementRow);
+                return ((HelioTripleMeasurement *)measurement)->getAsSingleMeasurement(measureRow);
             default: break;
         }
     }
@@ -101,16 +101,16 @@ HelioMeasurement::HelioMeasurement(const HelioMeasurementData *dataIn)
     updateFrame(1);
 }
 
-void HelioMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
+void HelioMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measureRow, unsigned int additionalDecPlaces) const
 {
     dataOut->type = (int8_t)type;
-    dataOut->measurementRow = measurementRow;
+    dataOut->measureRow = measureRow;
     dataOut->timestamp = timestamp;
 }
 
 void HelioMeasurement::updateFrame(hframe_t minFrame)
 {
-    frame = max(minFrame, getHelioInstance() ? getHelioInstance()->getPollingFrame() : 0);
+    frame = max(minFrame, getController() ? getController()->getPollingFrame() : 0);
 }
 
 
@@ -128,15 +128,15 @@ HelioBinaryMeasurement::HelioBinaryMeasurement(bool stateIn, time_t timestamp, h
 
 HelioBinaryMeasurement::HelioBinaryMeasurement(const HelioMeasurementData *dataIn)
     : HelioMeasurement(dataIn),
-      state(dataIn->measurementRow == 0 && dataIn->value >= 0.5f - FLT_EPSILON)
+      state(dataIn->measureRow == 0 && dataIn->value >= 0.5f - FLT_EPSILON)
 { ; }
 
-void HelioBinaryMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
+void HelioBinaryMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measureRow, unsigned int additionalDecPlaces) const
 {
-    HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
+    HelioMeasurement::saveToData(dataOut, measureRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow == 0 && state ? 1.0f : 0.0f;
-    dataOut->units = measurementRow == 0 ? Helio_UnitsType_Raw_0_1 : Helio_UnitsType_Undefined;
+    dataOut->value = measureRow == 0 && state ? 1.0f : 0.0f;
+    dataOut->units = measureRow == 0 ? Helio_UnitsType_Raw_0_1 : Helio_UnitsType_Undefined;
 }
 
 
@@ -154,16 +154,16 @@ HelioSingleMeasurement::HelioSingleMeasurement(float valueIn, Helio_UnitsType un
 
 HelioSingleMeasurement::HelioSingleMeasurement(const HelioMeasurementData *dataIn)
     : HelioMeasurement(dataIn),
-      value(dataIn->measurementRow == 0 ? dataIn->value : 0.0f),
-      units(dataIn->measurementRow == 0 ? dataIn->units : Helio_UnitsType_Undefined)
+      value(dataIn->measureRow == 0 ? dataIn->value : 0.0f),
+      units(dataIn->measureRow == 0 ? dataIn->units : Helio_UnitsType_Undefined)
 { ; }
 
-void HelioSingleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
+void HelioSingleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measureRow, unsigned int additionalDecPlaces) const
 {
-    HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
+    HelioMeasurement::saveToData(dataOut, measureRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow == 0 ? roundForExport(value, additionalDecPlaces) : 0.0f;
-    dataOut->units = measurementRow == 0 ? units : Helio_UnitsType_Undefined;
+    dataOut->value = measureRow == 0 ? roundForExport(value, additionalDecPlaces) : 0.0f;
+    dataOut->units = measureRow == 0 ? units : Helio_UnitsType_Undefined;
 }
 
 
@@ -185,20 +185,20 @@ HelioDoubleMeasurement::HelioDoubleMeasurement(float value1, Helio_UnitsType uni
 
 HelioDoubleMeasurement::HelioDoubleMeasurement(const HelioMeasurementData *dataIn)
     : HelioMeasurement(dataIn),
-      value{dataIn->measurementRow == 0 ? dataIn->value : 0.0f,
-            dataIn->measurementRow == 1 ? dataIn->value : 0.0f
+      value{dataIn->measureRow == 0 ? dataIn->value : 0.0f,
+            dataIn->measureRow == 1 ? dataIn->value : 0.0f
       },
-      units{dataIn->measurementRow == 0 ? dataIn->units : Helio_UnitsType_Undefined,
-            dataIn->measurementRow == 1 ? dataIn->units : Helio_UnitsType_Undefined
+      units{dataIn->measureRow == 0 ? dataIn->units : Helio_UnitsType_Undefined,
+            dataIn->measureRow == 1 ? dataIn->units : Helio_UnitsType_Undefined
       }
 { ; }
 
-void HelioDoubleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
+void HelioDoubleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measureRow, unsigned int additionalDecPlaces) const
 {
-    HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
+    HelioMeasurement::saveToData(dataOut, measureRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow >= 0 && measurementRow < 2 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
-    dataOut->units = measurementRow >= 0 && measurementRow < 2 ? units[measurementRow] : Helio_UnitsType_Undefined;
+    dataOut->value = measureRow >= 0 && measureRow < 2 ? roundForExport(value[measureRow], additionalDecPlaces) : 0.0f;
+    dataOut->units = measureRow >= 0 && measureRow < 2 ? units[measureRow] : Helio_UnitsType_Undefined;
 }
 
 
@@ -222,34 +222,34 @@ HelioTripleMeasurement::HelioTripleMeasurement(float value1, Helio_UnitsType uni
 
 HelioTripleMeasurement::HelioTripleMeasurement(const HelioMeasurementData *dataIn)
     : HelioMeasurement(dataIn),
-      value{dataIn->measurementRow == 0 ? dataIn->value : 0.0f,
-            dataIn->measurementRow == 1 ? dataIn->value : 0.0f,
-            dataIn->measurementRow == 2 ? dataIn->value : 0.0f,
+      value{dataIn->measureRow == 0 ? dataIn->value : 0.0f,
+            dataIn->measureRow == 1 ? dataIn->value : 0.0f,
+            dataIn->measureRow == 2 ? dataIn->value : 0.0f,
       },
-      units{dataIn->measurementRow == 0 ? dataIn->units : Helio_UnitsType_Undefined,
-            dataIn->measurementRow == 1 ? dataIn->units : Helio_UnitsType_Undefined,
-            dataIn->measurementRow == 2 ? dataIn->units : Helio_UnitsType_Undefined,
+      units{dataIn->measureRow == 0 ? dataIn->units : Helio_UnitsType_Undefined,
+            dataIn->measureRow == 1 ? dataIn->units : Helio_UnitsType_Undefined,
+            dataIn->measureRow == 2 ? dataIn->units : Helio_UnitsType_Undefined,
       }
 { ; }
 
-void HelioTripleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
+void HelioTripleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measureRow, unsigned int additionalDecPlaces) const
 {
-    HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
+    HelioMeasurement::saveToData(dataOut, measureRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow >= 0 && measurementRow < 3 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
-    dataOut->units = measurementRow >= 0 && measurementRow < 3 ? units[measurementRow] : Helio_UnitsType_Undefined;
+    dataOut->value = measureRow >= 0 && measureRow < 3 ? roundForExport(value[measureRow], additionalDecPlaces) : 0.0f;
+    dataOut->units = measureRow >= 0 && measureRow < 3 ? units[measureRow] : Helio_UnitsType_Undefined;
 }
 
 
 HelioMeasurementData::HelioMeasurementData()
-    : HelioSubData(0), measurementRow(0), value(0.0f), units(Helio_UnitsType_Undefined), timestamp(0)
+    : HelioSubData(0), measureRow(0), value(0.0f), units(Helio_UnitsType_Undefined), timestamp(0)
 { ; }
 
 void HelioMeasurementData::toJSONObject(JsonObject &objectOut) const
 {
     //HelioSubData::toJSONObject(objectOut); // purposeful no call to base method (ignores type)
 
-    objectOut[SFP(HStr_Key_MeasurementRow)] = measurementRow;
+    objectOut[SFP(HStr_Key_MeasureRow)] = measureRow;
     objectOut[SFP(HStr_Key_Value)] = value;
     objectOut[SFP(HStr_Key_Units)] = unitsTypeToSymbol(units);
     objectOut[SFP(HStr_Key_Timestamp)] = timestamp;
@@ -259,7 +259,7 @@ void HelioMeasurementData::fromJSONObject(JsonObjectConst &objectIn)
 {
     //HelioSubData::fromJSONObject(objectIn); // purposeful no call to base method (ignores type)
 
-    measurementRow = objectIn[SFP(HStr_Key_MeasurementRow)] | measurementRow;
+    measureRow = objectIn[SFP(HStr_Key_MeasureRow)] | measureRow;
     value = objectIn[SFP(HStr_Key_Value)] | value;
     units = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_Units)]);
     timestamp = objectIn[SFP(HStr_Key_Timestamp)] | timestamp;

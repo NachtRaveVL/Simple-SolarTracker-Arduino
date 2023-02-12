@@ -90,8 +90,8 @@ struct HelioProcess {
 struct HelioTracking : public HelioProcess {
     enum : signed char {Init,TopOff,PreTrack,Track,Drain,Done,Unknown = -1} stage; // Current tracking stage
 
-    time_t canTrackAfter;                                   // Time next tracking can occur (UTC)
-    time_t lastAirReport;                                   // Last time an air report was generated (UTC)
+    time_t canTrackAfter;                                   // Time next tracking can occur (unix/UTC)
+    time_t lastAirReport;                                   // Last time an air report was generated (unix/UTC)
 
     float axisSetpoints[2];                                 // Calculated axis setpoints for attached panel
 

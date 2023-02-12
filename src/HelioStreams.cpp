@@ -8,7 +8,7 @@
 HelioEEPROMStream::HelioEEPROMStream()
     : Stream(), _eeprom(nullptr), _readAddress(0), _writeAddress(0), _endAddress(0)
 {
-    if (getHelioInstance() && (_eeprom = getHelioInstance()->getEEPROM())) {
+    if (getController() && (_eeprom = getController()->getEEPROM())) {
         _endAddress = _eeprom->getDeviceSize();
     }
     HELIO_HARD_ASSERT(_eeprom, SFP(HStr_Err_UnsupportedOperation));
@@ -17,8 +17,8 @@ HelioEEPROMStream::HelioEEPROMStream()
 HelioEEPROMStream::HelioEEPROMStream(uint16_t dataAddress, size_t dataSize)
       : Stream(), _eeprom(nullptr), _readAddress(dataAddress), _writeAddress(dataAddress), _endAddress(dataAddress + dataSize)
 {
-    if (getHelioInstance()) {
-        _eeprom = getHelioInstance()->getEEPROM();
+    if (getController()) {
+        _eeprom = getController()->getEEPROM();
     }
     HELIO_HARD_ASSERT(_eeprom, SFP(HStr_Err_UnsupportedOperation));
 }

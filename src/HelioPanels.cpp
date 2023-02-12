@@ -31,14 +31,14 @@ HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, int classT
       _axisAngle{HelioSensorAttachment(this),HelioSensorAttachment(this)},
       _sunPosition(nullptr), _ldrSensors(nullptr)
 {
-    if (getHelioInstance() && getHelioInstance()->getSystemMode() == Helio_SystemMode_BrightnessBalancing) {
+    if (getController() && getController()->getSystemMode() == Helio_SystemMode_BrightnessBalancing) {
         allocateLDRSensors();
         HELIO_HARD_ASSERT(_ldrSensors, SFP(HStr_Err_AllocationFailure));
     } else {
         recalcSunPosition();
     }
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
-    _powerProd.setMeasurementUnits(getPowerUnits());
+    _powerProd.setMeasureUnits(getPowerUnits());
 }
 
 HelioPanel::HelioPanel(const HelioPanelData *dataIn)
@@ -48,7 +48,7 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
       _axisAngle{HelioSensorAttachment(this),HelioSensorAttachment(this)},
       _sunPosition(nullptr), _ldrSensors(nullptr)
 {
-    if (getHelioInstance() && getHelioInstance()->getSystemMode() == Helio_SystemMode_BrightnessBalancing) {
+    if (getController() && getController()->getSystemMode() == Helio_SystemMode_BrightnessBalancing) {
         allocateLDRSensors();
         HELIO_HARD_ASSERT(_ldrSensors, SFP(HStr_Err_AllocationFailure));
         _ldrSensors[0].setObject(dataIn->ldrSensor1);
@@ -61,7 +61,7 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
         recalcSunPosition();
     }
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
-    _powerProd.setMeasurementUnits(getPowerUnits());
+    _powerProd.setMeasureUnits(getPowerUnits());
     _powerProd.setObject(dataIn->powerSensor);
     _axisAngle[0].setObject(dataIn->angleSensor1);
     if (isMultiAxis()) {
@@ -101,8 +101,8 @@ void HelioPanel::update()
         _axisDriver[1].updateIfNeeded(true);
     }
 
-    if (getSchedulerInstance()) {
-        _inDaytimeMode = getSchedulerInstance()->inDaytimeMode();
+    if (getScheduler()) {
+        _inDaytimeMode = getScheduler()->inDaytimeMode();
     }
 
     if (_inDaytimeMode) {
@@ -138,7 +138,7 @@ void HelioPanel::recalcSunPosition()
     HELIO_HARD_ASSERT(_sunPosition, SFP(HStr_Err_AllocationFailure));
 
     if (isHorizontalCoords()) {
-        Location loc = getHelioInstance() ? getHelioInstance()->getSystemLocation() : Location();
+        Location loc = getController() ? getController()->getSystemLocation() : Location();
         if (loc.hasPosition()) {
             calcHorizontalCoordinates(julianTime, loc.latitude, loc.longitude, _sunPosition[0], _sunPosition[1]);
         }
@@ -153,7 +153,7 @@ void HelioPanel::setPowerUnits(Helio_UnitsType powerUnits)
     if (_powerUnits != powerUnits) {
         _powerUnits = powerUnits;
 
-        _powerProd.setMeasurementUnits(powerUnits);
+        _powerProd.setMeasureUnits(powerUnits);
     }
 }
 

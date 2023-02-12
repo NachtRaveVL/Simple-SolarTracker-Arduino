@@ -51,7 +51,7 @@ public:
     template<class U> inline HelioDLinkObject &operator=(SharedPtr<U> &rhs);
     inline HelioDLinkObject &operator=(const HelioObjInterface *rhs);
     inline HelioDLinkObject &operator=(const HelioAttachment *rhs);
-    inline HelioDLinkObject &operator=(nullptr_t) { return this->operator=((HelioObjInterface *)nullptr); }
+    inline HelioDLinkObject &operator=(nullptr_t) { return operator=((HelioObjInterface *)nullptr); }
 
     inline bool operator==(const HelioIdentity &rhs) const { return _key == rhs.key; }
     inline bool operator==(const char *rhs) const { return _key == stringHash(rhs); }
@@ -231,7 +231,7 @@ public:
 
 protected:
     HelioActivationHandle _actHandle;                       // Actuator activation handle (double ref to object when active)
-    HelioActivation _actSetup;            // Actuator activation setup
+    HelioActivation _actSetup;                              // Actuator activation setup
     Slot<HelioActuatorAttachment *> *_updateSlot;           // Update slot (owned)
     float _rateMultiplier;                                  // Rate multiplier
     bool _calledLastUpdate;                                 // Last update call flag
@@ -247,7 +247,7 @@ protected:
 // Custom handle method is responsible for calling setMeasurement() to update measurement.
 class HelioSensorAttachment : public HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> {
 public:
-    HelioSensorAttachment(HelioObjInterface *parent = nullptr, uint8_t measurementRow = 0);
+    HelioSensorAttachment(HelioObjInterface *parent = nullptr, uint8_t measureRow = 0);
     HelioSensorAttachment(const HelioSensorAttachment &attachment);
     virtual ~HelioSensorAttachment();
 
@@ -260,8 +260,8 @@ public:
     // Sets the current measurement associated with this process. Required to be called by custom handlers.
     void setMeasurement(HelioSingleMeasurement measurement);
     inline void setMeasurement(float value, Helio_UnitsType units = Helio_UnitsType_Undefined) { setMeasurement(HelioSingleMeasurement(value, units)); }
-    void setMeasurementRow(uint8_t measurementRow);
-    void setMeasurementUnits(Helio_UnitsType units, float convertParam = FLT_UNDEF);
+    void setMeasureRow(uint8_t measureRow);
+    void setMeasureUnits(Helio_UnitsType units, float convertParam = FLT_UNDEF);
 
     inline void setNeedsMeasurement() { _needsMeasurement = true; }
     inline bool needsMeasurement() { return _needsMeasurement; }
@@ -269,9 +269,9 @@ public:
     inline const HelioSingleMeasurement &getMeasurement(bool poll = false) { updateIfNeeded(poll); return _measurement; }
     inline uint16_t getMeasurementFrame(bool poll = false) { updateIfNeeded(poll); return _measurement.frame; }
     inline float getMeasurementValue(bool poll = false) { updateIfNeeded(poll); return _measurement.value; }
-    inline Helio_UnitsType getMeasurementUnits() const { return _measurement.units; }
+    inline Helio_UnitsType getMeasureUnits() const { return _measurement.units; }
 
-    inline uint8_t getMeasurementRow() const { return _measurementRow; }
+    inline uint8_t getMeasureRow() const { return _measureRow; }
     inline float getMeasurementConvertParam() const { return _convertParam; }
 
     inline SharedPtr<HelioSensor> getObject() { return HelioAttachment::getObject<HelioSensor>(); }
@@ -287,7 +287,7 @@ public:
 
 protected:
     HelioSingleMeasurement _measurement;                    // Local measurement (converted to measure units)
-    uint8_t _measurementRow;                                // Measurement row
+    uint8_t _measureRow;                                    // Measurement row
     float _convertParam;                                    // Convert param (default: FLT_UNDEF)
     bool _needsMeasurement;                                 // Stale measurement tracking flag
 

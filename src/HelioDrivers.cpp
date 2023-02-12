@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioDriver::HelioDriver(float travelRate, int typeIn)
-    : type((typeof(type))typeIn), _targetUnits(Helio_UnitsType_Raw_0_1),
+    : type((typeof(type))typeIn), _measureUnits(Helio_UnitsType_Raw_0_1),
       _targetSetpoint(FLT_UNDEF), _travelRate(travelRate),
       _trackMin(__FLT_MAX__), _trackMax(-__FLT_MAX__),
       _drivingState(Helio_DrivingState_Undefined), _enabled(false)
@@ -110,8 +110,8 @@ void HelioDriver::disableAllActivations()
 }
 
 
-// HelioAbsoluteDriver::HelioAbsoluteDriver(SharedPtr<HelioSensor> sensor, float targetSetpoint, float targetRange, float edgeOffset, float edgeLength, uint8_t measurementRow)
-//     : HelioDriver(sensor, targetSetpoint, targetRange, measurementRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
+// HelioAbsoluteDriver::HelioAbsoluteDriver(SharedPtr<HelioSensor> sensor, float targetSetpoint, float targetRange, float edgeOffset, float edgeLength, uint8_t measureRow)
+//     : HelioDriver(sensor, targetSetpoint, targetRange, measureRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
 // { ; }
 
 void HelioAbsoluteDriver::handleOffset(float maximumOffset)
@@ -119,8 +119,8 @@ void HelioAbsoluteDriver::handleOffset(float maximumOffset)
     if (!_enabled) { return; }
 
     auto hadDrivingState = _drivingState;
-    _drivingState = maximumOffset < -FLT_EPSILON ? Helio_DrivingState_GoHigher :
-                    maximumOffset > FLT_EPSILON ? Helio_DrivingState_GoLower :
+    _drivingState = maximumOffset < -FLT_EPSILON ? Helio_DrivingState_OffTarget :
+                    maximumOffset > FLT_EPSILON ? Helio_DrivingState_NearTarget :
                     Helio_DrivingState_OnTarget;
 
     if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {
@@ -163,8 +163,8 @@ void HelioIncrementalDriver::handleOffset(float maximumOffset) {
     if (!_enabled) { return; }
 
     auto hadDrivingState = _drivingState;
-    _drivingState = maximumOffset < -(_targetRange * 0.5f) ? Helio_DrivingState_GoHigher :
-                    maximumOffset > (_targetRange * 0.5f) ? Helio_DrivingState_GoLower :
+    _drivingState = maximumOffset < -(_targetRange * 0.5f) ? Helio_DrivingState_OffTarget :
+                    maximumOffset > (_targetRange * 0.5f) ? Helio_DrivingState_NearTarget :
                     Helio_DrivingState_OnTarget;
 
     if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {

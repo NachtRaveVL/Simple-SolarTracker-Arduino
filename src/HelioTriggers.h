@@ -31,10 +31,10 @@ public:
     inline bool isUnknownType() const { return type <= Unknown; }
 
     HelioTrigger(HelioIdentity sensorId,
-                 uint8_t measurementRow = 0,
+                 uint8_t measureRow = 0,
                  int type = Unknown);
     HelioTrigger(SharedPtr<HelioSensor> sensor,
-                 uint8_t measurementRow = 0,
+                 uint8_t measureRow = 0,
                  int type = Unknown);
     HelioTrigger(const HelioTriggerSubData *dataIn);
 
@@ -45,11 +45,11 @@ public:
 
     virtual Helio_TriggerState getTriggerState() const override;
 
-    inline void setToleranceUnits(Helio_UnitsType toleranceUnits) { _sensor.setMeasurementUnits(toleranceUnits); }
-    inline Helio_UnitsType getToleranceUnits() const { return _sensor.getMeasurementUnits(); }
+    inline void setMeasureUnits(Helio_UnitsType measureUnits) { _sensor.setMeasureUnits(measureUnits); }
+    inline Helio_UnitsType getMeasureUnits() const { return _sensor.getMeasureUnits(); }
 
     inline SharedPtr<HelioSensor> getSensor(bool poll = false) { _sensor.updateIfNeeded(poll); return _sensor.getObject(); }
-    inline uint8_t getMeasurementRow() const { return _sensor.getMeasurementRow(); }
+    inline uint8_t getMeasureRow() const { return _sensor.getMeasureRow(); }
 
     Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> &getTriggerSignal();
 
@@ -72,12 +72,12 @@ public:
                                  float triggerTol,
                                  bool triggerBelow = true,
                                  float detriggerTol = 0,
-                                 uint8_t measurementRow = 0);
+                                 uint8_t measureRow = 0);
     HelioMeasurementValueTrigger(SharedPtr<HelioSensor> sensor,
                                  float triggerTol,
                                  bool triggerBelow = true,
                                  float detriggerTol = 0,
-                                 uint8_t measurementRow = 0);
+                                 uint8_t measureRow = 0);
     HelioMeasurementValueTrigger(const HelioTriggerSubData *dataIn);
 
     virtual void saveToData(HelioTriggerSubData *dataOut) const override;
@@ -112,13 +112,13 @@ public:
                                  float toleranceHigh,
                                  bool triggerOutside = true,
                                  float detriggerTol = 0,
-                                 uint8_t measurementRow = 0);
+                                 uint8_t measureRow = 0);
     HelioMeasurementRangeTrigger(SharedPtr<HelioSensor> sensor,
                                  float toleranceLow,
                                  float toleranceHigh,
                                  bool triggerOutside = true,
                                  float detriggerTol = 0,
-                                 uint8_t measurementRow = 0);
+                                 uint8_t measureRow = 0);
     HelioMeasurementRangeTrigger(const HelioTriggerSubData *dataIn);
 
     virtual void saveToData(HelioTriggerSubData *dataOut) const override;
@@ -144,7 +144,7 @@ protected:
 // Combined Trigger Serialization Sub Data
 struct HelioTriggerSubData : public HelioSubData {
     char sensorName[HELIO_NAME_MAXSIZE];
-    int8_t measurementRow;
+    int8_t measureRow;
     union {
         struct {
             float tolerance;
@@ -157,7 +157,7 @@ struct HelioTriggerSubData : public HelioSubData {
         } measureRange;
     } dataAs;
     float detriggerTol;
-    Helio_UnitsType toleranceUnits;
+    Helio_UnitsType measureUnits;
 
     HelioTriggerSubData();
     virtual void toJSONObject(JsonObject &objectOut) const;

@@ -159,11 +159,7 @@ typedef Adafruit_GPS GPSClass;
 #include "MQTT.h"                       // MQTT library
 #define HELIO_USE_MQTT
 #endif
-#if defined(ARDUINO_ARCH_STM32) && 1
-#include <OneWireSTM.h>                 // STM32 version of OneWire (via stm32duino)
-#else
 #include "OneWire.h"                    // OneWire library
-#endif
 #include "RTClib.h"                     // i2c RTC library
 #include "SolarCalculator.h"            // Solar calculator library
 #include "TimeLib.h"                    // Time library
@@ -206,6 +202,7 @@ using namespace arx::stdx;
 template <typename T> using SharedPtr = arx::stdx::shared_ptr<T>;
 
 inline time_t unixNow();
+inline DateTime localNow();
 inline millis_t nzMillis();
 extern void handleInterrupt(pintype_t);
 extern hkey_t stringHash(String);
@@ -417,8 +414,6 @@ public:
 
     // Accessors.
 
-    // Currently active Helioduino instance
-    static inline Helioduino *getActiveInstance() { return _activeInstance; }
     // EEPROM device size, in bytes (default: 0)
     inline uint32_t getEEPROMSize() const { return _eepromType != Helio_EEPROMType_None ? (((int)_eepromType) << 7) : 0; }
     // EEPROM device setup configuration
@@ -607,12 +602,12 @@ protected:
     void checkFreeSpace();
     void checkAutosave();
 
-    friend Helioduino *::getHelioInstance();
-    friend HelioScheduler *::getSchedulerInstance();
-    friend HelioLogger *::getLoggerInstance();
-    friend HelioPublisher *::getPublisherInstance();
+    friend Helioduino *::getController();
+    friend HelioScheduler *::getScheduler();
+    friend HelioLogger *::getLogger();
+    friend HelioPublisher *::getPublisher();
 #ifdef HELIO_USE_GUI
-    friend HelioUIInterface *::getUIInstance();
+    friend HelioUIInterface *::getUI();
 #endif
     friend class HelioCalibrations;
     friend class HelioScheduler;
