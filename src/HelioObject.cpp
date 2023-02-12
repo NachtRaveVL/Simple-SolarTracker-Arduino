@@ -187,8 +187,8 @@ String HelioObject::getKeyString() const
 
 SharedPtr<HelioObjInterface> HelioObject::getSharedPtr() const
 {
-    return getHelioInstance() ? static_pointer_cast<HelioObjInterface>(getHelioInstance()->objectById(_id))
-                              : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
+    return getController() ? static_pointer_cast<HelioObjInterface>(getController()->objectById(_id))
+                           : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
 }
 
 bool HelioObject::isObject() const

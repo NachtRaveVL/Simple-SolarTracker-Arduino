@@ -42,13 +42,13 @@ inline String getStringsFilename()
 
 String stringFromPGM(Helio_String strNum)
 {    
-    static Helio_String _lookupStrNum = Helio_Strings_Count; // Simple LRU cache reduces a lot of lookup access
+    static Helio_String _lookupStrNum = HStr_Count; // Simple LRU cache reduces a lot of lookup access
     static String _lookupCachedRes;
     if (strNum == _lookupStrNum && _lookupCachedRes.length()) { return _lookupCachedRes; }
     else { _lookupStrNum = strNum; } // _lookupCachedRes set below
 
     if (_strDataAddress != (uint16_t)-1) {
-        auto eeprom = getHelioInstance()->getEEPROM();
+        auto eeprom = getController()->getEEPROM();
 
         if (eeprom) {
             uint16_t lookupOffset = 0;
@@ -81,7 +81,7 @@ String stringFromPGM(Helio_String strNum)
         #if HELIO_SYS_LEAVE_FILES_OPEN
             static
         #endif
-        auto sd = getHelioInstance()->getSDCard();
+        auto sd = getController()->getSDCard();
 
         if (sd) {
             String retVal;
@@ -116,7 +116,7 @@ String stringFromPGM(Helio_String strNum)
             }
 
             #if !HELIO_SYS_LEAVE_FILES_OPEN
-                getHelioInstance()->endSDCard(sd);
+                getController()->endSDCard(sd);
             #endif
             if (retVal.length()) {
                 return (_lookupCachedRes = retVal);
@@ -365,14 +365,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_AirReportInterval[] PROGMEM = {"airReportInterval"};
             return flashStr_Key_AirReportInterval;
         } break;
-        case HStr_Key_AirTempRange: {
-            static const char flashStr_Key_AirTempRange[] PROGMEM = {"airTempRange"};
-            return flashStr_Key_AirTempRange;
-        } break;
-        case HStr_Key_AirTemperatureSensor: {
-            static const char flashStr_Key_AirTemperatureSensor[] PROGMEM = {"airTempSensor"};
-            return flashStr_Key_AirTemperatureSensor;
-        } break;
         case HStr_Key_Altitude: {
             static const char flashStr_Key_Altitude[] PROGMEM = {"altitude"};
             return flashStr_Key_Altitude;
@@ -413,13 +405,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_ComputeHeatIndex[] PROGMEM = {"computeHeatIndex"};
             return flashStr_Key_ComputeHeatIndex;
         } break;
-        case HStr_Key_ContinousPowerUsage: {
-            static const char flashStr_Key_ContinousPowerUsage[] PROGMEM = {"contPowerUsage"};
-            return flashStr_Key_ContinousPowerUsage;
+        case HStr_Key_ContinuousPowerUsage: {
+            static const char flashStr_Key_ContinuousPowerUsage[] PROGMEM = {"contPowerUsage"};
+            return flashStr_Key_ContinuousPowerUsage;
         } break;
-        case HStr_Key_ContinousSpeed: {
-            static const char flashStr_Key_ContinousSpeed[] PROGMEM = {"contSpeed"};
-            return flashStr_Key_ContinousSpeed;
+        case HStr_Key_ContinuousSpeed: {
+            static const char flashStr_Key_ContinuousSpeed[] PROGMEM = {"contSpeed"};
+            return flashStr_Key_ContinuousSpeed;
         } break;
         case HStr_Key_CtrlInMode: {
             static const char flashStr_Key_CtrlInMode[] PROGMEM = {"ctrlInMode"};
@@ -521,13 +513,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_MeasureMode[] PROGMEM = {"measureMode"};
             return flashStr_Key_MeasureMode;
         } break;
-        case HStr_Key_MeasurementRow: {
-            static const char flashStr_Key_MeasurementRow[] PROGMEM = {"measurementRow"};
-            return flashStr_Key_MeasurementRow;
+        case HStr_Key_MeasureRow: {
+            static const char flashStr_Key_MeasureRow[] PROGMEM = {"measureRow"};
+            return flashStr_Key_MeasureRow;
         } break;
-        case HStr_Key_MeasurementUnits: {
-            static const char flashStr_Key_MeasurementUnits[] PROGMEM = {"measurementUnits"};
-            return flashStr_Key_MeasurementUnits;
+        case HStr_Key_MeasureUnits: {
+            static const char flashStr_Key_MeasureUnits[] PROGMEM = {"measureUnits"};
+            return flashStr_Key_MeasureUnits;
         } break;
         case HStr_Key_Mode: {
             static const char flashStr_Key_Mode[] PROGMEM = {"mode"};
@@ -633,9 +625,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_SystemName[] PROGMEM = {"systemName"};
             return flashStr_Key_SystemName;
         } break;
-        case HStr_Key_TempUnits: {
-            static const char flashStr_Key_TempUnits[] PROGMEM = {"tempUnits"};
-            return flashStr_Key_TempUnits;
+        case HStr_Key_TemperatureUnits: {
+            static const char flashStr_Key_TemperatureUnits[] PROGMEM = {"temperatureUnits"};
+            return flashStr_Key_TemperatureUnits;
         } break;
         case HStr_Key_TemperatureSensor: {
             static const char flashStr_Key_TemperatureSensor[] PROGMEM = {"tempSensor"};
@@ -660,10 +652,6 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_ToleranceLow: {
             static const char flashStr_Key_ToleranceLow[] PROGMEM = {"toleranceLow"};
             return flashStr_Key_ToleranceLow;
-        } break;
-        case HStr_Key_ToleranceUnits: {
-            static const char flashStr_Key_ToleranceUnits[] PROGMEM = {"toleranceUnits"};
-            return flashStr_Key_ToleranceUnits;
         } break;
         case HStr_Key_TriggerBelow: {
             static const char flashStr_Key_TriggerBelow[] PROGMEM = {"triggerBelow"};
@@ -838,10 +826,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Gimballed[] PROGMEM = {"Gimballed"};
             return flashStr_Enum_Gimballed;
         } break;
-        case HStr_Enum_HeatIndex: {
-            static const char flashStr_Enum_HeatIndex[] PROGMEM = {"HeatIndex"};
-            return flashStr_Enum_HeatIndex;
-        } break;
         case HStr_Enum_Highest: {
             static const char flashStr_Enum_Highest[] PROGMEM = {"Highest"};
             return flashStr_Enum_Highest;
@@ -849,10 +833,6 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Enum_Horizontal: {
             static const char flashStr_Enum_Horizontal[] PROGMEM = {"Horizontal"};
             return flashStr_Enum_Horizontal;
-        } break;
-        case HStr_Enum_Humidity: {
-            static const char flashStr_Enum_Humidity[] PROGMEM = {"Humidity"};
-            return flashStr_Enum_Humidity;
         } break;
         case HStr_Enum_IceDetector: {
             static const char flashStr_Enum_IceDetector[] PROGMEM = {"IceDetector"};
@@ -894,6 +874,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelSprayer[] PROGMEM = {"PanelSprayer"};
             return flashStr_Enum_PanelSprayer;
         } break;
+        case HStr_Enum_Percentile: {
+            static const char flashStr_Enum_Percentile[] PROGMEM = {"Percentile"};
+            return flashStr_Enum_Percentile;
+        } break;
         case HStr_Enum_PositionalServo: {
             static const char flashStr_Enum_PositionalServo[] PROGMEM = {"PositionalServo"};
             return flashStr_Enum_PositionalServo;
@@ -934,9 +918,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Temperature[] PROGMEM = {"Temperature"};
             return flashStr_Enum_Temperature;
         } break;
-        case HStr_Enum_TemperatureHumidity: {
-            static const char flashStr_Enum_TemperatureHumidity[] PROGMEM = {"TempHumid"};
-            return flashStr_Enum_TemperatureHumidity;
+        case HStr_Enum_TempHumidity: {
+            static const char flashStr_Enum_TempHumidity[] PROGMEM = {"TempHumidity"};
+            return flashStr_Enum_TempHumidity;
         } break;
         case HStr_Enum_TiltAngle: {
             static const char flashStr_Enum_TiltAngle[] PROGMEM = {"TiltAngle"};
@@ -951,10 +935,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Enum_WindSpeed;
         } break;
 
-        case HStr_Unit_Amperage: {
-            static const char flashStr_Unit_Amperage[] PROGMEM = {"A"};
-            return flashStr_Unit_Amperage;
-        } break;
         case HStr_Unit_Celsius: {
             static const char flashStr_Unit_Celsius[] PROGMEM = {"°C"};
             return flashStr_Unit_Celsius;
@@ -962,10 +942,6 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Unit_Count: {
             static const char flashStr_Unit_Count[] PROGMEM = {"qty"};
             return flashStr_Unit_Count;
-        } break;
-        case HStr_Unit_Degrees: {
-            static const char flashStr_Unit_Degrees[] PROGMEM = {"°"};
-            return flashStr_Unit_Degrees;
         } break;
         case HStr_Unit_Fahrenheit: {
             static const char flashStr_Unit_Fahrenheit[] PROGMEM = {"°F"};
@@ -975,29 +951,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Unit_Feet[] PROGMEM = {"ft"};
             return flashStr_Unit_Feet;
         } break;
-        case HStr_Unit_FeetPerMin: {
-            static const char flashStr_Unit_FeetPerMin[] PROGMEM = {"ft/min"};
-            return flashStr_Unit_FeetPerMin;
-        } break;
-        case HStr_Unit_JoulesPerSecond: {
-            static const char flashStr_Unit_JoulesPerSecond[] PROGMEM = {"J/sec"};
-            return flashStr_Unit_JoulesPerSecond;
-        } break;
         case HStr_Unit_Kelvin: {
             static const char flashStr_Unit_Kelvin[] PROGMEM = {"°K"};
             return flashStr_Unit_Kelvin;
         } break;
-        case HStr_Unit_Meters: {
-            static const char flashStr_Unit_Meters[] PROGMEM = {"m"};
-            return flashStr_Unit_Meters;
-        } break;
-        case HStr_Unit_MetersPerMin: {
-            static const char flashStr_Unit_MetersPerMin[] PROGMEM = {"m/min"};
-            return flashStr_Unit_MetersPerMin;
-        } break;
-        case HStr_Unit_Percentile: {
-            static const char flashStr_Unit_Percentile[] PROGMEM = {"%"};
-            return flashStr_Unit_Percentile;
+        case HStr_Unit_PerMinute: {
+            static const char flashStr_Unit_PerMinute[] PROGMEM = {"/min"};
+            return flashStr_Unit_PerMinute;
         } break;
         case HStr_Unit_Radians: {
             static const char flashStr_Unit_Radians[] PROGMEM = {"rad"};
@@ -1007,13 +967,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Unit_Undefined[] PROGMEM = {"undef"};
             return flashStr_Unit_Undefined;
         } break;
-        case HStr_Unit_Wattage: {
-            static const char flashStr_Unit_Wattage[] PROGMEM = {"W"};
-            return flashStr_Unit_Wattage;
-        } break;
-
-        default:
-            return nullptr;
     }
 }
 

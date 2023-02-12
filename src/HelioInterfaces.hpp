@@ -90,25 +90,25 @@ inline SharedPtr<U> HelioSpeedSensorAttachmentInterface::getSpeedSensor(bool pol
 }
 
 template <class U>
-inline void HelioMinEndstopAttachmentInterface::setMinEndstop(U endstop)
+inline void HelioMinEndstopSensorAttachmentInterface::setMinEndstop(U endstop)
 {
     getMinimum(false).setObject(endstop);
 }
 
 template <class U>
-inline SharedPtr<U> HelioMinEndstopAttachmentInterface::getMinEndstop(bool poll)
+inline SharedPtr<U> HelioMinEndstopSensorAttachmentInterface::getMinEndstop(bool poll)
 {
     return static_pointer_cast<U>(getMinimum(poll).getObject());
 }
 
 template <class U>
-inline void HelioMaxEndstopAttachmentInterface::setMaxEndstop(U endstop)
+inline void HelioMaxEndstopSensorAttachmentInterface::setMaxEndstop(U endstop)
 {
     getMaximum(false).setObject(endstop);
 }
 
 template <class U>
-inline SharedPtr<U> HelioMaxEndstopAttachmentInterface::getMaxEndstop(bool poll)
+inline SharedPtr<U> HelioMaxEndstopSensorAttachmentInterface::getMaxEndstop(bool poll)
 {
     return static_pointer_cast<U>(getMaximum(poll).getObject());
 }
@@ -138,25 +138,13 @@ inline SharedPtr<U> HelioPowerUsageSensorAttachmentInterface::getPowerUsageSenso
 }
 
 template <class U>
-inline void HelioAirTemperatureSensorAttachmentInterface::setAirTemperatureSensor(U sensor)
+inline void HelioTemperatureSensorAttachmentInterface::setTemperatureSensor(U sensor)
 {
-    getAirTemperature(false).setObject(sensor);
+    getTemperature(false).setObject(sensor);
 }
 
 template <class U>
-inline SharedPtr<U> HelioAirTemperatureSensorAttachmentInterface::getAirTemperatureSensor(bool poll)
+inline SharedPtr<U> HelioTemperatureSensorAttachmentInterface::getTemperatureSensor(bool poll)
 {
-    return static_pointer_cast<U>(getAirTemperature(poll).getObject());
-}
-
-template <class U>
-inline void HelioAirHumiditySensorAttachmentInterface::setAirHumiditySensor(U sensor)
-{
-    getAirHumidity(false).setObject(sensor);
-}
-
-template <class U>
-inline SharedPtr<U> HelioAirHumiditySensorAttachmentInterface::getAirHumiditySensor(bool poll)
-{
-    return static_pointer_cast<U>(getAirHumidity(poll).getObject());
+    return static_pointer_cast<U>(getTemperature(poll).getObject());
 }

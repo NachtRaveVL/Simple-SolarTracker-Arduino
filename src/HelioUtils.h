@@ -6,7 +6,6 @@
 #ifndef HelioUtils_H
 #define HelioUtils_H
 
-struct HelioBitResolution;
 template<typename RTCType> class HelioRTCWrapper;
 #ifdef HELIO_USE_MULTITASKING
 template<typename ParameterType, int Slots> class SignalFireTask;
@@ -19,22 +18,6 @@ class ActuatorTimedEnableTask;
 #ifdef HELIO_USE_MULTITASKING
 #include "BasicInterruptAbstraction.h"
 #endif
-
-// Simple class for describing an analog bit resolution.
-// This class is mainly used to calculate analog pin range boundary values.
-struct HelioBitResolution {
-    uint8_t bits;                                           // Bit resolution (# of bits)
-    int maxVal;                                             // Maximum value (2 ^ (# of bits))
-
-    HelioBitResolution(uint8_t bitResolution);              // Bit resolution (# of bits)
-
-    // Transforms value from raw/integer (or initial) value into normalized (or transformed) value.
-    inline float transform(int value) const { return constrain(value / (float)maxVal, 0.0f, 1.0f); }
-
-    // Inverse transforms value from normalized (or transformed) value back into raw/integer (or initial) value.
-    inline int inverseTransform(float value) const { return constrain((int)((float)maxVal * value), 0, maxVal); }
-};
-
 
 // Simple wrapper class for dealing with RTC modules.
 // This class is mainly used to abstract which RTC module is used.
@@ -179,28 +162,36 @@ extern void hardAssert(bool cond, String msg, const char *file, const char *func
 
 // Helpers & Misc
 
-// Returns the active Helio instance. Not guaranteed to be non-null.
-inline Helioduino *getHelioInstance();
+// Returns the active controller instance. Not guaranteed to be non-null.
+inline Helioduino *getController();
 // Returns the active scheduler instance. Not guaranteed to be non-null.
-inline HelioScheduler *getSchedulerInstance();
+inline HelioScheduler *getScheduler();
 // Returns the active logger instance. Not guaranteed to be non-null.
-inline HelioLogger *getLoggerInstance();
+inline HelioLogger *getLogger();
 // Returns the active publisher instance. Not guaranteed to be non-null.
-inline HelioPublisher *getPublisherInstance();
+inline HelioPublisher *getPublisher();
 #ifdef HELIO_USE_GUI
 // Returns the active UI instance. Not guaranteed to be non-null.
-inline HelioUIInterface *getUIInstance();
+inline HelioUIInterface *getUI();
 #endif
 
 // Publishes latest data from sensor to Publisher output.
 extern void publishData(HelioSensor *sensor);
 
-// Returns current local date time, with proper time zone offset based on active Helioduino instance.
-inline DateTime getCurrentTime(time_t time = unixNow());
-// Returns the local date time of when today started, accounting for proper time zone offset based on active Helioduino instance.
-inline time_t getCurrentDayStartTime(time_t time = unixNow());
-// Sets the global current time of the RTC, returning if update was successful, and additionally calls appropriate system time updaters.
-extern bool setCurrentTime(DateTime currTime);
+// Converts from local DateTime (offset by system TZ) back into unix/UTC time.
+inline time_t unixTime(DateTime localTime);
+// Converts from unix/UTC time into local DateTime (offset by system TZ).
+inline DateTime localTime(time_t unixTime);
+// Returns unix/UTC time of when today started.
+inline time_t unixDayStart(time_t unixTime = unixNow());
+// Returns local DateTime (offset by system TZ) of when today started.
+inline DateTime localDayStart(time_t unixTime = unixNow());
+// Sets global RTC current time to passed unix/UTC time.
+// Returns update success after calling appropriate system notifiers.
+inline bool setUnixTime(time_t unixTime);
+// Sets global RTC current time to passed local DateTime (offset by system TZ).
+// Returns update success after calling appropriate system notifiers.
+inline bool setLocalTime(DateTime localTime);
 
 // Returns a proper filename for a storage monitoring file (log, data, etc) that uses YYMMDD as filename.
 extern String getYYMMDDFilename(String prefix, String ext);
@@ -245,13 +236,13 @@ extern void hexStringToBytes(String stringIn, uint8_t *bytesOut, size_t length);
 extern void hexStringToBytes(JsonVariantConst &variantIn, uint8_t *bytesOut, size_t length);
 
 // Returns # of occurrences of character in string.
-int occurrencesInString(String string, char singleChar);
+extern int occurrencesInString(String string, char singleChar);
 // Returns # of occurrences of substring in string.
-int occurrencesInString(String string, String subString);
+extern int occurrencesInString(String string, String subString);
 // Returns # of occurrences of character in string, ignoring case.
-int occurrencesInStringIgnoreCase(String string, char singleChar);
+extern int occurrencesInStringIgnoreCase(String string, char singleChar);
 // Returns # of occurrences of substring in string, ignoring case.
-int occurrencesInStringIgnoreCase(String string, String subString);
+extern int occurrencesInStringIgnoreCase(String string, String subString);
 
 // Returns whenever all elements of an array are equal to the specified value, or not.
 template<typename T> bool arrayElementsEqual(const T *arrayIn, size_t length, T value);
@@ -268,8 +259,10 @@ extern void delayFine(millis_t time);
 // This will query the active RTC sync device for the current time.
 extern time_t rtcNow();
 
-// This will return the time in unixtime (secs since 1970). Uses rtc if available, otherwise time since turned on.
+// This will return the current time in unix/UTC time (secs since 1970). Uses rtc time if available, otherwise 2000-Jan-1 + time since turned on.
 inline time_t unixNow() { return rtcNow() ?: now() + SECONDS_FROM_1970_TO_2000; } // rtcNow returns 0 if not set
+// This will return the current time in local DateTime (offset by system TZ). Uses rtc time if available, otherwise 2000-Jan-1 + time since turned on.
+inline DateTime localNow() { return localTime(unixNow()); }
 
 // This will return a non-zero millis time value, so that 0 time values can be reserved for other use.
 inline millis_t nzMillis() { return millis() ?: 1; }
@@ -295,32 +288,37 @@ extern bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *value
 
 // Attempts to convert value in-place from one unit to another, and if successful then assigns value back overtop of itself.
 // Convert param used in certain unit conversions. Returns conversion success flag.
-extern bool convertUnits(float *valueInOut, Helio_UnitsType *unitsInOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
+inline bool convertUnits(float *valueInOut, Helio_UnitsType *unitsInOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
 // Attempts to convert value from one unit to another, and if successful then assigns value, and optionally units, to output.
 // Convert param used in certain unit conversions. Returns conversion success flag.
-extern bool convertUnits(float valueIn, float *valueOut, Helio_UnitsType unitsIn, Helio_UnitsType outUnits, Helio_UnitsType *unitsOut = nullptr, float convertParam = FLT_UNDEF);
+inline bool convertUnits(float valueIn, float *valueOut, Helio_UnitsType unitsIn, Helio_UnitsType outUnits, Helio_UnitsType *unitsOut = nullptr, float convertParam = FLT_UNDEF);
 // Attempts to convert measurement in-place from one unit to another, and if successful then assigns value and units back overtop of itself.
 // Convert param used in certain unit conversions. Returns conversion success flag.
-inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) { return convertUnits(&measureInOut->value, &measureInOut->units, outUnits, convertParam); }
+inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
 // Attemps to convert measurement from one unit to another, and if successful then assigns value and units to output measurement.
 // Convert param used in certain unit conversions. Returns conversion success flag.
-inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) { return convertUnits(measureIn->value, &measureOut->value, measureIn->units, outUnits, &measureOut->units, convertParam); }
+inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
 
 // Returns the base units from a rate unit (e.g. mm/min -> mm).
-extern Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units);
+extern Helio_UnitsType baseUnits(Helio_UnitsType units);
 // Returns the rate units from a base unit (e.g. mm -> mm/min).
-extern Helio_UnitsType rateUnitsFromBase(Helio_UnitsType units);
+extern Helio_UnitsType rateUnits(Helio_UnitsType units);
 
-// Returns default temperature units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-extern Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
-// Returns default distance units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-extern Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
-// Returns default speed units to use based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-inline Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return rateUnitsFromBase(defaultDistanceUnits(measureMode)); }
-// Returns default power units to use based on measureMode (if undefined then uses active Hydruino instance's measurement mode, else default mode).
-extern Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
-// Returns default decimal places rounded to based on measureMode (if undefined then uses active Helio instance's measurement mode, else default mode).
-extern int defaultDecimalPlaces(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+// Returns default units based on category and measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+extern Helio_UnitsType defaultUnits(Helio_UnitsCategory unitsCategory, Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined);
+
+// Returns default angle units based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline Helio_UnitsType defaultAngleUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return defaultUnits(Helio_UnitsCategory_Angle, measureMode); }
+// Returns default distance units based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return defaultUnits(Helio_UnitsCategory_Distance, measureMode); }
+// Returns default power units based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return defaultUnits(Helio_UnitsCategory_Power, measureMode); }
+// Returns default speed units based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline Helio_UnitsType defaultSpeedUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return rateUnits(defaultDistanceUnits(measureMode)); }
+// Returns default temperature units based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return defaultUnits(Helio_UnitsCategory_Temperature, measureMode); }
+// Returns default decimal places rounded to based on measurement mode (if undefined then uses active controller's measurement mode, else default measurement mode).
+inline int defaultDecimalPlaces(Helio_MeasurementMode measureMode = Helio_MeasurementMode_Undefined) { return (int)defaultUnits(Helio_UnitsCategory_Count, measureMode); }
 
 // Rounds value according to default decimal places rounding, as typically used for data export, with optional additional decimal places.
 inline float roundForExport(float value, unsigned int additionalDecPlaces = 0) { return roundToDecimalPlaces(value, defaultDecimalPlaces() + additionalDecPlaces); }
@@ -336,7 +334,7 @@ template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterA
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Returns the # of actuators of a certain type that operate on a specific panel.
-int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
+extern int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Recombines filtered object list back into SharedPtr actuator list.
 template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
@@ -383,7 +381,7 @@ inline bool getActuatorIsMotorFromType(Helio_ActuatorType actuatorType) { return
 // Returns true for actuators that are servo based (thus have a 2.5%-12.5% phase calibration) as derived from actuator type enumeration.
 inline bool getActuatorIsServoFromType(Helio_ActuatorType actuatorType) { return actuatorType == Helio_ActuatorType_ContinuousServo || actuatorType == Helio_ActuatorType_PositionalServo; }
 // Returns true for actuators that operate activation handles serially (as opposed to in-parallel) as derived from enabled mode enumeration.
-inline bool getActuatorIsSerialFromMode(Helio_EnableMode actuatorMode) { return actuatorMode >= Helio_EnableMode_Serial; }
+inline bool getActuatorIsSerialFromMode(Helio_EnableMode enableMode) { return enableMode >= Helio_EnableMode_Serial; }
 
 // Converts from actuator type enum to string, with optional exclude for special types (instead returning "").
 extern String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial = false);

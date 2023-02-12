@@ -192,16 +192,16 @@ void HelioActuatorAttachment::applySetup()
 }
 
 
-HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
+HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measureRow)
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, &HelioSensor::getMeasurementSignal),
-      _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
+      _measureRow(measureRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
     setHandleMethod(&HelioSensorAttachment::handleMeasurement);
 }
 
 HelioSensorAttachment::HelioSensorAttachment(const HelioSensorAttachment &attachment)
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(attachment),
-      _measurement(attachment._measurement), _measurementRow(attachment._measurementRow),
+      _measurement(attachment._measurement), _measureRow(attachment._measureRow),
       _convertParam(attachment._convertParam), _needsMeasurement(attachment._needsMeasurement)
 {
     setHandleSlot(*attachment._handleSlot);
@@ -237,7 +237,7 @@ void HelioSensorAttachment::updateIfNeeded(bool poll)
 
 void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
 {
-    auto outUnits = definedUnitsElse(getMeasurementUnits(), measurement.units);
+    auto outUnits = definedUnitsElse(getMeasureUnits(), measurement.units);
     _measurement = measurement;
     _measurement.setMinFrame(1);
 
@@ -245,16 +245,16 @@ void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
     _needsMeasurement = false;
 }
 
-void HelioSensorAttachment::setMeasurementRow(uint8_t measurementRow)
+void HelioSensorAttachment::setMeasureRow(uint8_t measureRow)
 {
-    if (_measurementRow != measurementRow) {
-        _measurementRow = measurementRow;
+    if (_measureRow != measureRow) {
+        _measureRow = measureRow;
 
         setNeedsMeasurement();
     }
 }
 
-void HelioSensorAttachment::setMeasurementUnits(Helio_UnitsType units, float convertParam)
+void HelioSensorAttachment::setMeasureUnits(Helio_UnitsType units, float convertParam)
 {
     if (_measurement.units != units || !isFPEqual(_convertParam, convertParam)) {
         _convertParam = convertParam;
@@ -267,7 +267,7 @@ void HelioSensorAttachment::setMeasurementUnits(Helio_UnitsType units, float con
 void HelioSensorAttachment::handleMeasurement(const HelioMeasurement *measurement)
 {
     if (measurement && measurement->frame) {
-        setMeasurement(getAsSingleMeasurement(measurement, _measurementRow));
+        setMeasurement(getAsSingleMeasurement(measurement, _measureRow));
     }
 }
 

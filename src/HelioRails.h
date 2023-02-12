@@ -115,10 +115,7 @@ public:
 
     virtual HelioSensorAttachment &getPowerUsage(bool poll = false) override;
 
-    void setLimitTrigger(HelioTrigger *limitTrigger);
-    const HelioTrigger *getLimitTrigger() const;
-
-    template<typename T> inline void setLimitTrigger(T limitTrigger) { _limitTrigger = limitTrigger; }
+    template<typename T> inline void setLimitTrigger(T limitTrigger) { _limitTrigger.setObject(limitTrigger); }
     inline SharedPtr<HelioTrigger> getLimitTrigger() { return _limitTrigger.getObject(); }
 
     inline float getMaxPower() const { return _maxPower; }

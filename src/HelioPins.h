@@ -96,17 +96,17 @@ struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, 
     void saveToData(HelioPinData *dataOut) const;
 
     virtual ard_pinstatus_t digitalRead() override;
-    inline bool isActive() { return this->digitalRead() == (activeLow ? LOW : HIGH); }
+    inline bool isActive() { return digitalRead() == (activeLow ? LOW : HIGH); }
 
     virtual void digitalWrite(ard_pinstatus_t status) override;
-    inline void activate() { this->digitalWrite((activeLow ? LOW : HIGH)); }
-    inline void deactivate() { this->digitalWrite((activeLow ? HIGH : LOW)); }
+    inline void activate() { digitalWrite((activeLow ? LOW : HIGH)); }
+    inline void deactivate() { digitalWrite((activeLow ? HIGH : LOW)); }
 };
 
 // Analog Pin
 struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, public HelioAnalogOutputPinInterface
 {
-    HelioBitResolution bitRes;                              // Bit resolution
+    BitResolution bitRes;                                   // Bit resolution
 #ifdef ESP32
     uint8_t pwmChannel;                                     // PWM channel
 #endif

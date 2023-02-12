@@ -172,7 +172,7 @@ public:
 
     virtual void setDistanceUnits(Helio_UnitsType distanceUnits) override;
     virtual Helio_UnitsType getDistanceUnits() const override;
-    inline Helio_UnitsType getSpeedUnits() const { return rateUnitsFromBase(getDistanceUnits()); }
+    inline Helio_UnitsType getSpeedUnits() const { return rateUnits(getDistanceUnits()); }
 
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
     virtual const HelioSingleMeasurement &getContinuousSpeed() override;
@@ -182,11 +182,13 @@ public:
     virtual HelioSensorAttachment &getPosition(bool poll = false) override;
     virtual HelioSensorAttachment &getSpeed(bool poll = false) override;
 
-    template<typename T> inline void setMinTrigger(T minTrigger) { _minTrigger = minTrigger; }
+    template<typename T> inline void setMinTrigger(T minTrigger) { _minTrigger.setObject(minTrigger); }
     inline SharedPtr<HelioTrigger> getMinTrigger() { return _minTrigger.getObject(); }
+    inline HelioTriggerAttachment &getMin(bool poll = false) { _minTrigger.updateIfNeeded(poll); return _minTrigger; }
 
-    template<typename T> inline void setMaxTrigger(T maxTrigger) { _maxTrigger = maxTrigger; }
+    template<typename T> inline void setMaxTrigger(T maxTrigger) { _maxTrigger.setObject(maxTrigger); }
     inline SharedPtr<HelioTrigger> getMaxTrigger() { return _maxTrigger.getObject(); }
+    inline HelioTriggerAttachment &getMax(bool poll = false) { _maxTrigger.updateIfNeeded(poll); return _maxTrigger; }
 
 protected:
     HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse/H-bridge pin B)

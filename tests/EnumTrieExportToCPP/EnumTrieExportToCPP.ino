@@ -300,45 +300,45 @@ void setup() {
 
     helioController.init();
 
-    getLoggerInstance()->logMessage(F("Writing enum decoding tree..."));
+    getLogger()->logMessage(F("Writing enum decoding tree..."));
 
-    getLoggerInstance()->logMessage(F("System mode tree:"));
+    getLogger()->logMessage(F("System mode tree:"));
     buildSystemModeTree();
 
-    getLoggerInstance()->logMessage(F("Measurements tree:"));
+    getLogger()->logMessage(F("Measurements tree:"));
     buildMeasurementModeTree();
 
-    getLoggerInstance()->logMessage(F("Display output tree:"));
+    getLogger()->logMessage(F("Display output tree:"));
     buildDisplayOutputModeTree();
 
-    getLoggerInstance()->logMessage(F("Control input tree:"));
+    getLogger()->logMessage(F("Control input tree:"));
     buildControlInputModeTree();
 
-    getLoggerInstance()->logMessage(F("Actuator type tree:"));
+    getLogger()->logMessage(F("Actuator type tree:"));
     buildActuatorTypeTree();
 
-    getLoggerInstance()->logMessage(F("Sensor type tree:"));
+    getLogger()->logMessage(F("Sensor type tree:"));
     buildSensorTypeTree();
 
-    getLoggerInstance()->logMessage(F("Panel type tree:"));
+    getLogger()->logMessage(F("Panel type tree:"));
     buildPanelTypeTree();
 
-    getLoggerInstance()->logMessage(F("Rail type tree:"));
+    getLogger()->logMessage(F("Rail type tree:"));
     buildRailTypeTree();
 
-    getLoggerInstance()->logMessage(F("Pin mode tree:"));
+    getLogger()->logMessage(F("Pin mode tree:"));
     buildPinModeTree();
 
-    getLoggerInstance()->logMessage(F("Enable mode tree:"));
+    getLogger()->logMessage(F("Enable mode tree:"));
     buildEnableModeTree();
 
-    getLoggerInstance()->logMessage(F("Units category tree:"));
+    getLogger()->logMessage(F("Units category tree:"));
     buildUnitsCategoryTree();
 
-    getLoggerInstance()->logMessage(F("Units type tree: (multiple switches)"));
+    getLogger()->logMessage(F("Units type tree: (multiple switches)"));
     buildUnitsTypeTree();
 
-    getLoggerInstance()->logMessage(F("Done!"));
+    getLogger()->logMessage(F("Done!"));
     if (_root) { delete _root; _root = nullptr; }
 }
 

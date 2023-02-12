@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioLogEvent::HelioLogEvent(Helio_LogLevel levelIn, const String &prefixIn, const String &msgIn, const String &suffix1In, const String &suffix2In)
-    : level(levelIn), timestamp(getCurrentTime().timestamp(DateTime::TIMESTAMP_FULL)), prefix(prefixIn), msg(msgIn), suffix1(suffix1In), suffix2(suffix2In)
+    : level(levelIn), timestamp(localNow().timestamp(DateTime::TIMESTAMP_FULL)), prefix(prefixIn), msg(msgIn), suffix1(suffix1In), suffix2(suffix2In)
 { ; }
 
 

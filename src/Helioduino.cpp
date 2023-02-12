@@ -1555,10 +1555,10 @@ static uint64_t getSDCardFreeSpace()
 {
     uint64_t retVal = HELIO_SYS_FREESPACE_LOWSPACE;
     #if defined(CORE_TEENSY)
-        auto sd = getHelioInstance()->getSDCard();
+        auto sd = getController()->getSDCard();
         if (sd) {
             retVal = sd->totalSize() - sd->usedSize();
-            getHelioInstance()->endSDCard(sd);
+            getController()->endSDCard(sd);
         }
     #endif
     return retVal;

@@ -35,8 +35,8 @@ public:
     void setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> &actuators);
     inline const Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> &getActuators() { return _actuators; }
 
-    virtual void setTargetUnits(Helio_UnitsType targetUnits);
-    inline Helio_UnitsType getTargetUnits() const { return definedUnitsElse(_targetUnits, defaultDistanceUnits()); }
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits);
+    inline Helio_UnitsType getMeasureUnits() const { return definedUnitsElse(_measureUnits, defaultDistanceUnits()); }
 
     virtual void setTargetSetpoint(float targetSetpoint) override;
     inline float getTargetSetpoint() const { return _targetSetpoint; }
@@ -60,7 +60,7 @@ protected:
     float _trackMax;                                        // Track maximum value
     float _targetSetpoint;                                  // Target set-point value
     float _travelRate;                                      // Travel rate (distance units / min)
-    Helio_UnitsType _targetUnits;                           // Target units
+    Helio_UnitsType _measureUnits;                           // Target units
     Helio_DrivingState _drivingState;                       // Current driving state
     bool _enabled;                                          // Enabled flag
     Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> _drivingSignal; // Driving signal

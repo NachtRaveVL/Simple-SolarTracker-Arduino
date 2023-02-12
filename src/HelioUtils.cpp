@@ -6,11 +6,6 @@
 #include "Helioduino.h"
 #include <pins_arduino.h>
 
-HelioBitResolution::HelioBitResolution(uint8_t bitResolution)
-    : bits(bitResolution), maxVal(1 << bitResolution)
-{ ; }
-
-
 bool HelioRTCWrapper<RTC_DS1307>::begin(TwoWire *wireInstance)
 {
     return _rtc.begin(wireInstance);
@@ -99,9 +94,9 @@ void softAssert(bool cond, String msg, const char *file, const char *func, int l
 {
     if (!cond) {
         String assertMsg = makeAssertMsg(file, func, line);
-        getLoggerInstance()->logWarning(SFP(HStr_Err_AssertionFailure), SFP(HStr_ColonSpace), assertMsg);
-        getLoggerInstance()->logWarning(SFP(HStr_DoubleSpace), msg);
-        getLoggerInstance()->flush();
+        getLogger()->logWarning(SFP(HStr_Err_AssertionFailure), SFP(HStr_ColonSpace), assertMsg);
+        getLogger()->logWarning(SFP(HStr_DoubleSpace), msg);
+        getLogger()->flush();
     }
 }
 
@@ -109,11 +104,11 @@ void hardAssert(bool cond, String msg, const char *file, const char *func, int l
 {
     if (!cond) {
         String assertMsg = makeAssertMsg(file, func, line);
-        getLoggerInstance()->logError(SFP(HStr_Err_AssertionFailure), String(F(" HARD")) + SFP(HStr_ColonSpace), assertMsg);
-        getLoggerInstance()->logError(SFP(HStr_DoubleSpace), msg);
-        getLoggerInstance()->flush();
+        getLogger()->logError(SFP(HStr_Err_AssertionFailure), String(F(" HARD")) + SFP(HStr_ColonSpace), assertMsg);
+        getLogger()->logError(SFP(HStr_DoubleSpace), msg);
+        getLogger()->flush();
 
-        if (getHelioInstance()) { getHelioInstance()->suspend(); }
+        if (getController()) { getController()->suspend(); }
         yield(); delay(10);
         abort();
     }
@@ -126,25 +121,25 @@ void publishData(HelioSensor *sensor)
 {
     HELIO_HARD_ASSERT(sensor, SFP(HStr_Err_InvalidParameter));
 
-    if (getPublisherInstance()) {
+    if (getPublisher()) {
         auto measurement = sensor->getLatestMeasurement();
-        hposi_t rows = getMeasurementRowCount(measurement);
-        hposi_t columnIndexStart = getPublisherInstance()->getColumnIndexStart(sensor->getKey());
+        hposi_t rows = getMeasureRowCount(measurement);
+        hposi_t columnIndexStart = getPublisher()->getColumnIndexStart(sensor->getKey());
 
         if (columnIndexStart >= 0) {
-            for (uint8_t measurementRow = 0; measurementRow < rows; ++measurementRow) {
-                getPublisherInstance()->publishData(columnIndexStart + measurementRow, getAsSingleMeasurement(measurement, measurementRow));
+            for (uint8_t measureRow = 0; measureRow < rows; ++measureRow) {
+                getPublisher()->publishData(columnIndexStart + measureRow, getAsSingleMeasurement(measurement, measureRow));
             }
         }
     }
 }
 
-bool setCurrentTime(DateTime currTime)
+bool setUnixTime(DateTime unixTime)
 {
-    auto rtc = getHelioInstance() ? getHelioInstance()->getRTC() : nullptr;
+    auto rtc = getController() ? getController()->getRTC() : nullptr;
     if (rtc) {
-        rtc->adjust(currTime);
-        getHelioInstance()->notifyRTCTimeUpdated();
+        rtc->adjust(unixTime);
+        getController()->notifyRTCTimeUpdated();
         return true;
     }
     return false;
@@ -152,7 +147,7 @@ bool setCurrentTime(DateTime currTime)
 
 String getYYMMDDFilename(String prefix, String ext)
 {
-    DateTime currTime = getCurrentTime();
+    DateTime currTime = localNow();
     uint8_t yy = currTime.year() % 100;
     uint8_t mm = currTime.month();
     uint8_t dd = currTime.day();
@@ -507,19 +502,19 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Raw_0_1:
             switch (unitsOut) {
                 case Helio_UnitsType_Percentile_0_100:
-                    *valueOut = valueIn * 100.0f;
+                    *valueOut = valueIn * 100.0;
                     return true;
 
                 case Helio_UnitsType_Angle_Degrees:
-                    *valueOut = fmodf(valueIn * 360.0f, 360.0f);
+                    *valueOut = fmod(valueIn * 360.0, 360.0);
                     return true;
 
                 case Helio_UnitsType_Angle_Radians:
-                    *valueOut = fmodf(valueIn * TWO_PI, TWO_PI);
+                    *valueOut = fmod(valueIn * TWO_PI, TWO_PI);
                     return true;
 
                 default:
-                    if (!isFPEqual(convertParam, FLT_UNDEF)) {
+                    if (convertParam != FLT_UNDEF) {
                         *valueOut = valueIn * convertParam;
                         return true;
                     }
@@ -530,7 +525,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Percentile_0_100:
             switch (unitsOut) {
                 case Helio_UnitsType_Raw_0_1:
-                    *valueOut = valueIn / 100.0f;
+                    *valueOut = valueIn / 100.0;
                     return true;
 
                 default:
@@ -541,11 +536,11 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Degrees:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Radians:
-                    *valueOut = valueIn * (PI / 180.0);
+                    *valueOut = valueIn * (TWO_PI / 360.0);
                     return true;
 
                 case Helio_UnitsType_Raw_0_1:
-                    *valueOut = valueIn / 360.0f;
+                    *valueOut = valueIn / 360.0;
                     return true;
 
                 default:
@@ -556,7 +551,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Radians:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Degrees:
-                    *valueOut = valueIn * (180.0 / PI);
+                    *valueOut = valueIn * (360.0 / TWO_PI);
                     return true;
 
                 case Helio_UnitsType_Raw_0_1:
@@ -590,7 +585,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
                     return true;
 
                 case Helio_UnitsType_Temperature_Kelvin:
-                    *valueOut = ((valueIn + 459.67f) * 5.0f) / 9.0f;
+                    *valueOut = ((valueIn + 459.67) * 5.0) / 9.0;
                     return true;
 
                 default:
@@ -616,7 +611,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Distance_Meters:
             switch (unitsOut) {
                 case Helio_UnitsType_Distance_Feet:
-                    *valueOut = valueIn * 3.28084f;
+                    *valueOut = valueIn * 3.28084;
                     return true;
 
                 default:
@@ -627,7 +622,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Distance_Feet:
             switch (unitsOut) {
                 case Helio_UnitsType_Distance_Meters:
-                    *valueOut = valueIn * 0.3048f;
+                    *valueOut = valueIn * 0.3048;
                     return true;
 
                 default:
@@ -638,7 +633,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Speed_MetersPerMin:
             switch (unitsOut) {
                 case Helio_UnitsType_Speed_FeetPerMin:
-                    *valueOut = valueIn * 3.28084f;
+                    *valueOut = valueIn * 3.28084;
                     return true;
 
                 default:
@@ -649,7 +644,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Speed_FeetPerMin:
             switch (unitsOut) {
                 case Helio_UnitsType_Speed_MetersPerMin:
-                    *valueOut = valueIn * 0.3048f;
+                    *valueOut = valueIn * 0.3048;
                     return true;
 
                 default:
@@ -660,7 +655,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Power_Wattage:
             switch (unitsOut) {
                 case Helio_UnitsType_Power_Amperage:
-                    if (!isFPEqual(convertParam, FLT_UNDEF)) { // convertParam = rail voltage
+                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
                         *valueOut = valueIn / convertParam;
                         return true;
                     }
@@ -671,7 +666,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Power_Amperage:
             switch (unitsOut) {
                 case Helio_UnitsType_Power_Wattage:
-                    if (!isFPEqual(convertParam, FLT_UNDEF)) { // convertParam = rail voltage
+                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
                         *valueOut = valueIn * convertParam;
                         return true;
                     }
@@ -690,25 +685,7 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
     return false;
 }
 
-bool convertUnits(float *valueInOut, Helio_UnitsType *unitsInOut, Helio_UnitsType outUnits, float convertParam)
-{
-    if (tryConvertUnits(*valueInOut, *unitsInOut, valueInOut, outUnits, convertParam)) {
-        *unitsInOut = outUnits;
-        return true;
-    }
-    return false;
-}
-
-bool convertUnits(float valueIn, float *valueOut, Helio_UnitsType unitsIn, Helio_UnitsType outUnits, Helio_UnitsType *unitsOut, float convertParam)
-{
-    if (tryConvertUnits(valueIn, unitsIn, valueOut, outUnits, convertParam)) {
-        if (unitsOut) { *unitsOut = outUnits; }
-        return true;
-    }
-    return false;
-}
-
-Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units)
+Helio_UnitsType baseUnits(Helio_UnitsType units)
 {
     switch (units) {
         case Helio_UnitsType_Speed_MetersPerMin:
@@ -716,12 +693,11 @@ Helio_UnitsType baseUnitsFromRate(Helio_UnitsType units)
         case Helio_UnitsType_Speed_FeetPerMin:
             return Helio_UnitsType_Distance_Feet;
         default:
-            break;
+            return Helio_UnitsType_Undefined;
     }
-    return Helio_UnitsType_Undefined;
 }
 
-Helio_UnitsType rateUnitsFromBase(Helio_UnitsType units)
+Helio_UnitsType rateUnits(Helio_UnitsType units)
 {
     switch (units) {
         case Helio_UnitsType_Distance_Meters:
@@ -729,74 +705,76 @@ Helio_UnitsType rateUnitsFromBase(Helio_UnitsType units)
         case Helio_UnitsType_Distance_Feet:
             return Helio_UnitsType_Speed_FeetPerMin;
         default:
-            break;
-    }
-    return Helio_UnitsType_Undefined;
-}
-
-Helio_UnitsType defaultTemperatureUnits(Helio_MeasurementMode measureMode)
-{
-    if (measureMode == Helio_MeasurementMode_Undefined) {
-        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
-    }
-
-    switch (measureMode) {
-        case Helio_MeasurementMode_Imperial:
-            return Helio_UnitsType_Temperature_Fahrenheit;
-        case Helio_MeasurementMode_Metric:
-            return Helio_UnitsType_Temperature_Celsius;
-        case Helio_MeasurementMode_Scientific:
-            return Helio_UnitsType_Temperature_Kelvin;
-        default:
             return Helio_UnitsType_Undefined;
     }
 }
 
-Helio_UnitsType defaultDistanceUnits(Helio_MeasurementMode measureMode)
+Helio_UnitsType defaultUnits(Helio_UnitsCategory unitsCategory, Helio_MeasurementMode measureMode)
 {
-    if (measureMode == Helio_MeasurementMode_Undefined) {
-        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
-    }
+    measureMode = (measureMode == Helio_MeasurementMode_Undefined && getController() ? getController()->getMeasurementMode() : measureMode);
 
-    switch (measureMode) {
-        case Helio_MeasurementMode_Imperial:
-            return Helio_UnitsType_Distance_Feet;
-        case Helio_MeasurementMode_Metric:
-        case Helio_MeasurementMode_Scientific:
-            return Helio_UnitsType_Distance_Meters;
-        default:
-            return Helio_UnitsType_Undefined;
-    }
-}
+    switch (unitsCategory) {
+        case Helio_UnitsCategory_Angle:
+            switch (measureMode) {
+                case Helio_MeasurementMode_Imperial:
+                case Helio_MeasurementMode_Metric:
+                    return Helio_UnitsType_Angle_Degrees;
+                case Helio_MeasurementMode_Scientific:
+                    return Helio_UnitsType_Angle_Radians;
+                default:
+                    return Helio_UnitsType_Undefined;
+            }
 
-Helio_UnitsType defaultPowerUnits(Helio_MeasurementMode measureMode)
-{
-    if (measureMode == Helio_MeasurementMode_Undefined) {
-        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
-    }
+        case Helio_UnitsCategory_Distance:
+            switch (measureMode) {
+                case Helio_MeasurementMode_Imperial:
+                    return Helio_UnitsType_Distance_Feet;
+                case Helio_MeasurementMode_Metric:
+                case Helio_MeasurementMode_Scientific:
+                    return Helio_UnitsType_Distance_Meters;
+                default:
+                    return Helio_UnitsType_Undefined;
+            }
 
-    switch (measureMode) {
-        case Helio_MeasurementMode_Imperial:
-        case Helio_MeasurementMode_Metric:
+        case Helio_UnitsCategory_Percentile:
+            return Helio_UnitsType_Percentile_0_100;
+
+        case Helio_UnitsCategory_Power:
             return Helio_UnitsType_Power_Wattage;
-        case Helio_MeasurementMode_Scientific:
-            return Helio_UnitsType_Power_JoulesPerSecond;
-        default:
+
+        case Helio_UnitsCategory_Speed:
+            switch (measureMode) {
+                case Helio_MeasurementMode_Imperial:
+                    return Helio_UnitsType_Speed_FeetPerMin;
+                case Helio_MeasurementMode_Metric:
+                case Helio_MeasurementMode_Scientific:
+                    return Helio_UnitsType_Speed_MetersPerMin;
+                default:
+                    return Helio_UnitsType_Undefined;
+            }
+
+        case Helio_UnitsCategory_Temperature:
+            switch (measureMode) {
+                case Helio_MeasurementMode_Imperial:
+                    return Helio_UnitsType_Temperature_Fahrenheit;
+                case Helio_MeasurementMode_Metric:
+                    return Helio_UnitsType_Temperature_Celsius;
+                case Helio_MeasurementMode_Scientific:
+                    return Helio_UnitsType_Temperature_Kelvin;
+                default:
+                    return Helio_UnitsType_Undefined;
+            }
+
+        case Helio_UnitsCategory_Count:
+            switch (measureMode) {
+                case Helio_MeasurementMode_Scientific:
+                    return (Helio_UnitsType)2;
+                default:
+                    return (Helio_UnitsType)1;
+            }
+
+        case Helio_UnitsCategory_Undefined:
             return Helio_UnitsType_Undefined;
-    }
-}
-
-int defaultDecimalPlaces(Helio_MeasurementMode measureMode)
-{
-    if (measureMode == Helio_MeasurementMode_Undefined) {
-        measureMode = (getHelioInstance() ? getHelioInstance()->getMeasurementMode() : Helio_MeasurementMode_Default);
-    }
-
-    switch (measureMode) {
-        case Helio_MeasurementMode_Scientific:
-            return 2;
-        default:
-            return 1;
     }
 }
 
@@ -828,49 +806,49 @@ bool checkPinIsAnalogInput(pintype_t pin)
             #if NUM_ANALOG_INPUTS > 0
                 case (pintype_t)A0:
             #endif
-            #if NUM_ANALOG_INPUTS > 1 && !defined(ESP32)
+            #if NUM_ANALOG_INPUTS > 1 && !defined(ESP32) && !(defined(PIN_A0) && !defined(PIN_A1))
                 case (pintype_t)A1:
             #endif
-            #if NUM_ANALOG_INPUTS > 2 && !defined(ESP32)
+            #if NUM_ANALOG_INPUTS > 2 && !defined(ESP32) && !(defined(PIN_A0) && !defined(PIN_A2))
                 case (pintype_t)A2:
             #endif
-            #if NUM_ANALOG_INPUTS > 3
+            #if NUM_ANALOG_INPUTS > 3 && !(defined(PIN_A0) && !defined(PIN_A3))
                 case (pintype_t)A3:
             #endif
-            #if NUM_ANALOG_INPUTS > 4
+            #if NUM_ANALOG_INPUTS > 4 && !(defined(PIN_A0) && !defined(PIN_A4))
                 case (pintype_t)A4:
             #endif
-            #if NUM_ANALOG_INPUTS > 5
+            #if NUM_ANALOG_INPUTS > 5 && !(defined(PIN_A0) && !defined(PIN_A5))
                 case (pintype_t)A5:
             #endif
-            #if NUM_ANALOG_INPUTS > 6
+            #if NUM_ANALOG_INPUTS > 6 && !(defined(PIN_A0) && !defined(PIN_A6))
                 case (pintype_t)A6:
             #endif
-            #if NUM_ANALOG_INPUTS > 7
+            #if NUM_ANALOG_INPUTS > 7 && !(defined(PIN_A0) && !defined(PIN_A7))
                 case (pintype_t)A7:
             #endif
-            #if NUM_ANALOG_INPUTS > 8 && !defined(ESP32)
+            #if NUM_ANALOG_INPUTS > 8 && !defined(ESP32) && !(defined(PIN_A0) && !defined(PIN_A8))
                 case (pintype_t)A8:
             #endif
-            #if NUM_ANALOG_INPUTS > 9 && !defined(ESP32)
+            #if NUM_ANALOG_INPUTS > 9 && !defined(ESP32) && !(defined(PIN_A0) && !defined(PIN_A9))
                 case (pintype_t)A9:
             #endif
-            #if NUM_ANALOG_INPUTS > 10
+            #if NUM_ANALOG_INPUTS > 10 && !(defined(PIN_A0) && !defined(PIN_A10))
                 case (pintype_t)A10:
             #endif
-            #if NUM_ANALOG_INPUTS > 11
+            #if NUM_ANALOG_INPUTS > 11 && !(defined(PIN_A0) && !defined(PIN_A11))
                 case (pintype_t)A11:
             #endif
-            #if NUM_ANALOG_INPUTS > 12
+            #if NUM_ANALOG_INPUTS > 12 && !(defined(PIN_A0) && !defined(PIN_A12))
                 case (pintype_t)A12:
             #endif
-            #if NUM_ANALOG_INPUTS > 13
+            #if NUM_ANALOG_INPUTS > 13 && !(defined(PIN_A0) && !defined(PIN_A13))
                 case (pintype_t)A13:
             #endif
-            #if NUM_ANALOG_INPUTS > 14
+            #if NUM_ANALOG_INPUTS > 14 && !(defined(PIN_A0) && !defined(PIN_A14))
                 case (pintype_t)A14:
             #endif
-            #if NUM_ANALOG_INPUTS > 15
+            #if NUM_ANALOG_INPUTS > 15 && !(defined(PIN_A0) && !defined(PIN_A15))
                 case (pintype_t)A15:
             #endif
             #ifdef ESP32
@@ -1066,8 +1044,8 @@ String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
             return SFP(HStr_Enum_PowerLevel);
         case Helio_SensorType_StrokePosition:
             return SFP(HStr_Enum_StokePosition);
-        case Helio_SensorType_TemperatureHumidity:
-            return SFP(HStr_Enum_TemperatureHumidity);
+        case Helio_SensorType_TempHumidity:
+            return SFP(HStr_Enum_TempHumidity);
         case Helio_SensorType_TiltAngle:
             return SFP(HStr_Enum_TiltAngle);
         case Helio_SensorType_WindSpeed:
@@ -1223,10 +1201,8 @@ String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpec
             return SFP(HStr_Enum_Angle);
         case Helio_UnitsCategory_Distance:
             return SFP(HStr_Enum_Distance);
-        case Helio_UnitsCategory_HeatIndex:
-            return SFP(HStr_Enum_HeatIndex);
-        case Helio_UnitsCategory_Humidity:
-            return SFP(HStr_Enum_Humidity);
+        case Helio_UnitsCategory_Percentile:
+            return SFP(HStr_Enum_Percentile);
         case Helio_UnitsCategory_Power:
             return SFP(HStr_Enum_Power);
         case Helio_UnitsCategory_Speed:
@@ -1247,23 +1223,23 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
         case Helio_UnitsType_Raw_0_1:
             return SFP(HStr_raw);
         case Helio_UnitsType_Percentile_0_100:
-            return SFP(HStr_Unit_Percentile);
+            return String('%');
         case Helio_UnitsType_Angle_Degrees:
-            return SFP(HStr_Unit_Degrees);
+            return String('°');
         case Helio_UnitsType_Angle_Radians:
             return SFP(HStr_Unit_Radians);
         case Helio_UnitsType_Distance_Feet:
             return SFP(HStr_Unit_Feet);
         case Helio_UnitsType_Distance_Meters:
-            return SFP(HStr_Unit_Meters);
+            return String('m');
         case Helio_UnitsType_Power_Amperage:
-            return SFP(HStr_Unit_Amperage);
+            return String('A');
         case Helio_UnitsType_Power_Wattage:
-            return SFP(HStr_Unit_Wattage); // alt: J/s
+            return String('W');
         case Helio_UnitsType_Speed_FeetPerMin:
-            return SFP(HStr_Unit_FeetPerMin);
+            return SFP(HStr_Unit_Feet) + SFP(HStr_Unit_PerMinute);
         case Helio_UnitsType_Speed_MetersPerMin:
-            return SFP(HStr_Unit_MetersPerMin);
+            return String('m') + SFP(HStr_Unit_PerMinute);
         case Helio_UnitsType_Temperature_Celsius:
             return SFP(HStr_Unit_Celsius);
         case Helio_UnitsType_Temperature_Fahrenheit:

@@ -36,6 +36,7 @@
 #define JOIN_(X,Y) X##_##Y
 #define JOIN(X,Y) JOIN_(X,Y)
 #endif
+
 #ifndef TWO_PI                                              // Missing 2pi
 #define TWO_PI                          6.283185307179586476925286766559
 #endif
@@ -73,9 +74,21 @@
 #elif defined(F_BUS)                                        // Teensy/etc support
 #define F_SPD F_BUS
 #else                                                       // Fast/good enough
-#define F_SPD 50000000U
+#define F_SPD 32000000U
 #endif
 #endif
+#if defined(__AVR__) && !defined(ARDUINO_AVR_FIO) && !(defined(ARDUINO_AVR_PRO) && F_CPU == 8000000L)
+#define V_MCU                           5.0                 // 5v MCU
+#else
+#define V_MCU                           3.3                 // 3v3 MCU
+#endif
+
+#define PER_SEC_TO_PER_MIN(t)   ((t) * (SECS_PER_MIN))      // Per seconds to per minutes
+#define PER_SEC_TO_PER_HR(t)    ((t) * (SECS_PER_HOUR))     // Per seconds to per hour
+#define PER_MIN_TO_PER_SEC(t)   ((t) / (SECS_PER_MIN))      // Per minutes to per seconds
+#define PER_MIN_TO_PER_HR(t)    ((t) * (SECS_PER_MIN))      // Per minutes to per hour
+#define PER_HR_TO_PER_SEC(t)    ((t) / (SECS_PER_HOUR))     // Per hour to per seconds
+#define PER_HR_TO_PER_MIN(t)    ((t) / (SECS_PER_MIN))      // Per hour to per minutes
 
 typedef typeof(millis()) millis_t;                          // Time millis type
 typedef int8_t hposi_t;                                     // Position indexing type alias
@@ -308,7 +321,7 @@ enum Helio_SensorType : signed char {
     Helio_SensorType_LightIntensity,                        // Light dependent resistor (LDR, analog)
     Helio_SensorType_PowerLevel,                            // Power level meter (analog)
     Helio_SensorType_StrokePosition,                        // Stroke position potentiometer (analog)
-    Helio_SensorType_TemperatureHumidity,                   // Temperature and humidity sensor (digital)
+    Helio_SensorType_TempHumidity,                          // Temperature and humidity sensor (digital)
     Helio_SensorType_TiltAngle,                             // Tilt angle sensor (analog)
     Helio_SensorType_WindSpeed,                             // Wind speed meter (binary/analog)
 
@@ -351,7 +364,7 @@ enum Helio_PinMode : signed char {
     Helio_PinMode_Digital_Input_PullUp,                     // Digital input pin with pull-up resistor (default pairing for active-low trigger, type alias for INPUT_PULLUP/GPIO_PuPd_UP)
     Helio_PinMode_Digital_Input_PullDown,                   // Digital input pin with pull-down resistor (or pull-up disabled if not avail, default pairing for active-high trigger, type alias for INPUT_PULLDOWN/GPIO_PuPd_DOWN)
     Helio_PinMode_Digital_Output_OpenDrain,                 // Digital output pin with open-drain NPN-based sink (default pairing for active-low trigger, type alias for OUTPUT/GPIO_OType_OD)
-    Helio_PinMode_Digital_Output_PushPull,                  // Digital output pin with push-pull NPN+PNP-based src+sink (default pairing for active-high trigger, type alias for GPIO_OType_PP)
+    Helio_PinMode_Digital_Output_PushPull,                  // Digital output pin with push-pull NPN+PNP-based sink+src (default pairing for active-high trigger, type alias for GPIO_OType_PP)
     Helio_PinMode_Analog_Input,                             // Analog input pin (type alias for INPUT)
     Helio_PinMode_Analog_Output,                            // Analog output pin (type alias for OUTPUT)
 
@@ -373,23 +386,24 @@ enum Helio_TriggerState : signed char {
 };
 
 // Driving State
-// Common driving states. Specifies balance or which direction of imbalance.
+// Common driving states. Specifies parking ability and speed of travel.
 enum Helio_DrivingState : signed char {
-    Helio_DrivingState_GoHigher,                            // Need to go higher / too low
-    Helio_DrivingState_OnTarget,                            // On target
-    Helio_DrivingState_GoLower,                             // Need to go lower / too high
+    Helio_DrivingState_OffTarget,                           // Far off target / use coarse/fast travel correction
+    Helio_DrivingState_NearTarget,                          // Near target / use fine/slow travel correction
+    Helio_DrivingState_OnTarget,                            // On target  / no movement, brake if able
 
     Helio_DrivingState_Count,                               // Placeholder
     Helio_DrivingState_Undefined = -1                       // Placeholder
 };
 
 // Panel State
-// Common panel states. Specifies panel alignment and .
+// Common panel states. Specifies panel operational status.
+// FIXME: Not yet finalized.
 enum Helio_PanelState : signed char {
     Helio_PanelState_AlignedToSun,                          // Aligned to sun
     Helio_PanelState_TravelingToSun,                        // Traveling to sun
     Helio_PanelState_TravelingToHome,                       // Traveling to home position
-    Helio_PanelState_AlignedToHome,                         // Aligned to home position/stowed
+    Helio_PanelState_AlignedToHome,                         // Aligned to home position
 
     Helio_PanelState_Count,                                 // Placeholder
     Helio_PanelState_Undefined = -1                         // Placeholder
@@ -410,7 +424,7 @@ enum Helio_EnableMode : signed char {
 
     Helio_EnableMode_Count,                                 // Placeholder
     Helio_EnableMode_Undefined = -1,                        // Placeholder
-    Helio_EnableMode_Serial = Helio_EnableMode_InOrder      // Serial (alias for in-order)
+    Helio_EnableMode_Serial = Helio_EnableMode_InOrder      // Serial activation (alias for InOrder)
 };
 
 // Direction Mode
@@ -418,7 +432,7 @@ enum Helio_EnableMode : signed char {
 enum Helio_DirectionMode : signed char {
     Helio_DirectionMode_Forward,                            // Standard/forward direction mode
     Helio_DirectionMode_Reverse,                            // Opposite/reverse direction mode
-    Helio_DirectionMode_Stop,                               // Stationary/braking direction mode
+    Helio_DirectionMode_Stop,                               // Stationary/braking direction mode (intensity undef)
 
     Helio_DirectionMode_Count,                              // Placeholder
     Helio_DirectionMode_Undefined = -1                      // Placeholder
@@ -429,10 +443,9 @@ enum Helio_DirectionMode : signed char {
 enum Helio_UnitsCategory : signed char {
     Helio_UnitsCategory_Angle,                              // Angle based unit
     Helio_UnitsCategory_Distance,                           // Distance/position based unit
-    Helio_UnitsCategory_HeatIndex,                          // Heat index based unit
-    Helio_UnitsCategory_Humidity,                           // Humidity based unit
+    Helio_UnitsCategory_Percentile,                         // Percentile based unit
     Helio_UnitsCategory_Power,                              // Power based unit
-    Helio_UnitsCategory_Speed,                              // Speed based unit
+    Helio_UnitsCategory_Speed,                              // Speed/travel based unit
     Helio_UnitsCategory_Temperature,                        // Temperature based unit
 
     Helio_UnitsCategory_Count,                              // Placeholder
@@ -441,8 +454,9 @@ enum Helio_UnitsCategory : signed char {
 
 // Units Type
 // Unit of measurement type. Specifies the unit type associated with a measured value.
+// Note: Rate units may only be in per minute, use PER_X_TO_PER_Y defines to convert.
 enum Helio_UnitsType : signed char {
-    Helio_UnitsType_Raw_0_1,                                // Raw value [0.0,1.0] mode
+    Helio_UnitsType_Raw_0_1,                                // Normalized raw value [0.0,1.0] mode
     Helio_UnitsType_Percentile_0_100,                       // Percentile [0.0,100.0] mode
     Helio_UnitsType_Angle_Degrees,                          // Degrees angle [%360) mode
     Helio_UnitsType_Angle_Radians,                          // Radians angle [%2pi) mode

@@ -113,6 +113,35 @@ bool arrayElementsEqual(const T *arrayIn, size_t length, T value)
 }
 
 
+inline bool convertUnits(float *valueInOut, Helio_UnitsType *unitsInOut, Helio_UnitsType outUnits, float convertParam)
+{
+    if (tryConvertUnits(*valueInOut, *unitsInOut, valueInOut, outUnits, convertParam)) {
+        *unitsInOut = outUnits;
+        return true;
+    }
+    return false;
+}
+
+inline bool convertUnits(float valueIn, float *valueOut, Helio_UnitsType unitsIn, Helio_UnitsType outUnits, Helio_UnitsType *unitsOut, float convertParam)
+{
+    if (tryConvertUnits(valueIn, unitsIn, valueOut, outUnits, convertParam)) {
+        if (unitsOut) { *unitsOut = outUnits; }
+        return true;
+    }
+    return false;
+}
+
+inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType outUnits, float convertParam)
+{
+    return convertUnits(&measureInOut->value, &measureInOut->units, outUnits, convertParam);
+}
+
+inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam)
+{
+    return convertUnits(measureIn->value, &measureOut->value, measureIn->units, outUnits, &measureOut->units, convertParam);
+}
+
+
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
 Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links)
 {
@@ -174,45 +203,70 @@ void linksResolveActuatorsWithRateByType(Vector<HelioObject *, N> &actuatorsIn, 
 }
 
 
-inline Helioduino *getHelioInstance()
+inline Helioduino *getController()
 {
     return Helioduino::_activeInstance;
 }
 
-inline HelioScheduler *getSchedulerInstance()
+inline HelioScheduler *getScheduler()
 {
     return Helioduino::_activeInstance ? &Helioduino::_activeInstance->scheduler : nullptr;
 }
 
-inline HelioLogger *getLoggerInstance()
+inline HelioLogger *getLogger()
 {
     return Helioduino::_activeInstance ? &Helioduino::_activeInstance->logger : nullptr;
 }
 
-inline HelioPublisher *getPublisherInstance()
+inline HelioPublisher *getPublisher()
 {
     return Helioduino::_activeInstance ? &Helioduino::_activeInstance->publisher : nullptr;
 }
 
 #ifdef HELIO_USE_GUI
 
-inline HelioUIInterface *getUIInstance()
+inline HelioUIInterface *getUI()
 {
     return Helioduino::_activeInstance ? Helioduino::_activeInstance->_activeUIInstance : nullptr;
 }
 
 #endif
 
-inline DateTime getCurrentTime(time_t time)
+
+inline time_t unixTime(DateTime localTime)
 {
-    return DateTime((uint32_t)(time + (getHelioInstance() ? getHelioInstance()->getTimeZoneOffset() * SECS_PER_HOUR : 0L)));
+    return localTime.unixtime() - (getController() ? getController()->getTimeZoneOffset() * SECS_PER_HOUR : 0L);
 }
 
-inline time_t getCurrentDayStartTime(time_t time)
+inline DateTime localTime(time_t unixTime)
 {
-    DateTime currTime = getCurrentTime(time);
+    return DateTime((uint32_t)(unixTime + (getController() ? getController()->getTimeZoneOffset() * SECS_PER_HOUR : 0L)));
+}
+
+inline time_t unixDayStart(time_t unixTime)
+{
+    DateTime currTime = DateTime((uint32_t)unixTime);
     return DateTime(currTime.year(), currTime.month(), currTime.day()).unixtime();
 }
+
+inline DateTime localDayStart(time_t unixTime)
+{
+    DateTime currTime = localTime(unixTime);
+    return DateTime(currTime.year(), currTime.month(), currTime.day());
+}
+
+extern bool setUnixTime(DateTime unixTime);
+
+inline bool setUnixTime(time_t unixTime)
+{
+    return setUnixTime(DateTime((uint32_t)unixTime));
+}
+
+inline bool setLocalTime(DateTime localTime)
+{
+    return setUnixTime(unixTime(localTime));
+}
+
 
 inline bool checkPinIsDigital(pintype_t pin)
 {
