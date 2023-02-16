@@ -27,7 +27,7 @@ extern HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn);
 // This is the base class for all panels, which defines how the panel is
 // identified, where it lives, what's attached to it, if it is full or empty, and
 // who can activate under it.
-class HelioPanel : public HelioObject, public HelioPanelObjectInterface, public HelioPowerUnitsInterface, public HelioPowerProductionSensorAttachmentInterface {
+class HelioPanel : public HelioObject, public HelioPanelObjectInterface, public HelioPowerUnitsInterfaceStorage, public HelioPowerProductionSensorAttachmentInterface {
 public:
     const enum : signed char { Balancing, Tracking, Reflecting, Unknown = -1 } classType; // Panel class type (custom RTTI)
     inline bool isBalancingClass() const { return classType == Balancing; }
@@ -59,7 +59,7 @@ public:
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
-    virtual HelioSensorAttachment &getPowerProduction() override;
+    virtual HelioSensorAttachment &getPowerProductionSensorAttachment() override;
 
     inline Helio_PanelType getPanelType() const { return _id.objTypeAs.panelType; }
     inline hposi_t getPanelIndex() const { return _id.posIndex; }
@@ -68,7 +68,7 @@ public:
     Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> &getStateSignal();
 
 protected:
-    Helio_PanelState _panelState;                           // Current panel state
+    Helio_PanelState _panelState;                           // Panel state (last handled)
     float _homePosition[2];                                 // Home position vector (azi,ele or RA,dec)
     float _facingPosition[2];                               // Vector direction of panel facing (azi,ele or RA,dec)
     bool _inDaytimeMode;                                    // Daytime mode flag (copied from scheduler)

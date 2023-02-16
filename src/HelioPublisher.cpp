@@ -332,7 +332,7 @@ void HelioPublisher::performTabulation()
     for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
         if (iter->second->isSensorType()) {
             auto sensor = static_pointer_cast<HelioSensor>(iter->second);
-            auto rowCount = getMeasureRowCount(sensor->getLatestMeasurement());
+            auto rowCount = getMeasurementRowCount(sensor->getMeasurement());
 
             for (int rowIndex = 0; sameOrder && rowIndex < rowCount; ++rowIndex) {
                 sameOrder = sameOrder && (columnCount + rowIndex + 1 <= _columnCount) &&
@@ -359,8 +359,8 @@ void HelioPublisher::performTabulation()
                 for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
                     if (iter->second->isSensorType()) {
                         auto sensor = static_pointer_cast<HelioSensor>(iter->second);
-                        auto measurement = sensor->getLatestMeasurement();
-                        auto rowCount = getMeasureRowCount(measurement);
+                        auto measurement = sensor->getMeasurement();
+                        auto rowCount = getMeasurementRowCount(measurement);
 
                         for (int rowIndex = 0; rowIndex < rowCount; ++rowIndex) {
                             HELIO_HARD_ASSERT(columnIndex < _columnCount, SFP(HStr_Err_OperationFailure));
@@ -400,7 +400,7 @@ void HelioPublisher::resetDataFile()
 
             if (dataFile) {
                 HelioSensor *lastSensor = nullptr;
-                uint8_t measureRow = 0;
+                uint8_t measurementRow = 0;
 
                 dataFile.print(SFP(HStr_Key_Timestamp));
 
@@ -408,15 +408,15 @@ void HelioPublisher::resetDataFile()
                     dataFile.print(',');
 
                     auto sensor = (HelioSensor *)(Helioduino::_activeInstance->_objects[_dataColumns[columnIndex].sensorKey].get());
-                    if (sensor && sensor == lastSensor) { ++measureRow; }
-                    else { measureRow = 0; lastSensor = sensor; }
+                    if (sensor && sensor == lastSensor) { ++measurementRow; }
+                    else { measurementRow = 0; lastSensor = sensor; }
 
                     if (sensor) {
                         dataFile.print(sensor->getKeyString());
                         dataFile.print('_');
-                        dataFile.print(unitsCategoryToString(defaultCategoryForSensor(sensor->getSensorType(), measureRow)));
+                        dataFile.print(unitsCategoryToString(defaultCategoryForSensor(sensor->getSensorType(), measurementRow)));
                         dataFile.print('_');
-                        dataFile.print(unitsTypeToSymbol(getMeasureUnits(sensor->getLatestMeasurement(), measureRow)));
+                        dataFile.print(unitsTypeToSymbol(getMeasurementUnits(sensor->getMeasurement(), measurementRow)));
                     } else {
                         HELIO_SOFT_ASSERT(false, SFP(HStr_Err_OperationFailure));
                         dataFile.print(SFP(HStr_Undefined));
@@ -455,7 +455,7 @@ void HelioPublisher::resetDataFile()
         if (dataFile) {
             auto dataFileStream = HelioWiFiStorageFileStream(dataFile);
             HelioSensor *lastSensor = nullptr;
-            uint8_t measureRow = 0;
+            uint8_t measurementRow = 0;
 
             dataFileStream.print(SFP(HStr_Key_Timestamp));
 
@@ -463,15 +463,15 @@ void HelioPublisher::resetDataFile()
                 dataFileStream.print(',');
 
                 auto sensor = (HelioSensor *)(Helioduino::_activeInstance->_objects[_dataColumns[columnIndex].sensorKey].get());
-                if (sensor && sensor == lastSensor) { ++measureRow; }
-                else { measureRow = 0; lastSensor = sensor; }
+                if (sensor && sensor == lastSensor) { ++measurementRow; }
+                else { measurementRow = 0; lastSensor = sensor; }
 
                 if (sensor) {
                     dataFileStream.print(sensor->getKeyString());
                     dataFileStream.print('_');
-                    dataFileStream.print(unitsCategoryToString(defaultCategoryForSensor(sensor->getSensorType(), measureRow)));
+                    dataFileStream.print(unitsCategoryToString(defaultCategoryForSensor(sensor->getSensorType(), measurementRow)));
                     dataFileStream.print('_');
-                    dataFileStream.print(unitsTypeToSymbol(getMeasureUnits(sensor->getLatestMeasurement(), measureRow)));
+                    dataFileStream.print(unitsTypeToSymbol(getMeasurementUnits(sensor->getMeasurement(), measurementRow)));
                 } else {
                     HELIO_SOFT_ASSERT(false, SFP(HStr_Err_OperationFailure));
                     dataFileStream.print(SFP(HStr_Undefined));

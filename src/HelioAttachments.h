@@ -173,7 +173,7 @@ public:
 
     // A rate multiplier is used to adjust either the intensity or duration of activations,
     // which depends on whenever they operate in binary mode (on/off) or variably (ranged).
-    inline void setRateMultiplier(float rateMultiplier) { _rateMultiplier = rateMultiplier; applySetup(); }
+    inline void setRateMultiplier(float rateMultiplier) { if (!isFPEqual(_rateMultiplier, rateMultiplier)) { _rateMultiplier = rateMultiplier; applySetup(); } }
     inline float getRateMultiplier() const { return _rateMultiplier; }
 
     // Activations are set up first by calling one of these methods. This configures the
@@ -218,6 +218,7 @@ public:
 
     inline const HelioActivationHandle &getHandle() const { return _actHandle; }
     inline const HelioActivation &getSetup() const { return _actSetup; }
+
     inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
     inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
 
@@ -247,7 +248,7 @@ protected:
 // Custom handle method is responsible for calling setMeasurement() to update measurement.
 class HelioSensorAttachment : public HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> {
 public:
-    HelioSensorAttachment(HelioObjInterface *parent = nullptr, uint8_t measureRow = 0);
+    HelioSensorAttachment(HelioObjInterface *parent = nullptr, uint8_t measurementRow = 0);
     HelioSensorAttachment(const HelioSensorAttachment &attachment);
     virtual ~HelioSensorAttachment();
 
@@ -260,18 +261,18 @@ public:
     // Sets the current measurement associated with this process. Required to be called by custom handlers.
     void setMeasurement(HelioSingleMeasurement measurement);
     inline void setMeasurement(float value, Helio_UnitsType units = Helio_UnitsType_Undefined) { setMeasurement(HelioSingleMeasurement(value, units)); }
-    void setMeasureRow(uint8_t measureRow);
-    void setMeasureUnits(Helio_UnitsType units, float convertParam = FLT_UNDEF);
-
-    inline void setNeedsMeasurement() { _needsMeasurement = true; }
-    inline bool needsMeasurement() { return _needsMeasurement; }
+    void setMeasurementRow(uint8_t measurementRow);
+    void setMeasurementUnits(Helio_UnitsType units, float convertParam = FLT_UNDEF);
 
     inline const HelioSingleMeasurement &getMeasurement(bool poll = false) { updateIfNeeded(poll); return _measurement; }
     inline uint16_t getMeasurementFrame(bool poll = false) { updateIfNeeded(poll); return _measurement.frame; }
     inline float getMeasurementValue(bool poll = false) { updateIfNeeded(poll); return _measurement.value; }
-    inline Helio_UnitsType getMeasureUnits() const { return _measurement.units; }
+    inline Helio_UnitsType getMeasurementUnits() const { return _measurement.units; }
 
-    inline uint8_t getMeasureRow() const { return _measureRow; }
+    inline void setNeedsMeasurement() { _needsMeasurement = true; }
+    inline bool needsMeasurement() { return _needsMeasurement; }
+
+    inline uint8_t getMeasurementRow() const { return _measurementRow; }
     inline float getMeasurementConvertParam() const { return _convertParam; }
 
     inline SharedPtr<HelioSensor> getObject(bool poll = false) { updateIfNeeded(poll); return HelioAttachment::getObject<HelioSensor>(); }
@@ -287,7 +288,7 @@ public:
 
 protected:
     HelioSingleMeasurement _measurement;                    // Local measurement (converted to measure units)
-    uint8_t _measureRow;                                    // Measurement row
+    uint8_t _measurementRow;                                // Measurement row
     float _convertParam;                                    // Convert param (default: FLT_UNDEF)
     bool _needsMeasurement;                                 // Stale measurement tracking flag
 
@@ -308,7 +309,7 @@ public:
     // Updates owned trigger attachment.
     virtual void updateIfNeeded(bool poll = false) override;
 
-    inline Helio_TriggerState getTriggerState();
+    inline Helio_TriggerState getTriggerState(bool poll = false);
 
     inline SharedPtr<HelioTrigger> getObject() { return HelioAttachment::getObject<HelioTrigger>(); }
     inline HelioTrigger *get() { return HelioAttachment::get<HelioTrigger>(); }
@@ -336,7 +337,7 @@ public:
     // Updates owned balancer attachment.
     virtual void updateIfNeeded(bool poll = false) override;
 
-    inline Helio_DrivingState getDrivingState();
+    inline Helio_DrivingState getDrivingState(bool poll = false);
 
     inline SharedPtr<HelioDriver> getObject() { return HelioAttachment::getObject<HelioDriver>(); }
     inline HelioDriver *get() { return HelioAttachment::get<HelioDriver>(); }

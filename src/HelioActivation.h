@@ -19,6 +19,8 @@ enum Helio_ActivationFlags : unsigned char {
 };
 
 // Activation Data
+// Activation setup data that is its own object for ease of use. Used to define what
+// encapsulates an activation.
 struct HelioActivation {
     Helio_DirectionMode direction;                          // Normalized driving direction
     float intensity;                                        // Normalized driving intensity ([0.0,1.0])

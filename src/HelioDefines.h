@@ -133,6 +133,8 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_ACT_TRAVELCALC_UPDATEMS   250                 // Minimum time millis needing to pass before a motor reports/writes changed position (reduces error accumulation)
 #define HELIO_ACT_TRAVELCALC_MINSPEED   0.05f               // What percentage of continuous speed an instantaneous speed sensor must achieve before it is used in travel/distance calculations (reduces near-zero error jitters)
 
+#define HELIO_DRV_FINETRAVEL_RATEMULT   0.5f                // Fine travel movement rate multiplier used on activations when actuator is within fine alignment distance with target.
+
 #define HELIO_NIGHT_START_HR            20                  // Hour of the day night starts (for resting panels, used if not able to calculate from lat/long/date)
 #define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from lat/long/date)
 
@@ -384,8 +386,8 @@ enum Helio_TriggerState : signed char {
 // Common driving states. Specifies parking ability and speed of travel.
 enum Helio_DrivingState : signed char {
     Helio_DrivingState_OffTarget,                           // Far off target / use coarse/fast travel correction
-    Helio_DrivingState_NearTarget,                          // Near target / use fine/slow travel correction
-    Helio_DrivingState_OnTarget,                            // On target  / no movement, brake if able
+    Helio_DrivingState_NearbyTarget,                        // Nearby target / use fine/slow travel correction
+    Helio_DrivingState_AlignedTarget,                       // Aligned to target  / no movement, brake if able
 
     Helio_DrivingState_Count,                               // Placeholder
     Helio_DrivingState_Undefined = -1                       // Placeholder

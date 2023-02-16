@@ -23,7 +23,7 @@ extern HelioRail *newRailObjectFromData(const HelioRailData *dataIn);
 // Power Rail Base
 // This is the base class for all power rails, which defines how the rail is identified,
 // where it lives, what's attached to it, and who can activate under it.
-class HelioRail : public HelioObject, public HelioRailObjectInterface, public HelioPowerUnitsInterface {
+class HelioRail : public HelioObject, public HelioRailObjectInterface, public HelioPowerUnitsInterfaceStorage {
 public:
     const enum : signed char { Simple, Regulated, Unknown = -1 } classType; // Power rail class (custom RTTI)
     inline bool isSimpleClass() const { return classType == Simple; }
@@ -51,7 +51,7 @@ public:
     Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> &getCapacitySignal();
 
 protected:
-    Helio_TriggerState _limitState;                         // Current limit state
+    Helio_TriggerState _limitState;                         // Limit state (last handled)
 
     Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> _capacitySignal; // Capacity changed signal
 
@@ -110,9 +110,9 @@ public:
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
-    virtual HelioSensorAttachment &getPowerUsage() override;
+    virtual HelioSensorAttachment &getPowerUsageSensorAttachment() override;
 
-    virtual HelioTriggerAttachment &getLimit() override;
+    virtual HelioTriggerAttachment &getLimitTriggerAttachment() override;
 
     inline float getMaxPower() const { return _maxPower; }
 

@@ -67,13 +67,13 @@ public:
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() override;
 
-    virtual HelioAttachment &getParentRail() override;
-    virtual HelioAttachment &getParentPanel() override;
+    virtual HelioAttachment &getParentRailAttachment() override;
+    virtual HelioAttachment &getParentPanelAttachment() override;
 
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
 
-    virtual Pair<float,float> getTrackExtents() const;
+    virtual Pair<float,float> getTravelRange() const;
 
     // Transformation methods that convert from normalized driving intensity/driver value to calibration units
     inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
@@ -103,8 +103,8 @@ protected:
     Helio_EnableMode _enableMode;                           // Handle activation mode
     Vector<HelioActivationHandle *> _handles;               // Activation handles array
     HelioSingleMeasurement _contPowerUsage;                 // Continuous power draw
-    HelioAttachment _rail;                                  // Power rail attachment
-    HelioAttachment _panel;                                 // Panel attachment
+    HelioAttachment _parentRail;                            // Parent power rail attachment
+    HelioAttachment _parentPanel;                           // Parent solar panel attachment
     const HelioCalibrationData *_calibrationData;           // Calibration data
     Signal<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> _activateSignal; // Activation update signal
 
@@ -151,12 +151,13 @@ protected:
 // This actuator acts as a motor and can control movement of attached objects. Motors using
 // this class are either forward/stop/reverse and do not contain any variable speed control,
 // but can be paired with a speed sensor for more precise running calculations.
-class HelioRelayMotorActuator : public HelioRelayActuator, public HelioMotorObjectInterface, public HelioDistanceUnitsInterface, public HelioPositionSensorAttachmentInterface, public HelioSpeedSensorAttachmentInterface, public HelioMinTravelTriggerAttachmentInterface, public HelioMaxTravelTriggerAttachmentInterface {
+class HelioRelayMotorActuator : public HelioRelayActuator, public HelioMotorObjectInterface, public HelioDistanceUnitsInterfaceStorage, public HelioPositionSensorAttachmentInterface, public HelioSpeedSensorAttachmentInterface, public HelioMinimumTriggerAttachmentInterface, public HelioMaximumTriggerAttachmentInterface {
 public:
     HelioRelayMotorActuator(Helio_ActuatorType actuatorType,
                             hposi_t actuatorIndex,
-                            HelioDigitalPin forwardOutputPin,
-                            HelioDigitalPin reverseOutputPin,
+                            HelioDigitalPin outputPinA,
+                            HelioDigitalPin outputPinB,
+                            Pair<float,float> travelRange = make_pair(0.0f, FLT_UNDEF),
                             int classType = RelayMotor);
     HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn);
 
@@ -175,15 +176,17 @@ public:
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
     virtual const HelioSingleMeasurement &getContinuousSpeed() override;
 
-    virtual Pair<float,float> getTrackExtents() const override;
+    virtual Pair<float,float> getTravelRange() const override;
+    virtual bool isMinTravel(bool poll = false) override;
+    virtual bool isMaxTravel(bool poll = false) override;
 
-    virtual HelioSensorAttachment &getPosition() override;
+    virtual HelioSensorAttachment &getPositionSensorAttachment() override;
 
-    virtual HelioSensorAttachment &getSpeed() override;
+    virtual HelioSensorAttachment &getSpeedSensorAttachment() override;
 
-    virtual HelioTriggerAttachment &getMinTravel() override;
+    virtual HelioTriggerAttachment &getMinimumTriggerAttachment() override;
 
-    virtual HelioTriggerAttachment &getMaxTravel() override;
+    virtual HelioTriggerAttachment &getMaximumTriggerAttachment() override;
 
 protected:
     HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse/H-bridge pin B)
@@ -191,11 +194,11 @@ protected:
     HelioSingleMeasurement _contSpeed;                      // Continuous speed (dist units per min)
     HelioSensorAttachment _position;                        // Position sensor attachment
     HelioSensorAttachment _speed;                           // Speed rate sensor attachment
-    HelioTriggerAttachment _minTravel;                      // Minimum travel trigger attachment
-    HelioTriggerAttachment _maxTravel;                      // Maximum travel trigger attachment
-
-    float _travelPositionStart;                             // Start for travel distance
-    float _travelDistanceAccum;                             // Accumulator for total distance traveled
+    HelioTriggerAttachment _minimum;                        // Minimum travel trigger attachment
+    HelioTriggerAttachment _maximum;                        // Maximum travel trigger attachment
+    Pair<float,float> _travelRange;                         // Travel range, in distance units
+    float _travelPosStart;                                  // Start for travel distance
+    float _travelDistAccum;                                 // Accumulator for total distance traveled
     millis_t _travelTimeStart;                              // Time millis motor was activated at
     millis_t _travelTimeAccum;                              // Time millis motor has been accumulated up to
 
@@ -205,8 +208,10 @@ protected:
     virtual void _disableActuator() override;
     virtual void handleActivation() override;
 
-    virtual void pollTravelingSensors() override;
     virtual void handleTravelTime(millis_t time) override;
+
+    virtual void handleMinimumTrigger(Helio_TriggerState minimumTrigger);
+    virtual void handleMaximumTrigger(Helio_TriggerState maximumTrigger);
 };
 
 
@@ -269,6 +274,7 @@ struct HelioActuatorData : public HelioObjectData
 struct HelioMotorActuatorData : public HelioActuatorData
 {
     HelioPinData outputPin2;
+    float travelRange[2];
     Helio_UnitsType distanceUnits;
     HelioMeasurementData contSpeed;
     char positionSensor[HELIO_NAME_MAXSIZE];

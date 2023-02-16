@@ -5,10 +5,9 @@
 
 #include "Helioduino.h"
 
-HelioDriver::HelioDriver(float travelRate, int typeIn)
-    : type((typeof(type))typeIn), _measureUnits(Helio_UnitsType_Raw_1),
-      _targetSetpoint(FLT_UNDEF), _travelRate(travelRate),
-      _trackMin(__FLT_MAX__), _trackMax(-__FLT_MAX__),
+HelioDriver::HelioDriver(float targetSetpoint, float travelRate, int typeIn)
+    : type((typeof(type))typeIn), _trackRange(make_pair(__FLT_MAX__,-__FLT_MAX__)),
+      _targetSetpoint(targetSetpoint), _travelRate(travelRate),
       _drivingState(Helio_DrivingState_Undefined), _enabled(false)
 { ; }
 
@@ -20,25 +19,7 @@ HelioDriver::~HelioDriver()
 
 void HelioDriver::update()
 {
-    for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-        attachIter->updateIfNeeded(true);
-    }
-
-    handleOffset(getMaximumOffset(true));
-}
-
-void HelioDriver::setTargetSetpoint(float targetSetpoint)
-{
-    if (!isFPEqual(_targetSetpoint, targetSetpoint)) {
-        _targetSetpoint = targetSetpoint;
-    }
-}
-
-void HelioDriver::setTravelRate(float travelRate)
-{
-    if (!isFPEqual(_travelRate, travelRate)) {
-        _travelRate = travelRate;
-    }
+    handleMaxOffset(getMaxTargetOffset(true));
 }
 
 void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> &actuators)
@@ -60,29 +41,32 @@ void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_A
     }
 
     {   _actuators.clear();
-        _trackMin = __FLT_MAX__; _trackMax = -__FLT_MAX__;
+        float trackMin = __FLT_MAX__, trackMax = -__FLT_MAX__;
         for (auto attachInIter = actuators.begin(); attachInIter != actuators.end(); ++attachInIter) {
             _actuators.push_back(*attachInIter);
             _actuators.back().setParent(this);
             auto actuator = _actuators.back().get();
             if (actuator) {
-                auto trackExtents = actuator->getTrackExtents();
-                if (trackExtents.first < _trackMin) { _trackMin = trackExtents.first; }
-                if (trackExtents.second > _trackMax) { _trackMax = trackExtents.second; }
+                auto trackExtents = actuator->getTravelRange();
+                if (trackExtents.first < trackMin) { trackMin = trackExtents.first; }
+                if (trackExtents.second > trackMax) { trackMax = trackExtents.second; }
             }
         }
+        _trackRange = make_pair(trackMin, trackMax);
     }
 }
 
-float HelioDriver::getMaximumOffset(bool poll)
+float HelioDriver::getMaxTargetOffset(bool poll)
 {
     float maxDelta = 0;
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-        if ((*attachIter)->isAnyMotorClass()) {
-            attachIter->HelioAttachment::get<HelioSpeedSensorAttachmentInterface>()->getSpeedSensor(poll);
-            HelioPositionSensorAttachmentInterface *positionInt = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>();
-            float delta = _targetSetpoint - positionInt->getPosition().getMeasurementValue(poll);
+        if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isDirectionalType()) {
+            auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
+            auto position = posSensor.getMeasurement(poll);
+            convertUnits(&position, getMeasurementUnits(), posSensor.getMeasurementConvertParam());
+
+            float delta = _targetSetpoint - position.value;
             if (fabsf(delta) > maxDelta) { maxDelta = delta; }
         } else {
             float delta = _targetSetpoint - (*attachIter)->getCalibratedValue();
@@ -95,8 +79,34 @@ float HelioDriver::getMaximumOffset(bool poll)
 
 Helio_DrivingState HelioDriver::getDrivingState(bool poll)
 {
-    if (poll) { return isFPEqual(0, getMaximumOffset(poll)) ? Helio_DrivingState_OnTarget : Helio_DrivingState_OffTarget; }
+    if (poll) { return getMaxTargetOffset(true) > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget; }
     return _drivingState;
+}
+
+void HelioDriver::setTargetSetpoint(float targetSetpoint)
+{
+    if (!isFPEqual(_targetSetpoint, targetSetpoint)) {
+        _targetSetpoint = targetSetpoint;
+    }
+}
+
+void HelioDriver::setTravelRate(float travelRate)
+{
+    if (!isFPEqual(_travelRate, travelRate)) {
+        _travelRate = travelRate;
+    }
+}
+
+void HelioDriver::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
+{
+    if (_measurementUnits[measurementRow] != measurementUnits) {
+        _measurementUnits[measurementRow] = measurementUnits;
+    }
+}
+
+Helio_UnitsType HelioDriver::getMeasurementUnits(uint8_t measurementRow) const
+{
+    return _measurementUnits[measurementRow];
 }
 
 Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> &HelioDriver::getDrivingSignal()
@@ -112,20 +122,19 @@ void HelioDriver::disableAllActivations()
 }
 
 
-// HelioAbsoluteDriver::HelioAbsoluteDriver(SharedPtr<HelioSensor> sensor, float targetSetpoint, float targetRange, float edgeOffset, float edgeLength, uint8_t measureRow)
-//     : HelioDriver(sensor, targetSetpoint, targetRange, measureRow, Servo), _edgeOffset(edgeOffset), _edgeLength(edgeLength)
-// { ; }
+ HelioAbsoluteDriver::HelioAbsoluteDriver(float travelRate, int typeIn)
+     : HelioDriver(FLT_UNDEF, travelRate, typeIn), _lastUpdate(0)
+{ ; }
 
-void HelioAbsoluteDriver::handleOffset(float maximumOffset)
+HelioAbsoluteDriver::~HelioAbsoluteDriver()
+{ ; }
+
+void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
 {
-    if (!_enabled) { return; }
-
     auto hadDrivingState = _drivingState;
-    _drivingState = maximumOffset < -FLT_EPSILON ? Helio_DrivingState_OffTarget :
-                    maximumOffset > FLT_EPSILON ? Helio_DrivingState_NearTarget :
-                    Helio_DrivingState_OnTarget;
+    _drivingState = maxOffset > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget;
 
-    if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {
+    if (_enabled && _drivingState != Helio_DrivingState_AlignedTarget && _targetSetpoint != FLT_UNDEF) {
         millis_t time = nzMillis();
         if (!_lastUpdate) { _lastUpdate = time; }
         millis_t delta = time - _lastUpdate;
@@ -161,26 +170,45 @@ void HelioAbsoluteDriver::handleOffset(float maximumOffset)
     }
 }
 
-void HelioIncrementalDriver::handleOffset(float maximumOffset) {
-    if (!_enabled) { return; }
 
+HelioIncrementalDriver::HelioIncrementalDriver(float nearbyRange, float alignedRange, float travelRate, float maxDifference, int typeIn)
+    : HelioDriver(FLT_UNDEF, travelRate, typeIn), _nearbyRange(nearbyRange), _alignedRange(alignedRange), _maxDifference(maxDifference)
+{ ; }
+
+HelioIncrementalDriver::~HelioIncrementalDriver()
+{ ; }
+
+Helio_DrivingState HelioIncrementalDriver::getDrivingState(bool poll)
+{
+    if (poll) {
+        float maxOffset = getMaxTargetOffset(true);
+        return maxOffset > _nearbyRange + FLT_EPSILON  ? Helio_DrivingState_OffTarget :
+               maxOffset > _alignedRange + FLT_EPSILON ? Helio_DrivingState_NearbyTarget
+                                                       : Helio_DrivingState_AlignedTarget;
+    }
+    return _drivingState;
+}
+
+void HelioIncrementalDriver::handleMaxOffset(float maxOffset) {
     auto hadDrivingState = _drivingState;
-    _drivingState = maximumOffset < -(_targetRange * 0.5f) ? Helio_DrivingState_OffTarget :
-                    maximumOffset > (_targetRange * 0.5f) ? Helio_DrivingState_NearTarget :
-                    Helio_DrivingState_OnTarget;
+    _drivingState = maxOffset > _nearbyRange + FLT_EPSILON  ? Helio_DrivingState_OffTarget :
+                    maxOffset > _alignedRange + FLT_EPSILON ? Helio_DrivingState_NearbyTarget
+                                                            : Helio_DrivingState_AlignedTarget;
 
-    if (_drivingState != Helio_DrivingState_OnTarget && _drivingState != Helio_DrivingState_Undefined && _targetSetpoint != FLT_UNDEF) {
+    if (_enabled && _drivingState != Helio_DrivingState_AlignedTarget && _targetSetpoint != FLT_UNDEF) {
+        float offsetLimit = maxOffset - _maxDifference;
+
         for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-            HelioPositionSensorAttachmentInterface *positionInt = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>();
-            float position = positionInt->getPosition().getMeasurementValue();
+            auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
+            auto position = posSensor.getMeasurement(true);
+            convertUnits(&position, getMeasurementUnits(), posSensor.getMeasurementConvertParam());
+            float offset = fabsf(_targetSetpoint - position.value);
 
-            if (fabsf(position - _targetSetpoint) <= _targetRange) {
+            if (offset <= _alignedRange + FLT_EPSILON || offset < offsetLimit - FLT_EPSILON) { // aligned or too fast
                 attachIter->disableActivation();
-            } else if (position < _targetSetpoint) {
-                attachIter->setupActivation(_travelRate);
-                attachIter->enableActivation();
-            } else if (position > _targetSetpoint) {
-                attachIter->setupActivation(-_travelRate);
+            } else {
+                attachIter->setupActivation(_targetSetpoint > position.value ? _travelRate : -_travelRate);
+                attachIter->setRateMultiplier((offset <= _nearbyRange + FLT_EPSILON ? HELIO_DRV_FINETRAVEL_RATEMULT : 1.0f));
                 attachIter->enableActivation();
             }
         }

@@ -314,7 +314,7 @@ void HelioTracking::setupStaging()
             }
             if (phBalancer) {
                 phBalancer->setTargetSetpoint(phSetpoint);
-                phBalancer->setMeasureUnits(Helio_UnitsType_Alkalinity_pH_14);
+                phBalancer->setMeasurementUnits(Helio_UnitsType_Alkalinity_pH_14);
                 phBalancer->setEnabled(true);
             }
         }
@@ -328,7 +328,7 @@ void HelioTracking::setupStaging()
             }
             if (tdsBalancer) {
                 tdsBalancer->setTargetSetpoint(tdsSetpoint);
-                tdsBalancer->setMeasureUnits(Helio_UnitsType_Concentration_EC);
+                tdsBalancer->setMeasurementUnits(Helio_UnitsType_Concentration_EC);
                 tdsBalancer->setEnabled(true);
             }
         }
@@ -349,7 +349,7 @@ void HelioTracking::setupStaging()
         }
         if (waterTempBalancer) {
             waterTempBalancer->setTargetSetpoint(waterTempSetpoint);
-            waterTempBalancer->setMeasureUnits(Helio_UnitsType_Temperature_Celsius);
+            waterTempBalancer->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
             waterTempBalancer->setEnabled(true);
         }
     } else {
@@ -367,7 +367,7 @@ void HelioTracking::setupStaging()
         }
         if (airTempBalancer) {
             airTempBalancer->setTargetSetpoint(airTempSetpoint);
-            airTempBalancer->setMeasureUnits(Helio_UnitsType_Temperature_Celsius);
+            airTempBalancer->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
             airTempBalancer->setEnabled(true);
         }
     } else {
@@ -385,7 +385,7 @@ void HelioTracking::setupStaging()
         }
         if (co2Balancer) {
             co2Balancer->setTargetSetpoint(co2Setpoint);
-            co2Balancer->setMeasureUnits(Helio_UnitsType_Concentration_PPM);
+            co2Balancer->setMeasurementUnits(Helio_UnitsType_Concentration_PPM);
             co2Balancer->setEnabled(true);
         }
     } else {
@@ -675,13 +675,13 @@ void HelioTracking::logTracking(HelioTrackingLogType logType)
         case HelioTrackingLogType_Measures:
             #ifdef HELIO_USE_MULTITASKING
                 // Yield will allow measurements to complete, ensures first log out doesn't contain zero'ed values
-                if ((panel->getTemperatureSensor() && !panel->getTemperature().getMeasurementFrame()) ||
+                if ((panel->getTemperatureSensor() && !panel->getTemperatureSensorAttachment().getMeasurementFrame()) ||
                     (panel->getAirCO2Sensor() && !panel->getAirCO2().getMeasurementFrame())) {
                     yield();
                 }
             #endif
             if (panel->getTemperatureSensor()) {
-                auto temp = panel->getTemperature().getMeasurement(true);
+                auto temp = panel->getTemperatureSensorAttachment().getMeasurement(true);
                 convertUnits(&temp, panel->getTemperatureUnits());
                 getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Measured), measurementToString(temp));
             }
