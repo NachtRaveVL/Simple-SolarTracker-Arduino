@@ -5,52 +5,19 @@
 
 #include "Helioduino.h"
 
-template <class U>
-inline void HelioActuatorAttachmentInterface::setActuator(U actuator)
+inline Helio_UnitsType HelioDistanceUnitsInterface::getSpeedUnits() const
 {
-    getParentActuator(false).setObject(actuator);
+    return rateUnits(getDistanceUnits());
 }
 
-template <class U>
-inline SharedPtr<U> HelioActuatorAttachmentInterface::getActuator(bool resolve)
+inline Helio_UnitsType HelioMeasureUnitsInterface::getRateUnits(uint8_t measureRow) const
 {
-    return getParentActuator(resolve).template getObject<U>();
+    return rateUnits(getMeasureUnits(measureRow));
 }
 
-template <class U>
-inline void HelioSensorAttachmentInterface::setSensor(U sensor)
+inline Helio_UnitsType HelioMeasureUnitsInterface::getBaseUnits(uint8_t measureRow) const
 {
-    getParentSensor(false).setObject(sensor);
-}
-
-template <class U>
-inline SharedPtr<U> HelioSensorAttachmentInterface::getSensor(bool resolve)
-{
-    return getParentSensor(resolve).template getObject<U>();
-}
-
-template <class U>
-inline void HelioPanelAttachmentInterface::setPanel(U panel)
-{
-    getParentPanel(false).setObject(panel);
-}
-
-template <class U>
-inline SharedPtr<U> HelioPanelAttachmentInterface::getPanel(bool resolve)
-{
-    return getParentPanel(resolve).template getObject<U>();
-}
-
-template <class U>
-inline void HelioRailAttachmentInterface::setRail(U rail)
-{
-    getParentRail(false).setObject(rail);
-}
-
-template <class U>
-inline SharedPtr<U> HelioRailAttachmentInterface::getRail(bool resolve)
-{
-    return getParentRail(resolve).template getObject<U>();
+    return baseUnits(getMeasureUnits(measureRow));
 }
 
 
@@ -59,6 +26,7 @@ inline void HelioActuatorObjectInterface::setContinuousPowerUsage(float contPowe
     setContinuousPowerUsage(HelioSingleMeasurement(contPowerUsage, contPowerUsageUnits));
 }
 
+
 inline void HelioMotorObjectInterface::setContinuousSpeed(float contSpeed, Helio_UnitsType contSpeedUnits)
 {
     setContinuousSpeed(HelioSingleMeasurement(contSpeed, contSpeedUnits));
@@ -66,85 +34,168 @@ inline void HelioMotorObjectInterface::setContinuousSpeed(float contSpeed, Helio
 
 
 template <class U>
+inline void HelioParentActuatorAttachmentInterface::setActuator(U actuator)
+{
+    getParentActuator().setObject(actuator);
+}
+
+template <class U>
+inline SharedPtr<U> HelioParentActuatorAttachmentInterface::getActuator()
+{
+    return getParentActuator().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioParentSensorAttachmentInterface::setSensor(U sensor)
+{
+    getParentSensor().setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioParentSensorAttachmentInterface::getSensor()
+{
+    return getParentSensor().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioParentPanelAttachmentInterface::setPanel(U panel)
+{
+    getParentPanel().setObject(panel);
+}
+
+template <class U>
+inline SharedPtr<U> HelioParentPanelAttachmentInterface::getPanel()
+{
+    return getParentPanel().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioParentRailAttachmentInterface::setRail(U rail)
+{
+    getParentRail().setObject(rail);
+}
+
+template <class U>
+inline SharedPtr<U> HelioParentRailAttachmentInterface::getRail()
+{
+    return getParentRail().HelioAttachment::getObject<U>();
+}
+
+
+template <class U>
+inline void HelioAngleSensorAttachmentInterface::setAngleSensor(U sensor)
+{
+    getAngle().setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioAngleSensorAttachmentInterface::getAngleSensor(bool poll)
+{
+    getAngle().updateIfNeeded(poll);
+    return getAngle().HelioAttachment::getObject<U>();
+}
+
+template <class U>
 inline void HelioPositionSensorAttachmentInterface::setPositionSensor(U sensor)
 {
-    getPosition(false).setObject(sensor);
+    getPosition().setObject(sensor);
 }
 
 template <class U>
 inline SharedPtr<U> HelioPositionSensorAttachmentInterface::getPositionSensor(bool poll)
 {
-    return static_pointer_cast<U>(getPosition(poll).getObject());
-}
-
-template <class U>
-inline void HelioSpeedSensorAttachmentInterface::setSpeedSensor(U sensor)
-{
-    getSpeed(false).setObject(sensor);
-}
-
-template <class U>
-inline SharedPtr<U> HelioSpeedSensorAttachmentInterface::getSpeedSensor(bool poll)
-{
-    return static_pointer_cast<U>(getSpeed(poll).getObject());
-}
-
-template <class U>
-inline void HelioMinEndstopSensorAttachmentInterface::setMinEndstop(U endstop)
-{
-    getMinimum(false).setObject(endstop);
-}
-
-template <class U>
-inline SharedPtr<U> HelioMinEndstopSensorAttachmentInterface::getMinEndstop(bool poll)
-{
-    return static_pointer_cast<U>(getMinimum(poll).getObject());
-}
-
-template <class U>
-inline void HelioMaxEndstopSensorAttachmentInterface::setMaxEndstop(U endstop)
-{
-    getMaximum(false).setObject(endstop);
-}
-
-template <class U>
-inline SharedPtr<U> HelioMaxEndstopSensorAttachmentInterface::getMaxEndstop(bool poll)
-{
-    return static_pointer_cast<U>(getMaximum(poll).getObject());
+    getPosition().updateIfNeeded(poll);
+    return getPosition().HelioAttachment::getObject<U>();
 }
 
 template <class U>
 inline void HelioPowerProductionSensorAttachmentInterface::setPowerProductionSensor(U sensor)
 {
-    getPowerProduction(false).setObject(sensor);
+    getPowerProduction().setObject(sensor);
 }
 
 template <class U>
 inline SharedPtr<U> HelioPowerProductionSensorAttachmentInterface::getPowerProductionSensor(bool poll)
 {
-    return static_pointer_cast<U>(getPowerProduction(poll).getObject());
+    getPowerProduction().updateIfNeeded(poll);
+    return getPowerProduction().HelioAttachment::getObject<U>();
 }
 
 template <class U>
 inline void HelioPowerUsageSensorAttachmentInterface::setPowerUsageSensor(U sensor)
 {
-    getPowerUsage(false).setObject(sensor);
+    getPowerUsage().setObject(sensor);
 }
 
 template <class U>
 inline SharedPtr<U> HelioPowerUsageSensorAttachmentInterface::getPowerUsageSensor(bool poll)
 {
-    return static_pointer_cast<U>(getPowerUsage(poll).getObject());
+    getPowerUsage().updateIfNeeded(poll);
+    return getPowerUsage().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioSpeedSensorAttachmentInterface::setSpeedSensor(U sensor)
+{
+    getSpeed().setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioSpeedSensorAttachmentInterface::getSpeedSensor(bool poll)
+{
+    getSpeed().updateIfNeeded(poll);
+    return getSpeed().HelioAttachment::getObject<U>();
 }
 
 template <class U>
 inline void HelioTemperatureSensorAttachmentInterface::setTemperatureSensor(U sensor)
 {
-    getTemperature(false).setObject(sensor);
+    getTemperature().setObject(sensor);
 }
 
 template <class U>
 inline SharedPtr<U> HelioTemperatureSensorAttachmentInterface::getTemperatureSensor(bool poll)
 {
-    return static_pointer_cast<U>(getTemperature(poll).getObject());
+    getTemperature().updateIfNeeded(poll);
+    return getTemperature().HelioAttachment::getObject<U>();
+}
+
+
+template <class U>
+inline void HelioMinTravelTriggerAttachmentInterface::setMinTravelTrigger(U trigger)
+{
+    getMinTravel().setObject(trigger);
+}
+
+template <class U>
+inline SharedPtr<U> HelioMinTravelTriggerAttachmentInterface::getMinTravelTrigger(bool poll)
+{
+    getMinTravel().updateIfNeeded(poll);
+    return getMinTravel().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioMaxTravelTriggerAttachmentInterface::setMaxTravelTrigger(U trigger)
+{
+    getMaxTravel().setObject(trigger);
+}
+
+template <class U>
+inline SharedPtr<U> HelioMaxTravelTriggerAttachmentInterface::getMaxTravelTrigger(bool poll)
+{
+    getMaxTravel().updateIfNeeded(poll);
+    return getMaxTravel().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioLimitTriggerAttachmentInterface::setLimitTrigger(U trigger)
+{
+    getLimit().setObject(trigger);
+}
+
+template <class U>
+inline SharedPtr<U> HelioLimitTriggerAttachmentInterface::getLimitTrigger(bool poll)
+{
+    getLimit().updateIfNeeded(poll);
+    return getLimit().HelioAttachment::getObject<U>();
 }

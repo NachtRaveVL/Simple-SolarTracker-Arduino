@@ -33,7 +33,7 @@ extern Helio_UnitsCategory defaultCategoryForSensor(Helio_SensorType sensorType,
 // Sensor Base
 // This is the base class for all sensors, which defines how the sensor is identified,
 // where it lives, and what it's attached to.
-class HelioSensor : public HelioObject, public HelioSensorObjectInterface, public HelioPanelAttachmentInterface {
+class HelioSensor : public HelioObject, public HelioSensorObjectInterface, public HelioMeasureUnitsInterface, public HelioParentPanelAttachmentInterface {
 public:
     const enum : signed char { Binary, Analog, Digital, DHT1W, Unknown = -1 } classType; // Sensor class type (custom RTTI)
     inline bool isBinaryClass() const { return classType == Binary; }
@@ -55,10 +55,7 @@ public:
     virtual bool isTakingMeasurement() const override;
     virtual bool getNeedsPolling(hframe_t allowance = 0) const override;
 
-    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow = 0) = 0;
-    virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const = 0;
-
-    virtual HelioAttachment &getParentPanel(bool resolve = true) override;
+    virtual HelioAttachment &getParentPanel() override;
 
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);
     inline const HelioCalibrationData *getUserCalibrationData() const { return _calibrationData; }
@@ -66,13 +63,13 @@ public:
     // Transformation methods that convert from normalized reading intensity/driver value to calibration units
     inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
     inline void calibrationTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibrationUnits, measurement.timestamp, measurement.frame) : measurement; }
     inline void calibrationTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
 
     // Transformation methods that convert from calibration units to normalized reading intensity/driver value
     inline float calibrationInvTransform(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
     inline void calibrationInvTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibrationUnits, measurement.timestamp, measurement.frame) : measurement; }
     inline void calibrationInvTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
 
     inline Helio_SensorType getSensorType() const { return _id.objTypeAs.sensorType; }
@@ -131,7 +128,7 @@ protected:
 // The ever reliant master of the analog read, this class manages polling an analog input
 // signal and converting it into the proper figures for use. Examples include everything
 // from TDS EC meters to PWM based flow sensors.
-class HelioAnalogSensor : public HelioSensor {
+class HelioAnalogSensor : public HelioSensor, public HelioMeasureUnitsStorage<1> {
 public:
     HelioAnalogSensor(Helio_SensorType sensorType,
                       hposi_t sensorIndex,
@@ -153,7 +150,6 @@ protected:
     HelioAnalogPin _inputPin;                               // Analog input pin
     bool _inputInversion;                                   // Analog input inversion
     HelioSingleMeasurement _lastMeasurement;                // Latest successful measurement
-    Helio_UnitsType _measureUnits;                          // Measurement units preferred
 
     void _takeMeasurement(unsigned int taskId);
 
@@ -196,7 +192,7 @@ protected:
 
 // Digital DHT* Temperature & Humidity Sensor
 // This class is for working with DHT* OneWire-based air temperature and humidity sensors.
-class HelioDHTTempHumiditySensor : public HelioDigitalSensor {
+class HelioDHTTempHumiditySensor : public HelioDigitalSensor, public HelioMeasureUnitsStorage<3> {
 public:
     HelioDHTTempHumiditySensor(hposi_t sensorIndex,
                                HelioDigitalPin inputPin,
@@ -213,7 +209,7 @@ public:
     inline uint8_t getMeasureRowForHumidity() const { return 1; }
     inline uint8_t getMeasureRowForHeatIndex() const { return 2; }
 
-    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow) override;
+    virtual void setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow = 0) override;
     virtual Helio_UnitsType getMeasureUnits(uint8_t measureRow = 0) const override;
 
     virtual bool setWirePositionIndex(hposi_t wirePosIndex) override; // disabled
@@ -230,7 +226,6 @@ protected:
     DHT *_dht;                                              // DHT sensor instance (owned)
     bool _computeHeatIndex;                                 // Flag to compute heat index
     HelioTripleMeasurement _lastMeasurement;                // Latest successful measurement
-    Helio_UnitsType _measureUnits[3];                       // Measurement units preferred
 
     void _takeMeasurement(unsigned int taskId);
 

@@ -11,7 +11,7 @@ HelioLogEvent::HelioLogEvent(Helio_LogLevel levelIn, const String &prefixIn, con
 
 
 HelioLogger::HelioLogger()
-    : _logFilename(), _initDate(0), _lastSpaceCheck(0)
+    : _logFilename(), _initTime(0), _lastSpaceCheck(0)
 { ; }
 
 HelioLogger::~HelioLogger()

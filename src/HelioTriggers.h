@@ -43,7 +43,7 @@ public:
     virtual void update();
     virtual void handleLowMemory();
 
-    virtual Helio_TriggerState getTriggerState() const override;
+    virtual Helio_TriggerState getTriggerState(bool poll = false) override;
 
     inline void setMeasureUnits(Helio_UnitsType measureUnits) { _sensor.setMeasureUnits(measureUnits); }
     inline Helio_UnitsType getMeasureUnits() const { return _sensor.getMeasureUnits(); }
@@ -57,6 +57,8 @@ protected:
     HelioSensorAttachment _sensor;                          // Sensor attachment
     Helio_TriggerState _triggerState;                       // Current trigger state
     Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> _triggerSignal; // Trigger signal
+
+    virtual void handleMeasurement(const HelioMeasurement *measurement) = 0;
 };
 
 

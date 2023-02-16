@@ -64,8 +64,9 @@ void HelioTrigger::update()
 void HelioTrigger::handleLowMemory()
 { ; }
 
-Helio_TriggerState HelioTrigger::getTriggerState() const
+Helio_TriggerState HelioTrigger::getTriggerState(bool poll)
 {
+    _sensor.updateIfNeeded(poll);
     return _triggerState;
 }
 

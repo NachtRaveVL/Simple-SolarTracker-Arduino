@@ -23,11 +23,11 @@ extern HelioMeasurement *newMeasurementObjectFromSubData(const HelioMeasurementD
 // Gets the value of a measurement at a specified row (with optional binary true value).
 extern float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measureRow = 0, float binTrue = 1.0f);
 // Gets the units of a measurement at a specified row (with optional binary units).
-extern Helio_UnitsType getMeasureUnits(const HelioMeasurement *measurement, uint8_t measureRow = 0, Helio_UnitsType binUnits = Helio_UnitsType_Raw_0_1);
+extern Helio_UnitsType getMeasureUnits(const HelioMeasurement *measurement, uint8_t measureRow = 0, Helio_UnitsType binUnits = Helio_UnitsType_Raw_1);
 // Gets the number of rows of data that a measurement holds.
 extern uint8_t getMeasureRowCount(const HelioMeasurement *measurement);
 // Gets the single measurement of a measurement (with optional binary true value / units).
-extern HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measureRow = 0, float binTrue = 1.0f, Helio_UnitsType binUnits = Helio_UnitsType_Raw_0_1);
+extern HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measureRow = 0, float binTrue = 1.0f, Helio_UnitsType binUnits = Helio_UnitsType_Raw_1);
 
 // Sensor Data Measurement Base
 struct HelioMeasurement {
@@ -39,7 +39,7 @@ struct HelioMeasurement {
     inline bool isUnknownType() const { return type <= Unknown; }
 
     time_t timestamp;                                       // Time event recorded (UTC)
-    hframe_t frame;                               // Polling frame # measurement taken on, or 0 if not-set else 1 if user-set
+    hframe_t frame;                                         // Polling frame # measurement taken on, or 0 if not-set else 1 if user-set
 
     inline HelioMeasurement() : type(Unknown), frame(0), timestamp(unixNow()) { ; }
     inline HelioMeasurement(int classType, time_t timestampIn, hframe_t frameIn) : type((typeof(type))classType), timestamp(timestampIn), frame(frameIn) { ; }
@@ -77,7 +77,7 @@ struct HelioBinaryMeasurement : public HelioMeasurement {
 
     void saveToData(HelioMeasurementData *dataOut, uint8_t measureRow = 0, unsigned int additionalDecPlaces = 0) const;
 
-    inline HelioSingleMeasurement getAsSingleMeasurement(float binTrue = 1.0f, Helio_UnitsType binUnits = Helio_UnitsType_Raw_0_1) { return HelioSingleMeasurement(state ? binTrue : 0.0f, binUnits, timestamp, frame); }
+    inline HelioSingleMeasurement getAsSingleMeasurement(float binTrue = 1.0f, Helio_UnitsType binUnits = Helio_UnitsType_Raw_1) { return HelioSingleMeasurement(state ? binTrue : 0.0f, binUnits, timestamp, frame); }
 };
 
 // Double Value Sensor Data Measurement
@@ -124,7 +124,7 @@ struct HelioTripleMeasurement : public HelioMeasurement {
 
 // Combined Measurement Serialization Sub Data
 struct HelioMeasurementData : public HelioSubData {
-    uint8_t measureRow;                                 // Source measurement row index that data is from
+    uint8_t measureRow;                                     // Source measurement row index that data is from
     float value;                                            // Value
     Helio_UnitsType units;                                  // Units of value
     time_t timestamp;                                       // Timestamp

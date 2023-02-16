@@ -153,7 +153,7 @@ bool HelioObject::hasLinkage(HelioObject *obj) const
 
 void HelioObject::unresolveAny(HelioObject *obj)
 {
-    if (_links) {
+    if (this == obj && _links) {
         HelioObject *lastObject = nullptr;
         for (hposi_t linksIndex = 0; linksIndex < _linksSize && _links[linksIndex].first; ++linksIndex) {
             HelioObject *object = _links[linksIndex].first;

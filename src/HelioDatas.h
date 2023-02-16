@@ -65,12 +65,12 @@ struct HelioSystemData : public HelioData {
 // See setFrom* methods to set calibrated data in various formats.
 struct HelioCalibrationData : public HelioData {
     char ownerName[HELIO_NAME_MAXSIZE];                     // Owner object name this calibration belongs to (actuator/sensor)
-    Helio_UnitsType calibUnits;                             // Calibration output units
+    Helio_UnitsType calibrationUnits;                             // Calibration output units
     float multiplier, offset;                               // Ax + B value transform coefficients
 
     HelioCalibrationData();
     HelioCalibrationData(HelioIdentity ownerId,
-                         Helio_UnitsType calibUnits = Helio_UnitsType_Undefined);
+                         Helio_UnitsType calibrationUnits = Helio_UnitsType_Undefined);
 
     virtual void toJSONObject(JsonObject &objectOut) const override;
     virtual void fromJSONObject(JsonObjectConst &objectIn) override;
@@ -79,9 +79,9 @@ struct HelioCalibrationData : public HelioData {
     inline float transform(float value) const { return (value * multiplier) + offset; }
     // Transforms value in-place from raw (or initial) value into calibrated (or transformed) value, with optional units write out.
     inline void transform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { *valueInOut = transform(*valueInOut);
-                                                                                          if (unitsOut) { *unitsOut = calibUnits; } }
+                                                                                          if (unitsOut) { *unitsOut = calibrationUnits; } }
     // Transforms measurement from raw (or initial) measurement into calibrated (or transformed) measurement.
-    inline HelioSingleMeasurement transform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(transform(measurement.value), calibUnits, measurement.timestamp, measurement.frame); }
+    inline HelioSingleMeasurement transform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(transform(measurement.value), calibrationUnits, measurement.timestamp, measurement.frame); }
     // Transforms measurement in-place from raw (or initial) measurement into calibrated (or transformed) measurement.
     inline void transform(HelioSingleMeasurement *measurementInOut) const { transform(&measurementInOut->value, &measurementInOut->units); }
 
@@ -89,9 +89,9 @@ struct HelioCalibrationData : public HelioData {
     inline float inverseTransform(float value) const { return (value - offset) / multiplier; }
     // Inverse transforms value in-place from calibrated (or transformed) value back into raw (or initial) value, with optional units write out.
     inline void inverseTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { *valueInOut = inverseTransform(*valueInOut);
-                                                                                                 if (unitsOut) { *unitsOut = Helio_UnitsType_Raw_0_1; } }
+                                                                                                 if (unitsOut) { *unitsOut = Helio_UnitsType_Raw_1; } }
     // Inverse transforms measurement from calibrated (or transformed) measurement back into raw (or initial) measurement.
-    inline HelioSingleMeasurement inverseTransform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(inverseTransform(measurement.value), calibUnits, measurement.timestamp, measurement.frame); }
+    inline HelioSingleMeasurement inverseTransform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(inverseTransform(measurement.value), calibrationUnits, measurement.timestamp, measurement.frame); }
     // Inverse transforms measurement in-place from calibrated (or transformed) measurement back into raw (or initial) measurement.
     inline void inverseTransform(HelioSingleMeasurement *measurementInOut) const { inverseTransform(&measurementInOut->value, &measurementInOut->units); }
 

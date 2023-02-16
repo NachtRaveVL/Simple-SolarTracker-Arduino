@@ -34,7 +34,7 @@ Helio_UnitsType defaultUnitsForSensor(Helio_SensorType sensorType, uint8_t measu
         case Helio_SensorType_Endstop:
         case Helio_SensorType_IceDetector:
         case Helio_SensorType_LightIntensity:
-            return Helio_UnitsType_Percentile_0_100;
+            return Helio_UnitsType_Percentile_100;
         case Helio_SensorType_PowerLevel:
             return defaultPowerUnits(measureMode);
         case Helio_SensorType_StrokePosition:
@@ -42,7 +42,7 @@ Helio_UnitsType defaultUnitsForSensor(Helio_SensorType sensorType, uint8_t measu
         case Helio_SensorType_TempHumidity:
             return defaultTemperatureUnits(measureMode);
         case Helio_SensorType_TiltAngle:
-            return Helio_UnitsType_Angle_Degrees;
+            return Helio_UnitsType_Angle_Degrees_360;
         case Helio_SensorType_WindSpeed:
             return defaultSpeedUnits(measureMode);
         default:
@@ -116,9 +116,8 @@ bool HelioSensor::getNeedsPolling(hframe_t allowance) const
     return getController() && latestMeasurement ? getController()->isPollingFrameOld(latestMeasurement->frame, allowance) : false;
 }
 
-HelioAttachment &HelioSensor::getParentPanel(bool resolve)
+HelioAttachment &HelioSensor::getParentPanel()
 {
-    if (resolve) { _panel.resolve(); }
     return _panel;
 }
 
@@ -224,7 +223,7 @@ void HelioBinarySensor::setMeasureUnits(Helio_UnitsType measureUnits, uint8_t me
 
 Helio_UnitsType HelioBinarySensor::getMeasureUnits(uint8_t measureRow) const
 {
-    return Helio_UnitsType_Raw_0_1;
+    return Helio_UnitsType_Raw_1;
 }
 
 bool HelioBinarySensor::tryRegisterAsISR()
@@ -254,7 +253,8 @@ void HelioBinarySensor::saveToData(HelioData *dataOut)
 
 HelioAnalogSensor::HelioAnalogSensor(Helio_SensorType sensorType, hposi_t sensorIndex, HelioAnalogPin inputPin, bool inputInversion, int classType)
     : HelioSensor(sensorType, sensorIndex, classType),
-      _inputPin(inputPin), _inputInversion(inputInversion), _measureUnits(defaultUnitsForSensor(sensorType))
+      HelioMeasureUnitsStorage<1>(defaultUnitsForSensor(sensorType)),
+      _inputPin(inputPin), _inputInversion(inputInversion)
 {
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _inputPin.init();
@@ -262,8 +262,8 @@ HelioAnalogSensor::HelioAnalogSensor(Helio_SensorType sensorType, hposi_t sensor
 
 HelioAnalogSensor::HelioAnalogSensor(const HelioAnalogSensorData *dataIn)
     : HelioSensor(dataIn),
-      _inputPin(&dataIn->inputPin), _inputInversion(dataIn->inputInversion),
-      _measureUnits(definedUnitsElse(dataIn->measureUnits, defaultUnitsForSensor((Helio_SensorType)(dataIn->id.object.objType))))
+      HelioMeasureUnitsStorage<1>(definedUnitsElse(dataIn->measureUnits, defaultUnitsForSensor((Helio_SensorType)(dataIn->id.object.objType)))),
+      _inputPin(&dataIn->inputPin), _inputInversion(dataIn->inputInversion)
 {
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _inputPin.init();
@@ -292,8 +292,8 @@ void HelioAnalogSensor::_takeMeasurement(unsigned int taskId)
 {
     if (_isTakingMeasure && _inputPin.isValid()) {
         if (getController()->tryGetPinLock(_inputPin.pin, 5)) {
-            Helio_UnitsType outUnits = definedUnitsElse(_measureUnits,
-                                                        _calibrationData ? _calibrationData->calibUnits : Helio_UnitsType_Undefined,
+            Helio_UnitsType outUnits = definedUnitsElse(_measureUnits[0],
+                                                        _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Undefined,
                                                         defaultUnitsForSensor(_id.objTypeAs.sensorType));
 
             unsigned int rawRead = 0;
@@ -313,7 +313,7 @@ void HelioAnalogSensor::_takeMeasurement(unsigned int taskId)
 
             HelioSingleMeasurement newMeasurement(
                 _inputPin.bitRes.transform(rawRead),
-                Helio_UnitsType_Raw_0_1,
+                Helio_UnitsType_Raw_1,
                 timestamp
             );
 
@@ -342,18 +342,18 @@ const HelioMeasurement *HelioAnalogSensor::getLatestMeasurement() const
 
 void HelioAnalogSensor::setMeasureUnits(Helio_UnitsType measureUnits, uint8_t measureRow)
 {
-    if (_measureUnits != measureUnits) {
-        _measureUnits = measureUnits;
+    if (_measureUnits[0] != measureUnits) {
+        _measureUnits[0] = measureUnits;
 
         if (_lastMeasurement.frame) {
-            convertUnits(&_lastMeasurement, _measureUnits);
+            convertUnits(&_lastMeasurement, _measureUnits[0]);
         }
     }
 }
 
 Helio_UnitsType HelioAnalogSensor::getMeasureUnits(uint8_t measureRow) const
 {
-    return _measureUnits;
+    return _measureUnits[0];
 }
 
 void HelioAnalogSensor::saveToData(HelioData *dataOut)
@@ -362,7 +362,7 @@ void HelioAnalogSensor::saveToData(HelioData *dataOut)
 
     _inputPin.saveToData(&((HelioAnalogSensorData *)dataOut)->inputPin);
     ((HelioAnalogSensorData *)dataOut)->inputInversion = _inputInversion;
-    ((HelioAnalogSensorData *)dataOut)->measureUnits = _measureUnits;
+    ((HelioAnalogSensorData *)dataOut)->measureUnits = _measureUnits[0];
 }
 
 
@@ -479,9 +479,10 @@ void HelioDigitalSensor::saveToData(HelioData *dataOut)
 
 HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex, HelioDigitalPin inputPin, Helio_DHTType dhtType, bool computeHeatIndex, int classType)
     : HelioDigitalSensor(Helio_SensorType_TempHumidity, sensorIndex, inputPin, 9, false, classType),
-      _dht(new DHT(inputPin.pin, dhtType)), _dhtType(dhtType), _computeHeatIndex(computeHeatIndex),
-      _measureUnits{defaultTemperatureUnits(), Helio_UnitsType_Percentile_0_100, defaultTemperatureUnits()}
+      HelioMeasureUnitsStorage<3>(defaultUnitsForSensor(Helio_SensorType_TempHumidity)),
+      _dht(new DHT(inputPin.pin, dhtType)), _dhtType(dhtType), _computeHeatIndex(computeHeatIndex)
 {
+    _measureUnits[1] = Helio_UnitsType_Percentile_100;
     HELIO_SOFT_ASSERT(_dht, SFP(HStr_Err_AllocationFailure));
     if (_inputPin.isValid() && _dht) { _dht->begin(); }
     else if (_dht) { delete _dht; _dht = nullptr; }
@@ -489,11 +490,10 @@ HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex, Heli
 
 HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(const HelioDHTTempHumiditySensorData *dataIn)
     : HelioDigitalSensor(dataIn, false),
-      _dht(new DHT(dataIn->inputPin.pin, dataIn->dhtType)), _dhtType(dataIn->dhtType), _computeHeatIndex(dataIn->computeHeatIndex),
-      _measureUnits{definedUnitsElse(dataIn->measureUnits, defaultTemperatureUnits()),
-                        Helio_UnitsType_Percentile_0_100,
-                        definedUnitsElse(dataIn->measureUnits, defaultTemperatureUnits())}
+      HelioMeasureUnitsStorage<3>(definedUnitsElse(dataIn->measureUnits, defaultUnitsForSensor(Helio_SensorType_TempHumidity))),
+      _dht(new DHT(dataIn->inputPin.pin, dataIn->dhtType)), _dhtType(dataIn->dhtType), _computeHeatIndex(dataIn->computeHeatIndex)
 {
+    _measureUnits[1] = Helio_UnitsType_Percentile_100;
     HELIO_SOFT_ASSERT(_dht, SFP(HStr_Err_AllocationFailure));
     if (_inputPin.isValid() && _dht) { _dht->begin(); }
     else if (_dht) { delete _dht; _dht = nullptr; }
@@ -528,12 +528,12 @@ void HelioDHTTempHumiditySensor::_takeMeasurement(unsigned int taskId)
     if (_isTakingMeasure && _dht) {
         if (getController()->tryGetPinLock(_inputPin.pin, 5)) {
             Helio_UnitsType outUnits[3] = { definedUnitsElse(_measureUnits[0],
-                                                             _calibrationData ? _calibrationData->calibUnits : Helio_UnitsType_Undefined,
+                                                             _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Undefined,
                                                              defaultTemperatureUnits()),
                                             definedUnitsElse(_measureUnits[1],
-                                                             Helio_UnitsType_Percentile_0_100),
+                                                             Helio_UnitsType_Percentile_100),
                                             definedUnitsElse(_measureUnits[2],
-                                                             _calibrationData ? _calibrationData->calibUnits : Helio_UnitsType_Undefined,
+                                                             _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Undefined,
                                                              defaultTemperatureUnits()) };
             bool readInFahrenheit = outUnits[0] == Helio_UnitsType_Temperature_Fahrenheit;
             Helio_UnitsType readUnits = readInFahrenheit ? Helio_UnitsType_Temperature_Fahrenheit
@@ -545,7 +545,7 @@ void HelioDHTTempHumiditySensor::_takeMeasurement(unsigned int taskId)
 
             HelioTripleMeasurement newMeasurement(
                 tempRead, readUnits,
-                humidRead, Helio_UnitsType_Percentile_0_100,
+                humidRead, Helio_UnitsType_Percentile_100,
                 0.0f, Helio_UnitsType_Undefined,
                 timestamp
             );

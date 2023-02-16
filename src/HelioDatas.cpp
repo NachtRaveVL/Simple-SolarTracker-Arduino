@@ -61,10 +61,10 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
 
         case (int8_t)HelioIdentity::Panel:
             switch (classType) {
+                case (int8_t)HelioPanel::Balancing:
+                    return new HelioBalancingPanelData();
                 case (int8_t)HelioPanel::Tracking:
                     return new HelioTrackingPanelData();
-                case (int8_t)HelioPanel::Reflecting:
-                    return new HelioReflectingPanelData();
                 default: break;
             }
             break;
@@ -184,16 +184,16 @@ void HelioSystemData::fromJSONObject(JsonObjectConst &objectIn)
 
 HelioCalibrationData::HelioCalibrationData()
     : HelioData('H','C','A','L', 1),
-      ownerName{0}, calibUnits(Helio_UnitsType_Undefined),
+      ownerName{0}, calibrationUnits(Helio_UnitsType_Undefined),
       multiplier(1.0f), offset(0.0f)
 {
     _size = sizeof(*this);
     HELIO_HARD_ASSERT(isCalibrationData(), SFP(HStr_Err_OperationFailure));
 }
 
-HelioCalibrationData::HelioCalibrationData(HelioIdentity ownerId, Helio_UnitsType calibUnitsIn)
+HelioCalibrationData::HelioCalibrationData(HelioIdentity ownerId, Helio_UnitsType calibrationUnitsIn)
     : HelioData('H','C','A','L', 1),
-      ownerName{0}, calibUnits(calibUnitsIn),
+      ownerName{0}, calibrationUnits(calibrationUnitsIn),
       multiplier(1.0f), offset(0.0f)
 {
     _size = sizeof(*this);
@@ -208,7 +208,7 @@ void HelioCalibrationData::toJSONObject(JsonObject &objectOut) const
     HelioData::toJSONObject(objectOut);
 
     if (ownerName[0]) { objectOut[SFP(HStr_Key_SensorName)] = charsToString(ownerName, HELIO_NAME_MAXSIZE); }
-    if (calibUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_CalibUnits)] = unitsTypeToSymbol(calibUnits); }
+    if (calibrationUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_CalibrationUnits)] = unitsTypeToSymbol(calibrationUnits); }
     objectOut[SFP(HStr_Key_Multiplier)] = multiplier;
     objectOut[SFP(HStr_Key_Offset)] = offset;
 }
@@ -219,7 +219,7 @@ void HelioCalibrationData::fromJSONObject(JsonObjectConst &objectIn)
 
     const char *ownerNameStr = objectIn[SFP(HStr_Key_SensorName)];
     if (ownerNameStr && ownerNameStr[0]) { strncpy(ownerName, ownerNameStr, HELIO_NAME_MAXSIZE); }
-    calibUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_CalibUnits)]);
+    calibrationUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_CalibrationUnits)]);
     multiplier = objectIn[SFP(HStr_Key_Multiplier)] | multiplier;
     offset = objectIn[SFP(HStr_Key_Offset)] | offset;
 }

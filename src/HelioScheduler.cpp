@@ -314,7 +314,7 @@ void HelioTracking::setupStaging()
             }
             if (phBalancer) {
                 phBalancer->setTargetSetpoint(phSetpoint);
-                phBalancer->setMeasureUnits(Helio_UnitsType_Alkalinity_pH_0_14);
+                phBalancer->setMeasureUnits(Helio_UnitsType_Alkalinity_pH_14);
                 phBalancer->setEnabled(true);
             }
         }
@@ -624,7 +624,7 @@ void HelioTracking::logTracking(HelioTrackingLogType logType)
 {
     switch (logType) {
         case HelioTrackingLogType_WaterSetpoints:
-            {   auto ph = HelioSingleMeasurement(phSetpoint, Helio_UnitsType_Alkalinity_pH_0_14);
+            {   auto ph = HelioSingleMeasurement(phSetpoint, Helio_UnitsType_Alkalinity_pH_14);
                 getLogger()->logMessage(SFP(HStr_Log_Field_pH_Setpoint), measurementToString(ph));
             }
             {   auto tds = HelioSingleMeasurement(tdsSetpoint, Helio_UnitsType_Concentration_TDS);
