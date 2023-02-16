@@ -77,18 +77,13 @@
 #define F_SPD 32000000U
 #endif
 #endif
-#if defined(__AVR__) && !defined(ARDUINO_AVR_FIO) && !(defined(ARDUINO_AVR_PRO) && F_CPU == 8000000L)
-#define V_MCU                           5.0                 // 5v MCU
+#ifndef V_MCU                                               // Alias for standard MCU voltage
+#if (defined(__AVR__) || defined(__STM8__)) && !defined(ARDUINO_AVR_FIO) && !(defined(ARDUINO_AVR_PRO) && F_CPU == 8000000L)
+#define V_MCU                           5.0                 // 5v MCU (assumed/tolerant)
 #else
-#define V_MCU                           3.3                 // 3v3 MCU
+#define V_MCU                           3.3                 // 3v3 MCU (assumed)
 #endif
-
-#define PER_SEC_TO_PER_MIN(t)   ((t) * (SECS_PER_MIN))      // Per seconds to per minutes
-#define PER_SEC_TO_PER_HR(t)    ((t) * (SECS_PER_HOUR))     // Per seconds to per hour
-#define PER_MIN_TO_PER_SEC(t)   ((t) / (SECS_PER_MIN))      // Per minutes to per seconds
-#define PER_MIN_TO_PER_HR(t)    ((t) * (SECS_PER_MIN))      // Per minutes to per hour
-#define PER_HR_TO_PER_SEC(t)    ((t) / (SECS_PER_HOUR))     // Per hour to per seconds
-#define PER_HR_TO_PER_MIN(t)    ((t) / (SECS_PER_MIN))      // Per hour to per minutes
+#endif
 
 typedef typeof(millis()) millis_t;                          // Time millis type
 typedef int8_t hposi_t;                                     // Position indexing type alias
@@ -456,10 +451,10 @@ enum Helio_UnitsCategory : signed char {
 // Unit of measurement type. Specifies the unit type associated with a measured value.
 // Note: Rate units may only be in per minute, use PER_X_TO_PER_Y defines to convert.
 enum Helio_UnitsType : signed char {
-    Helio_UnitsType_Raw_0_1,                                // Normalized raw value [0.0,1.0] mode
-    Helio_UnitsType_Percentile_0_100,                       // Percentile [0.0,100.0] mode
-    Helio_UnitsType_Angle_Degrees,                          // Degrees angle [%360) mode
-    Helio_UnitsType_Angle_Radians,                          // Radians angle [%2pi) mode
+    Helio_UnitsType_Raw_1,                                  // Normalized raw value mode [0,1=aRef]
+    Helio_UnitsType_Percentile_100,                         // Percentile mode [0,100]
+    Helio_UnitsType_Angle_Degrees_360,                      // Degrees angle mode [0,%360)
+    Helio_UnitsType_Angle_Radians_2pi,                      // Radians angle mode [0,%2pi)
     Helio_UnitsType_Distance_Feet,                          // Feet distance mode
     Helio_UnitsType_Distance_Meters,                        // Meters distance mode
     Helio_UnitsType_Power_Amperage,                         // Amperage current power mode
@@ -474,6 +469,13 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Power_JoulesPerSecond = Helio_UnitsType_Power_Wattage, // Joules per second power mode alias
     Helio_UnitsType_Undefined = -1                          // Placeholder
 };
+
+#define PER_SEC_TO_PER_MIN(t)       ((t) * (SECS_PER_MIN))  // Per seconds to per minutes
+#define PER_SEC_TO_PER_HR(t)        ((t) * (SECS_PER_HOUR)) // Per seconds to per hour
+#define PER_MIN_TO_PER_SEC(t)       ((t) / (SECS_PER_MIN))  // Per minutes to per seconds
+#define PER_MIN_TO_PER_HR(t)        ((t) * (SECS_PER_MIN))  // Per minutes to per hour
+#define PER_HR_TO_PER_SEC(t)        ((t) / (SECS_PER_HOUR)) // Per hour to per seconds
+#define PER_HR_TO_PER_MIN(t)        ((t) / (SECS_PER_MIN))  // Per hour to per minutes
 
 // Common forward decls
 class Helioduino;

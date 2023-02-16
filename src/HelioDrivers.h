@@ -40,7 +40,7 @@ public:
 
     virtual void setTargetSetpoint(float targetSetpoint) override;
     inline float getTargetSetpoint() const { return _targetSetpoint; }
-    virtual void setTravelRate(float travelRate) override;
+    inline void setTravelRate(float travelRate) { _travelRate = travelRate; }
     inline float getTravelRate() const { return _travelRate; }
     inline bool isInstantaneous() const { return _travelRate == FLT_UNDEF; }
 
@@ -50,8 +50,8 @@ public:
     inline Pair<float,float> getTrackExtents() const { return make_pair(_trackMin, _trackMax); }
     inline bool isWithinTrack(float value) const { return value + FLT_EPSILON >= _trackMin && value - FLT_EPSILON <= _trackMax; }
 
-    virtual Helio_DrivingState getDrivingState() const override;
     virtual float getMaximumOffset(bool poll = false) override;
+    virtual Helio_DrivingState getDrivingState(bool poll = false) override;
 
     Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> &getDrivingSignal();
 
@@ -60,13 +60,15 @@ protected:
     float _trackMax;                                        // Track maximum value
     float _targetSetpoint;                                  // Target set-point value
     float _travelRate;                                      // Travel rate (distance units / min)
-    Helio_UnitsType _measureUnits;                           // Target units
+    Helio_UnitsType _measureUnits;                          // Target units
     Helio_DrivingState _drivingState;                       // Current driving state
     bool _enabled;                                          // Enabled flag
     Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> _drivingSignal; // Driving signal
     Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> _actuators; // Actuator attachments
 
     void disableAllActivations();
+
+    virtual void handleOffset(float maximumOffset) = 0;
 };
 
 

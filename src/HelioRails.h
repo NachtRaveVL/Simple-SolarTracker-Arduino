@@ -23,7 +23,7 @@ extern HelioRail *newRailObjectFromData(const HelioRailData *dataIn);
 // Power Rail Base
 // This is the base class for all power rails, which defines how the rail is identified,
 // where it lives, what's attached to it, and who can activate under it.
-class HelioRail : public HelioObject, public HelioRailObjectInterface {
+class HelioRail : public HelioObject, public HelioRailObjectInterface, public HelioPowerUnitsInterface {
 public:
     const enum : signed char { Simple, Regulated, Unknown = -1 } classType; // Power rail class (custom RTTI)
     inline bool isSimpleClass() const { return classType == Simple; }
@@ -42,20 +42,15 @@ public:
     virtual bool removeLinkage(HelioObject *obj) override;
 
     virtual bool canActivate(HelioActuator *actuator) = 0;
-    virtual float getCapacity() = 0;
-
-    virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
-    virtual Helio_UnitsType getPowerUnits() const override;
+    virtual float getCapacity(bool poll = false) = 0;
 
     inline Helio_RailType getRailType() const { return _id.objTypeAs.railType; }
     inline hposi_t getRailIndex() const { return _id.posIndex; }
-    virtual float getRailVoltage() const override;
+    inline float getRailVoltage() const { return getRailVoltageFromType(getRailType()); }
 
     Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> &getCapacitySignal();
 
 protected:
-    Helio_UnitsType _powerUnits;                            // Power units preferred
-
     Helio_TriggerState _limitState;                         // Current limit state
 
     Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> _capacitySignal; // Capacity changed signal
@@ -80,7 +75,9 @@ public:
     HelioSimpleRail(const HelioSimpleRailData *dataIn);
 
     virtual bool canActivate(HelioActuator *actuator) override;
-    virtual float getCapacity() override;
+    virtual float getCapacity(bool poll = false) override;
+
+    virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
     inline int getActiveCount() { return _activeCount; }
 
@@ -97,7 +94,7 @@ protected:
 // Regulated Power Rail
 // Power rail that has a max power rating and power sensor that can track power
 // usage, with limit trigger for over-power state limiting actuator activation.
-class HelioRegulatedRail : public HelioRail, public HelioPowerUsageSensorAttachmentInterface {
+class HelioRegulatedRail : public HelioRail, public HelioPowerUsageSensorAttachmentInterface, public HelioLimitTriggerAttachmentInterface {
 public:
     HelioRegulatedRail(Helio_RailType railType,
                        hposi_t railIndex,
@@ -109,14 +106,13 @@ public:
     virtual void handleLowMemory() override;
 
     virtual bool canActivate(HelioActuator *actuator) override;
-    virtual float getCapacity() override;
+    virtual float getCapacity(bool poll = false) override;
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
-    virtual HelioSensorAttachment &getPowerUsage(bool poll = false) override;
+    virtual HelioSensorAttachment &getPowerUsage() override;
 
-    template<typename T> inline void setLimitTrigger(T limitTrigger) { _limitTrigger.setObject(limitTrigger); }
-    inline SharedPtr<HelioTrigger> getLimitTrigger() { return _limitTrigger.getObject(); }
+    virtual HelioTriggerAttachment &getLimit() override;
 
     inline float getMaxPower() const { return _maxPower; }
 

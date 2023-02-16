@@ -26,15 +26,16 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 
 HelioRail::HelioRail(Helio_RailType railType, hposi_t railIndex, int classTypeIn)
     : HelioObject(HelioIdentity(railType, railIndex)), classType((typeof(classType))classTypeIn),
-      _powerUnits(defaultPowerUnits()), _limitState(Helio_TriggerState_Undefined)
+      HelioPowerUnitsInterface(defaultPowerUnits()),
+      _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
 
 HelioRail::HelioRail(const HelioRailData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
-      _limitState(Helio_TriggerState_Undefined),
-      _powerUnits(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits()))
+      HelioPowerUnitsInterface(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
+      _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
@@ -51,7 +52,7 @@ void HelioRail::update()
 {
     HelioObject::update();
 
-    handleLimit(triggerStateFromBool(getCapacity() >= 1.0f - FLT_EPSILON));
+    handleLimit(triggerStateFromBool(getCapacity(true) >= 1.0f - FLT_EPSILON));
 }
 
 bool HelioRail::addLinkage(HelioObject *object)
@@ -88,23 +89,6 @@ bool HelioRail::removeLinkage(HelioObject *object)
         return true;
     }
     return false;
-}
-
-void HelioRail::setPowerUnits(Helio_UnitsType powerUnits)
-{
-    if (_powerUnits != powerUnits) {
-        _powerUnits = powerUnits;
-    }
-}
-
-Helio_UnitsType HelioRail::getPowerUnits() const
-{
-    return definedUnitsElse(_powerUnits, defaultPowerUnits());
-}
-
-float HelioRail::getRailVoltage() const
-{
-    return getRailVoltageFromType(_id.objTypeAs.railType);
 }
 
 Signal<HelioRail *, HELIO_RAIL_SIGNAL_SLOTS> &HelioRail::getCapacitySignal()
@@ -157,9 +141,16 @@ bool HelioSimpleRail::canActivate(HelioActuator *actuator)
     return _activeCount < _maxActiveAtOnce;
 }
 
-float HelioSimpleRail::getCapacity()
+float HelioSimpleRail::getCapacity(bool poll)
 {
     return _activeCount / (float)_maxActiveAtOnce;
+}
+
+void HelioSimpleRail::setPowerUnits(Helio_UnitsType powerUnits)
+{
+    if (_powerUnits != powerUnits) {
+        _powerUnits = powerUnits;
+    }
 }
 
 void HelioSimpleRail::saveToData(HelioData *dataOut)
@@ -238,10 +229,10 @@ bool HelioRegulatedRail::canActivate(HelioActuator *actuator)
     return _powerUsage.getMeasurementValue() + powerReq.value < _maxPower - FLT_EPSILON;
 }
 
-float HelioRegulatedRail::getCapacity()
+float HelioRegulatedRail::getCapacity(bool poll)
 {
     if (_limitTrigger.resolve() && triggerStateToBool(_limitTrigger.getTriggerState())) { return 1.0f; }
-    float retVal = _powerUsage.getMeasurementValue() / _maxPower;
+    float retVal = _powerUsage.getMeasurementValue(poll) / _maxPower;
     return constrain(retVal, 0.0f, 1.0f);
 }
 
@@ -254,9 +245,8 @@ void HelioRegulatedRail::setPowerUnits(Helio_UnitsType powerUnits)
     }
 }
 
-HelioSensorAttachment &HelioRegulatedRail::getPowerUsage(bool poll)
+HelioSensorAttachment &HelioRegulatedRail::getPowerUsage()
 {
-    _powerUsage.updateIfNeeded(poll);
     return _powerUsage;
 }
 
@@ -305,7 +295,7 @@ void HelioRegulatedRail::handlePower(const HelioMeasurement *measurement)
     if (measurement && measurement->frame) {
         float capacityBefore = getCapacity();
 
-        getPowerUsage().setMeasurement(getAsSingleMeasurement(measurement, _powerUsage.getMeasureRow(), _maxPower, _powerUnits));
+        getPowerUsage().setMeasurement(getAsSingleMeasurement(measurement, _powerUsage.getMeasureRow(), _maxPower, getPowerUnits()));
 
         if (getCapacity() < capacityBefore - FLT_EPSILON) {
             #ifdef HELIO_USE_MULTITASKING

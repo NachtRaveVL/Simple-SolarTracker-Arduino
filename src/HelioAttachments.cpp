@@ -227,7 +227,7 @@ void HelioSensorAttachment::detachObject()
 
 void HelioSensorAttachment::updateIfNeeded(bool poll)
 {
-    if (resolve() && (_needsMeasurement || poll)) {
+    if ((_needsMeasurement || poll) && resolve()) {
         if (_handleSlot) { _handleSlot->operator()(get()->getLatestMeasurement()); }
         else { handleMeasurement(get()->getLatestMeasurement()); }
 
@@ -285,8 +285,7 @@ HelioTriggerAttachment::~HelioTriggerAttachment()
 
 void HelioTriggerAttachment::updateIfNeeded(bool poll)
 {
-    if (resolve()) { get()->update(); }
-
+    if (poll && resolve()) { get()->update(); }
 }
 
 
@@ -303,5 +302,5 @@ HelioDriverAttachment::~HelioDriverAttachment()
 
 void HelioDriverAttachment::updateIfNeeded(bool poll)
 {
-    if (resolve()) { get()->update(); }
+    if (poll && resolve()) { get()->update(); }
 }

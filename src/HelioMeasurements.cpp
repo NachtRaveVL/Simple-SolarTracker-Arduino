@@ -136,7 +136,7 @@ void HelioBinaryMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t m
     HelioMeasurement::saveToData(dataOut, measureRow, additionalDecPlaces);
 
     dataOut->value = measureRow == 0 && state ? 1.0f : 0.0f;
-    dataOut->units = measureRow == 0 ? Helio_UnitsType_Raw_0_1 : Helio_UnitsType_Undefined;
+    dataOut->units = measureRow == 0 ? Helio_UnitsType_Raw_1 : Helio_UnitsType_Undefined;
 }
 
 

@@ -385,9 +385,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_BitRes[] PROGMEM = {"bitRes"};
             return flashStr_Key_BitRes;
         } break;
-        case HStr_Key_CalibUnits: {
-            static const char flashStr_Key_CalibUnits[] PROGMEM = {"calibUnits"};
-            return flashStr_Key_CalibUnits;
+        case HStr_Key_CalibrationUnits: {
+            static const char flashStr_Key_CalibrationUnits[] PROGMEM = {"calibrationUnits"};
+            return flashStr_Key_CalibrationUnits;
         } break;
         case HStr_Key_Channel: {
             static const char flashStr_Key_Channel[] PROGMEM = {"channel"};
@@ -437,9 +437,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_DispOutMode[] PROGMEM = {"dispOutMode"};
             return flashStr_Key_DispOutMode;
         } break;
-        case HStr_Key_DistanceUnits: {
-            static const char flashStr_Key_DistanceUnits[] PROGMEM = {"distanceUnits"};
-            return flashStr_Key_DistanceUnits;
+        case HStr_Key_DistUnits: {
+            static const char flashStr_Key_DistUnits[] PROGMEM = {"distanceUnits"};
+            return flashStr_Key_DistUnits;
         } break;
         case HStr_Key_EnableMode: {
             static const char flashStr_Key_EnableMode[] PROGMEM = {"enableMode"};
@@ -940,7 +940,7 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Unit_Celsius;
         } break;
         case HStr_Unit_Count: {
-            static const char flashStr_Unit_Count[] PROGMEM = {"qty"};
+            static const char flashStr_Unit_Count[] PROGMEM = {"[qty]"};
             return flashStr_Unit_Count;
         } break;
         case HStr_Unit_Fahrenheit: {
@@ -960,11 +960,11 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Unit_PerMinute;
         } break;
         case HStr_Unit_Radians: {
-            static const char flashStr_Unit_Radians[] PROGMEM = {"rad"};
+            static const char flashStr_Unit_Radians[] PROGMEM = {"°rad"};
             return flashStr_Unit_Radians;
         } break;
         case HStr_Unit_Undefined: {
-            static const char flashStr_Unit_Undefined[] PROGMEM = {"undef"};
+            static const char flashStr_Unit_Undefined[] PROGMEM = {"[undef]"};
             return flashStr_Unit_Undefined;
         } break;
     }

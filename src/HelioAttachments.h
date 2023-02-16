@@ -274,7 +274,7 @@ public:
     inline uint8_t getMeasureRow() const { return _measureRow; }
     inline float getMeasurementConvertParam() const { return _convertParam; }
 
-    inline SharedPtr<HelioSensor> getObject() { return HelioAttachment::getObject<HelioSensor>(); }
+    inline SharedPtr<HelioSensor> getObject(bool poll = false) { updateIfNeeded(poll); return HelioAttachment::getObject<HelioSensor>(); }
     inline HelioSensor *get() { return HelioAttachment::get<HelioSensor>(); }
 
     inline HelioSensor &operator*() { return *HelioAttachment::get<HelioSensor>(); }

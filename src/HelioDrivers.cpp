@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioDriver::HelioDriver(float travelRate, int typeIn)
-    : type((typeof(type))typeIn), _measureUnits(Helio_UnitsType_Raw_0_1),
+    : type((typeof(type))typeIn), _measureUnits(Helio_UnitsType_Raw_1),
       _targetSetpoint(FLT_UNDEF), _travelRate(travelRate),
       _trackMin(__FLT_MAX__), _trackMax(-__FLT_MAX__),
       _drivingState(Helio_DrivingState_Undefined), _enabled(false)
@@ -24,7 +24,7 @@ void HelioDriver::update()
         attachIter->updateIfNeeded(true);
     }
 
-    handleOffset(getMaximumOffset());
+    handleOffset(getMaximumOffset(true));
 }
 
 void HelioDriver::setTargetSetpoint(float targetSetpoint)
@@ -74,17 +74,13 @@ void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_A
     }
 }
 
-Helio_DrivingState HelioDriver::getDrivingState() const
-{
-    return _drivingState;
-}
-
 float HelioDriver::getMaximumOffset(bool poll)
 {
     float maxDelta = 0;
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
         if ((*attachIter)->isAnyMotorClass()) {
+            attachIter->HelioAttachment::get<HelioSpeedSensorAttachmentInterface>()->getSpeedSensor(poll);
             HelioPositionSensorAttachmentInterface *positionInt = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>();
             float delta = _targetSetpoint - positionInt->getPosition().getMeasurementValue(poll);
             if (fabsf(delta) > maxDelta) { maxDelta = delta; }
@@ -95,6 +91,12 @@ float HelioDriver::getMaximumOffset(bool poll)
     }
 
     return maxDelta;
+}
+
+Helio_DrivingState HelioDriver::getDrivingState(bool poll)
+{
+    if (poll) { return isFPEqual(0, getMaximumOffset(poll)) ? Helio_DrivingState_OnTarget : Helio_DrivingState_OffTarget; }
+    return _drivingState;
 }
 
 Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> &HelioDriver::getDrivingSignal()

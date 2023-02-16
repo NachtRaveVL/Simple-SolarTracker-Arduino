@@ -499,17 +499,19 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
     if (!valueOut || unitsOut == Helio_UnitsType_Undefined || unitsIn == unitsOut) return false;
 
     switch (unitsIn) {
-        case Helio_UnitsType_Raw_0_1:
+        case Helio_UnitsType_Raw_1:
             switch (unitsOut) {
-                case Helio_UnitsType_Percentile_0_100:
+                // Known extents
+
+                case Helio_UnitsType_Percentile_100:
                     *valueOut = valueIn * 100.0;
                     return true;
 
-                case Helio_UnitsType_Angle_Degrees:
+                case Helio_UnitsType_Angle_Degrees_360:
                     *valueOut = fmod(valueIn * 360.0, 360.0);
                     return true;
 
-                case Helio_UnitsType_Angle_Radians:
+                case Helio_UnitsType_Angle_Radians_2pi:
                     *valueOut = fmod(valueIn * TWO_PI, TWO_PI);
                     return true;
 
@@ -522,9 +524,9 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             }
             break;
 
-        case Helio_UnitsType_Percentile_0_100:
+        case Helio_UnitsType_Percentile_100:
             switch (unitsOut) {
-                case Helio_UnitsType_Raw_0_1:
+                case Helio_UnitsType_Raw_1:
                     *valueOut = valueIn / 100.0;
                     return true;
 
@@ -533,13 +535,13 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             }
             break;
 
-        case Helio_UnitsType_Angle_Degrees:
+        case Helio_UnitsType_Angle_Degrees_360:
             switch (unitsOut) {
-                case Helio_UnitsType_Angle_Radians:
+                case Helio_UnitsType_Angle_Radians_2pi:
                     *valueOut = valueIn * (TWO_PI / 360.0);
                     return true;
 
-                case Helio_UnitsType_Raw_0_1:
+                case Helio_UnitsType_Raw_1:
                     *valueOut = valueIn / 360.0;
                     return true;
 
@@ -548,14 +550,80 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             }
             break;
 
-        case Helio_UnitsType_Angle_Radians:
+        case Helio_UnitsType_Angle_Radians_2pi:
             switch (unitsOut) {
-                case Helio_UnitsType_Angle_Degrees:
+                case Helio_UnitsType_Angle_Degrees_360:
                     *valueOut = valueIn * (360.0 / TWO_PI);
                     return true;
 
-                case Helio_UnitsType_Raw_0_1:
+                case Helio_UnitsType_Raw_1:
                     *valueOut = valueIn / TWO_PI;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Distance_Feet:
+            switch (unitsOut) {
+                case Helio_UnitsType_Distance_Meters:
+                    *valueOut = valueIn * 0.3048;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Distance_Meters:
+            switch (unitsOut) {
+                case Helio_UnitsType_Distance_Feet:
+                    *valueOut = valueIn * 3.28084;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Power_Amperage:
+            switch (unitsOut) {
+                case Helio_UnitsType_Power_Wattage:
+                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
+                        *valueOut = valueIn * convertParam;
+                        return true;
+                    }
+                break;
+            }
+            break;
+
+        case Helio_UnitsType_Power_Wattage:
+            switch (unitsOut) {
+                case Helio_UnitsType_Power_Amperage:
+                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
+                        *valueOut = valueIn / convertParam;
+                        return true;
+                    }
+                break;
+            }
+            break;
+
+        case Helio_UnitsType_Speed_FeetPerMin:
+            switch (unitsOut) {
+                case Helio_UnitsType_Speed_MetersPerMin:
+                    *valueOut = valueIn * 0.3048;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Speed_MetersPerMin:
+            switch (unitsOut) {
+                case Helio_UnitsType_Speed_FeetPerMin:
+                    *valueOut = valueIn * 3.28084;
                     return true;
 
                 default:
@@ -608,72 +676,6 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
             }
             break;
 
-        case Helio_UnitsType_Distance_Meters:
-            switch (unitsOut) {
-                case Helio_UnitsType_Distance_Feet:
-                    *valueOut = valueIn * 3.28084;
-                    return true;
-
-                default:
-                    break;
-            }
-            break;
-
-        case Helio_UnitsType_Distance_Feet:
-            switch (unitsOut) {
-                case Helio_UnitsType_Distance_Meters:
-                    *valueOut = valueIn * 0.3048;
-                    return true;
-
-                default:
-                    break;
-            }
-            break;
-
-        case Helio_UnitsType_Speed_MetersPerMin:
-            switch (unitsOut) {
-                case Helio_UnitsType_Speed_FeetPerMin:
-                    *valueOut = valueIn * 3.28084;
-                    return true;
-
-                default:
-                    break;
-            }
-            break;
-
-        case Helio_UnitsType_Speed_FeetPerMin:
-            switch (unitsOut) {
-                case Helio_UnitsType_Speed_MetersPerMin:
-                    *valueOut = valueIn * 0.3048;
-                    return true;
-
-                default:
-                    break;
-            }
-            break;
-
-        case Helio_UnitsType_Power_Wattage:
-            switch (unitsOut) {
-                case Helio_UnitsType_Power_Amperage:
-                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
-                        *valueOut = valueIn / convertParam;
-                        return true;
-                    }
-                break;
-            }
-            break;
-
-        case Helio_UnitsType_Power_Amperage:
-            switch (unitsOut) {
-                case Helio_UnitsType_Power_Wattage:
-                    if (convertParam != FLT_UNDEF) { // convertParam = rail voltage
-                        *valueOut = valueIn * convertParam;
-                        return true;
-                    }
-                break;
-            }
-            break;
-
         case Helio_UnitsType_Undefined:
             *valueOut = valueIn;
             return true;
@@ -718,9 +720,9 @@ Helio_UnitsType defaultUnits(Helio_UnitsCategory unitsCategory, Helio_Measuremen
             switch (measureMode) {
                 case Helio_MeasurementMode_Imperial:
                 case Helio_MeasurementMode_Metric:
-                    return Helio_UnitsType_Angle_Degrees;
+                    return Helio_UnitsType_Angle_Degrees_360;
                 case Helio_MeasurementMode_Scientific:
-                    return Helio_UnitsType_Angle_Radians;
+                    return Helio_UnitsType_Angle_Radians_2pi;
                 default:
                     return Helio_UnitsType_Undefined;
             }
@@ -737,7 +739,7 @@ Helio_UnitsType defaultUnits(Helio_UnitsCategory unitsCategory, Helio_Measuremen
             }
 
         case Helio_UnitsCategory_Percentile:
-            return Helio_UnitsType_Percentile_0_100;
+            return Helio_UnitsType_Percentile_100;
 
         case Helio_UnitsCategory_Power:
             return Helio_UnitsType_Power_Wattage;
@@ -1220,13 +1222,13 @@ String unitsCategoryToString(Helio_UnitsCategory unitsCategory, bool excludeSpec
 String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
 {
     switch (unitsType) {
-        case Helio_UnitsType_Raw_0_1:
+        case Helio_UnitsType_Raw_1:
             return SFP(HStr_raw);
-        case Helio_UnitsType_Percentile_0_100:
+        case Helio_UnitsType_Percentile_100:
             return String('%');
-        case Helio_UnitsType_Angle_Degrees:
+        case Helio_UnitsType_Angle_Degrees_360:
             return String('°');
-        case Helio_UnitsType_Angle_Radians:
+        case Helio_UnitsType_Angle_Radians_2pi:
             return SFP(HStr_Unit_Radians);
         case Helio_UnitsType_Distance_Feet:
             return SFP(HStr_Unit_Feet);
