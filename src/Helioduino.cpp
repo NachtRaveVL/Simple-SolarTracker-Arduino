@@ -816,7 +816,7 @@ void dataLoop()
         for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
             if (iter->second->isSensorType()) {
                 auto sensor = static_pointer_cast<HelioSensor>(iter->second);
-                if (sensor->getNeedsPolling()) {
+                if (sensor->needsPolling()) {
                     sensor->takeMeasurement(); // no force if already current for this frame #, we're just ensuring data for publisher
                 }
             } else if (iter->second->isPanelType() && recalcSunPos) {

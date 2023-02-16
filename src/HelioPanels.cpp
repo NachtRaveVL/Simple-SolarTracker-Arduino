@@ -28,24 +28,24 @@ HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 
 HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, int classTypeIn)
     : HelioObject(HelioIdentity(panelType, panelIndex)), classType((typeof(classType))classTypeIn),
-      HelioPowerUnitsInterface(defaultPowerUnits()),
+      HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
       _panelState(Helio_PanelState_Undefined),
       _homePosition{0}, _facingPosition{0}, _inDaytimeMode(false),
       _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
-    _powerProd.setMeasureUnits(getPowerUnits());
+    _powerProd.setMeasurementUnits(getPowerUnits());
 }
 
 HelioPanel::HelioPanel(const HelioPanelData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
-      HelioPowerUnitsInterface(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
+      HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
       _panelState(Helio_PanelState_Undefined),
       _homePosition{dataIn->homePosition[0],dataIn->homePosition[1]}, _facingPosition{0}, _inDaytimeMode(false),
       _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
-    _powerProd.setMeasureUnits(getPowerUnits());
+    _powerProd.setMeasurementUnits(getPowerUnits());
     _powerProd.setObject(dataIn->powerSensor);
 }
 
@@ -78,8 +78,7 @@ void HelioPanel::update()
 
 bool HelioPanel::canActivate(HelioActuator *actuator)
 {
-    // todo
-    return actuator && actuator->getParentPanel().get() == this;
+    return true;
 }
 
 void HelioPanel::setPowerUnits(Helio_UnitsType powerUnits)
@@ -87,11 +86,11 @@ void HelioPanel::setPowerUnits(Helio_UnitsType powerUnits)
     if (_powerUnits != powerUnits) {
         _powerUnits = powerUnits;
 
-        _powerProd.setMeasureUnits(powerUnits);
+        _powerProd.setMeasurementUnits(powerUnits);
     }
 }
 
-HelioSensorAttachment &HelioPanel::getPowerProduction()
+HelioSensorAttachment &HelioPanel::getPowerProductionSensorAttachment()
 {
     return _powerProd;
 }

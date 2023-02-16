@@ -178,7 +178,7 @@ void HelioActuatorAttachment::applySetup()
                 _actHandle.activation.intensity = _actSetup.intensity;
                 if (!_actHandle.isUntimed()) {
                     _actHandle.activation.duration = _actSetup.duration * _rateMultiplier;
-                } else {
+                } else { // cannot directly use rate multiplier
                     _actHandle.activation.duration = _actSetup.duration;
                 }
             } else { // Intensity based change for rate multiplier
@@ -192,16 +192,16 @@ void HelioActuatorAttachment::applySetup()
 }
 
 
-HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measureRow)
+HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, &HelioSensor::getMeasurementSignal),
-      _measureRow(measureRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
+      _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
     setHandleMethod(&HelioSensorAttachment::handleMeasurement);
 }
 
 HelioSensorAttachment::HelioSensorAttachment(const HelioSensorAttachment &attachment)
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(attachment),
-      _measurement(attachment._measurement), _measureRow(attachment._measureRow),
+      _measurement(attachment._measurement), _measurementRow(attachment._measurementRow),
       _convertParam(attachment._convertParam), _needsMeasurement(attachment._needsMeasurement)
 {
     setHandleSlot(*attachment._handleSlot);
@@ -214,8 +214,8 @@ void HelioSensorAttachment::attachObject()
 {
     HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>::attachObject();
 
-    if (_handleSlot) { _handleSlot->operator()(get()->getLatestMeasurement()); }
-    else { handleMeasurement(get()->getLatestMeasurement()); }
+    if (_handleSlot) { _handleSlot->operator()(get()->getMeasurement()); }
+    else { handleMeasurement(get()->getMeasurement()); }
 }
 
 void HelioSensorAttachment::detachObject()
@@ -227,17 +227,17 @@ void HelioSensorAttachment::detachObject()
 
 void HelioSensorAttachment::updateIfNeeded(bool poll)
 {
-    if ((_needsMeasurement || poll) && resolve()) {
-        if (_handleSlot) { _handleSlot->operator()(get()->getLatestMeasurement()); }
-        else { handleMeasurement(get()->getLatestMeasurement()); }
+    if ((poll || _needsMeasurement) && resolve()) {
+        if (_handleSlot) { _handleSlot->operator()(get()->getMeasurement()); }
+        else { handleMeasurement(get()->getMeasurement()); }
 
-        get()->takeMeasurement((_needsMeasurement || poll)); // purposeful recheck
+        get()->takeMeasurement((poll || _needsMeasurement)); // purposeful recheck
     }
 }
 
 void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
 {
-    auto outUnits = definedUnitsElse(getMeasureUnits(), measurement.units);
+    auto outUnits = definedUnitsElse(getMeasurementUnits(), measurement.units);
     _measurement = measurement;
     _measurement.setMinFrame(1);
 
@@ -245,17 +245,18 @@ void HelioSensorAttachment::setMeasurement(HelioSingleMeasurement measurement)
     _needsMeasurement = false;
 }
 
-void HelioSensorAttachment::setMeasureRow(uint8_t measureRow)
+void HelioSensorAttachment::setMeasurementRow(uint8_t measurementRow)
 {
-    if (_measureRow != measureRow) {
-        _measureRow = measureRow;
+    if (_measurementRow != measurementRow) {
+        _measurementRow = measurementRow;
 
         setNeedsMeasurement();
     }
 }
 
-void HelioSensorAttachment::setMeasureUnits(Helio_UnitsType units, float convertParam)
+void HelioSensorAttachment::setMeasurementUnits(Helio_UnitsType units, float convertParam)
 {
+    if (convertParam == FLT_UNDEF) { convertParam = _convertParam; }
     if (_measurement.units != units || !isFPEqual(_convertParam, convertParam)) {
         _convertParam = convertParam;
         convertUnits(&_measurement, units, _convertParam);
@@ -267,7 +268,7 @@ void HelioSensorAttachment::setMeasureUnits(Helio_UnitsType units, float convert
 void HelioSensorAttachment::handleMeasurement(const HelioMeasurement *measurement)
 {
     if (measurement && measurement->frame) {
-        setMeasurement(getAsSingleMeasurement(measurement, _measureRow));
+        setMeasurement(getAsSingleMeasurement(measurement, _measurementRow));
     }
 }
 

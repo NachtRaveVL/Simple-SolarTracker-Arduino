@@ -26,7 +26,7 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 
 HelioRail::HelioRail(Helio_RailType railType, hposi_t railIndex, int classTypeIn)
     : HelioObject(HelioIdentity(railType, railIndex)), classType((typeof(classType))classTypeIn),
-      HelioPowerUnitsInterface(defaultPowerUnits()),
+      HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
       _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
@@ -34,7 +34,7 @@ HelioRail::HelioRail(Helio_RailType railType, hposi_t railIndex, int classTypeIn
 
 HelioRail::HelioRail(const HelioRailData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
-      HelioPowerUnitsInterface(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
+      HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
       _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
@@ -183,7 +183,7 @@ void HelioSimpleRail::handleActivation(HelioActuator *actuator)
 HelioRegulatedRail::HelioRegulatedRail(Helio_RailType railType, hposi_t railIndex, float maxPower, int classType)
     : HelioRail(railType, railIndex, classType), _maxPower(maxPower), _powerUsage(this), _limitTrigger(this)
 {
-    _powerUsage.setMeasureUnits(getPowerUnits(), getRailVoltage());
+    _powerUsage.setMeasurementUnits(getPowerUnits(), getRailVoltage());
     _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
 
     _limitTrigger.setHandleMethod(&HelioRail::handleLimit);
@@ -194,7 +194,7 @@ HelioRegulatedRail::HelioRegulatedRail(const HelioRegulatedRailData *dataIn)
       _maxPower(dataIn->maxPower),
       _powerUsage(this), _limitTrigger(this)
 {
-    _powerUsage.setMeasureUnits(HelioRail::getPowerUnits(), getRailVoltage());
+    _powerUsage.setMeasurementUnits(HelioRail::getPowerUnits(), getRailVoltage());
     _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
     _powerUsage.setObject(dataIn->powerSensor);
 
@@ -241,11 +241,11 @@ void HelioRegulatedRail::setPowerUnits(Helio_UnitsType powerUnits)
     if (_powerUnits != powerUnits) {
         _powerUnits = powerUnits;
 
-        _powerUsage.setMeasureUnits(getPowerUnits(), getRailVoltage());
+        _powerUsage.setMeasurementUnits(getPowerUnits(), getRailVoltage());
     }
 }
 
-HelioSensorAttachment &HelioRegulatedRail::getPowerUsage()
+HelioSensorAttachment &HelioRegulatedRail::getPowerUsageSensorAttachment()
 {
     return _powerUsage;
 }
@@ -265,9 +265,9 @@ void HelioRegulatedRail::saveToData(HelioData *dataOut)
 
 void HelioRegulatedRail::handleActivation(HelioActuator *actuator)
 {
-    if (!getPowerUsage() && actuator) {
+    if (!getPowerUsageSensorAttachment() && actuator) {
         auto powerReq = actuator->getContinuousPowerUsage();
-        auto powerUsage = getPowerUsage().getMeasurement(true);
+        auto powerUsage = getPowerUsageSensorAttachment().getMeasurement(true);
         bool enabled = actuator->isEnabled();
 
         convertUnits(&powerReq, getPowerUnits(), getRailVoltage());
@@ -278,7 +278,7 @@ void HelioRegulatedRail::handleActivation(HelioActuator *actuator)
             powerUsage.value -= powerReq.value;
         }
 
-        getPowerUsage().setMeasurement(powerUsage);
+        getPowerUsageSensorAttachment().setMeasurement(powerUsage);
 
         if (!enabled) {
             #ifdef HELIO_USE_MULTITASKING
@@ -295,7 +295,7 @@ void HelioRegulatedRail::handlePower(const HelioMeasurement *measurement)
     if (measurement && measurement->frame) {
         float capacityBefore = getCapacity();
 
-        getPowerUsage().setMeasurement(getAsSingleMeasurement(measurement, _powerUsage.getMeasureRow(), _maxPower, getPowerUnits()));
+        getPowerUsageSensorAttachment().setMeasurement(getAsSingleMeasurement(measurement, _powerUsage.getMeasurementRow(), _maxPower, getPowerUnits()));
 
         if (getCapacity() < capacityBefore - FLT_EPSILON) {
             #ifdef HELIO_USE_MULTITASKING

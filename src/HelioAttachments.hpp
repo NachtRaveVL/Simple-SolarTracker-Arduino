@@ -234,13 +234,13 @@ inline float HelioActuatorAttachment::getSetupCalibratedValue()
 }
 
 
-inline Helio_TriggerState HelioTriggerAttachment::getTriggerState()
+inline Helio_TriggerState HelioTriggerAttachment::getTriggerState(bool poll)
 {
-    return resolve() ? get()->getTriggerState() : Helio_TriggerState_Undefined;
+    return resolve() ? get()->getTriggerState(poll) : Helio_TriggerState_Undefined;
 }
 
 
-inline Helio_DrivingState HelioDriverAttachment::getDrivingState()
+inline Helio_DrivingState HelioDriverAttachment::getDrivingState(bool poll)
 {
-    return resolve() ? get()->getDrivingState() : Helio_DrivingState_Undefined;
+    return resolve() ? get()->getDrivingState(poll) : Helio_DrivingState_Undefined;
 }

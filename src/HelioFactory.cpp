@@ -57,7 +57,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerLevelMeter(pintype_t inputPin
             HelioAnalogPin(inputPin, INPUT, inputBitRes)
         ));
         if (getController()->registerObject(sensor)) {
-            if (!isWattageBased) { sensor->setMeasureUnits(Helio_UnitsType_Power_Amperage); }
+            if (!isWattageBased) { sensor->setMeasurementUnits(Helio_UnitsType_Power_Amperage); }
             return sensor;
         }
     }

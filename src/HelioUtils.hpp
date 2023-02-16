@@ -165,7 +165,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getPanel().get() == srcPanel) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }

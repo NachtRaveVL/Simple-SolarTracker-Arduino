@@ -30,25 +30,25 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 
 HelioActuator::HelioActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, int classTypeIn)
     : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType((typeof(classType))classTypeIn),
-      _enabled(false), _enableMode(Helio_EnableMode_Undefined), _rail(this), _panel(this), _needsUpdate(false)
+      _enabled(false), _enableMode(Helio_EnableMode_Undefined), _parentRail(this), _parentPanel(this), _needsUpdate(false)
 { ; }
 
 HelioActuator::HelioActuator(const HelioActuatorData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))dataIn->id.object.classType),
       _enabled(false), _enableMode(dataIn->enableMode),
       _contPowerUsage(&(dataIn->contPowerUsage)),
-      _rail(this), _panel(this), _needsUpdate(false)
+      _parentRail(this), _parentPanel(this), _needsUpdate(false)
 {
-    _rail.setObject(dataIn->railName);
-    _panel.setObject(dataIn->panelName);
+    _parentRail.setObject(dataIn->railName);
+    _parentPanel.setObject(dataIn->panelName);
 }
 
 void HelioActuator::update()
 {
     HelioObject::update();
 
-    _rail.resolve();
-    _panel.resolve();
+    _parentRail.resolve();
+    _parentPanel.resolve();
 
     millis_t time = nzMillis();
 
@@ -185,8 +185,8 @@ void HelioActuator::update()
 
 bool HelioActuator::getCanEnable()
 {
-    if (getRail() && !getRail()->canActivate(this)) { return false; }
-    if (getPanel() && !getPanel()->canActivate(this)) { return false; }
+    if (getParentRail() && !getParentRail()->canActivate(this)) { return false; }
+    if (getParentPanel() && !getParentPanel()->canActivate(this)) { return false; }
     return true;
 }
 
@@ -201,14 +201,14 @@ const HelioSingleMeasurement &HelioActuator::getContinuousPowerUsage()
     return _contPowerUsage;
 }
 
-HelioAttachment &HelioActuator::getParentRail()
+HelioAttachment &HelioActuator::getParentRailAttachment()
 {
-    return _rail;
+    return _parentRail;
 }
 
-HelioAttachment &HelioActuator::getParentPanel()
+HelioAttachment &HelioActuator::getParentPanelAttachment()
 {
-    return _panel;
+    return _parentPanel;
 }
 
 void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
@@ -224,12 +224,12 @@ void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibration
     }
 }
 
-Pair<float,float> HelioActuator::getTrackExtents() const
+Pair<float,float> HelioActuator::getTravelRange() const
 {
     if (isServoType()) {
         return make_pair<float,float>(calibrationTransform(0.025f), calibrationTransform(0.125f));
     } else if (isDirectionalType()) {
-        return make_pair<float,float>(calibrationTransform(-1.0f), calibrationTransform(1.0f));
+        return make_pair<float,float>(0.0f, FLT_UNDEF);
     } else {
         return make_pair<float,float>(calibrationTransform(0.0f), calibrationTransform(1.0f));
     }
@@ -253,11 +253,11 @@ void HelioActuator::saveToData(HelioData *dataOut)
     if (_contPowerUsage.frame) {
         _contPowerUsage.saveToData(&(((HelioActuatorData *)dataOut)->contPowerUsage));
     }
-    if (_panel.getId()) {
-        strncpy(((HelioActuatorData *)dataOut)->panelName, _panel.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    if (_parentPanel.getId()) {
+        strncpy(((HelioActuatorData *)dataOut)->panelName, _parentPanel.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
-    if (_rail.getId()) {
-        strncpy(((HelioActuatorData *)dataOut)->railName, _rail.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    if (_parentRail.getId()) {
+        strncpy(((HelioActuatorData *)dataOut)->railName, _parentRail.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
     ((HelioActuatorData *)dataOut)->enableMode = _enableMode;
 }
@@ -359,33 +359,40 @@ void HelioRelayActuator::saveToData(HelioData *dataOut)
 }
 
 
-HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, HelioDigitalPin forwardOutputPin, HelioDigitalPin reverseOutputPin, int classType)
-    : HelioRelayActuator(actuatorType, actuatorIndex, forwardOutputPin, classType),
-      HelioDistanceUnitsInterface(defaultDistanceUnits()),
-      _outputPin2(reverseOutputPin), _position(this), _speed(this), _minTravel(this), _maxTravel(this),
-      _travelPositionStart(0.0f), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
+HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, HelioDigitalPin outputPinA, HelioDigitalPin outputPinB, Pair<float,float> travelRange, int classType)
+    : HelioRelayActuator(actuatorType, actuatorIndex, outputPinA, classType),
+      HelioDistanceUnitsInterfaceStorage(defaultDistanceUnits()),
+      _outputPin2(outputPinB), _travelRange(travelRange), _position(this), _speed(this), _minimum(this), _maximum(this),
+      _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
-    _position.setMeasureUnits(getDistanceUnits());
-    _speed.setMeasureUnits(getSpeedUnits());
+    _position.setMeasurementUnits(getDistanceUnits());
+    _speed.setMeasurementUnits(getSpeedUnits());
+
+    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger);
+    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger);
 }
 
 HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn)
     : HelioRelayActuator(dataIn),
-      HelioDistanceUnitsInterface(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
-      _outputPin2(&dataIn->outputPin2), _position(this), _speed(this), _minTravel(this), _maxTravel(this),
+      HelioDistanceUnitsInterfaceStorage(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
+      _outputPin2(&dataIn->outputPin2), _travelRange(make_pair(dataIn->travelRange[0], dataIn->travelRange[1])),
+      _position(this), _speed(this), _minimum(this), _maximum(this),
       _contSpeed(&(dataIn->contSpeed)),
-      _travelPositionStart(0.0f), _travelDistanceAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
+      _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
-    _position.setMeasureUnits(getDistanceUnits());
-    _speed.setMeasureUnits(getSpeedUnits());
-
+    _position.setMeasurementUnits(getDistanceUnits());
     _position.setObject(dataIn->positionSensor);
+
+    _speed.setMeasurementUnits(getSpeedUnits());
     _speed.setObject(dataIn->speedSensor);
 
-    _minTravel.setObject(newTriggerObjectFromSubData(&(dataIn->minTrigger)));
-    HELIO_SOFT_ASSERT(_minTravel, SFP(HStr_Err_AllocationFailure));
-    _maxTravel.setObject(newTriggerObjectFromSubData(&(dataIn->maxTrigger)));
-    HELIO_SOFT_ASSERT(_maxTravel, SFP(HStr_Err_AllocationFailure));
+    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger);
+    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger);
+
+    _minimum = newTriggerObjectFromSubData(&(dataIn->minTrigger));
+    HELIO_SOFT_ASSERT(_minimum, SFP(HStr_Err_AllocationFailure));
+    _maximum = newTriggerObjectFromSubData(&(dataIn->maxTrigger));
+    HELIO_SOFT_ASSERT(_maximum, SFP(HStr_Err_AllocationFailure));
 }
 
 void HelioRelayMotorActuator::update()
@@ -394,8 +401,8 @@ void HelioRelayMotorActuator::update()
 
     _position.updateIfNeeded(true);
     _speed.updateIfNeeded(true);
-    _minTravel.updateIfNeeded(true);
-    _maxTravel.updateIfNeeded(true);
+    _minimum.updateIfNeeded(true);
+    _maximum.updateIfNeeded(true);
 
     if (_travelTimeStart) {
         millis_t time = nzMillis();
@@ -404,14 +411,13 @@ void HelioRelayMotorActuator::update()
             handleTravelTime(time);
         }
     }
-
-    if (_enabled) { pollTravelingSensors(); }
 }
 
 bool HelioRelayMotorActuator::getCanEnable()
 {
     if (_outputPin2.isValid() && HelioRelayActuator::getCanEnable()) {
-        return true;
+        return (!isMinTravel(true) || _intensity >= 0) &&
+               (!isMaxTravel(true) || _intensity <= 0);
     }
     return false;
 }
@@ -465,36 +471,39 @@ void HelioRelayMotorActuator::handleActivation()
     HelioActuator::handleActivation();
 
     if (_enabled) {
-        _travelDistanceAccum = 0;
+        auto position = _position.getMeasurement(true);
+        convertUnits(&position, definedUnitsElse(getDistanceUnits(), position.units), _position.getMeasurementConvertParam());
+
+        _travelDistAccum = 0;
         _travelTimeStart = _travelTimeAccum = time;
-        _travelPositionStart = _position.getMeasurementValue();
+        _travelPosStart = position.value;
     } else {
         if (_travelTimeAccum < time) { handleTravelTime(time); }
         _travelTimeAccum = 0;
         float duration = time - _travelTimeStart;
 
         getLogger()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
-        if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
-        getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistanceAccum, baseUnits(getSpeedUnits()), 1));
+        if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getParentPanel()->getKeyString()); }
+        getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistAccum, baseUnits(getSpeedUnits()), 1));
         getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
     }
 }
 
 bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
 {
-    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
-        convertUnits(&distance, &distanceUnits, getDistanceUnits());
-        HelioSingleMeasurement position = getPosition().getMeasurement();
+    if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
+        convertUnits(&distance, &distanceUnits, definedUnitsElse(getDistanceUnits(), distanceUnits));
+        HelioSingleMeasurement position = getPositionSensorAttachment().getMeasurement();
         position.value += (direction != Helio_DirectionMode_Reverse ? distance : -distance);
-        return position.value > 0.0f && position.value <= 1000.0f; // todo: actual track bounds
+        return position.value >= _travelRange.first - FLT_EPSILON && position.value <= _travelRange.second + FLT_EPSILON;
     }
     return false;
 }
 
 HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
 {
-    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
-        convertUnits(&distance, &distanceUnits, baseUnits(getSpeedUnits()));
+    if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
+        convertUnits(&distance, &distanceUnits, definedUnitsElse(getDistanceUnits(), distanceUnits));
         return travel(direction, (millis_t)((distance / _contSpeed.value) * secondsToMillis(SECS_PER_MIN)));
     }
     return HelioActivationHandle();
@@ -502,18 +511,18 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
 
 bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, millis_t time)
 {
-    if (getPanel() && _contSpeed.value > FLT_EPSILON) {
-        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()));
+    if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
+        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), getDistanceUnits());
     }
     return false;
 }
 
 HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, millis_t time)
 {
-    if (getPanel()) {
+    if (getParentPanel()) {
         #ifdef HELIO_USE_MULTITASKING
             getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getPanel()->getKeyString()); }
+            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Panel), getParentPanel()->getKeyString()); }
             if (_contSpeed.value > FLT_EPSILON) {
                 getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
@@ -537,8 +546,8 @@ void HelioRelayMotorActuator::setDistanceUnits(Helio_UnitsType distanceUnits)
         _distUnits = distanceUnits;
 
         convertUnits(&_contSpeed, getSpeedUnits());
-        _position.setMeasureUnits(getDistanceUnits());
-        _speed.setMeasureUnits(getSpeedUnits());
+        _position.setMeasurementUnits(getDistanceUnits());
+        _speed.setMeasurementUnits(getSpeedUnits());
     }
 }
 
@@ -555,32 +564,42 @@ const HelioSingleMeasurement &HelioRelayMotorActuator::getContinuousSpeed()
     return _contSpeed;
 }
 
-Pair<float,float> HelioRelayMotorActuator::getTrackExtents() const
+Pair<float,float> HelioRelayMotorActuator::getTravelRange() const
 {
-    // todo
-    return make_pair(-__FLT_MAX__, __FLT_MAX__);
+    return _travelRange;
 }
 
-HelioSensorAttachment &HelioRelayMotorActuator::getPosition()
+bool HelioRelayMotorActuator::isMinTravel(bool poll)
+{
+    if (triggerStateToBool(_minimum.getTriggerState(poll))) { return true; }
+    return _position.getMeasurementValue(poll) <= _travelRange.first + FLT_EPSILON;
+}
+
+bool HelioRelayMotorActuator::isMaxTravel(bool poll)
+{
+    if (triggerStateToBool(_maximum.getTriggerState(poll))) { return true; }
+    return _position.getMeasurementValue(poll) >= _travelRange.second - FLT_EPSILON;
+}
+
+HelioSensorAttachment &HelioRelayMotorActuator::getPositionSensorAttachment()
 {
     return _position;
 }
 
-HelioSensorAttachment &HelioRelayMotorActuator::getSpeed()
+HelioSensorAttachment &HelioRelayMotorActuator::getSpeedSensorAttachment()
 {
     return _speed;
 }
 
-HelioTriggerAttachment &HelioRelayMotorActuator::getMinTravel()
+HelioTriggerAttachment &HelioRelayMotorActuator::getMinimumTriggerAttachment()
 {
-    return _minTravel;
+    return _minimum;
 }
 
-HelioTriggerAttachment &HelioRelayMotorActuator::getMaxTravel()
+HelioTriggerAttachment &HelioRelayMotorActuator::getMaximumTriggerAttachment()
 {
-    return _maxTravel;
+    return _maximum;
 }
-
 
 void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
 {
@@ -599,26 +618,41 @@ void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
     }
 }
 
-void HelioRelayMotorActuator::pollTravelingSensors()
-{ ; }
-
 void HelioRelayMotorActuator::handleTravelTime(millis_t time)
 {
-    if (getPositionSensor()) {
-        float positionVal = _position.getMeasurementValue();
-        _travelDistanceAccum = positionVal - _travelPositionStart;
+    if (getPositionSensor(true)) {
+        auto position = _position.getMeasurement();
+        convertUnits(&position, getDistanceUnits(), _position.getMeasurementConvertParam());
+
+        _travelDistAccum = position.value - _travelPosStart;
         if (!getSpeedSensor()) {
-            _speed.setMeasurement(_travelDistanceAccum / (time - _travelTimeStart));
+            _speed.setMeasurement(_travelDistAccum / (time - _travelTimeStart));
         }
     } else {
-        float speedVal = getSpeedSensor() ? _speed.getMeasurementValue() : _contSpeed.value;
-        speedVal = max(_contSpeed.value * HELIO_ACT_TRAVELCALC_MINSPEED, speedVal);
-        float distanceTraveled = speedVal * ((time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN));
-        _travelDistanceAccum += distanceTraveled;
-        _position.setMeasurement(_travelPositionStart + _travelDistanceAccum);
+        auto speed = getSpeedSensor(true) ? _speed.getMeasurement() : _contSpeed;
+        convertUnits(&speed, getSpeedUnits(), _speed.getMeasurementConvertParam());
+
+        speed.value = max(speed.value * HELIO_ACT_TRAVELCALC_MINSPEED, speed.value);
+        float distanceTraveled = speed.value * ((time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN));
+        _travelDistAccum += distanceTraveled;
+        _position.setMeasurement(_travelPosStart + _travelDistAccum);
     }
 
     _travelTimeAccum = time;
+}
+
+void HelioRelayMotorActuator::handleMinimumTrigger(Helio_TriggerState minimumTrigger)
+{
+    if (triggerStateToBool(minimumTrigger) && !getPositionSensor()) {
+        getPositionSensorAttachment().setMeasurement(_travelRange.first, getDistanceUnits());
+    }
+}
+
+void HelioRelayMotorActuator::handleMaximumTrigger(Helio_TriggerState maximumTrigger)
+{
+    if (triggerStateToBool(maximumTrigger) && !getPositionSensor()) {
+        getPositionSensorAttachment().setMeasurement(_travelRange.second, getDistanceUnits());
+    }
 }
 
 

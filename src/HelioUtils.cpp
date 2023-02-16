@@ -122,13 +122,13 @@ void publishData(HelioSensor *sensor)
     HELIO_HARD_ASSERT(sensor, SFP(HStr_Err_InvalidParameter));
 
     if (getPublisher()) {
-        auto measurement = sensor->getLatestMeasurement();
-        hposi_t rows = getMeasureRowCount(measurement);
+        auto measurement = sensor->getMeasurement();
+        hposi_t rows = getMeasurementRowCount(measurement);
         hposi_t columnIndexStart = getPublisher()->getColumnIndexStart(sensor->getKey());
 
         if (columnIndexStart >= 0) {
-            for (uint8_t measureRow = 0; measureRow < rows; ++measureRow) {
-                getPublisher()->publishData(columnIndexStart + measureRow, getAsSingleMeasurement(measurement, measureRow));
+            for (uint8_t measurementRow = 0; measurementRow < rows; ++measurementRow) {
+                getPublisher()->publishData(columnIndexStart + measurementRow, getAsSingleMeasurement(measurement, measurementRow));
             }
         }
     }
@@ -789,7 +789,7 @@ int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> 
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getPanel().get() == srcPanel) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
                 retVal++;
             }
         }
