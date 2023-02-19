@@ -46,7 +46,7 @@ public:
     inline bool isInstantaneous() const { return _travelRate == FLT_UNDEF; }
     inline Pair<float,float> getTrackRange() const { return _trackRange; }
 
-    inline void setEnabled(bool enabled) { _enabled = enabled; }
+    virtual void setEnabled(bool enabled);
     inline bool isEnabled() const { return _enabled; }
 
     virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
@@ -78,6 +78,8 @@ public:
     HelioAbsoluteDriver(float travelRate = FLT_UNDEF,
                         int type = Absolute);
     virtual ~HelioAbsoluteDriver();
+
+    virtual void setEnabled(bool enabled) override;
 
 protected:
     millis_t _lastUpdate;                                   // Last update millis (for delta-time rate application)

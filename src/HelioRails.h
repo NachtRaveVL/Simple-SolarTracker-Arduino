@@ -154,7 +154,7 @@ struct HelioSimpleRailData : public HelioRailData
 struct HelioRegulatedRailData : public HelioRailData
 {
     float maxPower;
-    char powerSensor[HELIO_NAME_MAXSIZE];
+    char powerUsageSensor[HELIO_NAME_MAXSIZE];
     HelioTriggerSubData limitTrigger;
 
     HelioRegulatedRailData();

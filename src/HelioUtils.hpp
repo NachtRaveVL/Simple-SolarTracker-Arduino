@@ -8,6 +8,14 @@
 
 #include "Helioduino.h"
 
+inline HelioSingleMeasurement HelioSingleMeasurement::asUnits(Helio_UnitsType outUnits, float convertParam) const
+{
+    HelioSingleMeasurement out(*this);
+    convertUnits(&out, outUnits, convertParam);
+    return out;
+}
+
+
 #ifdef HELIO_USE_MULTITASKING
 
 template<typename ParameterType, int Slots>
@@ -188,7 +196,7 @@ void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<H
 }
 
 template<size_t N>
-void linksResolveActuatorsWithRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
+void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
         auto actuator = getSharedPtr<HelioActuator>(*actIter);

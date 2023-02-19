@@ -63,9 +63,9 @@ void HelioScheduler::setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> 
             auto phUpMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhUpSolution);
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhUpSolution);
 
-            linksResolveActuatorsWithRateByType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
+            linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
             if (!incActuators.size()) { // prefer peristaltic, else use full motor
-                linksResolveActuatorsWithRateByType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
+                linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
             }
 
             servoDriver->setIncrementActuators(incActuators);
@@ -75,9 +75,9 @@ void HelioScheduler::setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> 
             auto phDownMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhDownSolution);
             float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhDownSolution);
 
-            linksResolveActuatorsWithRateByType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_PeristalticMotor);
+            linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_PeristalticMotor);
             if (!decActuators.size()) { // prefer peristaltic, else use full motor
-                linksResolveActuatorsWithRateByType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_WaterMotor);
+                linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_WaterMotor);
             }
 
             servoDriver->setDecrementActuators(decActuators);

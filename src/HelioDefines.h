@@ -107,6 +107,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_STRING_BUFFER_SIZE        32                  // Size in bytes of string serialization buffers
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
 // The following sizes only matter for architectures that do not have STL support
+
 #define HELIO_DEFAULT_MAXSIZE           8                   // Default maximum array/map size
 #define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
 #define HELIO_SENSOR_SIGNAL_SLOTS       6                   // Maximum number of slots for sensor's measurement signal
@@ -139,7 +140,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from lat/long/date)
 
 #define HELIO_PANEL_ALIGN_DEGTOL        5                   // Degrees error tolerance for panel alignment queries
-#define HELIO_PANEL_LINKS_BASESIZE      4                   // Base array size for panel's linkage list
+#define HELIO_PANEL_LINKS_BASESIZE      4                   // Base array size for panel's linkage list 
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
@@ -148,6 +149,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_RANGE_TEMP_HALF           5.0f                // How far to go, in either direction, to form a range when Temp is expressed as a single number, in C (note: this also controls auto-balancer ranges)
 
 #define HELIO_RAILS_LINKS_BASESIZE      4                   // Base array size for rail's linkage list
+#define HELIO_RAILS_FRACTION_SATURATED  0.75f               // What fraction of maximum power is allowed to be used in canActivate() checks (aka maximum saturation point), used in addition to regulated rail's limitTrigger
 
 #define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
@@ -302,6 +304,7 @@ enum Helio_ControlInputMode : signed char {
 enum Helio_ActuatorType : signed char {
     Helio_ActuatorType_ContinuousServo,                     // Continuous servo (motor)
     Helio_ActuatorType_LinearActuator,                      // Linear actuator (motor)
+    Helio_ActuatorType_PanelBrake,                          // Panel brake/stops (binary)
     Helio_ActuatorType_PanelHeater,                         // Panel heater (binary/analog)
     Helio_ActuatorType_PanelSprayer,                        // Panel sprayer/cleaner (binary/analog)
     Helio_ActuatorType_PositionalServo,                     // Positional servo (analog)
@@ -313,14 +316,14 @@ enum Helio_ActuatorType : signed char {
 // Sensor Type
 // Sensor device type. Specifies the various sensors and the kinds of things they measure.
 enum Helio_SensorType : signed char {
-    Helio_SensorType_Endstop,                               // Positional endstop (binary)
     Helio_SensorType_IceDetector,                           // Ice detector/meter (binary/analog)
-    Helio_SensorType_LightIntensity,                        // Light dependent resistor (LDR, analog)
-    Helio_SensorType_PowerLevel,                            // Power level meter (analog)
-    Helio_SensorType_StrokePosition,                        // Stroke position potentiometer (analog)
-    Helio_SensorType_TempHumidity,                          // Temperature and humidity sensor (digital)
+    Helio_SensorType_LightIntensity,                        // Light dependent resistor (analog)
+    Helio_SensorType_PowerProduction,                       // Power production level meter (analog)
+    Helio_SensorType_PowerUsage,                            // Power usage level meter (analog)
+    Helio_SensorType_TemperatureHumidity,                   // Temperature sensor (analog), optionally with humidity (digital)
     Helio_SensorType_TiltAngle,                             // Tilt angle sensor (analog)
-    Helio_SensorType_WindSpeed,                             // Wind speed meter (binary/analog)
+    Helio_SensorType_TravelPosition,                        // Travel position sensor (binary/analog)
+    Helio_SensorType_WindSpeed,                             // Wind speed sensor (binary/analog)
 
     Helio_SensorType_Count,                                 // Placeholder
     Helio_SensorType_Undefined = -1                         // Placeholder
@@ -329,8 +332,8 @@ enum Helio_SensorType : signed char {
 // Panel Type
 // Common panel types. Specifies the various solar panel axis/mount configurations.
 enum Helio_PanelType : signed char {
-    Helio_PanelType_Horizontal,                             // Single axis horizontal / tilting panel (elevation)
-    Helio_PanelType_Vertical,                               // Single axis vertical / facing panel (azimuth)
+    Helio_PanelType_Horizontal,                             // Single axis horizontal / tilting panel (elevation-driven)
+    Helio_PanelType_Vertical,                               // Single axis vertical / facing panel (azimuth-driven)
     Helio_PanelType_Gimballed,                              // Dual axis gimballed panel (azimuth + elevation)
     Helio_PanelType_Equatorial,                             // Dual axis equatorial mounted panel (right-ascension + declination, external polar alignment required)
 

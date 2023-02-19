@@ -339,7 +339,7 @@ extern int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, i
 // Recombines filtered object list back into SharedPtr actuator list.
 template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 // Recombines filtered object list back into SharedPtr actuator list paired with rate value.
-template<size_t N> void linksResolveActuatorsWithRateByType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
+template<size_t N> void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 
 // Pins & Checks
 
@@ -397,6 +397,12 @@ extern Helio_SensorType sensorTypeFromString(String sensorTypeStr);
 extern hposi_t getPanelAxisCountFromType(Helio_PanelType panelType);
 // Returns if panel coords are in equatorial (RA/dec) mode or not from panel type enumeration.
 inline bool getIsEquatorialCoordsFromType(Helio_PanelType panelType) { return panelType == Helio_PanelType_Equatorial; }
+// Returns if panel coords are in horizontal (azi/ele) mode or not from panel type enumeration.
+inline bool getIsHorizontalCoordsFromType(Helio_PanelType panelType) { return panelType == Helio_PanelType_Gimballed || panelType == Helio_PanelType_Horizontal || panelType == Helio_PanelType_Vertical; };
+// Returns if panel type uses a driver for horizontal axis control (axis 1, azi or RA) or not from panel type enumeration.
+inline bool getDrivesHorizontalAxis(Helio_PanelType panelType) { return panelType == Helio_PanelType_Equatorial || panelType == Helio_PanelType_Gimballed || panelType == Helio_PanelType_Horizontal; }
+// Returns if panel type uses a driver for vertical axis control (axis 2, ele or dec) or not from panel type enumeration.
+inline bool getDrivesVerticalAxis(Helio_PanelType panelType) { return panelType == Helio_PanelType_Equatorial || panelType == Helio_PanelType_Gimballed || panelType == Helio_PanelType_Vertical; }
 
 // Converts from fluid panel enum to string, with optional exclude for special types (instead returning "").
 extern String panelTypeToString(Helio_PanelType panelType, bool excludeSpecial = false);

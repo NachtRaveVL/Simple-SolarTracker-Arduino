@@ -46,7 +46,7 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
-    _powerProd.setObject(dataIn->powerSensor);
+    _powerProd.setObject(dataIn->powerProdSensor);
 }
 
 HelioPanel::~HelioPanel()
@@ -58,26 +58,32 @@ void HelioPanel::update()
 
     _powerProd.updateIfNeeded(true);
 
-    if (isSingleAxis()) {
-        _axisDriver[0].updateIfNeeded(true);
-    } else {
-        _axisDriver[0].updateIfNeeded(true);
-        _axisDriver[1].updateIfNeeded(true);
-    }
+    _axisDriver[0].updateIfNeeded(true);
+    _axisDriver[1].updateIfNeeded(true);
 
     if (getScheduler()) {
         _inDaytimeMode = getScheduler()->inDaytimeMode();
     }
 
     if (_inDaytimeMode) {
-        handleState(isAligned() ? Helio_PanelState_AlignedToSun : Helio_PanelState_TravelingToSun);
+        handleState(isAligned(true) ? Helio_PanelState_AlignedToSun : Helio_PanelState_TravelingToSun);
     } else {
-        handleState(isAligned() ? Helio_PanelState_AlignedToHome : Helio_PanelState_TravelingToHome);
+        handleState(isAligned(true) ? Helio_PanelState_AlignedToHome : Helio_PanelState_TravelingToHome);
     }
 }
 
 bool HelioPanel::canActivate(HelioActuator *actuator)
 {
+    if (actuator->isMovementType()) {
+        auto brakes = linksFilterActuatorsByPanelAndType(getLinkages(), this, Helio_ActuatorType_PanelBrake);
+        for (auto brakeIter = brakes.begin(); brakeIter != brakes.end(); ++brakeIter) {
+            HelioActuator *brake = (HelioActuator *)*brakeIter;
+            if (brake->isEnabled()) { return false; }
+        }
+    } else if (actuator->getActuatorType() == Helio_ActuatorType_PanelBrake) {
+        return (!_axisDriver[0] || !_axisDriver[0]->isEnabled() || _axisDriver[0]->isAligned(true)) &&
+               (!_axisDriver[1] || !_axisDriver[1]->isEnabled() || _axisDriver[1]->isAligned(true));
+    }
     return true;
 }
 
@@ -110,35 +116,12 @@ void HelioPanel::saveToData(HelioData *dataOut)
     HelioObject::saveToData(dataOut);
 
     dataOut->id.object.classType = (int8_t)classType;
-    ((HelioPanelData *)dataOut)->powerUnits = _powerUnits;
-    if (_powerProd.getId()) {
-        strncpy(((HelioPanelData *)dataOut)->powerSensor, _powerProd.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    }
+    ((HelioPanelData *)dataOut)->powerUnits = getPowerUnits();
     ((HelioPanelData *)dataOut)->homePosition[0] = _homePosition[0];
     ((HelioPanelData *)dataOut)->homePosition[1] = _homePosition[1];
-
-    // if (_axisAngle[0].getId()) {
-    //     strncpy(((HelioPanelData *)dataOut)->angleSensor1, _axisAngle[0].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    // }
-    // if (isMultiAxis() && _axisAngle[1].getId()) {
-    //     strncpy(((HelioPanelData *)dataOut)->angleSensor2, _axisAngle[1].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    // }
-    // if (isLDRMode()) {
-    //     if (_ldrSensors[0].getId()) {
-    //         strncpy(((HelioPanelData *)dataOut)->ldrSensor1, _ldrSensors[0].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    //     }
-    //     if (_ldrSensors[1].getId()) {
-    //         strncpy(((HelioPanelData *)dataOut)->ldrSensor2, _ldrSensors[1].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    //     }
-    //     if (isMultiAxis()) {
-    //         if (_ldrSensors[2].getId()) {
-    //             strncpy(((HelioPanelData *)dataOut)->ldrSensor3, _ldrSensors[2].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    //         }
-    //         if (_ldrSensors[3].getId()) {
-    //             strncpy(((HelioPanelData *)dataOut)->ldrSensor4, _ldrSensors[3].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
-    //         }
-    //     }
-    // }
+    if (_powerProd.getId()) {
+        strncpy(((HelioPanelData *)dataOut)->powerProdSensor, _powerProd.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    }
 }
 
 

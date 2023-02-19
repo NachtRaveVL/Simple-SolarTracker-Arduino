@@ -472,7 +472,6 @@ void HelioRelayMotorActuator::handleActivation()
 
     if (_enabled) {
         auto position = _position.getMeasurement(true);
-        convertUnits(&position, definedUnitsElse(getDistanceUnits(), position.units), _position.getMeasurementConvertParam());
 
         _travelDistAccum = 0;
         _travelTimeStart = _travelTimeAccum = time;
@@ -492,7 +491,7 @@ void HelioRelayMotorActuator::handleActivation()
 bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
 {
     if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
-        convertUnits(&distance, &distanceUnits, definedUnitsElse(getDistanceUnits(), distanceUnits));
+        convertUnits(&distance, &distanceUnits, getDistanceUnits());
         HelioSingleMeasurement position = getPositionSensorAttachment().getMeasurement();
         position.value += (direction != Helio_DirectionMode_Reverse ? distance : -distance);
         return position.value >= _travelRange.first - FLT_EPSILON && position.value <= _travelRange.second + FLT_EPSILON;
@@ -503,7 +502,7 @@ bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, float dis
 HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits)
 {
     if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
-        convertUnits(&distance, &distanceUnits, definedUnitsElse(getDistanceUnits(), distanceUnits));
+        convertUnits(&distance, &distanceUnits, getDistanceUnits());
         return travel(direction, (millis_t)((distance / _contSpeed.value) * secondsToMillis(SECS_PER_MIN)));
     }
     return HelioActivationHandle();
@@ -622,20 +621,24 @@ void HelioRelayMotorActuator::handleTravelTime(millis_t time)
 {
     if (getPositionSensor(true)) {
         auto position = _position.getMeasurement();
-        convertUnits(&position, getDistanceUnits(), _position.getMeasurementConvertParam());
+        auto travelDistTotal = (position.value - _travelPosStart);
 
-        _travelDistAccum = position.value - _travelPosStart;
         if (!getSpeedSensor()) {
-            _speed.setMeasurement(_travelDistAccum / (time - _travelTimeStart));
+            auto timeDelta = (time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN);
+            auto distDelta = travelDistTotal - _travelDistAccum;
+            _speed.setMeasurement(distDelta / timeDelta);
         }
+
+        _travelDistAccum = travelDistTotal;
     } else {
         auto speed = getSpeedSensor(true) ? _speed.getMeasurement() : _contSpeed;
-        convertUnits(&speed, getSpeedUnits(), _speed.getMeasurementConvertParam());
 
-        speed.value = max(speed.value * HELIO_ACT_TRAVELCALC_MINSPEED, speed.value);
-        float distanceTraveled = speed.value * ((time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN));
-        _travelDistAccum += distanceTraveled;
-        _position.setMeasurement(_travelPosStart + _travelDistAccum);
+        if (speed.value >= (_contSpeed.value * HELIO_ACT_TRAVELCALC_MINSPEED) - FLT_EPSILON) {        
+            auto timeDelta = (time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN);
+            auto distDelta = speed.value * timeDelta;
+            _travelDistAccum += distDelta;
+            _position.setMeasurement(_travelPosStart + _travelDistAccum);
+        }
     }
 
     _travelTimeAccum = time;

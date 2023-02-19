@@ -196,7 +196,7 @@ HelioRegulatedRail::HelioRegulatedRail(const HelioRegulatedRailData *dataIn)
 {
     _powerUsage.setMeasurementUnits(HelioRail::getPowerUnits(), getRailVoltage());
     _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
-    _powerUsage.setObject(dataIn->powerSensor);
+    _powerUsage.setObject(dataIn->powerUsageSensor);
 
     _limitTrigger.setHandleMethod(&HelioRail::handleLimit);
     _limitTrigger.setObject(newTriggerObjectFromSubData(&(dataIn->limitTrigger)));
@@ -223,17 +223,15 @@ bool HelioRegulatedRail::canActivate(HelioActuator *actuator)
 {
     if (_limitTrigger.resolve() && triggerStateToBool(_limitTrigger.getTriggerState())) { return false; }
 
-    HelioSingleMeasurement powerReq = actuator->getContinuousPowerUsage();
-    convertUnits(&powerReq, getPowerUnits(), getRailVoltage());
+    HelioSingleMeasurement powerReq = actuator->getContinuousPowerUsage().asUnits(getPowerUnits(), getRailVoltage());
 
-    return _powerUsage.getMeasurementValue() + powerReq.value < _maxPower - FLT_EPSILON;
+    return _powerUsage.getMeasurementValue(true) + powerReq.value < (HELIO_RAILS_FRACTION_SATURATED * _maxPower) - FLT_EPSILON;
 }
 
 float HelioRegulatedRail::getCapacity(bool poll)
 {
     if (_limitTrigger.resolve() && triggerStateToBool(_limitTrigger.getTriggerState())) { return 1.0f; }
-    float retVal = _powerUsage.getMeasurementValue(poll) / _maxPower;
-    return constrain(retVal, 0.0f, 1.0f);
+    return _powerUsage.getMeasurementValue(poll) / (HELIO_RAILS_FRACTION_SATURATED * _maxPower);
 }
 
 void HelioRegulatedRail::setPowerUnits(Helio_UnitsType powerUnits)
@@ -256,7 +254,7 @@ void HelioRegulatedRail::saveToData(HelioData *dataOut)
 
     ((HelioRegulatedRailData *)dataOut)->maxPower = roundForExport(_maxPower, 1);
     if (_powerUsage.getId()) {
-        strncpy(((HelioRegulatedRailData *)dataOut)->powerSensor, _powerUsage.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+        strncpy(((HelioRegulatedRailData *)dataOut)->powerUsageSensor, _powerUsage.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
     if (_limitTrigger) {
         _limitTrigger->saveToData(&(((HelioRegulatedRailData *)dataOut)->limitTrigger));
@@ -265,12 +263,10 @@ void HelioRegulatedRail::saveToData(HelioData *dataOut)
 
 void HelioRegulatedRail::handleActivation(HelioActuator *actuator)
 {
-    if (!getPowerUsageSensorAttachment() && actuator) {
-        auto powerReq = actuator->getContinuousPowerUsage();
+    if (!getPowerUsageSensor(true) && actuator) {
+        auto powerReq = actuator->getContinuousPowerUsage().asUnits(getPowerUnits(), getRailVoltage());
         auto powerUsage = getPowerUsageSensorAttachment().getMeasurement(true);
         bool enabled = actuator->isEnabled();
-
-        convertUnits(&powerReq, getPowerUnits(), getRailVoltage());
 
         if (enabled) {
             powerUsage.value += powerReq.value;
@@ -349,7 +345,7 @@ void HelioSimpleRailData::fromJSONObject(JsonObjectConst &objectIn)
 }
 
 HelioRegulatedRailData::HelioRegulatedRailData()
-    : HelioRailData(), maxPower(0), powerSensor{0}, limitTrigger()
+    : HelioRailData(), maxPower(0), powerUsageSensor{0}, limitTrigger()
 {
     _size = sizeof(*this);
 }
@@ -359,7 +355,7 @@ void HelioRegulatedRailData::toJSONObject(JsonObject &objectOut) const
     HelioRailData::toJSONObject(objectOut);
 
     objectOut[SFP(HStr_Key_MaxPower)] = maxPower;
-    if (powerSensor[0]) { objectOut[SFP(HStr_Key_PowerSensor)] = charsToString(powerSensor, HELIO_NAME_MAXSIZE); }
+    if (powerUsageSensor[0]) { objectOut[SFP(HStr_Key_PowerUsageSensor)] = charsToString(powerUsageSensor, HELIO_NAME_MAXSIZE); }
     if (isValidType(limitTrigger.type)) {
         JsonObject limitTriggerObj = objectOut.createNestedObject(SFP(HStr_Key_LimitTrigger));
         limitTrigger.toJSONObject(limitTriggerObj);
@@ -371,8 +367,8 @@ void HelioRegulatedRailData::fromJSONObject(JsonObjectConst &objectIn)
     HelioRailData::fromJSONObject(objectIn);
 
     maxPower = objectIn[SFP(HStr_Key_MaxPower)] | maxPower;
-    const char *powerSensorStr = objectIn[SFP(HStr_Key_PowerSensor)];
-    if (powerSensorStr && powerSensorStr[0]) { strncpy(powerSensor, powerSensorStr, HELIO_NAME_MAXSIZE); }
+    const char *powerUsageSensorStr = objectIn[SFP(HStr_Key_PowerUsageSensor)];
+    if (powerUsageSensorStr && powerUsageSensorStr[0]) { strncpy(powerUsageSensor, powerUsageSensorStr, HELIO_NAME_MAXSIZE); }
     JsonObjectConst limitTriggerObj = objectIn[SFP(HStr_Key_LimitTrigger)];
     if (!limitTriggerObj.isNull()) { limitTrigger.fromJSONObject(limitTriggerObj); }
 }

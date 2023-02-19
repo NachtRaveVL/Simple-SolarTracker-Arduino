@@ -27,13 +27,13 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t output
 SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t inputPin, uint8_t inputBitRes)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
-    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TempHumidity));
+    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TemperatureHumidity));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
     if (inputPinIsAnalog && isValidIndex(positionIndex)) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
-            Helio_SensorType_TempHumidity,
+            Helio_SensorType_TemperatureHumidity,
             positionIndex,
             HelioAnalogPin(inputPin, INPUT, inputBitRes)
         ));
@@ -43,16 +43,16 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addPowerLevelMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageLevelMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
-    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerLevel));
+    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerProduction));
     HELIO_HARD_ASSERT(inputPinIsAnalog, SFP(HStr_Err_InvalidPinOrType));
     HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
 
     if (inputPinIsAnalog && isValidIndex(positionIndex)) {
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
-            Helio_SensorType_PowerLevel,
+            Helio_SensorType_PowerProduction,
             positionIndex,
             HelioAnalogPin(inputPin, INPUT, inputBitRes)
         ));

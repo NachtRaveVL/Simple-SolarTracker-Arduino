@@ -31,15 +31,15 @@ Helio_UnitsType defaultUnitsForSensor(Helio_SensorType sensorType, uint8_t measu
     measureMode = (measureMode == Helio_MeasurementMode_Undefined && getController() ? getController()->getMeasurementMode() : measureMode);
 
     switch (sensorType) {
-        case Helio_SensorType_Endstop:
         case Helio_SensorType_IceDetector:
         case Helio_SensorType_LightIntensity:
             return Helio_UnitsType_Percentile_100;
-        case Helio_SensorType_PowerLevel:
+        case Helio_SensorType_PowerProduction:
+        case Helio_SensorType_PowerUsage:
             return defaultPowerUnits(measureMode);
-        case Helio_SensorType_StrokePosition:
+        case Helio_SensorType_TravelPosition:
             return defaultDistanceUnits(measureMode);
-        case Helio_SensorType_TempHumidity:
+        case Helio_SensorType_TemperatureHumidity:
             return defaultTemperatureUnits(measureMode);
         case Helio_SensorType_TiltAngle:
             return Helio_UnitsType_Angle_Degrees_360;
@@ -53,15 +53,15 @@ Helio_UnitsType defaultUnitsForSensor(Helio_SensorType sensorType, uint8_t measu
 Helio_UnitsCategory defaultCategoryForSensor(Helio_SensorType sensorType, uint8_t measurementRow)
 {
     switch (sensorType) {
-        case Helio_SensorType_Endstop:
         case Helio_SensorType_IceDetector:
         case Helio_SensorType_LightIntensity:
             return Helio_UnitsCategory_Percentile;
-        case Helio_SensorType_PowerLevel:
+        case Helio_SensorType_PowerProduction:
+        case Helio_SensorType_PowerUsage:
             return Helio_UnitsCategory_Power;
-        case Helio_SensorType_StrokePosition:
+        case Helio_SensorType_TravelPosition:
             return Helio_UnitsCategory_Distance;
-        case Helio_SensorType_TempHumidity:
+        case Helio_SensorType_TemperatureHumidity:
             switch (measurementRow) {
                 case 0: return Helio_UnitsCategory_Temperature;
                 case 1: return Helio_UnitsCategory_Percentile; // humidity
@@ -230,7 +230,7 @@ bool HelioBinarySensor::tryRegisterAsISR()
 {
     #ifdef HELIO_USE_MULTITASKING
         if (!_usingISR && checkPinCanInterrupt(_inputPin.pin)) {
-            taskManager.addInterrupt(&interruptImpl, _inputPin.pin, CHANGE);
+            taskManager.addInterrupt(&interruptImpl, _inputPin.pin, _inputPin.activeLow ? FALLING : RISING);
             _usingISR = true;
         }
     #endif
@@ -484,8 +484,8 @@ void HelioDigitalSensor::saveToData(HelioData *dataOut)
 
 
 HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex, HelioDigitalPin inputPin, Helio_DHTType dhtType, bool computeHeatIndex, int classType)
-    : HelioDigitalSensor(Helio_SensorType_TempHumidity, sensorIndex, inputPin, 9, false, classType),
-      HelioMeasurementUnitsInterfaceStorageTriple(defaultUnitsForSensor(Helio_SensorType_TempHumidity)),
+    : HelioDigitalSensor(Helio_SensorType_TemperatureHumidity, sensorIndex, inputPin, 9, false, classType),
+      HelioMeasurementUnitsInterfaceStorageTriple(defaultUnitsForSensor(Helio_SensorType_TemperatureHumidity)),
       _dht(new DHT(inputPin.pin, dhtType)), _dhtType(dhtType), _computeHeatIndex(computeHeatIndex)
 {
     _measurementUnits[1] = Helio_UnitsType_Percentile_100;
@@ -496,7 +496,7 @@ HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(hposi_t sensorIndex, Heli
 
 HelioDHTTempHumiditySensor::HelioDHTTempHumiditySensor(const HelioDHTTempHumiditySensorData *dataIn)
     : HelioDigitalSensor(dataIn, false),
-      HelioMeasurementUnitsInterfaceStorageTriple(definedUnitsElse(dataIn->measurementUnits, defaultUnitsForSensor(Helio_SensorType_TempHumidity))),
+      HelioMeasurementUnitsInterfaceStorageTriple(definedUnitsElse(dataIn->measurementUnits, defaultUnitsForSensor(Helio_SensorType_TemperatureHumidity))),
       _dht(new DHT(dataIn->inputPin.pin, dataIn->dhtType)), _dhtType(dataIn->dhtType), _computeHeatIndex(dataIn->computeHeatIndex)
 {
     _measurementUnits[1] = Helio_UnitsType_Percentile_100;

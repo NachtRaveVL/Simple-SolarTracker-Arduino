@@ -27,12 +27,12 @@ HelioMeasurement *newMeasurementObjectFromSubData(const HelioMeasurementData *da
     return nullptr;
 }
 
-float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measurementRow, float binTrue)
+float getMeasurementValue(const HelioMeasurement *measurement, uint8_t measurementRow, float binScale)
 {
     if (measurement) {
         switch (measurement->type) {
             case HelioMeasurement::Binary:
-                return ((HelioBinaryMeasurement *)measurement)->state ? binTrue : 0.0f;
+                return ((HelioBinaryMeasurement *)measurement)->state ? binScale : 0.0f;
             case HelioMeasurement::Single:
                 return ((HelioSingleMeasurement *)measurement)->value;
             case HelioMeasurement::Double:
@@ -68,12 +68,12 @@ uint8_t getMeasurementRowCount(const HelioMeasurement *measurement)
     return measurement ? max(1, (int)(measurement->type)) : 0;
 }
 
-HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measurementRow, float binTrue, Helio_UnitsType binUnits)
+HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measurement, uint8_t measurementRow, float binScale, Helio_UnitsType binUnits)
 {
     if (measurement) {
         switch (measurement->type) {
             case HelioMeasurement::Binary:
-                return ((HelioBinaryMeasurement *)measurement)->getAsSingleMeasurement(binTrue, binUnits);
+                return ((HelioBinaryMeasurement *)measurement)->getAsSingleMeasurement(binScale, binUnits);
             case HelioMeasurement::Single:
                 return *((const HelioSingleMeasurement *)measurement);
             case HelioMeasurement::Double:
@@ -84,7 +84,7 @@ HelioSingleMeasurement getAsSingleMeasurement(const HelioMeasurement *measuremen
         }
     }
     HelioSingleMeasurement retVal;
-    retVal.frame = 0; // force fails frame checks
+    retVal.frame = hframe_none; // meant to fail frame checks
     return retVal;
 }
 
