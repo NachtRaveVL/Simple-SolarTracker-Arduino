@@ -49,6 +49,9 @@
 #define RANDOM_MAX                      __INT_MAX__
 #endif
 #endif
+#ifndef MIN_PER_DAY                                         // Missing min_per_day
+#define MIN_PER_DAY                     1440
+#endif
 #if (defined(ESP32) || defined(ESP8266)) && !defined(ESP_PLATFORM) // Missing ESP_PLATFORM
 #define ESP_PLATFORM
 #endif
@@ -139,8 +142,9 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_NIGHT_START_HR            20                  // Hour of the day night starts (for resting panels, used if not able to calculate from lat/long/date)
 #define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from lat/long/date)
 
-#define HELIO_PANEL_ALIGN_DEGTOL        5                   // Degrees error tolerance for panel alignment queries
 #define HELIO_PANEL_LINKS_BASESIZE      4                   // Base array size for panel's linkage list 
+#define HELIO_PANEL_ALIGN_DEGTOL        2.5f                // Default degrees error tolerance for panel alignment queries
+#define HELIO_PANEL_ALIGN_LDRTOL        0.05f               // LDR intensity balancing tolerance for panel alignment queries
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0
@@ -154,7 +158,7 @@ typedef typeof(LOW) ard_pinstatus_t;                        // Arduino pin statu
 #define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
 #define HELIO_SENSOR_ANALOGREAD_SAMPLES 5                   // Number of samples to take for any analogRead call inside of a sensor's takeMeasurement call, or 0 to disable sampling (note: bitRes.maxValue * # of samples must fit inside a uint32_t)
-#define HELIO_SENSOR_ANALOGREAD_DELAY   0                   // Delay time between samples, or 0 to disable delay
+#define HELIO_SENSOR_ANALOGREAD_DELAYMS 0                   // Delay time between samples, or 0 to disable delay, in milliseconds
 
 #define HELIO_SYS_AUTOSAVE_INTERVAL     120                 // Default autosave interval, in minutes
 #define HELIO_SYS_I2CEEPROM_BASEADDR    0x50                // Base address of I2C EEPROM (bitwise or'ed with passed address)
@@ -460,6 +464,7 @@ enum Helio_UnitsType : signed char {
     Helio_UnitsType_Percentile_100,                         // Percentile mode [0,100]
     Helio_UnitsType_Angle_Degrees_360,                      // Degrees angle mode [0,%360)
     Helio_UnitsType_Angle_Radians_2pi,                      // Radians angle mode [0,%2pi)
+    Helio_UnitsType_Angle_Minutes_24hr,                     // Minutes angle mode [0,%24hr)
     Helio_UnitsType_Distance_Feet,                          // Feet distance mode
     Helio_UnitsType_Distance_Meters,                        // Meters distance mode
     Helio_UnitsType_Power_Amperage,                         // Amperage current power mode

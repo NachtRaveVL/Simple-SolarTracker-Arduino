@@ -299,6 +299,27 @@ inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType o
 // Convert param used in certain unit conversions. Returns conversion success flag.
 inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
 
+// For wrapping of values to positive-only moduli range [0, +range), e.g. [0,360) [0,2pi) etc, used in horizontal coordinates and as default wrap mode
+template<typename T> inline T wrapBy(T value, T range) { value = value % range; return value >= 0 ? value : value + range; }
+// For wrapping of values to positive-and-negative-split moduli range [-range/2,+range/2), e.g. [-180,180) [-pi,pi] etc, used in vertical coordinates
+template<typename T> inline T wrapBySplit(T value, T range) { return wrapBy<T>(value + (range / 2), range) - (range / 2); }
+// For wrapping of degree angle values to [0,360)
+template<typename T> inline T wrapBy360(T value) { return wrapBy<T>(value, 360); }
+// For wrapping of degree angle values to [-180,180)
+template<typename T> inline T wrapBy180Neg180(T value) { return wrapBySplit<T>(value, 360); }
+// For wrapping of radian angle values to [0,2pi)
+template<typename T> inline T wrapBy2Pi(T value) { return wrapBy<T>(value, TWO_PI); }
+// For wrapping of radian angle values to [-pi,pi)
+template<typename T> inline T wrapByPiNegPi(T value) { return wrapBySplit<T>(value, TWO_PI); }
+// For wrapping of minutes angle values to [0,24hr)
+template<typename T> inline T wrapBy24Hr(T value) { return wrapBy<T>(value, MIN_PER_DAY); }
+// For wrapping of minutes angle values to [-12hr,12hr)
+template<typename T> inline T wrapBy12HrNeg12Hr(T value) { return wrapBySplit<T>(value, MIN_PER_DAY); }
+// For wrapping of hours values to [0,24)
+template<typename T> inline T wrapBy24(T value) { return wrapBy<T>(value, 24); }
+// For wrapping of hours values to [-12,12)
+template<typename T> inline T wrapBy12Neg12(T value) { return wrapBySplit<T>(value, 24); }
+
 // Returns the base units from a rate unit (e.g. mm/min -> mm).
 extern Helio_UnitsType baseUnits(Helio_UnitsType units);
 // Returns the rate units from a base unit (e.g. mm -> mm/min).
@@ -455,5 +476,7 @@ template<> void commaStringToArray<float>(String stringIn, float *arrayOut, size
 template<> void commaStringToArray<double>(String stringIn, double *arrayOut, size_t length);
 template<> bool arrayElementsEqual<float>(const float *arrayIn, size_t length, float value);
 template<> bool arrayElementsEqual<double>(const double *arrayIn, size_t length, double value);
+template<> inline float wrapBy(float value, float range);
+template<> inline double wrapBy(double value, double range);
 
 #endif // /ifndef HelioUtils_H

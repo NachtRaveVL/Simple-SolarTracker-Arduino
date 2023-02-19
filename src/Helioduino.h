@@ -303,7 +303,7 @@ public:
     // Launches system into operational mode. Typically called near end of setup().
     void launch();
 
-    // Suspends the system from operational mode (disables all runloops). Typically used during system setup UI.
+    // Suspends the system from operational mode (disables all run-loops). Typically used during system setup UI.
     // Resume operation by a call to launch().
     void suspend();
 
@@ -370,7 +370,7 @@ public:
     inline void setPinMuxer(pintype_t pin, SharedPtr<HelioPinMuxer> pinMuxer);
     // Returns pin muxer for pin #.
     inline SharedPtr<HelioPinMuxer> getPinMuxer(pintype_t pin);
-    // Disables/deselects all pin muxers.
+    // Disables/deselects all pin muxers. All pin muxers are assumed to have a shared address bus.
     void deselectPinMuxers();
 
     // OneWire instance for given pin (lazily instantiated)

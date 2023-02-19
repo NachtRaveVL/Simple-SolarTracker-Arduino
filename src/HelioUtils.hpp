@@ -15,6 +15,20 @@ inline HelioSingleMeasurement HelioSingleMeasurement::asUnits(Helio_UnitsType ou
     return out;
 }
 
+inline HelioSingleMeasurement HelioSingleMeasurement::wrappedBy(float range) const
+{
+    HelioSingleMeasurement out(*this);
+    out.value = ::wrapBy<float>(out.value, range);
+    return out;
+}
+
+inline HelioSingleMeasurement HelioSingleMeasurement::wrappedBySplit(float range) const
+{
+    HelioSingleMeasurement out(*this);
+    out.value = ::wrapBySplit<float>(out.value, range);
+    return out;
+}
+
 
 #ifdef HELIO_USE_MULTITASKING
 
@@ -147,6 +161,18 @@ inline bool convertUnits(HelioSingleMeasurement *measureInOut, Helio_UnitsType o
 inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMeasurement *measureOut, Helio_UnitsType outUnits, float convertParam)
 {
     return convertUnits(measureIn->value, &measureOut->value, measureIn->units, outUnits, &measureOut->units, convertParam);
+}
+
+template<> inline float wrapBy(float value, float range)
+{
+    value = fmodf(value, range);
+    return !signbit(value) ? value : value + range;
+}
+
+template<> inline double wrapBy(double value, double range)
+{
+    value = fmod(value, range);
+    return !signbit(value) ? value : value + range;
 }
 
 
