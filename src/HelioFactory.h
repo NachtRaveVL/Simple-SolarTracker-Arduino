@@ -87,18 +87,18 @@ public:
 
     // Adds a new analog light intensity sensor/LDR to the system using the given parameters.
     // LDRs can be used in a simple balancing panel to orient towards the strongest light source.
-    SharedPtr<HelioAnalogSensor> addLightIntensitySensor(pintype_t inputPin);               // Digital input pin this sensor sits on
+    SharedPtr<HelioAnalogSensor> addLightIntensitySensor(pintype_t inputPin);               // Analog input pin this sensor sits on
 
     // Adds a new analog power production meter to the system using the given parameters.
     // Power production meters can be used to determine the amount of energy generation.
     SharedPtr<HelioAnalogSensor> addPowerProductionMeter(pintype_t inputPin,                // Analog input pin this sensor sits on
-                                                         bool isWattageBased,               // If power meter measures wattage (true) or amperage (false)
+                                                         bool isWattageBased = true,        // If power meter measures wattage (true) or amperage (false)
                                                          uint8_t inputBitRes = ADC_RESOLUTION); // ADC input bit resolution to use
 
     // Adds a new analog power usage meter to the system using the given parameters.
     // Power usage meters can be used to determine and manage the energy demands of a power rail.
     SharedPtr<HelioAnalogSensor> addPowerUsageLevelMeter(pintype_t inputPin,                // Analog input pin this sensor sits on
-                                                         bool isWattageBased,               // If power meter measures wattage (true) or amperage (false)
+                                                         bool isWattageBased = true,        // If power meter measures wattage (true) or amperage (false)
                                                          uint8_t inputBitRes = ADC_RESOLUTION); // ADC input bit resolution to use
 
     // Adds a new analog stroke position/distance sensor to the system using the given parameters.
@@ -139,20 +139,20 @@ public:
     // Adds a new LDR-based balancing panel to the system using the given parameters.
     // Balancing panels equalize two opposing photoresistors to drive their orientation.
     SharedPtr<HelioBalancingPanel> addLDRBalancedPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
-                                                       float homePosition[2] = {0});        // Home position (azi/RA, ele/dec)
+                                                       float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
 
     // Adds a new sun-tracking solar panel to the system using the given parameters.
     // Tracking panels recalculate the sun's position across the day to drive their orientation.
     SharedPtr<HelioTrackingPanel> addSunTrackingPanel(Helio_PanelType panelType,            // Panel type (mounting configuration)
-                                                      float axisOffset[2] = {0},            // Axis calibration offsets (azi/RA, ele/dec)
-                                                      float homePosition[2] = {0});         // Home position (azi/RA, ele/dec)
+                                                      float axisOffset[2] = {0},            // Axis calibration offsets (azi,ele or RA,dec)
+                                                      float homePosition[2] = {0});         // Home position (azi,ele or RA,dec)
 
     // Adds a new reflecting panel to the system using the given parameters.
     // Reflecting "panels" are mirrors that reflect the sun's light towards a preset direction.
     SharedPtr<HelioReflectingPanel> addReflectingPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
-                                                       float reflectTowards[2] = {0},       // Direction to reflect towards (azi/RA, ele/dec)
-                                                       float axisOffset[2] = {0},           // Axis calibration offsets (azi/RA, ele/dec)
-                                                       float homePosition[2] = {0});        // Home position (azi/RA, ele/dec)
+                                                       float reflectTowards[2] = {0},       // Direction to reflect towards (azi,ele or RA,dec)
+                                                       float axisOffset[2] = {0},           // Axis calibration offsets (azi,ele or RA,dec)
+                                                       float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
 
     // Convenience builders for common power rails (shared, nullptr return -> failure).
 
