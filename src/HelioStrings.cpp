@@ -365,6 +365,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_AirReportInterval[] PROGMEM = {"airReportInterval"};
             return flashStr_Key_AirReportInterval;
         } break;
+        case HStr_Key_AlignedTolerance: {
+            static const char flashStr_Key_AlignedTolerance[] PROGMEM = {"alignedTolerance"};
+            return flashStr_Key_AlignedTolerance;
+        } break;
         case HStr_Key_Altitude: {
             static const char flashStr_Key_Altitude[] PROGMEM = {"altitude"};
             return flashStr_Key_Altitude;
@@ -380,6 +384,22 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_AutosaveInterval: {
             static const char flashStr_Key_AutosaveInterval[] PROGMEM = {"autosaveInterval"};
             return flashStr_Key_AutosaveInterval;
+        } break;
+        case HStr_Key_AxisOffset: {
+            static const char flashStr_Key_AxisOffset[] PROGMEM = {"axisOffset"};
+            return flashStr_Key_AxisOffset;
+        } break;
+        case HStr_Key_AxisPosition: {
+            static const char flashStr_Key_AxisPosition[] PROGMEM = {"axisPosition"};
+            return flashStr_Key_AxisPosition;
+        } break;
+        case HStr_Key_AxisSensor1: {
+            static const char flashStr_Key_AxisSensor1[] PROGMEM = {"axisSensor1"};
+            return flashStr_Key_AxisSensor1;
+        } break;
+        case HStr_Key_AxisSensor2: {
+            static const char flashStr_Key_AxisSensor2[] PROGMEM = {"axisSensor2"};
+            return flashStr_Key_AxisSensor2;
         } break;
         case HStr_Key_BitRes: {
             static const char flashStr_Key_BitRes[] PROGMEM = {"bitRes"};
@@ -449,6 +469,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_Flags[] PROGMEM = {"flags"};
             return flashStr_Key_Flags;
         } break;
+        case HStr_Key_HomePosition: {
+            static const char flashStr_Key_HomePosition[] PROGMEM = {"homePosition"};
+            return flashStr_Key_HomePosition;
+        } break;
         case HStr_Key_Id: {
             static const char flashStr_Key_Id[] PROGMEM = {"id"};
             return flashStr_Key_Id;
@@ -464,6 +488,22 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_Latitude: {
             static const char flashStr_Key_Latitude[] PROGMEM = {"latitude"};
             return flashStr_Key_Latitude;
+        } break;
+        case HStr_Key_LDRSensor1: {
+            static const char flashStr_Key_LDRSensor1[] PROGMEM = {"ldrSensor1"};
+            return flashStr_Key_LDRSensor1;
+        } break;
+        case HStr_Key_LDRSensor2: {
+            static const char flashStr_Key_LDRSensor2[] PROGMEM = {"ldrSensor2"};
+            return flashStr_Key_LDRSensor2;
+        } break;
+        case HStr_Key_LDRSensor3: {
+            static const char flashStr_Key_LDRSensor3[] PROGMEM = {"ldrSensor3"};
+            return flashStr_Key_LDRSensor3;
+        } break;
+        case HStr_Key_LDRSensor4: {
+            static const char flashStr_Key_LDRSensor4[] PROGMEM = {"ldrSensor4"};
+            return flashStr_Key_LDRSensor4;
         } break;
         case HStr_Key_LastChangeDate: {
             static const char flashStr_Key_LastChangeDate[] PROGMEM = {"lastChangeDate"};
@@ -592,6 +632,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_RailName: {
             static const char flashStr_Key_RailName[] PROGMEM = {"railName"};
             return flashStr_Key_RailName;
+        } break;
+        case HStr_Key_ReflectPosition: {
+            static const char flashStr_Key_ReflectPosition[] PROGMEM = {"reflectPosition"};
+            return flashStr_Key_ReflectPosition;
         } break;
         case HStr_Key_Revision: {
             static const char flashStr_Key_Revision[] PROGMEM = {"revision"};

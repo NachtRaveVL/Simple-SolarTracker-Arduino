@@ -65,6 +65,15 @@ struct HelioSingleMeasurement : public HelioMeasurement {
 
     inline HelioSingleMeasurement asUnits(Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) const; // in utils
 
+    inline HelioSingleMeasurement wrappedBy(float range) const;
+    inline HelioSingleMeasurement wrappedBySplit(float range) const;
+    inline HelioSingleMeasurement wrappedBy360() const { return wrappedBy(360); }
+    inline HelioSingleMeasurement wrappedBy180Neg180() const { return wrappedBySplit(360); }
+    inline HelioSingleMeasurement wrappedBy2Pi() const { return wrappedBy(TWO_PI); }
+    inline HelioSingleMeasurement wrappedByPiNegPi() const { return wrappedBySplit(TWO_PI); }
+    inline HelioSingleMeasurement wrappedBy24Hr() const { return wrappedBy(MIN_PER_DAY); }
+    inline HelioSingleMeasurement wrappedBy12HrNeg12Hr() const { return wrappedBySplit(MIN_PER_DAY); }
+
     void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
 };
 

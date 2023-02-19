@@ -62,8 +62,7 @@ float HelioDriver::getMaxTargetOffset(bool poll)
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
         if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isDirectionalType()) {
-            auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
-            auto position = posSensor.getMeasurement(poll).asUnits(getMeasurementUnits());
+            auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(poll).asUnits(getMeasurementUnits());
 
             float delta = _targetSetpoint - position.value;
             if (fabsf(delta) > maxDelta) { maxDelta = delta; }
@@ -135,8 +134,10 @@ HelioAbsoluteDriver::~HelioAbsoluteDriver()
 
 void HelioAbsoluteDriver::setEnabled(bool enabled)
 {
-    HelioDriver::setEnabled(enabled);
-    _lastUpdate = 0;
+    if (_enabled != enabled) {
+        HelioDriver::setEnabled(enabled);
+        _lastUpdate = 0;
+    }
 }
 
 void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
@@ -209,8 +210,7 @@ void HelioIncrementalDriver::handleMaxOffset(float maxOffset) {
         float offsetLimit = maxOffset - _maxDifference;
 
         for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-            auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
-            auto position = posSensor.getMeasurement(true).asUnits(getMeasurementUnits());
+            auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(true).asUnits(getMeasurementUnits());
             float offset = fabsf(_targetSetpoint - position.value);
 
             if (offset <= _alignedRange + FLT_EPSILON || offset < offsetLimit - FLT_EPSILON) { // aligned or too fast

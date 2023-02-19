@@ -508,11 +508,15 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
                     return true;
 
                 case Helio_UnitsType_Angle_Degrees_360:
-                    *valueOut = fmod(valueIn * 360.0, 360.0);
+                    *valueOut = wrapBy360(valueIn * 360.0);
                     return true;
 
                 case Helio_UnitsType_Angle_Radians_2pi:
-                    *valueOut = fmod(valueIn * TWO_PI, TWO_PI);
+                    *valueOut = wrapBy2Pi(valueIn * TWO_PI);
+                    return true;
+
+                case Helio_UnitsType_Angle_Minutes_24hr:
+                    *valueOut = wrapBy24Hr(valueIn * MIN_PER_DAY);
                     return true;
 
                 default:
@@ -538,7 +542,11 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Degrees_360:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Radians_2pi:
-                    *valueOut = valueIn * (TWO_PI / 360.0);
+                    *valueOut = wrapBy2Pi(valueIn * (TWO_PI / 360.0));
+                    return true;
+
+                case Helio_UnitsType_Angle_Minutes_24hr:
+                    *valueOut = wrapBy24Hr(valueIn * (MIN_PER_DAY / 360.0));
                     return true;
 
                 case Helio_UnitsType_Raw_1:
@@ -553,7 +561,30 @@ bool tryConvertUnits(float valueIn, Helio_UnitsType unitsIn, float *valueOut, He
         case Helio_UnitsType_Angle_Radians_2pi:
             switch (unitsOut) {
                 case Helio_UnitsType_Angle_Degrees_360:
-                    *valueOut = valueIn * (360.0 / TWO_PI);
+                    *valueOut = wrapBy360(valueIn * (360.0 / TWO_PI));
+                    return true;
+
+                case Helio_UnitsType_Angle_Minutes_24hr:
+                    *valueOut = wrapBy24Hr(valueIn * (MIN_PER_DAY / TWO_PI));
+                    return true;
+
+                case Helio_UnitsType_Raw_1:
+                    *valueOut = valueIn / TWO_PI;
+                    return true;
+
+                default:
+                    break;
+            }
+            break;
+
+        case Helio_UnitsType_Angle_Minutes_24hr:
+            switch (unitsOut) {
+                case Helio_UnitsType_Angle_Degrees_360:
+                    *valueOut = wrapBy360(valueIn * (360.0 / MIN_PER_DAY));
+                    return true;
+
+                case Helio_UnitsType_Angle_Radians_2pi:
+                    *valueOut = wrapBy2Pi(valueIn * (TWO_PI / MIN_PER_DAY));
                     return true;
 
                 case Helio_UnitsType_Raw_1:
