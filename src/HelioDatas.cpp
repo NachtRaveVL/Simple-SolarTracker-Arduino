@@ -65,6 +65,8 @@ HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
                     return new HelioBalancingPanelData();
                 case (int8_t)HelioPanel::Tracking:
                     return new HelioTrackingPanelData();
+                case (int8_t)HelioPanel::Reflecting:
+                    return new HelioReflectingPanelData();
                 default: break;
             }
             break;

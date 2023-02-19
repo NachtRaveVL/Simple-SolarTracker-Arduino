@@ -65,7 +65,7 @@ struct HelioSystemData : public HelioData {
 // See setFrom* methods to set calibrated data in various formats.
 struct HelioCalibrationData : public HelioData {
     char ownerName[HELIO_NAME_MAXSIZE];                     // Owner object name this calibration belongs to (actuator/sensor)
-    Helio_UnitsType calibrationUnits;                             // Calibration output units
+    Helio_UnitsType calibrationUnits;                       // Calibration output units
     float multiplier, offset;                               // Ax + B value transform coefficients
 
     HelioCalibrationData();

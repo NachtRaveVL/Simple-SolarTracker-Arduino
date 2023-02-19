@@ -63,8 +63,7 @@ float HelioDriver::getMaxTargetOffset(bool poll)
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
         if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isDirectionalType()) {
             auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
-            auto position = posSensor.getMeasurement(poll);
-            convertUnits(&position, getMeasurementUnits(), posSensor.getMeasurementConvertParam());
+            auto position = posSensor.getMeasurement(poll).asUnits(getMeasurementUnits());
 
             float delta = _targetSetpoint - position.value;
             if (fabsf(delta) > maxDelta) { maxDelta = delta; }
@@ -97,6 +96,11 @@ void HelioDriver::setTravelRate(float travelRate)
     }
 }
 
+void HelioDriver::setEnabled(bool enabled)
+{
+    _enabled = enabled;
+}
+
 void HelioDriver::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
 {
     if (_measurementUnits[measurementRow] != measurementUnits) {
@@ -122,12 +126,18 @@ void HelioDriver::disableAllActivations()
 }
 
 
- HelioAbsoluteDriver::HelioAbsoluteDriver(float travelRate, int typeIn)
-     : HelioDriver(FLT_UNDEF, travelRate, typeIn), _lastUpdate(0)
+HelioAbsoluteDriver::HelioAbsoluteDriver(float travelRate, int typeIn)
+    : HelioDriver(FLT_UNDEF, travelRate, typeIn), _lastUpdate(0)
 { ; }
 
 HelioAbsoluteDriver::~HelioAbsoluteDriver()
 { ; }
+
+void HelioAbsoluteDriver::setEnabled(bool enabled)
+{
+    HelioDriver::setEnabled(enabled);
+    _lastUpdate = 0;
+}
 
 void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
 {
@@ -200,8 +210,7 @@ void HelioIncrementalDriver::handleMaxOffset(float maxOffset) {
 
         for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
             auto posSensor = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment();
-            auto position = posSensor.getMeasurement(true);
-            convertUnits(&position, getMeasurementUnits(), posSensor.getMeasurementConvertParam());
+            auto position = posSensor.getMeasurement(true).asUnits(getMeasurementUnits());
             float offset = fabsf(_targetSetpoint - position.value);
 
             if (offset <= _alignedRange + FLT_EPSILON || offset < offsetLimit - FLT_EPSILON) { // aligned or too fast

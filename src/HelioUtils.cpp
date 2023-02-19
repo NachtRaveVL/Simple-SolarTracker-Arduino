@@ -1019,6 +1019,8 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
             return SFP(HStr_Enum_ContinuousServo);
         case Helio_ActuatorType_LinearActuator:
             return SFP(HStr_Enum_LinearActuator);
+        case Helio_ActuatorType_PanelBrake:
+            return SFP(HStr_Enum_PanelBrake);
         case Helio_ActuatorType_PanelHeater:
             return SFP(HStr_Enum_PanelHeater);
         case Helio_ActuatorType_PanelSprayer:
@@ -1036,18 +1038,18 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
 String sensorTypeToString(Helio_SensorType sensorType, bool excludeSpecial)
 {
     switch (sensorType) {
-        case Helio_SensorType_Endstop:
-            return SFP(HStr_Enum_Endstop);
         case Helio_SensorType_IceDetector:
             return SFP(HStr_Enum_IceDetector);
         case Helio_SensorType_LightIntensity:
             return SFP(HStr_Enum_LightIntensity);
-        case Helio_SensorType_PowerLevel:
-            return SFP(HStr_Enum_PowerLevel);
-        case Helio_SensorType_StrokePosition:
-            return SFP(HStr_Enum_StokePosition);
-        case Helio_SensorType_TempHumidity:
-            return SFP(HStr_Enum_TempHumidity);
+        case Helio_SensorType_PowerProduction:
+            return SFP(HStr_Enum_PowerProduction);
+        case Helio_SensorType_PowerUsage:
+            return SFP(HStr_Enum_PowerUsage);
+        case Helio_SensorType_TravelPosition:
+            return SFP(HStr_Enum_TravelPosition);
+        case Helio_SensorType_TemperatureHumidity:
+            return SFP(HStr_Enum_Temperature);
         case Helio_SensorType_TiltAngle:
             return SFP(HStr_Enum_TiltAngle);
         case Helio_SensorType_WindSpeed:
