@@ -163,6 +163,34 @@ void HelioSignalAttachment<ParameterType,Slots>::setHandleSlot(const Slot<Parame
 }
 
 
+inline Helio_UnitsType HelioActuatorAttachment::getActivationUnits()
+{
+    if (resolve()) {
+        return get()->getUserCalibrationData() ? get()->getUserCalibrationData()->calibrationUnits : Helio_UnitsType_Raw_1;
+    }
+}
+
+inline float HelioActuatorAttachment::getActiveDriveIntensity()
+{
+    return resolve() ? get()->getDriveIntensity() : 0.0f;
+}
+
+inline float HelioActuatorAttachment::getActiveCalibratedValue()
+{
+    return resolve() ? get()->getCalibratedValue() : 0.0f;
+}
+
+inline float HelioActuatorAttachment::getSetupDriveIntensity() const
+{
+    return _actSetup.intensity;
+}
+
+inline float HelioActuatorAttachment::getSetupCalibratedValue()
+{
+    return resolve() ? get()->calibrationTransform(_actSetup.intensity) : 0.0f;
+}
+
+
 inline Helio_TriggerState HelioTriggerAttachment::getTriggerState(bool poll)
 {
     return resolve() ? get()->getTriggerState(poll) : Helio_TriggerState_Undefined;
