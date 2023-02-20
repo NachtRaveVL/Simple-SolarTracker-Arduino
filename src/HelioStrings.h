@@ -115,6 +115,7 @@ enum Helio_String : unsigned short {
     HStr_Key_MeasureMode,
     HStr_Key_MeasurementRow,
     HStr_Key_MeasurementUnits,
+    HStr_Key_MinIntensity,
     HStr_Key_Mode,
     HStr_Key_Multiplier,
     HStr_Key_Offset,

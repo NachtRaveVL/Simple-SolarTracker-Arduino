@@ -133,7 +133,7 @@ protected:
 // Rail Serialization Data
 struct HelioRailData : public HelioObjectData
 {
-    Helio_UnitsType powerUnits;
+    Helio_UnitsType powerUnits;                             // Power units
 
     HelioRailData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -143,7 +143,7 @@ struct HelioRailData : public HelioObjectData
 // Simple Rail Serialization Data
 struct HelioSimpleRailData : public HelioRailData
 {
-    int maxActiveAtOnce;
+    int maxActiveAtOnce;                                    // Max active count
 
     HelioSimpleRailData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -153,9 +153,9 @@ struct HelioSimpleRailData : public HelioRailData
 // Regulated Rail Serialization Data
 struct HelioRegulatedRailData : public HelioRailData
 {
-    float maxPower;
-    char powerUsageSensor[HELIO_NAME_MAXSIZE];
-    HelioTriggerSubData limitTrigger;
+    float maxPower;                                         // Maximum power
+    char powerUsageSensor[HELIO_NAME_MAXSIZE];              // Power usage sensor
+    HelioTriggerSubData limitTrigger;                       // Power limit trigger
 
     HelioRegulatedRailData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

@@ -33,6 +33,7 @@ public:
     inline bool isBalancingClass() const { return classType == Balancing; }
     inline bool isTrackingClass() const { return classType == Tracking; }
     inline bool isReflectingClass() const { return classType == Reflecting; }
+    inline bool isAnyTrackingClass() const { return isTrackingClass() || isReflectingClass(); }
     inline bool isUnknownClass() const { return classType <= Unknown; }
 
     HelioPanel(Helio_PanelType panelType,
@@ -98,7 +99,8 @@ class HelioBalancingPanel : public HelioPanel {
 public:
     HelioBalancingPanel(Helio_PanelType panelType,
                        hposi_t panelIndex,
-                       float ldrTolerance = HELIO_PANEL_ALIGN_LDRTOL,
+                       float intTolerance = HELIO_PANEL_ALIGN_LDRTOL,
+                       float minIntensity = HELIO_PANEL_ALIGN_LDRMIN,
                        int classType = Balancing);
     HelioBalancingPanel(const HelioBalancingPanelData *dataIn);
     virtual ~HelioBalancingPanel();
@@ -113,6 +115,7 @@ public:
     inline hposi_t getLDRCount() const { return (getPanelAxisCountFromType(getPanelType()) << 1); }
 
 protected:
+    float _minIntensity;                                    // Minimum LDR light intensity for alignment query
     HelioSensorAttachment _ldrSensors[4];                   // LDR light intensity sensor attachments
 
     virtual void saveToData(HelioData *dataOut) override;
@@ -147,6 +150,8 @@ public:
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
     virtual HelioSensorAttachment &getPowerUsageSensorAttachment() override;
+
+    inline void notifyDayChanged() { recalcSunPosition(); recalcFacingPosition(); }
 
 protected:
     time_t _lastChangeTime;                                 // Last panel alignment/maintenance date (UTC)
@@ -203,6 +208,7 @@ struct HelioPanelData : public HelioObjectData {
 
 // Balancing Panel Serialization Data
 struct HelioBalancingPanelData : HelioPanelData {
+    float minIntensity;                                     // Minimum LDR intensity
     char ldrSensor1[HELIO_NAME_MAXSIZE];                    // LDR for horz axis, min/neg-side
     char ldrSensor2[HELIO_NAME_MAXSIZE];                    // LDR for horz axis, max/pos-side
     char ldrSensor3[HELIO_NAME_MAXSIZE];                    // LDR for vert axis, min/neg-side
@@ -216,7 +222,7 @@ struct HelioBalancingPanelData : HelioPanelData {
 // Tracking Panel Serialization Data
 struct HelioTrackingPanelData : HelioPanelData {
     float axisPosition[2];                                  // Axis angle position (azi,ele or RA,dec)
-    time_t lastChangeTime;                                  // Last alignment change/maintenance date (UTC)
+    time_t lastChangeTime;                                  // Last alignment change/maintenance time (UTC)
     char axisSensor1[HELIO_NAME_MAXSIZE];                   // Horizontal axis sensor
     char axisSensor2[HELIO_NAME_MAXSIZE];                   // Vertical axis sensor
     char powerUsageSensor[HELIO_NAME_MAXSIZE];              // Power usage sensor

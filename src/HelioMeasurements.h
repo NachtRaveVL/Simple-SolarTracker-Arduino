@@ -63,7 +63,24 @@ struct HelioSingleMeasurement : public HelioMeasurement {
     HelioSingleMeasurement(float value, Helio_UnitsType units, time_t timestamp, hframe_t frame);
     HelioSingleMeasurement(const HelioMeasurementData *dataIn);
 
-    inline HelioSingleMeasurement asUnits(Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) const; // in utils
+    void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
+
+    // Modifiers (in utils)
+
+    inline HelioSingleMeasurement &toUnits(Helio_UnitsType outUnits, float convertParam = FLT_UNDEF);
+
+    inline HelioSingleMeasurement &wrapBy(float range);
+    inline HelioSingleMeasurement &wrapBySplit(float range);
+    inline HelioSingleMeasurement &wrapBy360() { return wrapBy(360); }
+    inline HelioSingleMeasurement &wrapBy180Neg180() { return wrapBySplit(360); }
+    inline HelioSingleMeasurement &wrapBy2Pi() { return wrapBy(TWO_PI); }
+    inline HelioSingleMeasurement &wrapByPiNegPi() { return wrapBySplit(TWO_PI); }
+    inline HelioSingleMeasurement &wrapBy24Hr() { return wrapBy(MIN_PER_DAY); }
+    inline HelioSingleMeasurement &wrapBy12HrNeg12Hr() { return wrapBySplit(MIN_PER_DAY); }
+
+    // Copiers (in utils)
+
+    inline HelioSingleMeasurement asUnits(Helio_UnitsType outUnits, float convertParam = FLT_UNDEF) const;
 
     inline HelioSingleMeasurement wrappedBy(float range) const;
     inline HelioSingleMeasurement wrappedBySplit(float range) const;
@@ -73,8 +90,6 @@ struct HelioSingleMeasurement : public HelioMeasurement {
     inline HelioSingleMeasurement wrappedByPiNegPi() const { return wrappedBySplit(TWO_PI); }
     inline HelioSingleMeasurement wrappedBy24Hr() const { return wrappedBy(MIN_PER_DAY); }
     inline HelioSingleMeasurement wrappedBy12HrNeg12Hr() const { return wrappedBySplit(MIN_PER_DAY); }
-
-    void saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow = 0, unsigned int additionalDecPlaces = 0) const;
 };
 
 // Binary Value Sensor Data Measurement

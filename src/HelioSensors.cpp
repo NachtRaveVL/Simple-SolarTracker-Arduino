@@ -648,7 +648,7 @@ void HelioDHTTempHumiditySensor::saveToData(HelioData *dataOut)
 
 
 HelioSensorData::HelioSensorData()
-    : HelioObjectData(), inputPin(), cropName{0}, panelName{0}
+    : HelioObjectData(), inputPin(), panelName{0}
 {
     _size = sizeof(*this);
 }

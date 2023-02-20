@@ -147,21 +147,21 @@ protected:
 
 // Combined Trigger Serialization Sub Data
 struct HelioTriggerSubData : public HelioSubData {
-    char sensorName[HELIO_NAME_MAXSIZE];
-    int8_t measurementRow;
+    char sensorName[HELIO_NAME_MAXSIZE];                    // Sensor name
+    int8_t measurementRow;                                  // Measurement row
     union {
         struct {
-            float tolerance;
-            bool triggerBelow;
-        } measureValue;
+            float tolerance;                                // Value tolerance
+            bool triggerBelow;                              // Trigger below flag
+        } measureValue;                                     // Measure value type
         struct {
-            float toleranceLow;
-            float toleranceHigh;
-            bool triggerOutside;
+            float toleranceLow;                             // Low value tolerance
+            float toleranceHigh;                            // High value tolerance
+            bool triggerOutside;                            // Trigger outside flag
         } measureRange;
-    } dataAs;
-    float detriggerTol;
-    Helio_UnitsType measurementUnits;
+    } dataAs;                                               // Data type union
+    float detriggerTol;                                     // De-trigger tolerance
+    Helio_UnitsType measurementUnits;                       // Measurement units
 
     HelioTriggerSubData();
     virtual void toJSONObject(JsonObject &objectOut) const;

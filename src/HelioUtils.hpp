@@ -8,6 +8,24 @@
 
 #include "Helioduino.h"
 
+inline HelioSingleMeasurement &HelioSingleMeasurement::toUnits(Helio_UnitsType outUnits, float convertParam)
+{
+    convertUnits(&value, &units, outUnits, convertParam);
+    return *this;
+}
+
+inline HelioSingleMeasurement &HelioSingleMeasurement::wrapBy(float range)
+{
+    value = ::wrapBy<float>(value, range);
+    return *this;
+}
+
+inline HelioSingleMeasurement &HelioSingleMeasurement::wrapBySplit(float range)
+{
+    value = ::wrapBySplit<float>(value, range);
+    return *this;
+}
+
 inline HelioSingleMeasurement HelioSingleMeasurement::asUnits(Helio_UnitsType outUnits, float convertParam) const
 {
     HelioSingleMeasurement out(*this);
