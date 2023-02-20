@@ -261,11 +261,11 @@ protected:
 // Actuator Serialization Data
 struct HelioActuatorData : public HelioObjectData
 {
-    HelioPinData outputPin;
-    Helio_EnableMode enableMode;
-    HelioMeasurementData contPowerUsage;
-    char railName[HELIO_NAME_MAXSIZE];
-    char panelName[HELIO_NAME_MAXSIZE];
+    HelioPinData outputPin;                                 // Output pin (1/A)
+    Helio_EnableMode enableMode;                            // Activation enablement mode
+    HelioMeasurementData contPowerUsage;                    // Continuous power usage
+    char railName[HELIO_NAME_MAXSIZE];                      // Parent rail
+    char panelName[HELIO_NAME_MAXSIZE];                     // Parent reservoir
 
     HelioActuatorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -275,14 +275,14 @@ struct HelioActuatorData : public HelioObjectData
 // Motor Actuator Serialization Data
 struct HelioMotorActuatorData : public HelioActuatorData
 {
-    HelioPinData outputPin2;
-    float travelRange[2];
-    Helio_UnitsType distanceUnits;
-    HelioMeasurementData contSpeed;
-    char positionSensor[HELIO_NAME_MAXSIZE];
-    char speedSensor[HELIO_NAME_MAXSIZE];
-    HelioTriggerSubData minTrigger;
-    HelioTriggerSubData maxTrigger;
+    HelioPinData outputPin2;                                // Output pin 2/B
+    float travelRange[2];                                   // Travel range maximums
+    Helio_UnitsType distanceUnits;                          // Distance units
+    HelioMeasurementData contSpeed;                         // Continuous speed
+    char positionSensor[HELIO_NAME_MAXSIZE];                // Position sensor
+    char speedSensor[HELIO_NAME_MAXSIZE];                   // Speed sensor
+    HelioTriggerSubData minTrigger;                         // Minimum travel trigger
+    HelioTriggerSubData maxTrigger;                         // Maximum travel trigger
 
     HelioMotorActuatorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

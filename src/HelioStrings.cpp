@@ -561,6 +561,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_MeasurementUnits[] PROGMEM = {"measurementUnits"};
             return flashStr_Key_MeasurementUnits;
         } break;
+        case HStr_Key_MinIntensity: {
+            static const char flashStr_Key_MinIntensity[] PROGMEM = {"minIntensity"};
+            return flashStr_Key_MinIntensity;
+        } break;
         case HStr_Key_Mode: {
             static const char flashStr_Key_Mode[] PROGMEM = {"mode"};
             return flashStr_Key_Mode;

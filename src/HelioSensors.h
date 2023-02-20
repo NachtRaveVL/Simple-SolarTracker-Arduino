@@ -243,9 +243,8 @@ protected:
 
 // Sensor Serialization Data
 struct HelioSensorData : public HelioObjectData {
-    HelioPinData inputPin;
-    char cropName[HELIO_NAME_MAXSIZE];
-    char panelName[HELIO_NAME_MAXSIZE];
+    HelioPinData inputPin;                                  // Input pin
+    char panelName[HELIO_NAME_MAXSIZE];                     // Parent panel
 
     HelioSensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -254,7 +253,7 @@ struct HelioSensorData : public HelioObjectData {
 
 // Binary Sensor Serialization Data
 struct HelioBinarySensorData : public HelioSensorData {
-    bool usingISR;
+    bool usingISR;                                          // Using ISR flag
 
     HelioBinarySensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -263,8 +262,8 @@ struct HelioBinarySensorData : public HelioSensorData {
 
 // Analog Sensor Serialization Data
 struct HelioAnalogSensorData : public HelioSensorData {
-    bool inputInversion;
-    Helio_UnitsType measurementUnits;
+    bool inputInversion;                                    // Input inversion flag
+    Helio_UnitsType measurementUnits;                       // Measurement units
 
     HelioAnalogSensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -273,9 +272,9 @@ struct HelioAnalogSensorData : public HelioSensorData {
 
 // Digital Sensor Serialization Data
 struct HelioDigitalSensorData : public HelioSensorData {
-    uint8_t wireBitRes;
-    hposi_t wirePosIndex;
-    uint8_t wireDevAddress[8];
+    uint8_t wireBitRes;                                     // 1-Wire bit resolution
+    hposi_t wirePosIndex;                                   // 1-Wire position index
+    uint8_t wireDevAddress[8];                              // 1-Wire device address
 
     HelioDigitalSensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -284,9 +283,9 @@ struct HelioDigitalSensorData : public HelioSensorData {
 
 // DHT TempHumid Sensor Serialization Data
 struct HelioDHTTempHumiditySensorData : public HelioDigitalSensorData {
-    Helio_DHTType dhtType;
-    bool computeHeatIndex;
-    Helio_UnitsType measurementUnits;
+    Helio_DHTType dhtType;                                  // DHT sensor type
+    bool computeHeatIndex;                                  // Compute heat index
+    Helio_UnitsType measurementUnits;                       // Measurement units
 
     HelioDHTTempHumiditySensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

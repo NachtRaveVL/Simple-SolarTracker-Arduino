@@ -810,7 +810,6 @@ void dataLoop()
         #endif
         millis_t lastYield = millis();
 
-        bool recalcSunPos = Helioduino::_activeInstance->getSystemMode() == Helio_SystemMode_PositionCalculating;
         Helioduino::_activeInstance->publisher.advancePollingFrame();
 
         for (auto iter = Helioduino::_activeInstance->_objects.begin(); iter != Helioduino::_activeInstance->_objects.end(); ++iter) {
@@ -819,9 +818,6 @@ void dataLoop()
                 if (sensor->needsPolling()) {
                     sensor->takeMeasurement(); // no force if already current for this frame #, we're just ensuring data for publisher
                 }
-            } else if (iter->second->isPanelType() && recalcSunPos) {
-                auto panel = static_pointer_cast<HelioPanel>(iter->second);
-                panel->recalcSunPosition();
             }
 
             yieldIfNeeded(lastYield);
@@ -1528,8 +1524,9 @@ void Helioduino::notifyDayChanged()
             if (iter->second->isPanelType()) {
                 auto panel = static_pointer_cast<HelioPanel>(iter->second);
 
-                if (panel) {
-                    panel->recalcSunPosition();
+                if (panel && panel->isAnyTrackingClass()) {
+                    auto trackingPanel = static_pointer_cast<HelioTrackingPanel>(iter->second);
+                    trackingPanel->notifyDayChanged();
                 }
             }
         }

@@ -143,7 +143,8 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 
 #define HELIO_PANEL_LINKS_BASESIZE      4                   // Base array size for panel's linkage list 
 #define HELIO_PANEL_ALIGN_DEGTOL        2.5f                // Default degrees error tolerance for panel alignment queries
-#define HELIO_PANEL_ALIGN_LDRTOL        0.05f               // LDR intensity balancing tolerance for panel alignment queries
+#define HELIO_PANEL_ALIGN_LDRTOL        0.05f               // Default LDR intensity balancing tolerance for panel alignment queries
+#define HELIO_PANEL_ALIGN_LDRMIN        0.20f               // Default LDR intensity minimum needed for panel alignment queries
 
 #define HELIO_POS_SEARCH_FROMBEG        -1                  // Search from beginning to end, 0 up to MAXSIZE-1
 #define HELIO_POS_SEARCH_FROMEND        HELIO_POS_MAXSIZE   // Search from end to beginning, MAXSIZE-1 down to 0

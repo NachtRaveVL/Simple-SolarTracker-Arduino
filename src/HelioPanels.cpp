@@ -130,13 +130,15 @@ void HelioPanel::saveToData(HelioData *dataOut)
 }
 
 
-HelioBalancingPanel::HelioBalancingPanel(Helio_PanelType panelType, hposi_t panelIndex, float ldrTolerance, int classType)
-    : HelioPanel(panelType, panelIndex, ldrTolerance, classType),
+HelioBalancingPanel::HelioBalancingPanel(Helio_PanelType panelType, hposi_t panelIndex, float intTolerance, float minIntensity, int classType)
+    : HelioPanel(panelType, panelIndex, intTolerance, classType),
+      _minIntensity(minIntensity),
       _ldrSensors{HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this)}
 { ; }
 
 HelioBalancingPanel::HelioBalancingPanel(const HelioBalancingPanelData *dataIn)
     : HelioPanel(dataIn),
+      _minIntensity(dataIn->minIntensity),
       _ldrSensors{HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this)}
 {
     _ldrSensors[0].setObject(dataIn->ldrSensor1);
@@ -162,22 +164,22 @@ bool HelioBalancingPanel::isAligned(bool poll)
 {
     if (poll) {
         bool aligned = true;
-        if (drivesHorizontalAxis()) {
+        if (drivesHorizontalAxis()) { // purposefully left out 'aligned &&' pre-check to force getMeasurement() calls
             if (_inDaytimeMode && _ldrSensors[0].resolve() && _ldrSensors[1].resolve()) {
-                auto intensityHorzMin = _ldrSensors[0].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
-                auto intensityHorzMax = _ldrSensors[1].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
-                aligned = aligned && intensityHorzMin.value > FLT_EPSILON && intensityHorzMax.value > FLT_EPSILON &&
-                          fabsf(intensityHorzMax.value - intensityHorzMin.value) <= _alignedTolerance + FLT_EPSILON;
+                auto intHorzMin = _ldrSensors[0].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
+                auto intHorzMax = _ldrSensors[1].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
+                aligned = aligned && intHorzMin.value >= _minIntensity - FLT_EPSILON && intHorzMax.value >= _minIntensity - FLT_EPSILON &&
+                          fabsf(intHorzMax.value - intHorzMin.value) <= _alignedTolerance + FLT_EPSILON;
             } else {
                 aligned = aligned && _axisDriver[0].resolve() && isFPEqual(_homePosition[0], _axisDriver[0]->getTargetSetpoint()) && _axisDriver[0]->isAligned(true);
             }
         }
-        if (drivesVerticalAxis()) {
+        if (drivesVerticalAxis()) { // purposefully left out 'aligned &&' pre-check to force getMeasurement() calls
             if (_inDaytimeMode && _ldrSensors[2].resolve() && _ldrSensors[3].resolve()) {
-                auto intensityVertMin = _ldrSensors[2].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
-                auto intensityVertMax = _ldrSensors[3].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
-                aligned = aligned && intensityVertMin.value > FLT_EPSILON && intensityVertMax.value > FLT_EPSILON &&
-                          fabsf(intensityVertMax.value - intensityVertMin.value) <= _alignedTolerance + FLT_EPSILON;
+                auto intVertMin = _ldrSensors[2].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
+                auto intVertMax = _ldrSensors[3].getMeasurement(true).asUnits(Helio_UnitsType_Raw_1);
+                aligned = aligned && intVertMin.value >= _minIntensity - FLT_EPSILON && intVertMax.value >= _minIntensity - FLT_EPSILON &&
+                          fabsf(intVertMax.value - intVertMin.value) <= _alignedTolerance + FLT_EPSILON;
             } else {
                 aligned = aligned && _axisDriver[1].resolve() && isFPEqual(_homePosition[1], _axisDriver[1]->getTargetSetpoint()) && _axisDriver[1]->isAligned(true);
             }
@@ -191,6 +193,7 @@ void HelioBalancingPanel::saveToData(HelioData *dataOut)
 {
     HelioPanel::saveToData(dataOut);
 
+    ((HelioBalancingPanelData *)dataOut)->minIntensity = _minIntensity;
     if (_ldrSensors[0].getId()) {
         strncpy(((HelioBalancingPanelData *)dataOut)->ldrSensor1, _ldrSensors[0].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
@@ -213,17 +216,17 @@ void HelioBalancingPanel::handleState(Helio_PanelState panelState)
 
     if (_panelState != (_inDaytimeMode ? Helio_PanelState_AlignedToSun : Helio_PanelState_AlignedToHome)) {
         if (drivesHorizontalAxis() && _axisDriver[0].resolve()) {
-            auto intensityHorzMin = _ldrSensors[0].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
-            auto intensityHorzMax = _ldrSensors[1].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
+            auto intHorzMin = _ldrSensors[0].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
+            auto intHorzMax = _ldrSensors[1].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
 
-            if (intensityHorzMin.value > FLT_EPSILON && intensityHorzMax.value > FLT_EPSILON) {
-                if (fabsf(intensityHorzMax.value - intensityHorzMin.value) <= _alignedTolerance + FLT_EPSILON) {
+            if (intHorzMin.value > FLT_EPSILON && intHorzMax.value > FLT_EPSILON) {
+                if (fabsf(intHorzMax.value - intHorzMin.value) <= _alignedTolerance + FLT_EPSILON) {
                     _axisDriver[0]->setEnabled(false);
                 } else {
                     _axisDriver[0]->setEnabled(true);
                     auto setPoint = _axisDriver[0]->getTargetSetpoint();
                     auto rateStep = (HELIO_CONTROL_LOOP_INTERVAL / 1000.0f) * _axisDriver[0]->getTravelRate();
-                    if (intensityHorzMin.value > intensityHorzMax.value) {
+                    if (intHorzMin.value > intHorzMax.value) {
                         setPoint -= rateStep;
                     } else {
                         setPoint += rateStep;
@@ -233,17 +236,17 @@ void HelioBalancingPanel::handleState(Helio_PanelState panelState)
             }
         }
         if (drivesVerticalAxis() && _axisDriver[1].resolve()) {
-            auto intensityVertMin = _ldrSensors[2].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
-            auto intensityVertMax = _ldrSensors[3].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
+            auto intVertMin = _ldrSensors[2].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
+            auto intVertMax = _ldrSensors[3].getMeasurement().asUnits(Helio_UnitsType_Raw_1);
 
-            if (intensityVertMin.value > FLT_EPSILON && intensityVertMax.value > FLT_EPSILON) {
-                if (fabsf(intensityVertMax.value - intensityVertMin.value) <= _alignedTolerance + FLT_EPSILON) {
+            if (intVertMin.value > FLT_EPSILON && intVertMax.value > FLT_EPSILON) {
+                if (fabsf(intVertMax.value - intVertMin.value) <= _alignedTolerance + FLT_EPSILON) {
                     _axisDriver[1]->setEnabled(false);
                 } else {
                     _axisDriver[1]->setEnabled(true);
                     auto setPoint = _axisDriver[1]->getTargetSetpoint();
                     auto rateStep = (HELIO_CONTROL_LOOP_INTERVAL / 1000.0f) * _axisDriver[1]->getTravelRate();
-                    if (intensityVertMin.value > intensityVertMax.value) {
+                    if (intVertMin.value > intVertMax.value) {
                         setPoint -= rateStep;
                     } else {
                         setPoint += rateStep;
@@ -302,22 +305,21 @@ void HelioTrackingPanel::update()
 bool HelioTrackingPanel::isAligned(bool poll)
 {
     if (poll) {
-        if (_inDaytimeMode) { recalcSunPosition(); }
-        else { _sunPosition[0] = 0; _sunPosition[1] = 0; }
+        recalcSunPosition();
         recalcFacingPosition();
 
         bool aligned = true;
         if (aligned && drivesHorizontalAxis()) {
             if (_axisAngle[0].resolve()) {
-                auto axisPositionHorz = _axisAngle[0].getMeasurement().asUnits(Helio_UnitsType_Angle_Degrees_360).wrappedBy360();
-                aligned = aligned && fabsf(_facingPosition[0] - axisPositionHorz.value) <= _alignedTolerance + FLT_EPSILON;
+                auto axisPosHorz = _axisAngle[0].getMeasurement().asUnits(Helio_UnitsType_Angle_Degrees_360).wrappedBy360();
+                aligned = aligned && fabsf(_facingPosition[0] - axisPosHorz.value) <= _alignedTolerance + FLT_EPSILON;
             }
             aligned = aligned && _axisDriver[0].resolve() && isFPEqual(_facingPosition[0], _axisDriver[0]->getTargetSetpoint()) && _axisDriver[0]->isAligned(true);
         }
         if (aligned && drivesVerticalAxis()) {
             if (_axisAngle[1].resolve()) {
-                auto axisPositionVert = _axisAngle[1].getMeasurement().asUnits(Helio_UnitsType_Angle_Degrees_360).wrappedBy360();
-                aligned = aligned && fabsf(_facingPosition[1] - axisPositionVert.value) <= _alignedTolerance + FLT_EPSILON;
+                auto axisPosVert = _axisAngle[1].getMeasurement().asUnits(Helio_UnitsType_Angle_Degrees_360).wrappedBy360();
+                aligned = aligned && fabsf(_facingPosition[1] - axisPosVert.value) <= _alignedTolerance + FLT_EPSILON;
             }
             aligned = aligned && _axisDriver[1].resolve() && isFPEqual(_facingPosition[1], _axisDriver[1]->getTargetSetpoint()) && _axisDriver[1]->isAligned(true);
         }
@@ -328,19 +330,24 @@ bool HelioTrackingPanel::isAligned(bool poll)
 
 void HelioTrackingPanel::recalcSunPosition()
 {
-    time_t time = unixNow();
-    JulianDay julianTime(time);
+    if (_inDaytimeMode) {
+        time_t time = unixNow();
+        JulianDay julianTime(time);
 
-    if (isHorizontalCoords()) {
-        Location loc = getController() ? getController()->getSystemLocation() : Location();
-        if (loc.hasPosition()) {
-            calcHorizontalCoordinates(julianTime, loc.latitude, loc.longitude, _sunPosition[0], _sunPosition[1]);
+        if (isHorizontalCoords()) {
+            Location location = getController() ? getController()->getSystemLocation() : Location();
+            if (location.hasPosition()) {
+                calcHorizontalCoordinates(julianTime, location.latitude, location.longitude, _sunPosition[0], _sunPosition[1]);
+            }
+        } else if (isEquatorialCoords()) {
+            double radius;
+            calcEquatorialCoordinates(julianTime, _sunPosition[0], _sunPosition[1], radius);
+        } else {
+            HELIO_SOFT_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
         }
-    } else if (isEquatorialCoords()) {
-        double radius;
-        calcEquatorialCoordinates(julianTime, _sunPosition[0], _sunPosition[1], radius);
     } else {
-        HELIO_SOFT_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
+        _sunPosition[0] = _homePosition[0];
+        _sunPosition[1] = _homePosition[1];
     }
 }
 
@@ -376,8 +383,8 @@ void HelioTrackingPanel::saveToData(HelioData *dataOut)
 {
     HelioPanel::saveToData(dataOut);
 
-    ((HelioTrackingPanelData *)dataOut)->axisPosition[0] = wrapBy360(_axisAngle[0].getMeasurement(true).asUnits(Helio_UnitsType_Angle_Degrees_360).value);
-    ((HelioTrackingPanelData *)dataOut)->axisPosition[1] = wrapBy180Neg180(_axisAngle[1].getMeasurement(true).asUnits(Helio_UnitsType_Angle_Degrees_360).value);
+    ((HelioTrackingPanelData *)dataOut)->axisPosition[0] = _axisAngle[0].getMeasurement(true).asUnits(Helio_UnitsType_Angle_Degrees_360).wrapBy360().value;
+    ((HelioTrackingPanelData *)dataOut)->axisPosition[1] = _axisAngle[1].getMeasurement(true).asUnits(Helio_UnitsType_Angle_Degrees_360).wrapBy180Neg180().value;
     ((HelioTrackingPanelData *)dataOut)->lastChangeTime = _lastChangeTime;
     if (_axisAngle[0].getId()) {
         strncpy(((HelioTrackingPanelData *)dataOut)->axisSensor1, _axisAngle[0].getKeyString().c_str(), HELIO_NAME_MAXSIZE);
@@ -461,8 +468,8 @@ void HelioPanelData::toJSONObject(JsonObject &objectOut) const
     HelioObjectData::toJSONObject(objectOut);
 
     if (powerUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_PowerUnits)] = unitsTypeToSymbol(powerUnits); }
-    if (!isFPEqual(homePosition[0],0) && !isFPEqual(homePosition[1],0)) { objectOut[SFP(HStr_Key_HomePosition)] = commaStringFromArray(homePosition, 2); }
-    if (!isFPEqual(axisOffset[0],0) && !isFPEqual(axisOffset[1],0)) { objectOut[SFP(HStr_Key_AxisOffset)] = commaStringFromArray(axisOffset, 2); }
+    if (!(isFPEqual(homePosition[0],0) && isFPEqual(homePosition[1],0))) { objectOut[SFP(HStr_Key_HomePosition)] = commaStringFromArray(homePosition, 2); }
+    if (!(isFPEqual(axisOffset[0],0) && isFPEqual(axisOffset[1],0))) { objectOut[SFP(HStr_Key_AxisOffset)] = commaStringFromArray(axisOffset, 2); }
     if (powerProdSensor[0]) { objectOut[SFP(HStr_Key_PowerProductionSensor)] = charsToString(powerProdSensor, HELIO_NAME_MAXSIZE); }
 }
 
@@ -481,7 +488,7 @@ void HelioPanelData::fromJSONObject(JsonObjectConst &objectIn)
 }
 
 HelioBalancingPanelData::HelioBalancingPanelData()
-    : HelioPanelData(), ldrSensor1{0}, ldrSensor2{0}, ldrSensor3{0}, ldrSensor4{0}
+    : HelioPanelData(), minIntensity(HELIO_PANEL_ALIGN_LDRMIN), ldrSensor1{0}, ldrSensor2{0}, ldrSensor3{0}, ldrSensor4{0}
 {
     _size = sizeof(*this);
 }
@@ -491,6 +498,7 @@ void HelioBalancingPanelData::toJSONObject(JsonObject &objectOut) const
     HelioPanelData::toJSONObject(objectOut);
 
     if (alignedTolerance != FLT_UNDEF && !isFPEqual(alignedTolerance, HELIO_PANEL_ALIGN_LDRTOL)) { objectOut[SFP(HStr_Key_AlignedTolerance)] = alignedTolerance; }
+    if (!isFPEqual(minIntensity, HELIO_PANEL_ALIGN_LDRMIN)) { objectOut[SFP(HStr_Key_MinIntensity)] = minIntensity; }
     if (ldrSensor1[0]) { objectOut[SFP(HStr_Key_LDRSensor1)] = charsToString(ldrSensor1, HELIO_NAME_MAXSIZE); }
     if (ldrSensor2[0]) { objectOut[SFP(HStr_Key_LDRSensor2)] = charsToString(ldrSensor2, HELIO_NAME_MAXSIZE); }
     if (ldrSensor3[0]) { objectOut[SFP(HStr_Key_LDRSensor3)] = charsToString(ldrSensor3, HELIO_NAME_MAXSIZE); }
@@ -501,6 +509,7 @@ void HelioBalancingPanelData::fromJSONObject(JsonObjectConst &objectIn)
 {
     HelioPanelData::fromJSONObject(objectIn);
 
+    minIntensity = objectIn[SFP(HStr_Key_MinIntensity)] | minIntensity;
     const char *ldrSensor1Str = objectIn[SFP(HStr_Key_LDRSensor1)];
     if (ldrSensor1Str && ldrSensor1Str[0]) { strncpy(ldrSensor1, ldrSensor1Str, HELIO_NAME_MAXSIZE); }
     const char *ldrSensor2Str = objectIn[SFP(HStr_Key_LDRSensor2)];
@@ -522,7 +531,7 @@ void HelioTrackingPanelData::toJSONObject(JsonObject &objectOut) const
     HelioPanelData::toJSONObject(objectOut);
 
     if (alignedTolerance != FLT_UNDEF && !isFPEqual(alignedTolerance, HELIO_PANEL_ALIGN_DEGTOL)) { objectOut[SFP(HStr_Key_AlignedTolerance)] = alignedTolerance; }
-    if (!isFPEqual(axisPosition[0],0) && !isFPEqual(axisPosition[1],0)) { objectOut[SFP(HStr_Key_AxisPosition)] = commaStringFromArray(axisPosition, 2); }
+    if (!(isFPEqual(axisPosition[0],0) && isFPEqual(axisPosition[1],0))) { objectOut[SFP(HStr_Key_AxisPosition)] = commaStringFromArray(axisPosition, 2); }
     if (lastChangeTime) { objectOut[SFP(HStr_Key_LastChangeDate)] = lastChangeTime; }
     if (axisSensor1[0]) { objectOut[SFP(HStr_Key_AxisSensor1)] = charsToString(axisSensor1, HELIO_NAME_MAXSIZE); }
     if (axisSensor2[0]) { objectOut[SFP(HStr_Key_AxisSensor2)] = charsToString(axisSensor2, HELIO_NAME_MAXSIZE); }
