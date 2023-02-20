@@ -983,32 +983,24 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Enum_WindSpeed;
         } break;
 
-        case HStr_Unit_Celsius: {
-            static const char flashStr_Unit_Celsius[] PROGMEM = {"°C"};
-            return flashStr_Unit_Celsius;
-        } break;
         case HStr_Unit_Count: {
             static const char flashStr_Unit_Count[] PROGMEM = {"[qty]"};
             return flashStr_Unit_Count;
         } break;
-        case HStr_Unit_Fahrenheit: {
-            static const char flashStr_Unit_Fahrenheit[] PROGMEM = {"°F"};
-            return flashStr_Unit_Fahrenheit;
+        case HStr_Unit_Degree: {
+            static const char flashStr_Unit_Degree[] PROGMEM = {"\xC2\xB0"};
+            return flashStr_Unit_Degree;
         } break;
         case HStr_Unit_Feet: {
             static const char flashStr_Unit_Feet[] PROGMEM = {"ft"};
             return flashStr_Unit_Feet;
-        } break;
-        case HStr_Unit_Kelvin: {
-            static const char flashStr_Unit_Kelvin[] PROGMEM = {"°K"};
-            return flashStr_Unit_Kelvin;
         } break;
         case HStr_Unit_PerMinute: {
             static const char flashStr_Unit_PerMinute[] PROGMEM = {"/min"};
             return flashStr_Unit_PerMinute;
         } break;
         case HStr_Unit_Radians: {
-            static const char flashStr_Unit_Radians[] PROGMEM = {"°rad"};
+            static const char flashStr_Unit_Radians[] PROGMEM = {"rad"};
             return flashStr_Unit_Radians;
         } break;
         case HStr_Unit_Undefined: {

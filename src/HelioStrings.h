@@ -222,11 +222,9 @@ enum Helio_String : unsigned short {
     HStr_Enum_Vertical,
     HStr_Enum_WindSpeed,
 
-    HStr_Unit_Celsius,
     HStr_Unit_Count,
-    HStr_Unit_Fahrenheit,
+    HStr_Unit_Degree,
     HStr_Unit_Feet,
-    HStr_Unit_Kelvin,
     HStr_Unit_PerMinute,
     HStr_Unit_Radians,
     HStr_Unit_Undefined,

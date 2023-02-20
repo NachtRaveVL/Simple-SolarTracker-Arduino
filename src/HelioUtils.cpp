@@ -1260,9 +1260,12 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
         case Helio_UnitsType_Percentile_100:
             return String('%');
         case Helio_UnitsType_Angle_Degrees_360:
-            return String('°');
-        case Helio_UnitsType_Angle_Radians_2pi:
-            return SFP(HStr_Unit_Radians);
+            return SFP(HStr_Unit_Degree);
+        case Helio_UnitsType_Angle_Radians_2pi: {
+            String retVal(SFP(HStr_Unit_Degree));
+            retVal.concat(SFP(HStr_Unit_Radians));
+            return retVal;
+        }
         case Helio_UnitsType_Distance_Feet:
             return SFP(HStr_Unit_Feet);
         case Helio_UnitsType_Distance_Meters:
@@ -1271,16 +1274,31 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             return String('A');
         case Helio_UnitsType_Power_Wattage:
             return String('W');
-        case Helio_UnitsType_Speed_FeetPerMin:
-            return SFP(HStr_Unit_Feet) + SFP(HStr_Unit_PerMinute);
-        case Helio_UnitsType_Speed_MetersPerMin:
-            return String('m') + SFP(HStr_Unit_PerMinute);
-        case Helio_UnitsType_Temperature_Celsius:
-            return SFP(HStr_Unit_Celsius);
-        case Helio_UnitsType_Temperature_Fahrenheit:
-            return SFP(HStr_Unit_Fahrenheit);
-        case Helio_UnitsType_Temperature_Kelvin:
-            return SFP(HStr_Unit_Kelvin);
+        case Helio_UnitsType_Speed_FeetPerMin: {
+            String retVal(SFP(HStr_Unit_Feet));
+            retVal.concat(SFP(HStr_Unit_PerMinute));
+            return retVal;
+        }
+        case Helio_UnitsType_Speed_MetersPerMin: {
+            String retVal('m');
+            retVal.concat(SFP(HStr_Unit_PerMinute));
+            return retVal;
+        }
+        case Helio_UnitsType_Temperature_Celsius: {
+            String retVal(SFP(HStr_Unit_Degree));
+            retVal.concat('C');
+            return retVal;
+        }
+        case Helio_UnitsType_Temperature_Fahrenheit: {
+            String retVal(SFP(HStr_Unit_Degree));
+            retVal.concat('F');
+            return retVal;
+        }
+        case Helio_UnitsType_Temperature_Kelvin: {
+            String retVal(SFP(HStr_Unit_Degree));
+            retVal.concat('K');
+            return retVal;
+        }
         case Helio_UnitsType_Count:
             return !excludeSpecial ? SFP(HStr_Unit_Count) : String();
         case Helio_UnitsType_Undefined:
@@ -1710,7 +1728,7 @@ Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
             return (Helio_UnitsType)20;
         case '%':
             return (Helio_UnitsType)1;
-        default:
+        default: // degree symbol
             switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\0') {
                 case 'C':
                     return (Helio_UnitsType)4;
