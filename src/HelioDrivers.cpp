@@ -61,7 +61,7 @@ float HelioDriver::getMaxTargetOffset(bool poll)
     float maxDelta = 0;
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-        if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isDirectionalType()) {
+        if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isMotorType()) {
             auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(poll).asUnits(getMeasurementUnits());
 
             float delta = _targetSetpoint - position.value;

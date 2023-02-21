@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 
 HelioScheduler::HelioScheduler()
-    : _needsScheduling(false), _inDaytimeMode(false), _lastDayNum(-1)
+    : _needsScheduling(false), _inDaytimeMode(false), _lastDay{0}
 { ; }
 
 HelioScheduler::~HelioScheduler()
@@ -35,7 +35,9 @@ void HelioScheduler::update()
                 Helioduino::_activeInstance->setNeedsLayout();
             }
 
-            if (_lastDayNum != currTime.day()) {
+            if (!(_lastDay[0] == currTime.year() &&
+                  _lastDay[1] == currTime.month() &&
+                  _lastDay[2] == currTime.day())) {
                 // only log uptime upon actual day change and if uptime has been at least 1d
                 if (getLogger()->getSystemUptime() >= SECS_PER_DAY) {
                     getLogger()->logSystemUptime();
@@ -56,31 +58,17 @@ void HelioScheduler::update()
     }
 }
 
-void HelioScheduler::setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> servoDriver)
+void HelioScheduler::setupPanelDriver(HelioPanel *panel, hposi_t axisIndex, SharedPtr<HelioDriver> panelDriver)
 {
-    if (panel && servoDriver) {
-        {   Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> incActuators;
-            auto phUpMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhUpSolution);
-            float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhUpSolution);
+    if (panel && panelDriver) {
+        if ((panel->drivesHorizontalAxis() && axisIndex == 0) ||
+            (panel->drivesHorizontalAxis() && axisIndex == 1)) {
+            Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> actuators;
 
-            linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_PeristalticMotor);
-            if (!incActuators.size()) { // prefer peristaltic, else use full motor
-                linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phUpMotors, dosingRate, incActuators, Helio_ActuatorType_WaterMotor);
-            }
+            auto axisActuators = linksFilterTravelActuatorsByPanelAxisAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel, axisIndex, panelDriver->isIncrementalType());
+            linksResolveActuatorsToAttachments<HELIO_DRV_ACTUATORS_MAXSIZE>(axisActuators, panelDriver.get(), axisIndex, actuators);
 
-            servoDriver->setIncrementActuators(incActuators);
-        }
-
-        {   Vector<HelioActuatorAttachment, HELIO_DRV_ACTUATORS_MAXSIZE> decActuators;
-            auto phDownMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel, Helio_PanelType_PhDownSolution);
-            float dosingRate = getCombinedDosingRate(panel, Helio_PanelType_PhDownSolution);
-
-            linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_PeristalticMotor);
-            if (!decActuators.size()) { // prefer peristaltic, else use full motor
-                linksResolveActuatorsToAttachmentsByRateAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(phDownMotors, dosingRate, decActuators, Helio_ActuatorType_WaterMotor);
-            }
-
-            servoDriver->setDecrementActuators(decActuators);
+            panelDriver->setActuators(actuators);
         }
     }
 }
@@ -104,11 +92,14 @@ TimeSpan HelioScheduler::getAirReportInterval() const
 void HelioScheduler::updateDayTracking()
 {
     time_t time = unixNow();
-    _lastDayNum = localTime(time).day();
+    DateTime currTime = localTime(time);
+    _lastDay[0] = currTime.year();
+    _lastDay[1] = currTime.month();
+    _lastDay[2] = currTime.day();
 
     Location loc = getController()->getSystemLocation();
     if (loc.hasPosition()) {
-        double transit;
+        double transit; // high noon, hours +fractional
         calcSunriseSunset((unsigned long)time, loc.latitude, loc.longitude, transit, _dailyTwilight.sunrise, _dailyTwilight.sunset,
                           loc.resolveSunAlt(), HELIO_SYS_SUNRISESET_CALCITERS);
         _dailyTwilight.isUTC = true;
@@ -131,20 +122,28 @@ void HelioScheduler::performScheduling()
 
             {   auto trackingIter = _trackings.find(panel->getKey());
 
-                if (trackingIter != _trackings.end()) {
-                    if (trackingIter->second) {
-                        trackingIter->second->recalcTracking();
-                    }
-                } else {
-                    #ifdef HELIO_USE_VERBOSE_OUTPUT
-                        Serial.print(F("Scheduler::performScheduling Crop linkages found for: ")); Serial.print(iter->second->getKeyString());
-                        Serial.print(':'); Serial.print(' '); Serial.println(linksCountCrops(panel->getLinkages())); flushYield();
-                    #endif
+                if (linksCountTravelActuators(panel->getLinkages())) {
+                    if (trackingIter != _trackings.end()) {
+                        if (trackingIter->second) {
+                            trackingIter->second->setupStaging();
+                        }
+                    } else {
+                        #ifdef HELIO_USE_VERBOSE_OUTPUT
+                            Serial.print(F("Scheduler::performScheduling Travel actuator linkages found for: ")); Serial.print(iter->second->getKeyString());
+                            Serial.print(':'); Serial.print(' '); Serial.println(linksCountTravelActuators(feedReservoir->getLinkages())); flushYield();
+                        #endif
 
-                    HelioTracking *tracking = new HelioTracking(panel);
-                    HELIO_SOFT_ASSERT(tracking, SFP(HStr_Err_AllocationFailure));
-                    if (tracking) { _trackings[panel->getKey()] = tracking; }
-                }                
+                        HelioTracking *tracking = new HelioTracking(panel);
+                        HELIO_SOFT_ASSERT(tracking, SFP(HStr_Err_AllocationFailure));
+                        if (tracking) { _trackings[panel->getKey()] = tracking; }
+                    }
+                } else if (trackingIter != _trackings.end()) { // No travel actuators to warrant process -> delete if exists
+                    #ifdef HYDRO_USE_VERBOSE_OUTPUT
+                        Serial.print(F("Scheduler::performScheduling NO travel actuator linkages found for: ")); Serial.println(iter->second->getKeyString()); flushYield();
+                    #endif
+                    if (trackingIter->second) { delete trackingIter->second; }
+                    _trackings.erase(trackingIter);
+                }
             }
         }
     }
@@ -225,8 +224,7 @@ void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_S
 
 
 HelioTracking::HelioTracking(SharedPtr<HelioPanel> panel)
-    : HelioProcess(panel), stage(Unknown), canTrackAfter(0), lastAirReport(0),
-      phSetpoint(0), tdsSetpoint(0), waterTempSetpoint(0), airTempSetpoint(0), co2Setpoint(0)
+    : HelioProcess(panel), stage(Unknown), canProcessAfter(0), lastAirReport(0)
 {
     reset();
 }
@@ -240,59 +238,6 @@ void HelioTracking::reset()
 {
     clearActuatorReqs();
     stage = Init; stageStart = unixNow();
-    recalcTracking();
-}
-
-void HelioTracking::recalcTracking()
-{
-    float totalWeights = 0;
-    float totalSetpoints[5] = {0,0,0,0,0};
-
-    {   auto crops = linksFilterCrops(panel->getLinkages());
-        for (auto panelIter = crops.begin(); panelIter != crops.end(); ++panelIter) {
-            auto crop = (HelioPanel *)(*panelIter);
-            auto cropsLibData = helioPanelsLib.checkoutCropsData(crop->getCropType());
-
-            if (cropsLibData) {
-                float weight = crop->getTrackingWeight();
-                totalWeights += weight;
-
-                float trackRate = ((cropsLibData->tdsRange[0] + cropsLibData->tdsRange[1]) * 0.5);
-                if (!getScheduler()->inDaytimeMode()) {
-                    trackRate *= cropsLibData->nightlyTrackRate;
-                }
-                trackRate *= getScheduler()->getBaseTrackMultiplier();
-
-                totalSetpoints[0] += trackRate * weight;
-                totalSetpoints[1] += ((cropsLibData->phRange[0] + cropsLibData->phRange[1]) * 0.5) * weight;
-                totalSetpoints[2] += ((cropsLibData->waterTempRange[0] + cropsLibData->waterTempRange[1]) * 0.5) * weight;
-                totalSetpoints[3] += ((cropsLibData->airTempRange[0] + cropsLibData->airTempRange[1]) * 0.5) * weight;
-                totalSetpoints[4] += cropsLibData->co2Levels[(crop->getCropPhase() <= Helio_CropPhase_Vegetative ? 0 : 1)] * weight;
-
-                helioPanelsLib.returnCropsData(cropsLibData);
-            }
-        }
-    }
-
-    if (totalWeights < FLT_EPSILON) {
-        totalWeights = 1.0f;
-        totalSetpoints[0] = 1;
-        totalSetpoints[1] = 6;
-    }
-
-    tdsSetpoint = totalSetpoints[0] / totalWeights;
-    phSetpoint = tdsSetpoint > FLT_EPSILON ? (totalSetpoints[1] / totalWeights) : 7.0f; // handle flushing
-    waterTempSetpoint = totalSetpoints[2] / totalWeights;
-    airTempSetpoint = totalSetpoints[3] / totalWeights;
-    co2Setpoint = totalSetpoints[4] / totalWeights;
-
-    #ifdef HELIO_USE_VERBOSE_OUTPUT // only works for singular track res in system, otherwise output will be erratic
-    {   static float _totalSetpoints[5] = {0,0,0,0,0};
-        if (!isFPEqual(_totalSetpoints[0], totalSetpoints[0]) || !isFPEqual(_totalSetpoints[1], totalSetpoints[1]) || !isFPEqual(_totalSetpoints[2], totalSetpoints[2]) || !isFPEqual(_totalSetpoints[3], totalSetpoints[3]) || !isFPEqual(_totalSetpoints[4], totalSetpoints[4])) {
-            _totalSetpoints[0] = totalSetpoints[0]; _totalSetpoints[1] = totalSetpoints[1]; _totalSetpoints[2] = totalSetpoints[2]; _totalSetpoints[3] = totalSetpoints[3]; _totalSetpoints[4] = totalSetpoints[4];
-            Serial.print(F("Tracking::recalcTracking setpoints: {tds,pH,wTmp,aTmp,aCO2} = [")); Serial.print(_totalSetpoints[0]); Serial.print(' '); Serial.print(_totalSetpoints[1]); Serial.print(' '); Serial.print(_totalSetpoints[2]); Serial.print(' '); Serial.print(_totalSetpoints[3]); Serial.print(' '); Serial.print(_totalSetpoints[4]); Serial.println(']'); flushYield(); } }
-    #endif
-
     setupStaging();
 }
 
@@ -303,177 +248,115 @@ void HelioTracking::setupStaging()
         Serial.print(F("Tracking::setupStaging stage: ")); Serial.println((_stageFS1 = (int8_t)stage)); flushYield(); } }
     #endif
 
-    if (stage == PreTrack) {
-        if (panel->getWaterPHSensor()) {
-            auto phBalancer = panel->getServoDriver();
-            if (!phBalancer) {
-                phBalancer = SharedPtr<HelioIncrementalDriver>(new HelioIncrementalDriver(panel->getWaterPHSensor(), phSetpoint, HELIO_RANGE_PH_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
-                HELIO_SOFT_ASSERT(phBalancer, SFP(HStr_Err_AllocationFailure));
-                getScheduler()->setupServoDriver(panel.get(), phBalancer);
-                panel->setServoDriver(phBalancer);
-            }
-            if (phBalancer) {
-                phBalancer->setTargetSetpoint(phSetpoint);
-                phBalancer->setMeasurementUnits(Helio_UnitsType_Alkalinity_pH_14);
-                phBalancer->setEnabled(true);
-            }
-        }
-        if (panel->getWaterTDSSensor()) {
-            auto tdsBalancer = panel->getWaterTDSBalancer();
-            if (!tdsBalancer) {
-                tdsBalancer = SharedPtr<HelioIncrementalDriver>(new HelioIncrementalDriver(panel->getWaterTDSSensor(), tdsSetpoint, HELIO_RANGE_EC_HALF, panel->getMaxVolume(), panel->getVolumeUnits()));
-                HELIO_SOFT_ASSERT(tdsBalancer, SFP(HStr_Err_AllocationFailure));
-                getScheduler()->setupWaterTDSBalancer(panel.get(), tdsBalancer);
-                panel->setWaterTDSBalancer(tdsBalancer);
-            }
-            if (tdsBalancer) {
-                tdsBalancer->setTargetSetpoint(tdsSetpoint);
-                tdsBalancer->setMeasurementUnits(Helio_UnitsType_Concentration_EC);
-                tdsBalancer->setEnabled(true);
-            }
-        }
-    } else {
-        auto phBalancer = panel->getServoDriver();
-        if (phBalancer) { phBalancer->setEnabled(false); }
-        auto tdsBalancer = panel->getWaterTDSBalancer();
-        if (tdsBalancer) { tdsBalancer->setEnabled(false); }
-    }
-
-    if ((stage == PreTrack || stage == Track) && panel->getWaterTemperatureSensor()) {
-        auto waterTempBalancer = panel->getWaterTemperatureBalancer();
-        if (!waterTempBalancer) {
-            waterTempBalancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getWaterTemperatureSensor(), waterTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
-            HELIO_SOFT_ASSERT(waterTempBalancer, SFP(HStr_Err_AllocationFailure));
-            getScheduler()->setupWaterTemperatureBalancer(panel.get(), waterTempBalancer);
-            panel->setWaterTemperatureBalancer(waterTempBalancer);
-        }
-        if (waterTempBalancer) {
-            waterTempBalancer->setTargetSetpoint(waterTempSetpoint);
-            waterTempBalancer->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
-            waterTempBalancer->setEnabled(true);
-        }
-    } else {
-        auto waterTempBalancer = panel->getWaterTemperatureBalancer();
-        if (waterTempBalancer) { waterTempBalancer->setEnabled(false); }
-    }
-
-    if (panel->getTemperatureSensor()) {
-        auto airTempBalancer = panel->getTemperatureBalancer();
-        if (!airTempBalancer) {
-            airTempBalancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getTemperatureSensor(), airTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
-            HELIO_SOFT_ASSERT(airTempBalancer, SFP(HStr_Err_AllocationFailure));
-            getScheduler()->setupTemperatureBalancer(panel.get(), airTempBalancer);
-            panel->setTemperatureBalancer(airTempBalancer);
-        }
-        if (airTempBalancer) {
-            airTempBalancer->setTargetSetpoint(airTempSetpoint);
-            airTempBalancer->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
-            airTempBalancer->setEnabled(true);
-        }
-    } else {
-        auto airTempBalancer = panel->getTemperatureBalancer();
-        if (airTempBalancer) { airTempBalancer->setEnabled(false); }
-    }
-
-    if (panel->getAirCO2Sensor()) {
-        auto co2Balancer = panel->getTemperatureBalancer();
-        if (!co2Balancer) {
-            co2Balancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getAirCO2Sensor(), co2Setpoint, HELIO_RANGE_CO2_HALF, -HELIO_RANGE_CO2_HALF * 0.25f, HELIO_RANGE_CO2_HALF * 0.5f));
-            HELIO_SOFT_ASSERT(co2Balancer, SFP(HStr_Err_AllocationFailure));
-            getScheduler()->setupAirCO2Balancer(panel.get(), co2Balancer);
-            panel->setAirCO2Balancer(co2Balancer);
-        }
-        if (co2Balancer) {
-            co2Balancer->setTargetSetpoint(co2Setpoint);
-            co2Balancer->setMeasurementUnits(Helio_UnitsType_Concentration_PPM);
-            co2Balancer->setEnabled(true);
-        }
-    } else {
-        auto co2Balancer = panel->getAirCO2Balancer();
-        if (co2Balancer) { co2Balancer->setEnabled(false); }
-    }
+    // if (panel->getTemperatureSensor()) {
+    //     auto airTempBalancer = panel->getTemperatureBalancer();
+    //     if (!airTempBalancer) {
+    //         airTempBalancer = SharedPtr<HelioAbsoluteDriver>(new HelioAbsoluteDriver(panel->getTemperatureSensor(), airTempSetpoint, HELIO_RANGE_TEMP_HALF, -HELIO_RANGE_TEMP_HALF * 0.25f, HELIO_RANGE_TEMP_HALF * 0.5f));
+    //         HELIO_SOFT_ASSERT(airTempBalancer, SFP(HStr_Err_AllocationFailure));
+    //         getScheduler()->setupTemperatureBalancer(panel.get(), airTempBalancer);
+    //         panel->setTemperatureBalancer(airTempBalancer);
+    //     }
+    //     if (airTempBalancer) {
+    //         airTempBalancer->setTargetSetpoint(airTempSetpoint);
+    //         airTempBalancer->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
+    //         airTempBalancer->setEnabled(true);
+    //     }
+    // } else {
+    //     auto airTempBalancer = panel->getTemperatureBalancer();
+    //     if (airTempBalancer) { airTempBalancer->setEnabled(false); }
+    // }
 
     switch (stage) {
         case Init: {
-            auto maxTrackingsDay = getScheduler()->getTotalTrackingsDay();
-            auto trackingsToday = panel->getTrackingsToday();
-
-            if (!maxTrackingsDay) {
-                canTrackAfter = (time_t)0;
-            } else if (trackingsToday < maxTrackingsDay) {
-                // this will force trackings to be spread out during the entire day
-                canTrackAfter = unixDayStart() + (time_t)(((float)SECS_PER_DAY / (maxTrackingsDay + 1)) * trackingsToday);
-            } else {
-                canTrackAfter = (time_t)UINT32_MAX; // no more trackings today
-            }
-
-            if (canTrackAfter > unixNow()) { clearActuatorReqs(); } // clear on wait
-        } break;
-
-        case TopOff: {
-            if (!panel->isFilled()) {
-                Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
-                auto topOffMotors = linksFilterMotorActuatorsByOutputPanelAndInputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_FreshWater);
-
-                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // fresh water motors
-                if (!newActuatorReqs.size()) {
-                    linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(topOffMotors, newActuatorReqs, Helio_ActuatorType_PeristalticMotor); // fresh water peristaltic motors
-                }
-
-                HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no fresh water motors
-                setActuatorReqs(newActuatorReqs);
-            } else {
-                clearActuatorReqs();
-            }
-        } break;
-
-        case PreTrack: {
             Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
-            auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
-
-            linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
-
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             setActuatorReqs(newActuatorReqs);
+
+            auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
+            bool needsCleaning = false; // todo
+            if (needsCleaning) {
+                auto panelSprayers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
+                needsCleaning = panelSprayers.size();
+            }
+            auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            canProcessAfter = unixTime(sunrise - (needsCleaning ? TimeSpan(0,0,30,0) : TimeSpan(0))
+                                               - (panelHeaters.size() ? TimeSpan(0,0,30,0) : TimeSpan(0)));
+        } break;
+
+        case Preheat: {
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+            auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
+            setActuatorReqs(newActuatorReqs);
+
+            auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
+            bool needsCleaning = false; // todo
+            if (needsCleaning) {
+                auto panelSprayers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
+                needsCleaning = panelSprayers.size();
+            }
+            canProcessAfter = unixTime(sunrise - (needsCleaning ? TimeSpan(0,0,30,0) : TimeSpan(0)));
+        } break;
+
+        case Uncover: {
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newDrvActuators;
+            auto panelCovers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelCover);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelCovers, nullptr, 0, newDrvActuators);
+            auto coverDriver = panel->getCoverDriver();
+            coverDriver->setActuators(newDrvActuators);
+            coverDriver->setTargetSetpoint(coverDriver->getTrackRange().first);
+
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+            auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
+            setActuatorReqs(newActuatorReqs);
+
+            canProcessAfter = stageStart + 15;
+        } break;
+
+        case Clean: {
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
+            auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
+            auto panelSprayers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelSprayers, nullptr, 0, newActuatorReqs);
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
+            setActuatorReqs(newActuatorReqs);
+
+            canProcessAfter = stageStart + SECS_PER_MIN;
         } break;
 
         case Track: {
             Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
-
-            {   auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_TrackWater);
-
-                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // track water motor
-            }
-
-            if (!newActuatorReqs.size() && getController()->getSystemMode() == Helio_SystemMode_DrainToWaste) { // prefers track water motors, else direct to waste is track
-                auto trackMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
-
-                linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(trackMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // DTW track water motor
-            }
-
-            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no track water motors
-
-            #if HELIO_SCH_AERATORS_TRACKRUN
-                {   auto aerators = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_WaterAerator);
-
-                    linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(aerators, newActuatorReqs, Helio_ActuatorType_WaterAerator);
-                }
-            #endif
-
+            auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             setActuatorReqs(newActuatorReqs);
+
+            canProcessAfter = stageStart + 15;
         } break;
 
-        case Drain: {
+        case Cover: {
+            Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newDrvActuators;
+            auto panelCovers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelCover);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelCovers, nullptr, 0, newDrvActuators);
+            auto coverDriver = panel->getCoverDriver();
+            coverDriver->setActuators(newDrvActuators);
+            coverDriver->setTargetSetpoint(coverDriver->getTrackRange().second);
+
             Vector<HelioActuatorAttachment, HELIO_SCH_REQACTS_MAXSIZE> newActuatorReqs;
-            auto drainMotors = linksFilterMotorActuatorsByInputPanelAndOutputPanelType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_PanelType_DrainageWater);
-
-            linksResolveActuatorsByType<HELIO_SCH_REQACTS_MAXSIZE>(drainMotors, newActuatorReqs, Helio_ActuatorType_WaterMotor); // drainage water motor
-
-            HELIO_SOFT_ASSERT(newActuatorReqs.size(), SFP(HStr_Err_MissingLinkage)); // no drainage water motors
+            auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             setActuatorReqs(newActuatorReqs);
-        } break;
 
-        case Done: {
-            clearActuatorReqs();
+            canProcessAfter = stageStart + 15;
         } break;
 
         default:
@@ -493,115 +376,67 @@ void HelioTracking::update()
         Serial.print(F("Tracking::update stage: ")); Serial.println((_stageFU1 = (int8_t)stage)); flushYield(); } }
     #endif
 
-    if ((!lastAirReport || unixNow() >= lastAirReport + getScheduler()->getAirReportInterval().totalseconds()) &&
-        (getScheduler()->getAirReportInterval().totalseconds() > 0) && // 0 disables
-        panel->getTemperatureSensor()) {
-        getLogger()->logProcess(panel.get(), SFP(HStr_Log_AirReport));
-        logTracking(HelioTrackingLogType_Setpoints);
-        logTracking(HelioTrackingLogType_Measures);
-        lastAirReport = unixNow();
-    }
+    // if ((!lastAirReport || unixNow() >= lastAirReport + getScheduler()->getAirReportInterval().totalseconds()) &&
+    //     (getScheduler()->getAirReportInterval().totalseconds() > 0) && // 0 disables
+    //     panel->getTemperatureSensor()) {
+    //     getLogger()->logProcess(panel.get(), SFP(HStr_Log_AirReport));
+    //     logTracking(HelioTrackingLogType_Setpoints);
+    //     logTracking(HelioTrackingLogType_Measures);
+    //     lastAirReport = unixNow();
+    // }
 
     switch (stage) {
         case Init: {
-            if (!canTrackAfter || unixNow() >= canTrackAfter) {
-                int cropsCount = 0;
-                int cropsHungry = 0;
-
-                {   auto crops = linksFilterCrops(panel->getLinkages());
-                    cropsCount = crops.size();
-                    for (auto panelIter = crops.begin(); panelIter != crops.end(); ++panelIter) {
-                        if (((HelioPanel *)(*panelIter))->needsTracking()) { cropsHungry++; }
-                    }
-                }
-
-                if (!cropsCount || cropsHungry / (float)cropsCount >= HELIO_SCH_TRACK_FRACTION - FLT_EPSILON) {
-                    stage = TopOff; stageStart = unixNow();
+            if (!canProcessAfter || unixNow() >= canProcessAfter) {
+                auto currTime = localNow();
+                if (currTime > getScheduler()->getDailyTwilight().getSunsetLocalTime()) {
+                    stage = Cover; stageStart = unixNow(); canProcessAfter = 0;
                     setupStaging();
-
-                    if (actuatorReqs.size()) {
-                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreTrackTopOff), SFP(HStr_Log_HasBegan));
-                    }
+                } else if (currTime >= getScheduler()->getDailyTwilight().getSunriseLocalTime()) {
+                    stage = Uncover; stageStart = unixNow(); canProcessAfter = 0;
+                    setupStaging();
+                } else if (canProcessAfter) {
+                    stage = Preheat; stageStart = unixNow(); canProcessAfter = 0;
+                    setupStaging();
                 }
             }
         } break;
 
-        case TopOff: {
-            if (panel->isFilled() || !actuatorReqs.size()) {
-                stage = PreTrack; stageStart = unixNow();
-                canTrackAfter = 0; // will be used to track how long balancers stay balanced
+        case Preheat: {
+            if (unixNow() >= canProcessAfter) {
+                stage = Uncover; stageStart = unixNow(); canProcessAfter = 0;
                 setupStaging();
-
-                getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreTrackDriving), SFP(HStr_Log_HasBegan));
-                if (actuatorReqs.size()) {
-                    getLogger()->logMessage(SFP(HStr_Log_Field_Aerator_Duration), String(getScheduler()->getPreTrackAeratorMins()), String('m'));
-                }
-                if (panel->getServoDriver() || panel->getWaterTDSBalancer()) {
-                    auto balancer = static_pointer_cast<HelioIncrementalDriver>(panel->getServoDriver() ? panel->getServoDriver() : panel->getWaterTDSBalancer());
-                    if (balancer) {
-                        getLogger()->logMessage(SFP(HStr_Log_Field_MixTime_Duration), timeSpanToString(TimeSpan(balancer->getMixTime())));
-                    }
-                }
-                logTracking(HelioTrackingLogType_WaterSetpoints);
-                logTracking(HelioTrackingLogType_WaterMeasures);
             }
         } break;
 
-        case PreTrack: {
-            if (!actuatorReqs.size() || unixNow() >= stageStart + (getScheduler()->getPreTrackAeratorMins() * SECS_PER_MIN)) {
-                auto phBalancer = panel->getServoDriver();
-                auto tdsBalancer = panel->getWaterTDSBalancer();
-                auto waterTempBalancer = panel->getWaterTemperatureBalancer();
-
-                if ((!phBalancer || (phBalancer->isEnabled() && phBalancer->isOnTarget())) &&
-                    (!tdsBalancer || (tdsBalancer->isEnabled() && tdsBalancer->isOnTarget())) &&
-                    (!waterTempBalancer || (waterTempBalancer->isEnabled() && waterTempBalancer->isOnTarget()))) {
-                    // Can proceed after above are marked balanced for min time
-                    if (!canTrackAfter) { canTrackAfter = unixNow() + HELIO_SCH_BALANCE_MINTIME; }
-                    else if (unixNow() >= canTrackAfter) {
-                        stage = Track; stageStart = unixNow();
+        case Uncover: {
+             if (unixNow() >= canProcessAfter) {
+                if (panel->getCoverDriver()->isAligned()) {
+                    bool needsCleaning = false; // todo
+                    auto panelSprayers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
+                    if (needsCleaning && panelSprayers.size()) {
+                        stage = Clean; stageStart = unixNow(); canProcessAfter = 0;
                         setupStaging();
-
-                        broadcastTracking(HelioTrackingBroadcastType_Began);
+                    } else {
+                        stage = Track; stageStart = unixNow(); canProcessAfter = 0;
+                        setupStaging();
                     }
                 } else {
-                    canTrackAfter = 0;
+                    canProcessAfter = canProcessAfter + 15;
                 }
-            }
+             }
+        } break;
+
+        case Clean: {
+
         } break;
 
         case Track: {
-            int cropsCount = 0;
-            int cropsFed = 0;
-
-            {   auto crops = linksFilterCrops(panel->getLinkages());
-                cropsCount = crops.size();
-                for (auto panelIter = crops.begin(); panelIter != crops.end(); ++panelIter) {
-                    if (!((HelioPanel *)(*panelIter))->needsTracking()) { cropsFed++; }
-                }
-            }
-
-            if (!cropsCount || cropsFed / (float)cropsCount >= HELIO_SCH_TRACK_FRACTION - FLT_EPSILON ||
-                panel->isEmpty()) {
-                stage = (getController()->getSystemMode() == Helio_SystemMode_DrainToWaste ? Drain : Done);
-                stageStart = unixNow();
-                setupStaging();
-
-                broadcastTracking(HelioTrackingBroadcastType_Ended);
-            }
+            
         } break;
 
-        case Drain: {
-            if (getController()->getSystemMode() != Helio_SystemMode_DrainToWaste ||
-                panel->isEmpty()) {
-                stage = Done; stageStart = unixNow();
-                setupStaging();
-            }
-        } break;
-
-        case Done: {
-            stage = Init; stageStart = unixNow();
-            setupStaging();
+        case Cover: {
+            
         } break;
 
         default:

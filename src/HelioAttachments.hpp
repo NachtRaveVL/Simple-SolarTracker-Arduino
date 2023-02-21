@@ -96,8 +96,8 @@ SharedPtr<U> HelioAttachment::getObject()
 
 
 template<class ParameterType, int Slots> template<class U>
-HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(HelioObjInterface *parent, Signal<ParameterType,Slots> &(U::*signalGetter)(void))
-    : HelioAttachment(parent), _signalGetter((SignalGetterPtr)signalGetter), _handleSlot(nullptr)
+HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(HelioObjInterface *parent, hposi_t subIndex, Signal<ParameterType,Slots> &(U::*signalGetter)(void))
+    : HelioAttachment(parent, subIndex), _signalGetter((SignalGetterPtr)signalGetter), _handleSlot(nullptr)
 { ; }
 
 template<class ParameterType, int Slots>

@@ -58,9 +58,10 @@ inline SharedPtr<U> HelioParentSensorAttachmentInterface::getParentSensor()
 }
 
 template <class U>
-inline void HelioParentPanelAttachmentInterface::setParentPanel(U panel)
+inline void HelioParentPanelAttachmentInterface::setParentPanel(U panel, hposi_t axisIndex)
 {
     getParentPanelAttachment().setObject(panel);
+    getParentPanelAttachment().setParentSubIndex(axisIndex);
 }
 
 template <class U>

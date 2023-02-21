@@ -54,12 +54,12 @@ SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
 }
 
 
-HelioAttachment::HelioAttachment(HelioObjInterface *parent)
-    : HelioSubObject(parent), _obj()
+HelioAttachment::HelioAttachment(HelioObjInterface *parent, hposi_t subIndex)
+    : HelioSubObject(parent), _obj(), _subIndex(subIndex)
 { ; }
 
 HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
-    : HelioSubObject(attachment._parent), _obj()
+    : HelioSubObject(attachment._parent), _obj(), _subIndex(attachment._subIndex)
 {
     setObject(attachment._obj);
 }
@@ -103,8 +103,8 @@ void HelioAttachment::setParent(HelioObjInterface *parent)
 }
 
 
-HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(parent, &HelioActuator::getActivationSignal),
+HelioActuatorAttachment::HelioActuatorAttachment(HelioObjInterface *parent, hposi_t subIndex)
+    : HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>(parent, subIndex, &HelioActuator::getActivationSignal),
        _actHandle(), _actSetup(), _updateSlot(nullptr), _rateMultiplier(1.0f), _calledLastUpdate(false)
 { ; }
 
@@ -139,7 +139,7 @@ void HelioActuatorAttachment::setupActivation(float value, millis_t duration, bo
     if (resolve()) {
         value = get()->calibrationInvTransform(value);
 
-        if (get()->isDirectionalType()) {
+        if (get()->isMotorType()) {
             setupActivation(HelioActivation(value > FLT_EPSILON ? Helio_DirectionMode_Forward : value < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(value), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
             return;
         }
@@ -192,8 +192,8 @@ void HelioActuatorAttachment::applySetup()
 }
 
 
-HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, uint8_t measurementRow)
-    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, &HelioSensor::getMeasurementSignal),
+HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, hposi_t subIndex, uint8_t measurementRow)
+    : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, subIndex, &HelioSensor::getMeasurementSignal),
       _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
     setHandleMethod(&HelioSensorAttachment::handleMeasurement);
@@ -272,8 +272,8 @@ void HelioSensorAttachment::handleMeasurement(const HelioMeasurement *measuremen
 }
 
 
-HelioTriggerAttachment::HelioTriggerAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(parent, &HelioTrigger::getTriggerSignal)
+HelioTriggerAttachment::HelioTriggerAttachment(HelioObjInterface *parent, hposi_t subIndex)
+    : HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS>(parent, subIndex, &HelioTrigger::getTriggerSignal)
 { ; }
 
 HelioTriggerAttachment::HelioTriggerAttachment(const HelioTriggerAttachment &attachment)
@@ -289,8 +289,8 @@ void HelioTriggerAttachment::updateIfNeeded(bool poll)
 }
 
 
-HelioDriverAttachment::HelioDriverAttachment(HelioObjInterface *parent)
-    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(parent, &HelioDriver::getDrivingSignal)
+HelioDriverAttachment::HelioDriverAttachment(HelioObjInterface *parent, hposi_t subIndex)
+    : HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS>(parent, subIndex, &HelioDriver::getDrivingSignal)
 { ; }
 
 HelioDriverAttachment::HelioDriverAttachment(const HelioDriverAttachment &attachment)
