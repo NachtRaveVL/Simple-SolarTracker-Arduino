@@ -209,6 +209,25 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
 }
 
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
+Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor)
+{
+    Vector<HelioObject *, N> retVal;
+
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+        if (links.second[linksIndex].first->isActuatorType()) {
+            auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
+
+            if (actuator->isTravelType() && actuator->isMotorType() == isMotor &&
+                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
+                retVal.push_back(links.second[linksIndex].first);
+            }
+        }
+    }
+
+    return retVal;
+}
+
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType)
 {
     Vector<HelioObject *, N> retVal;
@@ -217,7 +236,8 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel &&
+                actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }
@@ -233,23 +253,39 @@ void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<H
         auto actuator = getSharedPtr<HelioActuator>(*actIter);
         HELIO_HARD_ASSERT(actuator, SFP(HStr_Err_OperationFailure));
         if (actuator->getActuatorType() == actuatorType) {
-            activationsOut.push_back(HelioActuatorAttachment(nullptr));
+            activationsOut.push_back(HelioActuatorAttachment());
             activationsOut.back().setObject(actuator);
+            activationsOut.back().setupActivation(false);
         }
     }
 }
 
 template<size_t N>
-void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
+void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, Vector<HelioActuatorAttachment, N> &activationsOut)
+{
+    for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
+        auto actuator = getSharedPtr<HelioActuator>(*actIter);
+        HELIO_HARD_ASSERT(actuator, SFP(HStr_Err_OperationFailure));
+
+        activationsOut.push_back(HelioActuatorAttachment());
+        activationsOut.back().setParent(parent, subIndex);
+        activationsOut.back().setObject(actuator);
+        activationsOut.back().setupActivation(false);
+    }
+}
+
+template<size_t N>
+void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
         auto actuator = getSharedPtr<HelioActuator>(*actIter);
         HELIO_HARD_ASSERT(actuator, SFP(HStr_Err_OperationFailure));
         if (actuator->getActuatorType() == actuatorType) {
-            activationsOut.push_back(HelioActuatorAttachment(nullptr));
-            activationsOut.back().setParent(parent);
+            activationsOut.push_back(HelioActuatorAttachment());
+            activationsOut.back().setParent(parent, subIndex);
             activationsOut.back().setRateMultiplier(rateMultiplier);
             activationsOut.back().setObject(actuator);
+            activationsOut.back().setupActivation(false);
         }
     }
 }

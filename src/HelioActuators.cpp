@@ -228,7 +228,7 @@ Pair<float,float> HelioActuator::getTravelRange() const
 {
     if (isServoType()) {
         return make_pair<float,float>(calibrationTransform(0.025f), calibrationTransform(0.125f));
-    } else if (isDirectionalType()) {
+    } else if (isMotorType()) {
         return make_pair<float,float>(0.0f, FLT_UNDEF);
     } else {
         return make_pair<float,float>(calibrationTransform(0.0f), calibrationTransform(1.0f));

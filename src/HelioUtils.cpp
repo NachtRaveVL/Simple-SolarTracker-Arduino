@@ -811,6 +811,22 @@ Helio_UnitsType defaultUnits(Helio_UnitsCategory unitsCategory, Helio_Measuremen
     }
 }
 
+int linksCountTravelActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links)
+{
+    int retVal = 0;
+
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+        if (links.second[linksIndex].first->isActuatorType()) {
+            auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
+
+            if (actuator->isTravelType()) {
+                retVal++;
+            }
+        }
+    }
+
+    return retVal;
+}
 
 int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType)
 {
@@ -1052,6 +1068,8 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
             return SFP(HStr_Enum_LinearActuator);
         case Helio_ActuatorType_PanelBrake:
             return SFP(HStr_Enum_PanelBrake);
+        case Helio_ActuatorType_PanelCover:
+            return SFP(HStr_Enum_PanelCover);
         case Helio_ActuatorType_PanelHeater:
             return SFP(HStr_Enum_PanelHeater);
         case Helio_ActuatorType_PanelSprayer:

@@ -16,11 +16,11 @@ struct HelioTracking;
 
 // Scheduler
 // The Scheduler acts as the system's main scheduling attendant, who looks through all
-// the various equipment and crops you have programmed in, and figures out the best
-// case tracking and lighting sequences that should occur to support them. It is also
-// responsible for setting up and maintaining the system balancers that get assigned to
-// track panels, which drives the various driving processes in use, as well as
-// determining when significant time changes have occurred and broadcasting such out.
+// the various equipment and panels you have programmed in, and figures out the best
+// case tracking processes that should occur to support them. It is also responsible
+// for setting up and maintaining the drivers that get assigned to panels (such as the
+// various mechanical orientation devices in use), as well as determining when
+// significant time or event changes have occurred and broadcasting such out.
 class HelioScheduler {
 public:
     HelioScheduler();
@@ -28,23 +28,23 @@ public:
 
     void update();
 
-    void setupServoDriver(HelioPanel *panel, SharedPtr<HelioDriver> servoDriver);
-    
-    void setBaseTrackMultiplier(float trackMultiplier);
+    void setupPanelDriver(HelioPanel *panel, hposi_t axisIndex, SharedPtr<HelioDriver> panelDriver);
+
     void setAirReportInterval(TimeSpan interval);
 
     inline void setNeedsScheduling();
     inline bool needsScheduling() { return _needsScheduling; }
     inline bool inDaytimeMode() const { return _inDaytimeMode; }
 
-    float getBaseTrackMultiplier() const;
     TimeSpan getAirReportInterval() const;
+
+    inline const Twilight &getDailyTwilight() const { return _dailyTwilight; }
 
 protected:
     Twilight _dailyTwilight;                                // Daily twilight settings
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     bool _inDaytimeMode;                                    // Daytime mode flag
-    int _lastDayNum;                                        // Last day number tracking for daily rescheduling tracking
+    hposi_t _lastDay[3];                                    // Last day tracking for rescheduling (Y,M,D)
     Map<hkey_t, HelioTracking *, HELIO_SCH_PROCS_MAXSIZE> _trackings; // Trackings in progress
 
     friend class Helioduino;
@@ -88,17 +88,14 @@ struct HelioProcess {
 
 // Scheduler Tracking Process
 struct HelioTracking : public HelioProcess {
-    enum : signed char {Init,TopOff,PreTrack,Track,Drain,Done,Unknown = -1} stage; // Current tracking stage
+    enum : signed char {Init,Preheat,Uncover,Clean,Track,Cover,Unknown = -1} stage; // Current tracking stage
 
-    time_t canTrackAfter;                                   // Time next tracking can occur (unix/UTC)
+    time_t canProcessAfter;                                 // Time next processing can occur (unix/UTC), else 0/disabled
     time_t lastAirReport;                                   // Last time an air report was generated (unix/UTC)
-
-    float axisSetpoints[2];                                 // Calculated axis setpoints for attached panel
 
     HelioTracking(SharedPtr<HelioPanel> panel);
     ~HelioTracking();
 
-    void recalcTracking();
     void setupStaging();
     void update();
 

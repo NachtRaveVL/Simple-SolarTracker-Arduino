@@ -309,6 +309,7 @@ enum Helio_ActuatorType : signed char {
     Helio_ActuatorType_ContinuousServo,                     // Continuous servo (motor)
     Helio_ActuatorType_LinearActuator,                      // Linear actuator (motor)
     Helio_ActuatorType_PanelBrake,                          // Panel brake/stops (binary)
+    Helio_ActuatorType_PanelCover,                          // Panel cover (binary/analog/motor)
     Helio_ActuatorType_PanelHeater,                         // Panel heater (binary/analog)
     Helio_ActuatorType_PanelSprayer,                        // Panel sprayer/cleaner (binary/analog)
     Helio_ActuatorType_PositionalServo,                     // Positional servo (analog)

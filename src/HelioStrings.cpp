@@ -918,6 +918,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelBrake[] PROGMEM = {"PanelBrake"};
             return flashStr_Enum_PanelBrake;
         } break;
+        case HStr_Enum_PanelCover: {
+            static const char flashStr_Enum_PanelCover[] PROGMEM = {"PanelCover"};
+            return flashStr_Enum_PanelCover;
+        } break;
         case HStr_Enum_PanelHeater: {
             static const char flashStr_Enum_PanelHeater[] PROGMEM = {"PanelHeater"};
             return flashStr_Enum_PanelHeater;

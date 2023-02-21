@@ -60,10 +60,9 @@ public:
     inline Helio_EnableMode getEnableMode() const { return _enableMode; }
 
     inline bool isSerialMode() const { return getActuatorIsSerialFromMode(getEnableMode()); }
-    inline bool isMotorType() const { return getActuatorIsMotorFromType(getActuatorType()); }
+    inline bool isMotorType() const { return getActuatorIsMotorFromType(getActuatorType()) || isAnyMotorClass(); }
     inline bool isServoType() const { return getActuatorIsServoFromType(getActuatorType()); }
-    inline bool isDirectionalType() const { return isMotorType(); }
-    inline bool isMovementType() const { return isMotorType() || isServoType(); }
+    inline bool isTravelType() const { return isMotorType() || isServoType(); }
 
     virtual void setContinuousPowerUsage(HelioSingleMeasurement contPowerUsage) override;
     virtual const HelioSingleMeasurement &getContinuousPowerUsage() override;

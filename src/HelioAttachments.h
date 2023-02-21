@@ -75,7 +75,7 @@ private:
 // dereference / unregisters the parent object at time of destruction or reassignment.
 class HelioAttachment : public HelioSubObject {
 public:
-    HelioAttachment(HelioObjInterface *parent = nullptr);
+    HelioAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioAttachment(const HelioAttachment &attachment);
     virtual ~HelioAttachment();
 
@@ -99,7 +99,10 @@ public:
     template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
     virtual void setParent(HelioObjInterface *parent) override;
+    inline void setParent(HelioObjInterface *parent, hposi_t subIndex) { setParent(parent); setParentSubIndex(subIndex); }
+    inline void setParentSubIndex(hposi_t subIndex) { _subIndex = subIndex; }
     inline HelioObjInterface *getParent() { return _parent; }
+    inline hposi_t getParentSubIndex() { return _subIndex; }
 
     inline HelioIdentity getId() const { return _obj.getId(); }
     inline hkey_t getKey() const { return _obj.getKey(); }
@@ -120,6 +123,7 @@ public:
 
 protected:
     HelioDLinkObject _obj;                                  // Dynamic link object
+    hposi_t _subIndex;                                      // Parent sub index, else 0
 };
 
 
@@ -132,7 +136,7 @@ class HelioSignalAttachment : public HelioAttachment {
 public:
     typedef Signal<ParameterType,Slots> &(HelioObjInterface::*SignalGetterPtr)(void);
 
-    template<class U> HelioSignalAttachment(HelioObjInterface *parent = nullptr, Signal<ParameterType,Slots> &(U::*signalGetter)(void) = nullptr);
+    template<class U> HelioSignalAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0, Signal<ParameterType,Slots> &(U::*signalGetter)(void) = nullptr);
     HelioSignalAttachment(const HelioSignalAttachment<ParameterType,Slots> &attachment);
     virtual ~HelioSignalAttachment();
 

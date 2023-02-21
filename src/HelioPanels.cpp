@@ -31,7 +31,7 @@ HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, float alig
       HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
       _panelState(Helio_PanelState_Undefined), _alignedTolerance(alignedTolerance),
       _homePosition{0}, _axisOffset{0}, _inDaytimeMode(false),
-      _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
@@ -44,7 +44,7 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
       _homePosition{dataIn->homePosition[0],dataIn->homePosition[1]},
       _axisOffset{dataIn->axisOffset[0],dataIn->axisOffset[1]},
       _inDaytimeMode(false),
-      _powerProd(this), _axisDriver{HelioDriverAttachment(this),HelioDriverAttachment(this)}
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
@@ -76,15 +76,16 @@ void HelioPanel::update()
 
 bool HelioPanel::canActivate(HelioActuator *actuator)
 {
-    if (actuator->isMovementType()) {
+    if (actuator->getActuatorType() == Helio_ActuatorType_PanelCover) {
+        return _panelState == Helio_PanelState_AlignedToHome;
+    } else if (actuator->getActuatorType() == Helio_ActuatorType_PanelBrake) {
+        return _panelState == Helio_PanelState_AlignedToSun || _panelState == Helio_PanelState_AlignedToHome;
+    } else if (actuator->isTravelType()) {
         auto brakes = linksFilterActuatorsByPanelAndType(getLinkages(), this, Helio_ActuatorType_PanelBrake);
         for (auto brakeIter = brakes.begin(); brakeIter != brakes.end(); ++brakeIter) {
             HelioActuator *brake = (HelioActuator *)*brakeIter;
             if (brake->isEnabled()) { return false; }
         }
-    } else if (actuator->getActuatorType() == Helio_ActuatorType_PanelBrake) {
-        return (!_axisDriver[0] || !_axisDriver[0]->isEnabled() || _axisDriver[0]->isAligned(true)) &&
-               (!_axisDriver[1] || !_axisDriver[1]->isEnabled() || _axisDriver[1]->isAligned(true));
     }
     return true;
 }
@@ -133,13 +134,13 @@ void HelioPanel::saveToData(HelioData *dataOut)
 HelioBalancingPanel::HelioBalancingPanel(Helio_PanelType panelType, hposi_t panelIndex, float intTolerance, float minIntensity, int classType)
     : HelioPanel(panelType, panelIndex, intTolerance, classType),
       _minIntensity(minIntensity),
-      _ldrSensors{HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this)}
+      _ldrSensors{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1),HelioSensorAttachment(this,2),HelioSensorAttachment(this,3)}
 { ; }
 
 HelioBalancingPanel::HelioBalancingPanel(const HelioBalancingPanelData *dataIn)
     : HelioPanel(dataIn),
       _minIntensity(dataIn->minIntensity),
-      _ldrSensors{HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this),HelioSensorAttachment(this)}
+      _ldrSensors{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1),HelioSensorAttachment(this,2),HelioSensorAttachment(this,3)}
 {
     _ldrSensors[0].setObject(dataIn->ldrSensor1);
     _ldrSensors[1].setObject(dataIn->ldrSensor2);
@@ -273,7 +274,7 @@ void HelioBalancingPanel::handleState(Helio_PanelState panelState)
 HelioTrackingPanel::HelioTrackingPanel(Helio_PanelType panelType, hposi_t panelIndex, float angleTolerance, int classType)
     : HelioPanel(panelType, panelIndex, angleTolerance, classType),
       _lastChangeTime(0), _sunPosition{0}, _facingPosition{0},
-      _powerUsage(this), _axisAngle{HelioSensorAttachment(this),HelioSensorAttachment(this)}
+      _powerUsage(this), _axisAngle{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1)}
 {
     _powerUsage.setMeasurementUnits(getPowerUnits());
 }
@@ -282,7 +283,7 @@ HelioTrackingPanel::HelioTrackingPanel(const HelioTrackingPanelData *dataIn)
     : HelioPanel(dataIn),
       _lastChangeTime(dataIn->lastChangeTime), _sunPosition{0},
       _facingPosition{dataIn->axisPosition[0], dataIn->axisPosition[1]},
-      _powerUsage(this), _axisAngle{HelioSensorAttachment(this),HelioSensorAttachment(this)}
+      _powerUsage(this), _axisAngle{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1)}
 {
     _powerUsage.setMeasurementUnits(getPowerUnits());
     _powerUsage.setObject(dataIn->powerUsageSensor);
