@@ -30,6 +30,9 @@ void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_A
 
         for (auto attachInIter = actuators.begin(); attachInIter != actuators.end(); ++attachInIter) {
             if (key == attachInIter->getKey()) {
+                auto activation = *attachInIter;
+                activation.setupActivation(attachIter->getActivationSetup());
+                if (attachIter->getUpdateSlot()) { activation.setUpdateSlot(*attachIter->getUpdateSlot()); }
                 found = true;
                 break;
             }
@@ -61,7 +64,7 @@ float HelioDriver::getMaxTargetOffset(bool poll)
     float maxDelta = 0;
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
-        if ((*attachIter)->isAnyMotorClass() || (*attachIter)->isMotorType()) {
+        if ((*attachIter)->isAnyMotorClass()) {
             auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(poll).asUnits(getMeasurementUnits());
 
             float delta = _targetSetpoint - position.value;

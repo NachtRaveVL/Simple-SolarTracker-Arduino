@@ -5,6 +5,11 @@
 
 #include "Helioduino.h"
 
+inline void HelioDistanceUnitsInterfaceStorage::setSpeedUnits(Helio_UnitsType speedUnits)
+{
+    setDistanceUnits(baseUnits(speedUnits));
+}
+
 inline Helio_UnitsType HelioDistanceUnitsInterfaceStorage::getSpeedUnits() const
 {
     return rateUnits(getDistanceUnits());
@@ -172,6 +177,19 @@ inline SharedPtr<U> HelioTemperatureSensorAttachmentInterface::getTemperatureSen
 {
     getTemperatureSensorAttachment().updateIfNeeded(poll);
     return getTemperatureSensorAttachment().HelioAttachment::getObject<U>();
+}
+
+template <class U>
+inline void HelioWindSpeedSensorAttachmentInterface::setWindSpeedSensor(U sensor)
+{
+    getWindSpeedSensorAttachment().setObject(sensor);
+}
+
+template <class U>
+inline SharedPtr<U> HelioWindSpeedSensorAttachmentInterface::getWindSpeedSensor(bool poll)
+{
+    getWindSpeedSensorAttachment().updateIfNeeded(poll);
+    return getWindSpeedSensorAttachment().HelioAttachment::getObject<U>();
 }
 
 

@@ -13,9 +13,9 @@ HelioTrigger *newTriggerObjectFromSubData(const HelioTriggerSubData *dataIn)
 
     if (dataIn) {
         switch (dataIn->type) {
-            case (int8_t)HelioTrigger::MeasureValue:
+            case (hid_t)HelioTrigger::MeasureValue:
                 return new HelioMeasurementValueTrigger(dataIn);
-            case (int8_t)HelioTrigger::MeasureRange:
+            case (hid_t)HelioTrigger::MeasureRange:
                 return new HelioMeasurementRangeTrigger(dataIn);
             default: break;
         }
@@ -50,7 +50,7 @@ HelioTrigger::HelioTrigger(const HelioTriggerSubData *dataIn)
 void HelioTrigger::saveToData(HelioTriggerSubData *dataOut) const
 {
     ((HelioTriggerSubData *)dataOut)->type = (int8_t)type;
-    if (_sensor.getId()) {
+    if (_sensor.isSet()) {
         strncpy(((HelioTriggerSubData *)dataOut)->sensorName, _sensor.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
     ((HelioTriggerSubData *)dataOut)->measurementRow = getMeasurementRow();
@@ -251,11 +251,11 @@ void HelioTriggerSubData::toJSONObject(JsonObject &objectOut) const
     if (sensorName[0]) { objectOut[SFP(HStr_Key_SensorName)] = charsToString(sensorName, HELIO_NAME_MAXSIZE); }
     if (measurementRow > 0) { objectOut[SFP(HStr_Key_MeasurementRow)] = measurementRow; }
     switch (type) {
-        case 0: // MeasureValue
+        case (hid_t)HelioTrigger::MeasureValue:
             objectOut[SFP(HStr_Key_Tolerance)] = dataAs.measureValue.tolerance;
             objectOut[SFP(HStr_Key_TriggerBelow)] = dataAs.measureValue.triggerBelow;
             break;
-        case 1: // MeasureRange
+        case (hid_t)HelioTrigger::MeasureRange:
             objectOut[SFP(HStr_Key_ToleranceLow)] = dataAs.measureRange.toleranceLow;
             objectOut[SFP(HStr_Key_ToleranceHigh)] = dataAs.measureRange.toleranceHigh;
             objectOut[SFP(HStr_Key_TriggerOutside)] = dataAs.measureRange.triggerOutside;
@@ -274,11 +274,11 @@ void HelioTriggerSubData::fromJSONObject(JsonObjectConst &objectIn)
     if (sensorNameStr && sensorNameStr[0]) { strncpy(sensorName, sensorNameStr, HELIO_NAME_MAXSIZE); }
     measurementRow = objectIn[SFP(HStr_Key_MeasurementRow)] | measurementRow;
     switch (type) {
-        case 0: // MeasureValue
+        case (hid_t)HelioTrigger::MeasureValue:
             dataAs.measureValue.tolerance = objectIn[SFP(HStr_Key_Tolerance)] | dataAs.measureValue.tolerance;
             dataAs.measureValue.triggerBelow = objectIn[SFP(HStr_Key_TriggerBelow)] | dataAs.measureValue.triggerBelow;
             break;
-        case 1: // MeasureRange
+        case (hid_t)HelioTrigger::MeasureRange:
             dataAs.measureRange.toleranceLow = objectIn[SFP(HStr_Key_ToleranceLow)] | dataAs.measureRange.toleranceLow;
             dataAs.measureRange.toleranceHigh = objectIn[SFP(HStr_Key_ToleranceHigh)] | dataAs.measureRange.toleranceHigh;
             dataAs.measureRange.triggerOutside = objectIn[SFP(HStr_Key_TriggerOutside)] | dataAs.measureRange.triggerOutside;

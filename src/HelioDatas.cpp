@@ -32,50 +32,50 @@ HelioData *_allocateDataFromBaseDecode(const HelioData &baseDecode)
 HelioData *_allocateDataForObjType(int8_t idType, int8_t classType)
 {
     switch (idType) {
-        case (int8_t)HelioIdentity::Actuator:
+        case (hid_t)HelioIdentity::Actuator:
             switch (classType) {
-                case (int8_t)HelioActuator::Relay:
+                case (hid_t)HelioActuator::Relay:
                     return new HelioActuatorData();
-                case (int8_t)HelioActuator::RelayMotor:
+                case (hid_t)HelioActuator::RelayMotor:
                     return new HelioMotorActuatorData();
-                case (int8_t)HelioActuator::Variable:
+                case (hid_t)HelioActuator::Variable:
                     return new HelioActuatorData();
-                case (int8_t)HelioActuator::VariableMotor:
+                case (hid_t)HelioActuator::VariableMotor:
                     return new HelioMotorActuatorData();
                 default: break;
             }
             break;
 
-        case (int8_t)HelioIdentity::Sensor:
+        case (hid_t)HelioIdentity::Sensor:
             switch (classType) {
-                case (int8_t)HelioSensor::Binary:
+                case (hid_t)HelioSensor::Binary:
                     return new HelioBinarySensorData();
-                case (int8_t)HelioSensor::Analog:
+                case (hid_t)HelioSensor::Analog:
                     return new HelioAnalogSensorData();
                 //case 2: // Digital (not instance-able)
-                case (int8_t)HelioSensor::DHT1W:
+                case (hid_t)HelioSensor::DHT1W:
                     return new HelioDHTTempHumiditySensorData();
                 default: break;
             }
             break;
 
-        case (int8_t)HelioIdentity::Panel:
+        case (hid_t)HelioIdentity::Panel:
             switch (classType) {
-                case (int8_t)HelioPanel::Balancing:
+                case (hid_t)HelioPanel::Balancing:
                     return new HelioBalancingPanelData();
-                case (int8_t)HelioPanel::Tracking:
+                case (hid_t)HelioPanel::Tracking:
                     return new HelioTrackingPanelData();
-                case (int8_t)HelioPanel::Reflecting:
+                case (hid_t)HelioPanel::Reflecting:
                     return new HelioReflectingPanelData();
                 default: break;
             }
             break;
 
-        case (int8_t)HelioIdentity::Rail:
+        case (hid_t)HelioIdentity::Rail:
             switch (classType) {
-                case (int8_t)HelioRail::Simple:
+                case (hid_t)HelioRail::Simple:
                     return new HelioSimpleRailData();
-                case (int8_t)HelioRail::Regulated:
+                case (hid_t)HelioRail::Regulated:
                     return new HelioRegulatedRailData();
                 default: break;
             }

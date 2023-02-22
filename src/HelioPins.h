@@ -16,6 +16,7 @@ struct HelioPinMuxerData;
 
 #include "Helioduino.h"
 #include "HelioUtils.h"
+#include "HelioModules.h"
 
 // Creates Pin from passed Pin data (return ownership transfer - user code *must* delete returned Pin)
 extern HelioPin *newPinObjectFromSubData(const HelioPinData *dataIn);
@@ -46,8 +47,15 @@ struct HelioPin {
 
     void saveToData(HelioPinData *dataOut) const;
 
-    // Attempts to enable the muxer for the pin on its channel number. Returns success boolean. May return early.
-    bool tryEnableMuxer();
+    // Attempts to both select the pin muxer (set address/ready pin state) for the pin on its channel number and activate it (toggle chip enable).
+    // Typically called pre-read. Returns success boolean. May return early.
+    inline bool selectAndActivateMuxer() { return enableMuxer(0); }
+    // Attempts to only select the pin muxer (set address/ready pin state) for the pin on its channel number.
+    // Typically called pre-write. Returns success boolean. May return early.
+    inline bool selectMuxer() { return enableMuxer(1); }
+    // Attempts to only activate the pin muxer (toggle chip enable).
+    // Typically called post-write. Returns success boolean. May return early.
+    inline bool activateMuxer() { return enableMuxer(2); }
 
     inline bool isValid() const { return isValidPin(pin) && mode != Helio_PinMode_Undefined; }
     inline bool isMuxed() const { return isValidChannel(channel); }
@@ -67,6 +75,9 @@ struct HelioPin {
                                            mode == Helio_PinMode_Digital_Output_PushPull; }
     inline bool isAnalog() const { return mode == Helio_PinMode_Analog_Input ||
                                           mode == Helio_PinMode_Analog_Output; }
+
+protected:
+    bool enableMuxer(int step);
 };
 
 // Digital Pin
@@ -213,9 +224,11 @@ protected:
     uint8_t _channelSelect;                                 // Channel select (active channel)
 
     void selectChannel(uint8_t channelNumber);
-    void deselect();
+    void setIsActive(bool isActive);
+    inline void activate() { setIsActive(true); }
+    inline void deactivate() { setIsActive(false); } 
 
-    friend class Helioduino;
+    friend class HelioPinHandlers;
     friend class HelioPin;
 };
 

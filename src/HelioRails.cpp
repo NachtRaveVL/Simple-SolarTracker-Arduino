@@ -12,9 +12,9 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 
     if (dataIn && dataIn->isObjectData()) {
         switch (dataIn->id.object.classType) {
-            case (int8_t)HelioRail::Simple:
+            case (hid_t)HelioRail::Simple:
                 return new HelioSimpleRail((const HelioSimpleRailData *)dataIn);
-            case (int8_t)HelioRail::Regulated:
+            case (hid_t)HelioRail::Regulated:
                 return new HelioRegulatedRail((const HelioRegulatedRailData *)dataIn);
             default: break;
         }
@@ -253,10 +253,10 @@ void HelioRegulatedRail::saveToData(HelioData *dataOut)
     HelioRail::saveToData(dataOut);
 
     ((HelioRegulatedRailData *)dataOut)->maxPower = roundForExport(_maxPower, 1);
-    if (_powerUsage.getId()) {
+    if (_powerUsage.isSet()) {
         strncpy(((HelioRegulatedRailData *)dataOut)->powerUsageSensor, _powerUsage.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
-    if (_limitTrigger) {
+    if (_limitTrigger.isSet()) {
         _limitTrigger->saveToData(&(((HelioRegulatedRailData *)dataOut)->limitTrigger));
     }
 }

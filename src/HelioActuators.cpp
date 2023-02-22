@@ -12,13 +12,13 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 
     if (dataIn && dataIn->isObjectData()) {
         switch (dataIn->id.object.classType) {
-            case (int8_t)HelioActuator::Relay:
+            case (hid_t)HelioActuator::Relay:
                 return new HelioRelayActuator((const HelioActuatorData *)dataIn);
-            case (int8_t)HelioActuator::RelayMotor:
+            case (hid_t)HelioActuator::RelayMotor:
                 return new HelioRelayMotorActuator((const HelioMotorActuatorData *)dataIn);
-            case (int8_t)HelioActuator::Variable:
+            case (hid_t)HelioActuator::Variable:
                 return new HelioVariableActuator((const HelioActuatorData *)dataIn);
-            case (int8_t)HelioActuator::VariableMotor:
+            case (hid_t)HelioActuator::VariableMotor:
                 //return new HelioVariableMotorActuator((const HelioMotorActuatorData *)dataIn);
             default: break;
         }
@@ -250,13 +250,13 @@ void HelioActuator::saveToData(HelioData *dataOut)
     HelioObject::saveToData(dataOut);
 
     dataOut->id.object.classType = (int8_t)classType;
-    if (_contPowerUsage.frame) {
+    if (_contPowerUsage.isSet()) {
         _contPowerUsage.saveToData(&(((HelioActuatorData *)dataOut)->contPowerUsage));
     }
-    if (_parentPanel.getId()) {
+    if (_parentPanel.isSet()) {
         strncpy(((HelioActuatorData *)dataOut)->panelName, _parentPanel.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
-    if (_parentRail.getId()) {
+    if (_parentRail.isSet()) {
         strncpy(((HelioActuatorData *)dataOut)->railName, _parentRail.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
     ((HelioActuatorData *)dataOut)->enableMode = _enableMode;
@@ -606,13 +606,13 @@ void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
 
     _outputPin2.saveToData(&((HelioMotorActuatorData *)dataOut)->outputPin2);
     ((HelioMotorActuatorData *)dataOut)->distanceUnits = _distUnits;
-    if (_contSpeed.frame) {
+    if (_contSpeed.isSet()) {
         _contSpeed.saveToData(&(((HelioMotorActuatorData *)dataOut)->contSpeed));
     }
-    if (_position.getId()) {
+    if (_position.isSet()) {
         strncpy(((HelioMotorActuatorData *)dataOut)->positionSensor, _position.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
-    if (_speed.getId()) {
+    if (_speed.isSet()) {
         strncpy(((HelioMotorActuatorData *)dataOut)->speedSensor, _speed.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
 }
@@ -785,7 +785,7 @@ void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
         JsonObject outputPin2Obj = objectOut.createNestedObject(SFP(HStr_Key_OutputPin2));
         outputPin2.toJSONObject(outputPin2Obj);
     }
-    if (distanceUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_DistUnits)] = unitsTypeToSymbol(distanceUnits); }
+    if (distanceUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_DistanceUnits)] = unitsTypeToSymbol(distanceUnits); }
     if (contSpeed.value > FLT_EPSILON) {
         JsonObject contSpeedObj = objectOut.createNestedObject(SFP(HStr_Key_ContinuousSpeed));
         contSpeed.toJSONObject(contSpeedObj);
@@ -800,7 +800,7 @@ void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
 
     JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
     if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
-    distanceUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_DistUnits)]);
+    distanceUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_DistanceUnits)]);
     JsonVariantConst contSpeedVar = objectIn[SFP(HStr_Key_ContinuousSpeed)];
     if (!contSpeedVar.isNull()) { contSpeed.fromJSONVariant(contSpeedVar); }
     const char *positionSensorStr = objectIn[SFP(HStr_Key_PositionSensor)];

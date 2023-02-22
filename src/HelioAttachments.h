@@ -30,7 +30,7 @@ public:
 
     inline bool isUnresolved() const { return !_obj; }
     inline bool isResolved() const { return (bool)_obj; }
-    inline bool needsResolved() const { return isUnresolved() && _key != hkey_none; }
+    inline bool needsResolved() const { return isUnresolved() && isSet(); }
     inline bool resolve() { return isResolved() || (bool)getObject(); }
     void unresolve();
     template<class U> inline void unresolveIf(U obj) { if (operator==(obj)) { unresolve(); } }
@@ -42,6 +42,7 @@ public:
     inline HelioIdentity getId() const { return _obj ? _obj->getId() : (_keyStr ? HelioIdentity(_keyStr) : HelioIdentity(_key)); }
     inline hkey_t getKey() const { return _key; }
     inline String getKeyString() const { return _keyStr ? String(_keyStr) : (_obj ? _obj->getKeyString() : addressToString((uintptr_t)_key)); }
+    inline bool isSet() const { return _key != hkey_none; }
 
     inline operator bool() const { return isResolved(); }
     inline HelioObjInterface *operator->() { return get(); }
@@ -107,6 +108,7 @@ public:
     inline HelioIdentity getId() const { return _obj.getId(); }
     inline hkey_t getKey() const { return _obj.getKey(); }
     inline String getKeyString() const { return _obj.getKeyString(); }
+    inline bool isSet() const { return _obj.isSet(); }
 
     inline operator bool() const { return isResolved(); }
     inline HelioObjInterface* operator->() { return get<HelioObjInterface>(); }
@@ -168,7 +170,7 @@ protected:
 // object from the actuator at time of destruction or reassignment.
 class HelioActuatorAttachment : public HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS> {
 public:
-    HelioActuatorAttachment(HelioObjInterface *parent = nullptr);
+    HelioActuatorAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioActuatorAttachment(const HelioActuatorAttachment &attachment);
     virtual ~HelioActuatorAttachment();
 
@@ -223,9 +225,10 @@ public:
     void setUpdateSlot(const Slot<HelioActuatorAttachment *> &updateSlot);
     inline void setUpdateFunction(void (*updateFunctionPtr)(HelioActuatorAttachment *)) { setUpdateSlot(FunctionSlot<HelioActuatorAttachment *>(updateFunctionPtr)); }
     template<class U> inline void setUpdateMethod(void (U::*updateMethodPtr)(HelioActivationHandle *), U *updateClassInst = nullptr) { setUpdateSlot(MethodSlot<U,HelioActuatorAttachment *>(updateClassInst ? updateClassInst : reinterpret_cast<U *>(_parent), updateMethodPtr)); }
+    const Slot<HelioActuatorAttachment *> *getUpdateSlot() const { return _updateSlot; }
 
-    inline const HelioActivationHandle &getHandle() const { return _actHandle; }
-    inline const HelioActivation &getSetup() const { return _actSetup; }
+    inline const HelioActivationHandle &getActivationHandle() const { return _actHandle; }
+    inline const HelioActivation &getActivationSetup() const { return _actSetup; }
 
     inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
     inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
@@ -256,7 +259,7 @@ protected:
 // Custom handle method is responsible for calling setMeasurement() to update measurement.
 class HelioSensorAttachment : public HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS> {
 public:
-    HelioSensorAttachment(HelioObjInterface *parent = nullptr, uint8_t measurementRow = 0);
+    HelioSensorAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0, uint8_t measurementRow = 0);
     HelioSensorAttachment(const HelioSensorAttachment &attachment);
     virtual ~HelioSensorAttachment();
 
@@ -310,7 +313,7 @@ protected:
 // destruction or reassignment.
 class HelioTriggerAttachment  : public HelioSignalAttachment<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> {
 public:
-    HelioTriggerAttachment(HelioObjInterface *parent = nullptr);
+    HelioTriggerAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioTriggerAttachment(const HelioTriggerAttachment &attachment);
     virtual ~HelioTriggerAttachment();
 
@@ -338,7 +341,7 @@ public:
 // destruction or reassignment.
 class HelioDriverAttachment : public HelioSignalAttachment<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> {
 public:
-    HelioDriverAttachment(HelioObjInterface *parent = nullptr);
+    HelioDriverAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioDriverAttachment(const HelioDriverAttachment &attachment);
     virtual ~HelioDriverAttachment();
 

@@ -28,15 +28,13 @@ public:
 
     void update();
 
-    void setupPanelDriver(HelioPanel *panel, hposi_t axisIndex, SharedPtr<HelioDriver> panelDriver);
-
-    void setAirReportInterval(TimeSpan interval);
+    void setReportInterval(TimeSpan interval);
 
     inline void setNeedsScheduling();
     inline bool needsScheduling() { return _needsScheduling; }
     inline bool inDaytimeMode() const { return _inDaytimeMode; }
 
-    TimeSpan getAirReportInterval() const;
+    TimeSpan getReportInterval() const;
 
     inline const Twilight &getDailyTwilight() const { return _dailyTwilight; }
 
@@ -44,10 +42,12 @@ protected:
     Twilight _dailyTwilight;                                // Daily twilight settings
     bool _needsScheduling;                                  // Needs rescheduling tracking flag
     bool _inDaytimeMode;                                    // Daytime mode flag
-    hposi_t _lastDay[3];                                    // Last day tracking for rescheduling (Y,M,D)
-    Map<hkey_t, HelioTracking *, HELIO_SCH_PROCS_MAXSIZE> _trackings; // Trackings in progress
+    hposi_t _lastDay[3];                                    // Last day tracking for rescheduling (Y-2k,M,D)
+    Map<hkey_t, HelioTracking *, HELIO_SCH_PROCS_MAXSIZE> _trackings; // Panel tracking processes
 
     friend class Helioduino;
+    friend struct HelioProcess;
+    friend struct HelioTracking;
 
     inline HelioSchedulerSubData *schedulerData() const;
     inline bool hasSchedulerData() const;
@@ -88,10 +88,10 @@ struct HelioProcess {
 
 // Scheduler Tracking Process
 struct HelioTracking : public HelioProcess {
-    enum : signed char {Init,Preheat,Uncover,Clean,Track,Cover,Unknown = -1} stage; // Current tracking stage
+    enum : signed char {Init,Warm,Uncover,Clean,Track,Cover,Unknown = -1} stage; // Current tracking stage
 
     time_t canProcessAfter;                                 // Time next processing can occur (unix/UTC), else 0/disabled
-    time_t lastAirReport;                                   // Last time an air report was generated (unix/UTC)
+    time_t lastEnvReport;                                   // Last time an environment report was generated (unix/UTC)
 
     HelioTracking(SharedPtr<HelioPanel> panel);
     ~HelioTracking();
@@ -102,14 +102,16 @@ struct HelioTracking : public HelioProcess {
 private:
     void reset();
     void logTracking(HelioTrackingLogType logType);
-    void broadcastTracking(HelioTrackingBroadcastType broadcastType);
 };
 
 
 // Scheduler Serialization Sub Data
 // A part of HSYS system data.
 struct HelioSchedulerSubData : public HelioSubData {
-    time_t airReportInterval;                               // Interval between air sensor reports, in seconds (default: 8hrs)
+    uint8_t cleaningIntervalDays;                           // Interval between panel cleanings, in days (default: 14)
+    uint8_t preDawnCleaningMins;                            // Time to run panel cleaning sprayers/wipers (if present/needed) before daily tracking starts, in minutes (default: 1)
+    uint8_t preDawnHeatingMins;                             // Duration to run panel heaters/de-icers (if present/needed) before daily tracking starts, in minutes (default: 30)
+    time_t reportInterval;                                  // Interval between environmental sensor reports, in seconds (default: 8hrs)
 
     HelioSchedulerSubData();
     void toJSONObject(JsonObject &objectOut) const;

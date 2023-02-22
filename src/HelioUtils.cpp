@@ -1069,7 +1069,7 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
         case Helio_ActuatorType_PanelBrake:
             return SFP(HStr_Enum_PanelBrake);
         case Helio_ActuatorType_PanelCover:
-            return SFP(HStr_Enum_PanelCover);
+            return SFP(HStr_Enum_coverDriver);
         case Helio_ActuatorType_PanelHeater:
             return SFP(HStr_Enum_PanelHeater);
         case Helio_ActuatorType_PanelSprayer:

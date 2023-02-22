@@ -223,7 +223,6 @@ extern void miscLoop();
 #include "HelioPins.h"
 #include "HelioUtils.h"
 #include "HelioDatas.h"
-#include "HelioCalibrations.h"
 #include "HelioStreams.h"
 #include "HelioTriggers.h"
 #include "HelioDrivers.h"
@@ -231,6 +230,7 @@ extern void miscLoop();
 #include "HelioSensors.h"
 #include "HelioPanels.h"
 #include "HelioRails.h"
+#include "HelioModules.h"
 #include "HelioScheduler.h"
 #include "HelioLogger.h"
 #include "HelioPublisher.h"
@@ -239,7 +239,7 @@ extern void miscLoop();
 
 // Helioduino Controller
 // Main controller interface of the Helioduino solar tracker system.
-class Helioduino : public HelioFactory, public HelioCalibrations {
+class Helioduino : public HelioFactory, public HelioCalibrations, public HelioObjectRegistration, public HelioPinHandlers {
 public:
     HelioScheduler scheduler;                                       // Scheduler public instance
     HelioLogger logger;                                             // Logger public instance
@@ -341,42 +341,6 @@ public:
     // Note: Be sure to manually include the appropriate UI system header file (e.g. #include "min/HelioUI.h") in Arduino sketch.
     inline bool enableUI(HelioUIInterface *ui) { _activeUIInstance = ui; ui->begin(); }
 #endif
-
-    // Object Registration.
-
-    // Adds object to system, returning success
-    bool registerObject(SharedPtr<HelioObject> obj);
-    // Removes object from system, returning success
-    bool unregisterObject(SharedPtr<HelioObject> obj);
-
-    // Searches for object by id key (nullptr return = no obj by that id, position index may use HELIO_POS_SEARCH* defines)
-    SharedPtr<HelioObject> objectById(HelioIdentity id) const;
-
-    // Finds first position either open or taken, given the id type
-    hposi_t firstPosition(HelioIdentity id, bool taken);
-    // Finds first position taken, given the id type
-    inline hposi_t firstPositionTaken(HelioIdentity id) { return firstPosition(id, true); }
-    // Finds first position open, given the id type
-    inline hposi_t firstPositionOpen(HelioIdentity id) { return firstPosition(id, false); }
-
-    // Pin Handlers.
-
-    // Attempts to get a lock on pin #, to prevent multi-device comm overlap.
-    bool tryGetPinLock(pintype_t pin, millis_t wait = 150);
-    // Returns a locked pin lock for the given pin. Only call if pin lock was successfully locked.
-    inline void returnPinLock(pintype_t pin);
-
-    // Sets pin muxer for pin #.
-    inline void setPinMuxer(pintype_t pin, SharedPtr<HelioPinMuxer> pinMuxer);
-    // Returns pin muxer for pin #.
-    inline SharedPtr<HelioPinMuxer> getPinMuxer(pintype_t pin);
-    // Disables/deselects all pin muxers. All pin muxers are assumed to have a shared address bus.
-    void deselectPinMuxers();
-
-    // OneWire instance for given pin (lazily instantiated)
-    OneWire *getOneWireForPin(pintype_t pin);
-    // Drops OneWire instance for given pin (if created)
-    void dropOneWireForPin(pintype_t pin);
 
     // Mutators.
 
@@ -570,11 +534,6 @@ protected:
     String _sysConfigFilename;                              // System config filename used in serialization (default: "Helioduino.cfg")
     uint16_t _sysDataAddress;                               // EEPROM system data address used in serialization (default: -1/disabled)
 
-    Map<hkey_t, SharedPtr<HelioObject>, HELIO_SYS_OBJECTS_MAXSIZE> _objects; // Shared object collection, key'ed by HelioIdentity
-    Map<pintype_t, OneWire *, HELIO_SYS_ONEWIRES_MAXSIZE> _oneWires; // Pin OneWire mapping
-    Map<pintype_t, pintype_t, HELIO_SYS_PINLOCKS_MAXSIZE> _pinLocks; // Pin locks mapping (existence = locked)
-    Map<pintype_t, SharedPtr<HelioPinMuxer>, HELIO_SYS_PINMUXERS_MAXSIZE> _pinMuxers; // Pin muxers mapping
-
     void allocateEEPROM();
     void deallocateEEPROM();
     void allocateRTC();
@@ -590,7 +549,6 @@ protected:
     void commonPostInit();
     void commonPostSave();
 
-    SharedPtr<HelioObject> objectById_Col(const HelioIdentity &id) const;
     friend SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject();
     friend void controlLoop();
     friend void dataLoop();

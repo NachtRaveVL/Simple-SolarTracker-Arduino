@@ -46,6 +46,7 @@ public:
     virtual void update() override;
 
     virtual bool canActivate(HelioActuator *actuator) override;
+    virtual bool isDaylight(bool poll = false) override;
 
     inline void setHomePosition(const float *homePosition) { _homePosition[0] = homePosition[0]; _homePosition[1] = homePosition[1]; }
     inline void setAxisOffset(const float *axisOffset) { _axisOffset[0] = axisOffset[0]; _axisOffset[1] = axisOffset[1]; }
@@ -56,14 +57,18 @@ public:
     inline bool getInDaytimeMode() const { return _inDaytimeMode; }
 
     inline hposi_t getAxisCount() const { return getPanelAxisCountFromType(getPanelType()); }
-    inline bool isEquatorialCoords() const { return getIsEquatorialCoordsFromType(getPanelType()); }
-    inline bool isHorizontalCoords() const { return getIsHorizontalCoordsFromType(getPanelType()); }
-    inline bool drivesHorizontalAxis() const { return getDrivesHorizontalAxis(getPanelType()); }
-    inline bool drivesVerticalAxis() const { return getDrivesVerticalAxis(getPanelType()); }
+    inline bool isHorizontalCoords() const { return _isHorzCoords; }
+    inline bool isEquatorialCoords() const { return !_isHorzCoords; }
+    inline bool drivesHorizontalAxis() const { return _drivesHorz; }
+    inline bool drivesVerticalAxis() const { return _drivesVert; }
 
     template<typename T> inline void setAxisDriver(T axisDriver, hposi_t axisIndex = 0) { _axisDriver[axisIndex].setObject(axisDriver); }
     inline SharedPtr<HelioDriver> getAxisDriver(hposi_t axisIndex = 0) { return _axisDriver[axisIndex].getObject(); }
     inline HelioDriverAttachment &getAxisDriverAttachment(hposi_t axisIndex = 0) { return _axisDriver[axisIndex]; }
+
+    template<typename T> inline void setPanelCoverDriver(T coverDriver) { _coverDriver.setObject(coverDriver); }
+    inline SharedPtr<HelioDriver> getPanelCoverDriver() { return _coverDriver.getObject(); }
+    inline HelioDriverAttachment &getPanelCoverDriverAttachment() { return _coverDriver; }
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
@@ -80,9 +85,13 @@ protected:
     float _alignedTolerance;                                // Alignment tolerance
     float _homePosition[2];                                 // Home position (azi,ele or RA,dec)
     float _axisOffset[2];                                   // Axis position calibration offset (azi,ele or RA,dec)
-    bool _inDaytimeMode;                                    // Daytime mode flag (copied from scheduler)
+    bool _inDaytimeMode;                                    // In daytime mode flag (updated by scheduler)
+    bool _isHorzCoords;                                     // Cached result of !getIsEquatorialCoordsFromType()
+    bool _drivesHorz;                                       // Cached result of getDrivesHorizontalAxis()
+    bool _drivesVert;                                       // Cached result of getDrivesVerticalAxis()
     HelioSensorAttachment _powerProd;                       // Power production sensor attachment
-    HelioDriverAttachment _axisDriver[2];                   // Axis driver attachments
+    HelioDriverAttachment _axisDriver[2];                   // Axis driver attachments (assigned by scheduler)
+    HelioDriverAttachment _coverDriver;                     // Panel cover driver (assigned by scheduler)
     Signal<Helio_PanelState, HELIO_PANEL_SIGNAL_SLOTS> _stateSignal; // Panel state signal
 
     virtual HelioData *allocateData() const override;
@@ -114,6 +123,19 @@ public:
     inline HelioSensorAttachment &getLDRSensorAttachment(hposi_t ldrIndex = 0) { return _ldrSensors[ldrIndex]; }
     inline hposi_t getLDRCount() const { return (getPanelAxisCountFromType(getPanelType()) << 1); }
 
+    template<typename T> inline void setLDRSensorHorzMin(T ldrSensor) { setLDRSensor<T>(ldrSensor, 0); }
+    template<typename T> inline void setLDRSensorHorzMax(T ldrSensor) { setLDRSensor<T>(ldrSensor, 1); }
+    template<typename T> inline void setLDRSensorVertMin(T ldrSensor) { setLDRSensor<T>(ldrSensor, 2); }
+    template<typename T> inline void setLDRSensorVertMax(T ldrSensor) { setLDRSensor<T>(ldrSensor, 3); }
+    inline SharedPtr<HelioSensor> getLDRSensorHorzMin(bool poll = false) { return getLDRSensor(0, poll); }
+    inline SharedPtr<HelioSensor> getLDRSensorHorzMax(bool poll = false) { return getLDRSensor(1, poll); }
+    inline SharedPtr<HelioSensor> getLDRSensorVertMin(bool poll = false) { return getLDRSensor(2, poll); }
+    inline SharedPtr<HelioSensor> getLDRSensorVertMax(bool poll = false) { return getLDRSensor(3, poll); }
+    inline HelioSensorAttachment &getLDRSensorAttachmentHorzMin() { return getLDRSensorAttachment(0); }
+    inline HelioSensorAttachment &getLDRSensorAttachmentHorzMax() { return getLDRSensorAttachment(1); }
+    inline HelioSensorAttachment &getLDRSensorAttachmentVertMin() { return getLDRSensorAttachment(2); }
+    inline HelioSensorAttachment &getLDRSensorAttachmentVertMax() { return getLDRSensorAttachment(3); }
+
 protected:
     float _minIntensity;                                    // Minimum LDR light intensity for alignment query
     HelioSensorAttachment _ldrSensors[4];                   // LDR light intensity sensor attachments
@@ -127,7 +149,7 @@ protected:
 // Smart Tracking Panel
 // A panel that is able to calculate the sun's position in the sky and orient
 // towards it, maximizing the energy output of the panel across the day.
-class HelioTrackingPanel : public HelioPanel, public HelioPowerUsageSensorAttachmentInterface {
+class HelioTrackingPanel : public HelioPanel, public HelioTemperatureUnitsInterfaceStorage, public HelioDistanceUnitsInterfaceStorage, public HelioPowerUsageSensorAttachmentInterface, public HelioTemperatureSensorAttachmentInterface, public HelioWindSpeedSensorAttachmentInterface {
 public:
     HelioTrackingPanel(Helio_PanelType panelType,
                        hposi_t panelIndex,
@@ -138,27 +160,56 @@ public:
 
     virtual void update() override;
 
+    virtual bool canActivate(HelioActuator *actuator) override;
+    virtual bool isDaylight(bool poll = false) override;
     virtual bool isAligned(bool poll = false) override;
+
+    inline void setLocationOffset(const double *locationOffset) { _locationOffset[0] = locationOffset[0]; _locationOffset[1] = locationOffset[1]; }
 
     template<typename T> inline void setAxisAngleSensor(T angleSensor, hposi_t axisIndex = 0) { _axisAngle[axisIndex].setObject(angleSensor); }
     inline SharedPtr<HelioSensor> getAxisAngleSensor(hposi_t axisIndex = 0, bool poll = false) { _axisAngle[axisIndex].updateIfNeeded(poll); return _axisAngle[axisIndex].getObject(poll); }
     inline HelioSensorAttachment &getAxisAngleSensorAttachment(hposi_t axisIndex = 0) { return _axisAngle[axisIndex]; }
 
-    inline DateTime getLastAlignmentChangeTime() const { return localTime(_lastChangeTime); }
-    inline void notifyAlignmentChanged() { _lastChangeTime = unixNow(); }
+    template<typename T> inline void setHeatingTrigger(T heatingTrigger) { _heatingTrigger.setObject(heatingTrigger); }
+    inline SharedPtr<HelioDriver> getHeatingTrigger() { return _heatingTrigger.getObject(); }
+    inline HelioTriggerAttachment &getHeatingTriggerAttachment() { return _heatingTrigger; }
+
+    template<typename T> inline void setStormingTrigger(T stormingTrigger) { _stormingTrigger.setObject(stormingTrigger); }
+    inline SharedPtr<HelioDriver> getStormingTrigger() { return _stormingTrigger.getObject(); }
+    inline HelioTriggerAttachment &getStormingTriggerAttachment() { return _stormingTrigger; }
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;
 
+    virtual void setTemperatureUnits(Helio_UnitsType temperatureUnits) override;
+
+    virtual void setDistanceUnits(Helio_UnitsType distanceUnits) override;
+
     virtual HelioSensorAttachment &getPowerUsageSensorAttachment() override;
+
+    virtual HelioSensorAttachment &getTemperatureSensorAttachment() override;
+
+    virtual HelioSensorAttachment &getWindSpeedSensorAttachment() override;
+
+    inline DateTime getLastAlignmentChangeTime() const { return localTime(_lastAlignedTime); }
+    inline void notifyAlignmentChanged(const float *actualFacingPosition) { _axisOffset[0] = actualFacingPosition[0] - _facingPosition[0]; _axisOffset[1] = actualFacingPosition[1] - _facingPosition[1]; _lastAlignedTime = unixTime(localDayStart()); }
+
+    inline DateTime getLastPanelCleaningTime() const { return localTime(_lastCleanedTime); }
+    inline void notifyPanelCleaned() { _lastCleanedTime = unixTime(localDayStart()); }
 
     inline void notifyDayChanged() { recalcSunPosition(); recalcFacingPosition(); }
 
 protected:
-    time_t _lastChangeTime;                                 // Last panel alignment/maintenance date (UTC)
-    double _sunPosition[2];                                 // Sun position (azi,ele or RA,dec)
+    time_t _lastAlignedTime;                                // Last panel alignment/maintenance date (UTC)
+    time_t _lastCleanedTime;                                // Last cleaned/sprayed/wiped time (UTC)
+    double _locationOffset[2];                              // Panel location offset (lat in deg,long in fp mins)
+    double _sunPosition[2];                                 // Calculated sun position (azi,ele or RA,dec)
     float _facingPosition[2];                               // Resolved facing position (azi,ele or RA,dec)
     HelioSensorAttachment _powerUsage;                      // Power usage sensor attachment
     HelioSensorAttachment _axisAngle[2];                    // Axis angle sensor attachments
+    HelioSensorAttachment _temperature;                     // Temperature sensor attachment
+    HelioSensorAttachment _windSpeed;                       // Wind speed sensor attachment
+    HelioTriggerAttachment _heatingTrigger;                 // Panel needs-heating/too-cold/has-ice trigger attachment
+    HelioTriggerAttachment _stormingTrigger;                // Panel is-storming/wind-over-speed trigger attachment
 
     virtual void saveToData(HelioData *dataOut) override;
 
@@ -209,10 +260,10 @@ struct HelioPanelData : public HelioObjectData {
 // Balancing Panel Serialization Data
 struct HelioBalancingPanelData : HelioPanelData {
     float minIntensity;                                     // Minimum LDR intensity
-    char ldrSensor1[HELIO_NAME_MAXSIZE];                    // LDR for horz axis, min/neg-side
-    char ldrSensor2[HELIO_NAME_MAXSIZE];                    // LDR for horz axis, max/pos-side
-    char ldrSensor3[HELIO_NAME_MAXSIZE];                    // LDR for vert axis, min/neg-side
-    char ldrSensor4[HELIO_NAME_MAXSIZE];                    // LDR for vert axis, max/pos-side
+    char ldrSensorHorzMin[HELIO_NAME_MAXSIZE];              // LDR for horz axis, min/neg-side
+    char ldrSensorHorzMax[HELIO_NAME_MAXSIZE];              // LDR for horz axis, max/pos-side
+    char ldrSensorVertMin[HELIO_NAME_MAXSIZE];              // LDR for vert axis, min/neg-side
+    char ldrSensorVertMax[HELIO_NAME_MAXSIZE];              // LDR for vert axis, max/pos-side
 
     HelioBalancingPanelData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
@@ -221,11 +272,19 @@ struct HelioBalancingPanelData : HelioPanelData {
 
 // Tracking Panel Serialization Data
 struct HelioTrackingPanelData : HelioPanelData {
-    float axisPosition[2];                                  // Axis angle position (azi,ele or RA,dec)
-    time_t lastChangeTime;                                  // Last alignment change/maintenance time (UTC)
-    char axisSensor1[HELIO_NAME_MAXSIZE];                   // Horizontal axis sensor
-    char axisSensor2[HELIO_NAME_MAXSIZE];                   // Vertical axis sensor
+    Helio_UnitsType temperatureUnits;                       // Temperature units
+    Helio_UnitsType distanceUnits;                          // Distance units
+    time_t lastAlignedTime;                                 // Last alignment change/maintenance time (UTC)
+    time_t lastCleanedTime;                                 // Last cleaned/sprayed/wiped time (UTC)
+    double locationOffset[2];                               // Location offset (lat-deg,long-fp-mins)
+    float axisPosition[2];                                  // (Last known) axis angle position (azi,ele or RA,dec)
+    char axisSensorHorz[HELIO_NAME_MAXSIZE];                // Horizontal axis sensor
+    char axisSensorVert[HELIO_NAME_MAXSIZE];                // Vertical axis sensor
     char powerUsageSensor[HELIO_NAME_MAXSIZE];              // Power usage sensor
+    char temperatureSensor[HELIO_NAME_MAXSIZE];             // Temperature sensor
+    char windSpeedSensor[HELIO_NAME_MAXSIZE];               // Wind speed sensor
+    HelioTriggerSubData heatingTrigger;                     // Heating trigger
+    HelioTriggerSubData stormingTrigger;                    // Storming trigger
 
     HelioTrackingPanelData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

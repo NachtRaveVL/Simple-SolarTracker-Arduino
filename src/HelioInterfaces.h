@@ -48,6 +48,7 @@ class HelioPowerProductionSensorAttachmentInterface;
 class HelioPowerUsageSensorAttachmentInterface;
 class HelioSpeedSensorAttachmentInterface;
 class HelioTemperatureSensorAttachmentInterface;
+class HelioWindSpeedSensorAttachmentInterface;
 
 class HelioTriggerAttachmentInterface;
 class HelioMinimumTriggerAttachmentInterface;
@@ -143,6 +144,7 @@ class HelioDistanceUnitsInterfaceStorage {
 public:
     virtual void setDistanceUnits(Helio_UnitsType distanceUnits) = 0;
     inline Helio_UnitsType getDistanceUnits() const { return _distUnits; }
+    inline void setSpeedUnits(Helio_UnitsType speedUnits);
     inline Helio_UnitsType getSpeedUnits() const;
 
 protected:
@@ -238,6 +240,7 @@ public:
 class HelioPanelObjectInterface {
 public:
     virtual bool canActivate(HelioActuator *actuator) = 0;
+    virtual bool isDaylight(bool poll = false) = 0;
     virtual bool isAligned(bool poll = false) = 0;
 };
 
@@ -382,6 +385,15 @@ public:
 
     template<class U> inline void setTemperatureSensor(U sensor);
     template<class U = HelioSensor> inline SharedPtr<U> getTemperatureSensor(bool poll = false);
+};
+
+// Wind Speed Sensor Attachment Interface
+class HelioWindSpeedSensorAttachmentInterface {
+public:
+    virtual HelioSensorAttachment &getWindSpeedSensorAttachment() = 0;
+
+    template<class U> inline void setWindSpeedSensor(U sensor);
+    template<class U = HelioSensor> inline SharedPtr<U> getWindSpeedSensor(bool poll = false);
 };
 
 

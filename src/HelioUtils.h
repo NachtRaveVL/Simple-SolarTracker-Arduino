@@ -353,8 +353,10 @@ inline String roundToString(float value, unsigned int additionalDecPlaces = 0) {
 // Returns linkages list filtered down to just actuators.
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType, bool isMotor);
-template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor);
+// wip
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *srcPanel, bool isMotor);
+// wip
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor);
 
 // Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel axis.
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, Helio_ActuatorType actuatorType);
@@ -365,12 +367,12 @@ extern int linksCountTravelActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *
 extern int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
 
 // Recombines filtered object list back into SharedPtr actuator list.
-template<size_t N> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
+template<size_t N = HELIO_DEFAULT_MAXSIZE> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 
-template<size_t N> void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, Vector<HelioActuatorAttachment, N> &activationsOut);
+template<size_t N = HELIO_DEFAULT_MAXSIZE> void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, Vector<HelioActuatorAttachment, N> &activationsOut);
 
 // Recombines filtered object list back into SharedPtr actuator list paired with rate value.
-template<size_t N> void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
+template<size_t N = HELIO_DEFAULT_MAXSIZE> void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);
 
 // Pins & Checks
 
