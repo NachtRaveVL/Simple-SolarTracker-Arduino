@@ -254,13 +254,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Err_UnsupportedOperation;
         } break;
 
-        case HStr_Log_AirReport: {
-            static const char flashStr_Log_AirReport[] PROGMEM = {" air report:"};
-            return flashStr_Log_AirReport;
-        } break;
         case HStr_Log_CalculatedTravel: {
             static const char flashStr_Log_CalculatedTravel[] PROGMEM = {" travel request:"};
             return flashStr_Log_CalculatedTravel;
+        } break;
+        case HStr_Log_EnvReport: {
+            static const char flashStr_Log_EnvReport[] PROGMEM = {" environment report:"};
+            return flashStr_Log_EnvReport;
         } break;
         case HStr_Log_HasBegan: {
             static const char flashStr_Log_HasBegan[] PROGMEM = {" has began"};
@@ -278,13 +278,17 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Log_HasEnded[] PROGMEM = {" has ended"};
             return flashStr_Log_HasEnded;
         } break;
-        case HStr_Log_LightingSequence: {
-            static const char flashStr_Log_LightingSequence[] PROGMEM = {" lighting sequence"};
-            return flashStr_Log_LightingSequence;
-        } break;
         case HStr_Log_MeasuredTravel: {
-            static const char flashStr_Log_LightingSequence[] PROGMEM = {" travel result:"};
-            return flashStr_Log_LightingSequence;
+            static const char flashStr_Log_MeasuredTravel[] PROGMEM = {" travel result:"};
+            return flashStr_Log_MeasuredTravel;
+        } break;
+        case HStr_Log_PreDawnCleaning: {
+            static const char flashStr_Log_PreDawnCleaning[] PROGMEM = {" pre-dawn cleaning"};
+            return flashStr_Log_PreDawnCleaning;
+        } break;
+        case HStr_Log_PreDawnHeating: {
+            static const char flashStr_Log_PreDawnHeating[] PROGMEM = {" pre-dawn heating"};
+            return flashStr_Log_PreDawnHeating;
         } break;
         case HStr_Log_RTCBatteryFailure: {
             static const char flashStr_Log_RTCBatteryFailure[] PROGMEM = {"RTC battery failure, time needs reset."};
@@ -297,6 +301,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Log_SystemUptime: {
             static const char flashStr_Log_SystemUptime[] PROGMEM = {"System uptime: "};
             return flashStr_Log_SystemUptime;
+        } break;
+        case HStr_Log_TrackingSequence: {
+            static const char flashStr_Log_TrackingSequence[] PROGMEM = {" tracking sequence"};
+            return flashStr_Log_TrackingSequence;
         } break;
 
         case HStr_Log_Prefix_Info: {
@@ -361,10 +369,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_ActiveLow[] PROGMEM = {"activeLow"};
             return flashStr_Key_ActiveLow;
         } break;
-        case HStr_Key_AirReportInterval: {
-            static const char flashStr_Key_AirReportInterval[] PROGMEM = {"airReportInterval"};
-            return flashStr_Key_AirReportInterval;
-        } break;
         case HStr_Key_AlignedTolerance: {
             static const char flashStr_Key_AlignedTolerance[] PROGMEM = {"alignedTolerance"};
             return flashStr_Key_AlignedTolerance;
@@ -393,13 +397,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_AxisPosition[] PROGMEM = {"axisPosition"};
             return flashStr_Key_AxisPosition;
         } break;
-        case HStr_Key_AxisSensor1: {
-            static const char flashStr_Key_AxisSensor1[] PROGMEM = {"axisSensor1"};
-            return flashStr_Key_AxisSensor1;
+        case HStr_Key_AxisSensorHorz: {
+            static const char flashStr_Key_AxisSensorHorz[] PROGMEM = {"axisSensorHorz"};
+            return flashStr_Key_AxisSensorHorz;
         } break;
-        case HStr_Key_AxisSensor2: {
-            static const char flashStr_Key_AxisSensor2[] PROGMEM = {"axisSensor2"};
-            return flashStr_Key_AxisSensor2;
+        case HStr_Key_AxisSensorVert: {
+            static const char flashStr_Key_AxisSensorVert[] PROGMEM = {"axisSensorVert"};
+            return flashStr_Key_AxisSensorVert;
         } break;
         case HStr_Key_BitRes: {
             static const char flashStr_Key_BitRes[] PROGMEM = {"bitRes"};
@@ -420,6 +424,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_ChipEnablePin: {
             static const char flashStr_Key_ChipEnablePin[] PROGMEM = {"chipEnablePin"};
             return flashStr_Key_ChipEnablePin;
+        } break;
+        case HStr_Key_CleaningIntervalDays: {
+            static const char flashStr_Key_CleaningIntervalDays[] PROGMEM = {"cleaningIntervalDays"};
+            return flashStr_Key_CleaningIntervalDays;
         } break;
         case HStr_Key_ComputeHeatIndex: {
             static const char flashStr_Key_ComputeHeatIndex[] PROGMEM = {"computeHeatIndex"};
@@ -457,7 +465,7 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_DispOutMode[] PROGMEM = {"dispOutMode"};
             return flashStr_Key_DispOutMode;
         } break;
-        case HStr_Key_DistUnits: {
+        case HStr_Key_DistanceUnits: {
             static const char flashStr_Key_DistUnits[] PROGMEM = {"distanceUnits"};
             return flashStr_Key_DistUnits;
         } break;
@@ -468,6 +476,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_Flags: {
             static const char flashStr_Key_Flags[] PROGMEM = {"flags"};
             return flashStr_Key_Flags;
+        } break;
+        case HStr_Key_HeatingTrigger: {
+            static const char flashStr_Key_HeatingTrigger[] PROGMEM = {"heatingTrigger"};
+            return flashStr_Key_HeatingTrigger;
         } break;
         case HStr_Key_HomePosition: {
             static const char flashStr_Key_HomePosition[] PROGMEM = {"homePosition"};
@@ -485,33 +497,41 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_InputPin[] PROGMEM = {"inputPin"};
             return flashStr_Key_InputPin;
         } break;
+        case HStr_Key_LastAlignedTime: {
+            static const char flashStr_Key_LastAlignedTime[] PROGMEM = {"lastAlignedTime"};
+            return flashStr_Key_LastAlignedTime;
+        } break;
+        case HStr_Key_LastCleanedTime: {
+            static const char flashStr_Key_LastCleanedTime[] PROGMEM = {"lastCleanedTime"};
+            return flashStr_Key_LastCleanedTime;
+        } break;
         case HStr_Key_Latitude: {
             static const char flashStr_Key_Latitude[] PROGMEM = {"latitude"};
             return flashStr_Key_Latitude;
         } break;
-        case HStr_Key_LDRSensor1: {
-            static const char flashStr_Key_LDRSensor1[] PROGMEM = {"ldrSensor1"};
-            return flashStr_Key_LDRSensor1;
+        case HStr_Key_LDRSensorHorzMin: {
+            static const char flashStr_Key_LDRSensorHorzMin[] PROGMEM = {"ldrSensorHorzMin"};
+            return flashStr_Key_LDRSensorHorzMin;
         } break;
-        case HStr_Key_LDRSensor2: {
-            static const char flashStr_Key_LDRSensor2[] PROGMEM = {"ldrSensor2"};
-            return flashStr_Key_LDRSensor2;
+        case HStr_Key_LDRSensorHorzMax: {
+            static const char flashStr_Key_LDRSensorHorzMax[] PROGMEM = {"ldrSensorHorzMax"};
+            return flashStr_Key_LDRSensorHorzMax;
         } break;
-        case HStr_Key_LDRSensor3: {
-            static const char flashStr_Key_LDRSensor3[] PROGMEM = {"ldrSensor3"};
-            return flashStr_Key_LDRSensor3;
+        case HStr_Key_LDRSensorVertMin: {
+            static const char flashStr_Key_LDRSensorVertMin[] PROGMEM = {"ldrSensorVertMin"};
+            return flashStr_Key_LDRSensorVertMin;
         } break;
-        case HStr_Key_LDRSensor4: {
-            static const char flashStr_Key_LDRSensor4[] PROGMEM = {"ldrSensor4"};
-            return flashStr_Key_LDRSensor4;
-        } break;
-        case HStr_Key_LastChangeDate: {
-            static const char flashStr_Key_LastChangeDate[] PROGMEM = {"lastChangeDate"};
-            return flashStr_Key_LastChangeDate;
+        case HStr_Key_LDRSensorVertMax: {
+            static const char flashStr_Key_LDRSensorVertMax[] PROGMEM = {"ldrSensorVertMax"};
+            return flashStr_Key_LDRSensorVertMax;
         } break;
         case HStr_Key_LimitTrigger: {
             static const char flashStr_Key_LimitTrigger[] PROGMEM = {"limitTrigger"};
             return flashStr_Key_LimitTrigger;
+        } break;
+        case HStr_Key_LocationOffset: {
+            static const char flashStr_Key_LocationOffset[] PROGMEM = {"locationOffset"};
+            return flashStr_Key_LocationOffset;
         } break;
         case HStr_Key_LogFilePrefix: {
             static const char flashStr_Key_LogFilePrefix[] PROGMEM = {"logFilePrefix"};
@@ -613,6 +633,14 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_PowerUnits[] PROGMEM = {"powerUnits"};
             return flashStr_Key_PowerUnits;
         } break;
+        case HStr_Key_PreDawnCleaningMins: {
+            static const char flashStr_Key_PreDawnCleaningMins[] PROGMEM = {"preDawnCleaningMins"};
+            return flashStr_Key_PreDawnCleaningMins;
+        } break;
+        case HStr_Key_PreDawnHeatingMins: {
+            static const char flashStr_Key_PreDawnHeatingMins[] PROGMEM = {"preDawnHeatingMins"};
+            return flashStr_Key_PreDawnHeatingMins;
+        } break;
         case HStr_Key_PublishToSDCard: {
             static const char flashStr_Key_PublishToSDCard[] PROGMEM = {"pubToSDCard"};
             return flashStr_Key_PublishToSDCard;
@@ -641,6 +669,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_ReflectPosition[] PROGMEM = {"reflectPosition"};
             return flashStr_Key_ReflectPosition;
         } break;
+        case HStr_Key_ReportInterval: {
+            static const char flashStr_Key_ReportInterval[] PROGMEM = {"reportInterval"};
+            return flashStr_Key_ReportInterval;
+        } break;
         case HStr_Key_Revision: {
             static const char flashStr_Key_Revision[] PROGMEM = {"revision"};
             return flashStr_Key_Revision;
@@ -661,13 +693,13 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_SpeedSensor[] PROGMEM = {"speedSensor"};
             return flashStr_Key_SpeedSensor;
         } break;
-        case HStr_Key_Spraying: {
-            static const char flashStr_Key_Spraying[] PROGMEM = {"spraying"};
-            return flashStr_Key_Spraying;
-        } break;
         case HStr_Key_State: {
             static const char flashStr_Key_State[] PROGMEM = {"state"};
             return flashStr_Key_State;
+        } break;
+        case HStr_Key_StormingTrigger: {
+            static const char flashStr_Key_StormingTrigger[] PROGMEM = {"stormingTrigger"};
+            return flashStr_Key_StormingTrigger;
         } break;
         case HStr_Key_SystemMode: {
             static const char flashStr_Key_SystemMode[] PROGMEM = {"systemMode"};
@@ -744,6 +776,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_WiFiSSID: {
             static const char flashStr_Key_WiFiSSID[] PROGMEM = {"wifiSSID"};
             return flashStr_Key_WiFiSSID;
+        } break;
+        case HStr_Key_WindSpeedSensor: {
+            static const char flashStr_Key_WindSpeedSensor[] PROGMEM = {"windSpeedSensor"};
+            return flashStr_Key_WindSpeedSensor;
         } break;
         case HStr_Key_WireDevAddress: {
             static const char flashStr_Key_WireDevAddress[] PROGMEM = {"wireDevAddress"};
@@ -918,9 +954,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelBrake[] PROGMEM = {"PanelBrake"};
             return flashStr_Enum_PanelBrake;
         } break;
-        case HStr_Enum_PanelCover: {
-            static const char flashStr_Enum_PanelCover[] PROGMEM = {"PanelCover"};
-            return flashStr_Enum_PanelCover;
+        case HStr_Enum_coverDriver: {
+            static const char flashStr_Enum_coverDriver[] PROGMEM = {"PanelCover"};
+            return flashStr_Enum_coverDriver;
         } break;
         case HStr_Enum_PanelHeater: {
             static const char flashStr_Enum_PanelHeater[] PROGMEM = {"PanelHeater"};

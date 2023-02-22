@@ -42,8 +42,7 @@ void HelioDLinkObject::unresolve()
 
 SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
 {
-    if (_obj) { return _obj; }
-    if (_key == hkey_none) { return nullptr; }
+    if (_obj || !isSet()) { return _obj; }
     if (Helioduino::_activeInstance) {
         _obj = static_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
     }

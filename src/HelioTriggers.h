@@ -69,7 +69,7 @@ protected:
 // useful for simple comparisons that control triggering. Initializes as disabled
 // until updated with first measurement, and with undefined units that compares
 // directly to measured units, otherwise units can be explicitly set. Can also
-// set an additive value that a measurement must go past in order to detrigger.
+// set an additive value that a measurement must go past in order to de-trigger.
 class HelioMeasurementValueTrigger : public HelioTrigger {
 public:
     HelioMeasurementValueTrigger(HelioIdentity sensorId,
@@ -108,7 +108,7 @@ protected:
 // known range before triggering. Initializes as disabled until updated with
 // first measurement, and with undefined units that compares directly to measured
 // units, otherwise units can be explicitly set. Can also set an additive value
-// that a measurement must go past in order to detrigger.
+// that a measurement must go past in order to de-trigger.
 class HelioMeasurementRangeTrigger : public HelioTrigger {
 public:
     HelioMeasurementRangeTrigger(HelioIdentity sensorId,

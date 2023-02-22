@@ -119,7 +119,7 @@ HelioSubData::HelioSubData(hid_t dataType)
 
 void HelioSubData::toJSONObject(JsonObject &objectOut) const
 {
-    if (type != hid_none) { objectOut[SFP(HStr_Key_Type)] = type; }
+    if (isSet()) { objectOut[SFP(HStr_Key_Type)] = type; }
 }
 
 void HelioSubData::fromJSONObject(JsonObjectConst &objectIn)

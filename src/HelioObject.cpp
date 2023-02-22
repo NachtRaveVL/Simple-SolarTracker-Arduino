@@ -12,13 +12,13 @@ HelioObject *newObjectFromData(const HelioData *dataIn)
 
     if (dataIn && dataIn->isObjectData()) {
         switch (dataIn->id.object.idType) {
-            case (int8_t)HelioIdentity::Actuator:
+            case (hid_t)HelioIdentity::Actuator:
                 return newActuatorObjectFromData((HelioActuatorData *)dataIn);
-            case (int8_t)HelioIdentity::Sensor:
+            case (hid_t)HelioIdentity::Sensor:
                 return newSensorObjectFromData((HelioSensorData *)dataIn);
-            case (int8_t)HelioIdentity::Panel:
+            case (hid_t)HelioIdentity::Panel:
                 return newPanelObjectFromData((HelioPanelData *)dataIn);
-            case (int8_t)HelioIdentity::Rail:
+            case (hid_t)HelioIdentity::Rail:
                 return newRailObjectFromData((HelioRailData *)dataIn);
             default: // Unable
                 return nullptr;

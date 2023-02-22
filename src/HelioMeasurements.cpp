@@ -12,13 +12,13 @@ HelioMeasurement *newMeasurementObjectFromSubData(const HelioMeasurementData *da
 
     if (dataIn) {
         switch (dataIn->type) {
-            case (int8_t)HelioMeasurement::Binary:
+            case (hid_t)HelioMeasurement::Binary:
                 return new HelioBinaryMeasurement(dataIn);
-            case (int8_t)HelioMeasurement::Single:
+            case (hid_t)HelioMeasurement::Single:
                 return new HelioSingleMeasurement(dataIn);
-            case (int8_t)HelioMeasurement::Double:
+            case (hid_t)HelioMeasurement::Double:
                 return new HelioDoubleMeasurement(dataIn);
-            case (int8_t)HelioMeasurement::Triple:
+            case (hid_t)HelioMeasurement::Triple:
                 return new HelioTripleMeasurement(dataIn);
             default: break;
         }

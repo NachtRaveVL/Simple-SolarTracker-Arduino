@@ -143,7 +143,7 @@ void HelioSensor::saveToData(HelioData *dataOut)
     HelioObject::saveToData(dataOut);
 
     dataOut->id.object.classType = (int8_t)classType;
-    if (_parentPanel.getId()) {
+    if (_parentPanel.isSet()) {
         strncpy(((HelioSensorData *)dataOut)->panelName, _parentPanel.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
     }
 }
@@ -353,7 +353,7 @@ void HelioAnalogSensor::setMeasurementUnits(Helio_UnitsType measurementUnits, ui
     if (_measurementUnits[measurementRow] != measurementUnits) {
         _measurementUnits[measurementRow] = measurementUnits;
 
-        if (_lastMeasurement.frame) {
+        if (_lastMeasurement.isSet()) {
             convertUnits(&_lastMeasurement, _measurementUnits[measurementRow]);
         }
     }
@@ -599,7 +599,7 @@ void HelioDHTTempHumiditySensor::setMeasurementUnits(Helio_UnitsType measurement
     if (_measurementUnits[measurementRow] != measurementUnits) {
         _measurementUnits[measurementRow] = measurementUnits;
 
-        if (_lastMeasurement.frame) {
+        if (_lastMeasurement.isSet()) {
             convertUnits(&_lastMeasurement.value[measurementRow], &_lastMeasurement.units[measurementRow], _measurementUnits[measurementRow]);
         }
     }

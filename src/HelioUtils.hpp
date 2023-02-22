@@ -209,7 +209,26 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
 }
 
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
-Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor)
+Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *srcPanel, bool isMotor)
+{
+    Vector<HelioObject *, N> retVal;
+
+    for (hposi_t linksIndex = 0; linksIndex < links.first && links.second[linksIndex].first; ++linksIndex) {
+        if (links.second[linksIndex].first->isActuatorType()) {
+            auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
+
+            if (actuator->isTravelType() && actuator->isMotorType() == isMotor &&
+                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
+                retVal.push_back(links.second[linksIndex].first);
+            }
+        }
+    }
+
+    return retVal;
+}
+
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
+Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor)
 {
     Vector<HelioObject *, N> retVal;
 
@@ -246,7 +265,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
     return retVal;
 }
 
-template<size_t N>
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
@@ -255,12 +274,11 @@ void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<H
         if (actuator->getActuatorType() == actuatorType) {
             activationsOut.push_back(HelioActuatorAttachment());
             activationsOut.back().setObject(actuator);
-            activationsOut.back().setupActivation(false);
         }
     }
 }
 
-template<size_t N>
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, Vector<HelioActuatorAttachment, N> &activationsOut)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
@@ -270,11 +288,10 @@ void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, H
         activationsOut.push_back(HelioActuatorAttachment());
         activationsOut.back().setParent(parent, subIndex);
         activationsOut.back().setObject(actuator);
-        activationsOut.back().setupActivation(false);
     }
 }
 
-template<size_t N>
+template<size_t N = HELIO_DEFAULT_MAXSIZE>
 void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
@@ -285,7 +302,6 @@ void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &a
             activationsOut.back().setParent(parent, subIndex);
             activationsOut.back().setRateMultiplier(rateMultiplier);
             activationsOut.back().setObject(actuator);
-            activationsOut.back().setupActivation(false);
         }
     }
 }

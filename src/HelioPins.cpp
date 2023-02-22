@@ -89,14 +89,18 @@ void HelioPin::init()
     #endif
 }
 
-bool HelioPin::tryEnableMuxer()
+bool HelioPin::enableMuxer(int step)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid() && isMuxed()) {
             SharedPtr<HelioPinMuxer> muxer = getController() ? getController()->getPinMuxer(pin) : nullptr;
             if (muxer) {
-                muxer->selectChannel(channel);
-                return true;
+                switch (step) {
+                    case 0: muxer->selectChannel(channel); muxer->activate(); return true;
+                    case 1: muxer->selectChannel(channel); return true;
+                    case 2: muxer->activate(); return true;
+                    default: return false;
+                }
             }
         }
         return false;
@@ -149,7 +153,7 @@ void HelioDigitalPin::saveToData(HelioPinData *dataOut) const
 ard_pinstatus_t HelioDigitalPin::digitalRead()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || tryEnableMuxer())) {
+        if (isValid() && (!isMuxed() || selectAndActivateMuxer())) {
             return ::digitalRead(pin);
         }
     #endif
@@ -159,8 +163,9 @@ ard_pinstatus_t HelioDigitalPin::digitalRead()
 void HelioDigitalPin::digitalWrite(ard_pinstatus_t status)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || tryEnableMuxer())) {
+        if (isValid() && (!isMuxed() || selectMuxer())) {
             ::digitalWrite(pin, status);
+            if (isMuxed()) { activateMuxer(); }
         }
     #endif
 }
@@ -256,7 +261,7 @@ float HelioAnalogPin::analogRead()
 int HelioAnalogPin::analogRead_raw()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || tryEnableMuxer())) {
+        if (isValid() && (!isMuxed() || selectAndActivateMuxer())) {
             #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
                 analogReadResolution(bitRes.bits);
             #endif
@@ -274,7 +279,7 @@ void HelioAnalogPin::analogWrite(float amount)
 void HelioAnalogPin::analogWrite_raw(int amount)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || tryEnableMuxer())) {
+        if (isValid() && (!isMuxed() || selectMuxer())) {
             #ifdef ESP32
                 ledcWrite(pwmChannel, val);
             #else
@@ -286,6 +291,7 @@ void HelioAnalogPin::analogWrite_raw(int amount)
                 #endif
                 ::analogWrite(pin, amount);
             #endif
+            if (isMuxed()) { activateMuxer(); }
         }
     #endif
 }
@@ -427,7 +433,7 @@ void HelioPinMuxer::selectChannel(uint8_t channelNumber)
         // While we could be a bit smarter about which muxers we disable, storing that
         // wouldn't necessarily be worth the gain. The assumption is all that muxers in
         // system occupy the same channel select bus, even if that isn't the case.
-        if (getController()) { getController()->deselectPinMuxers(); }
+        if (getController()) { getController()->deactivatePinMuxers(); }
 
         if (isValidPin(_channelPins[0])) {
             ::digitalWrite(_channelPins[0], (channelNumber >> 0) & 1 ? HIGH : LOW);
@@ -450,15 +456,17 @@ void HelioPinMuxer::selectChannel(uint8_t channelNumber)
         }
         _channelSelect = channelNumber;
     }
-
-    _signal.init();
-    _chipEnable.activate();
 }
 
-void HelioPinMuxer::deselect()
+void HelioPinMuxer::setIsActive(bool isActive)
 {
-    _chipEnable.deactivate();
-    _signal.deinit();
+    if (isActive) {
+        _signal.init();
+        _chipEnable.activate();
+    } else {
+        _chipEnable.deactivate();
+        _signal.deinit();
+    }
 }
 
 

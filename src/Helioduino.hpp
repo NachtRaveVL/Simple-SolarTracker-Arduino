@@ -33,21 +33,6 @@ inline DateTime Twilight::hourToLocalTime(double hour, bool isUTC)
 }
 
 
-inline void Helioduino::returnPinLock(pintype_t pin)
-{
-    _pinLocks.erase(pin);
-}
-
-inline SharedPtr<HelioPinMuxer> Helioduino::getPinMuxer(pintype_t pin)
-{
-    return _pinMuxers[pin];
-}
-
-inline void Helioduino::setPinMuxer(pintype_t pin, SharedPtr<HelioPinMuxer> pinMuxer)
-{
-    _pinMuxers[pin] = pinMuxer;
-}
-
 #ifdef HELIO_USE_WIFI
 
 inline WiFiClass *Helioduino::getWiFi(bool begin)
