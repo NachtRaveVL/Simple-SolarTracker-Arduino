@@ -1039,6 +1039,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Unit_Feet[] PROGMEM = {"ft"};
             return flashStr_Unit_Feet;
         } break;
+        case HStr_Unit_Minutes: {
+            static const char flashStr_Unit_Minutes[] PROGMEM = {"mins"};
+            return flashStr_Unit_Minutes;
+        } break;
         case HStr_Unit_PerMinute: {
             static const char flashStr_Unit_PerMinute[] PROGMEM = {"/min"};
             return flashStr_Unit_PerMinute;

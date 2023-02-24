@@ -236,6 +236,7 @@ enum Helio_String : unsigned short {
     HStr_Unit_Count,
     HStr_Unit_Degree,
     HStr_Unit_Feet,
+    HStr_Unit_Minutes,
     HStr_Unit_PerMinute,
     HStr_Unit_Radians,
     HStr_Unit_Undefined,
