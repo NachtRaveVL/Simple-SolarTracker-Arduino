@@ -171,11 +171,11 @@ public:
     inline HelioSensorAttachment &getAxisAngleSensorAttachment(hposi_t axisIndex = 0) { return _axisAngle[axisIndex]; }
 
     template<typename T> inline void setHeatingTrigger(T heatingTrigger) { _heatingTrigger.setObject(heatingTrigger); }
-    inline SharedPtr<HelioDriver> getHeatingTrigger() { return _heatingTrigger.getObject(); }
+    inline SharedPtr<HelioTrigger> getHeatingTrigger() { return _heatingTrigger.getObject(); }
     inline HelioTriggerAttachment &getHeatingTriggerAttachment() { return _heatingTrigger; }
 
     template<typename T> inline void setStormingTrigger(T stormingTrigger) { _stormingTrigger.setObject(stormingTrigger); }
-    inline SharedPtr<HelioDriver> getStormingTrigger() { return _stormingTrigger.getObject(); }
+    inline SharedPtr<HelioTrigger> getStormingTrigger() { return _stormingTrigger.getObject(); }
     inline HelioTriggerAttachment &getStormingTriggerAttachment() { return _stormingTrigger; }
 
     virtual void setPowerUnits(Helio_UnitsType powerUnits) override;

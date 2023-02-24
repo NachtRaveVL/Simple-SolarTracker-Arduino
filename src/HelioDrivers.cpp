@@ -91,13 +91,6 @@ void HelioDriver::setTargetSetpoint(float targetSetpoint)
     }
 }
 
-void HelioDriver::setTravelRate(float travelRate)
-{
-    if (!isFPEqual(_travelRate, travelRate)) {
-        _travelRate = travelRate;
-    }
-}
-
 void HelioDriver::setEnabled(bool enabled)
 {
     _enabled = enabled;

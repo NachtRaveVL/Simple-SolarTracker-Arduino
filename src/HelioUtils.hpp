@@ -217,8 +217,8 @@ Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, P
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->isTravelType() && actuator->isMotorType() == isMotor &&
-                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel &&
+                actuator->isMotorType() == isMotor) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }
@@ -255,8 +255,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel &&
-                actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }
