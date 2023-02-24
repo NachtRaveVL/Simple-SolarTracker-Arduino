@@ -1284,6 +1284,8 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             retVal.concat(SFP(HStr_Unit_Radians));
             return retVal;
         }
+        case Helio_UnitsType_Angle_Minutes_24hr:
+            return SFP(HStr_Unit_Minutes);
         case Helio_UnitsType_Distance_Feet:
             return SFP(HStr_Unit_Feet);
         case Helio_UnitsType_Distance_Meters:
@@ -1356,14 +1358,15 @@ hposi_t positionIndexFromString(String positionIndexStr)
 
 Helio_SystemMode systemModeFromString(String systemModeStr)
 {
-    // todo
     switch (systemModeStr.length() >= 1 ? systemModeStr[0] : '\0') {
-        case 'R':
-            return (Helio_SystemMode)0;
-        case 'D':
+        case 'B':
             return (Helio_SystemMode)1;
         case 'C':
             return (Helio_SystemMode)2;
+        case 'P':
+            return (Helio_SystemMode)0;
+        case 'U':
+            return (Helio_SystemMode)-1;
     }
     return Helio_SystemMode_Undefined;
 }
@@ -1371,14 +1374,16 @@ Helio_SystemMode systemModeFromString(String systemModeStr)
 Helio_MeasurementMode measurementModeFromString(String measurementModeStr)
 {
     switch (measurementModeStr.length() >= 1 ? measurementModeStr[0] : '\0') {
+        case 'C':
+            return (Helio_MeasurementMode)3;
         case 'I':
             return (Helio_MeasurementMode)0;
         case 'M':
             return (Helio_MeasurementMode)1;
         case 'S':
             return (Helio_MeasurementMode)2;
-        case 'C':
-            return (Helio_MeasurementMode)3;
+        case 'U':
+            return (Helio_MeasurementMode)-1;
     }
     return Helio_MeasurementMode_Undefined;
 }
@@ -1386,16 +1391,6 @@ Helio_MeasurementMode measurementModeFromString(String measurementModeStr)
 Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
 {
     switch (displayOutModeStr.length() >= 1 ? displayOutModeStr[0] : '\0') {
-        case 'D':
-            return (Helio_DisplayOutputMode)0;
-        case '2':
-            switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                case '\0':
-                    return (Helio_DisplayOutputMode)1;
-                case 'S':
-                    return (Helio_DisplayOutputMode)2;
-            }
-            break;
         case '1':
             switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
                 case '\0':
@@ -1404,8 +1399,20 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                     return (Helio_DisplayOutputMode)4;
             }
             break;
+        case '2':
+            switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                case '\0':
+                    return (Helio_DisplayOutputMode)1;
+                case 'S':
+                    return (Helio_DisplayOutputMode)2;
+            }
+            break;
         case 'C':
             return (Helio_DisplayOutputMode)5;
+        case 'D':
+            return (Helio_DisplayOutputMode)0;
+        case 'U':
+            return (Helio_DisplayOutputMode)-1;
     }
     return Helio_DisplayOutputMode_Undefined;
 }
@@ -1413,172 +1420,117 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
 Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
 {
     switch (controlInModeStr.length() >= 1 ? controlInModeStr[0] : '\0') {
-        case 'D':
-            return (Helio_ControlInputMode)0;
         case '2':
             return (Helio_ControlInputMode)1;
         case '4':
             return (Helio_ControlInputMode)2;
         case '6':
             return (Helio_ControlInputMode)3;
-        case 'R':
-            return (Helio_ControlInputMode)4;
         case 'C':
             return (Helio_ControlInputMode)5;
+        case 'D':
+            return (Helio_ControlInputMode)0;
+        case 'R':
+            return (Helio_ControlInputMode)4;
+        case 'U':
+            return (Helio_ControlInputMode)-1;
     }
     return Helio_ControlInputMode_Undefined;
 }
 
 Helio_ActuatorType actuatorTypeFromString(String actuatorTypeStr)
 {
-    // todo
     switch (actuatorTypeStr.length() >= 1 ? actuatorTypeStr[0] : '\0') {
-        case 'G':
-            return (Helio_ActuatorType)0;
-        case 'W':
-            switch (actuatorTypeStr.length() >= 6 ? actuatorTypeStr[5] : '\0') {
-                case 'P':
-                    return (Helio_ActuatorType)1;
-                case 'H':
-                    return (Helio_ActuatorType)3;
-                case 'A':
-                    return (Helio_ActuatorType)4;
-                case 'S':
-                    return (Helio_ActuatorType)5;
+        case 'C':
+            switch (actuatorTypeStr.length() >= 3 ? actuatorTypeStr[2] : '\0') {
+                case 'n':
+                    return (Helio_ActuatorType)0;
+                case 'u':
+                    return (Helio_ActuatorType)7;
             }
             break;
+        case 'L':
+            return (Helio_ActuatorType)1;
         case 'P':
-            return (Helio_ActuatorType)2;
-        case 'F':
-            return (Helio_ActuatorType)6;
-        case 'C':
-            return (Helio_ActuatorType)7;
+            switch (actuatorTypeStr.length() >= 2 ? actuatorTypeStr[1] : '\0') {
+                case 'a':
+                    switch (actuatorTypeStr.length() >= 6 ? actuatorTypeStr[5] : '\0') {
+                        case 'B':
+                            return (Helio_ActuatorType)2;
+                        case 'C':
+                            return (Helio_ActuatorType)3;
+                        case 'H':
+                            return (Helio_ActuatorType)4;
+                        case 'S':
+                            return (Helio_ActuatorType)5;
+                    }
+                    break;
+                case 'o':
+                    return (Helio_ActuatorType)6;
+            }
+            break;
+        case 'U':
+            return (Helio_ActuatorType)-1;
     }
     return Helio_ActuatorType_Undefined;
 }
 
 Helio_SensorType sensorTypeFromString(String sensorTypeStr)
 {
-    // todo
-    switch (sensorTypeStr.length() >= 1 ? sensorTypeStr[0] : '\0') {
-        case 'W':
+        switch (sensorTypeStr.length() >= 1 ? sensorTypeStr[0] : '\0') {
+        case 'C':
+            return (Helio_SensorType)8;
+        case 'I':
+            return (Helio_SensorType)0;
+        case 'L':
+            return (Helio_SensorType)1;
+        case 'P':
             switch (sensorTypeStr.length() >= 6 ? sensorTypeStr[5] : '\0') {
                 case 'P':
-                    return (Helio_SensorType)0;
-                case 'T':
-                    switch (sensorTypeStr.length() >= 7 ? sensorTypeStr[6] : '\0') {
-                        case 'D':
-                            return (Helio_SensorType)1;
-                        case 'e':
-                            return (Helio_SensorType)3;
-                    }
-                    break;
-                case 'H':
+                    return (Helio_SensorType)2;
+                case 'U':
+                    return (Helio_SensorType)3;
+            }
+            break;
+        case 'T':
+            switch (sensorTypeStr.length() >= 2 ? sensorTypeStr[1] : '\0') {
+                case 'e':
+                    return (Helio_SensorType)4;
+                case 'i':
+                    return (Helio_SensorType)5;
+                case 'r':
                     return (Helio_SensorType)6;
             }
             break;
-        case 'S':
-            return (Helio_SensorType)2;
-        case 'P':
-            switch (sensorTypeStr.length() >= 2 ? sensorTypeStr[1] : '\0') {
-                case 'u':
-                    return (Helio_SensorType)4;
-                case 'o':
-                    return (Helio_SensorType)9;
-            }
-            break;
-        case 'L':
-            return (Helio_SensorType)5;
-        case 'A':
-            switch (sensorTypeStr.length() >= 4 ? sensorTypeStr[3] : '\0') {
-                case 'T':
-                    return (Helio_SensorType)7;
-                case 'C':
-                    return (Helio_SensorType)8;
-            }
-            break;
-        case 'C':
-            return (Helio_SensorType)10;
+        case 'U':
+            return (Helio_SensorType)-1;
+        case 'W':
+            return (Helio_SensorType)7;
     }
     return Helio_SensorType_Undefined;
 }
 
 Helio_PanelType panelTypeFromString(String panelTypeStr)
 {
-    // todo
     switch (panelTypeStr.length() >= 1 ? panelTypeStr[0] : '\0') {
-        case 'F':
-            switch (panelTypeStr.length() >= 2 ? panelTypeStr[1] : '\0') {
-                case 'e':
-                    return (Helio_PanelType)0;
-                case 'r':
-                    return (Helio_PanelType)3;
-            }
-            break;
-        case 'D':
-            return (Helio_PanelType)1;
-        case 'N':
-            return (Helio_PanelType)2;
-        case 'P':
-            switch (panelTypeStr.length() >= 3 ? panelTypeStr[2] : '\0') {
-                case 'U':
-                    return (Helio_PanelType)4;
-                case 'D':
-                    return (Helio_PanelType)5;
-            }
-            break;
         case 'C':
-            switch (panelTypeStr.length() >= 2 ? panelTypeStr[1] : '\0') {
-                case 'u':
-                    switch (panelTypeStr.length() >= 15 ? panelTypeStr[14] : '\0') {
-                        case '1':
-                            switch (panelTypeStr.length() >= 16 ? panelTypeStr[15] : '\0') {
-                                case '\0':
-                                    return (Helio_PanelType)6;
-                                case '0':
-                                    return (Helio_PanelType)15;
-                                case '1':
-                                    return (Helio_PanelType)16;
-                                case '2':
-                                    return (Helio_PanelType)17;
-                                case '3':
-                                    return (Helio_PanelType)18;
-                                case '4':
-                                    return (Helio_PanelType)19;
-                                case '5':
-                                    return (Helio_PanelType)20;
-                                case '6':
-                                    return (Helio_PanelType)21;
-                            }
-                            break;
-                        case '2':
-                            return (Helio_PanelType)7;
-                        case '3':
-                            return (Helio_PanelType)8;
-                        case '4':
-                            return (Helio_PanelType)9;
-                        case '5':
-                            return (Helio_PanelType)10;
-                        case '6':
-                            return (Helio_PanelType)11;
-                        case '7':
-                            return (Helio_PanelType)12;
-                        case '8':
-                            return (Helio_PanelType)13;
-                        case '9':
-                            return (Helio_PanelType)14;
-                    }
-                    break;
-                case 'o':
-                    return (Helio_PanelType)22;
-            }
-            break;
+            return (Helio_PanelType)4;
+        case 'E':
+            return (Helio_PanelType)3;
+        case 'G':
+            return (Helio_PanelType)2;
+        case 'H':
+            return (Helio_PanelType)0;
+        case 'U':
+            return (Helio_PanelType)-1;
+        case 'V':
+            return (Helio_PanelType)1;
     }
     return Helio_PanelType_Undefined;
 }
 
 Helio_RailType railTypeFromString(String railTypeStr) {
-    switch (railTypeStr.length() >= 1 ? railTypeStr[0] : '\0') {
+        switch (railTypeStr.length() >= 1 ? railTypeStr[0] : '\0') {
         case 'A':
             switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\0') {
                 case '1':
@@ -1588,172 +1540,181 @@ Helio_RailType railTypeFromString(String railTypeStr) {
             }
             break;
         case 'C':
-            return (Helio_RailType)4;
+            return (Helio_RailType)7;
         case 'D':
             switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\0') {
-                case '5':
-                    return (Helio_RailType)2;
                 case '1':
+                    return (Helio_RailType)4;
+                case '2':
+                    return (Helio_RailType)5;
+                case '3':
+                    return (Helio_RailType)2;
+                case '4':
+                    return (Helio_RailType)6;
+                case '5':
                     return (Helio_RailType)3;
             }
             break;
+        case 'U':
+            return (Helio_RailType)-1;
     }
     return Helio_RailType_Undefined;
 }
 
 Helio_PinMode pinModeFromString(String pinModeStr)
 {
-    // TODO
-    return (Helio_PinMode)pinModeStr.toInt();
-}
-
-Helio_EnableMode enableModeFromString(String enableModeStr)
-{
-    // TODO
-    return (Helio_EnableMode)enableModeStr.toInt();
-}
-
-Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)
-{
-    // todo
-    switch (unitsCategoryStr.length() >= 1 ? unitsCategoryStr[0] : '\0') {
+        switch (pinModeStr.length() >= 1 ? pinModeStr[0] : '\0') {
         case 'A':
-            switch (unitsCategoryStr.length() >= 2 ? unitsCategoryStr[1] : '\0') {
-                case 'l':
-                    return (Helio_UnitsCategory)0;
-                case 'i':
-                    switch (unitsCategoryStr.length() >= 4 ? unitsCategoryStr[3] : '\0') {
-                        case 'T':
-                            return (Helio_UnitsCategory)7;
-                        case 'H':
-                            switch (unitsCategoryStr.length() >= 5 ? unitsCategoryStr[4] : '\0') {
-                                case 'u':
-                                    return (Helio_UnitsCategory)8;
-                                case 'e':
-                                    return (Helio_UnitsCategory)9;
+            switch (pinModeStr.length() >= 7 ? pinModeStr[6] : '\0') {
+                case 'I':
+                    return (Helio_PinMode)5;
+                case 'O':
+                    return (Helio_PinMode)6;
+            }
+            break;
+        case 'C':
+            return (Helio_PinMode)7;
+        case 'D':
+            switch (pinModeStr.length() >= 8 ? pinModeStr[7] : '\0') {
+                case 'I':
+                    switch (pinModeStr.length() >= 13 ? pinModeStr[12] : '\0') {
+                        case '\0':
+                            return (Helio_PinMode)0;
+                        case 'P':
+                            switch (pinModeStr.length() >= 17 ? pinModeStr[16] : '\0') {
+                                case 'D':
+                                    return (Helio_PinMode)2;
+                                case 'U':
+                                    return (Helio_PinMode)1;
                             }
                             break;
-                        case 'C':
-                            return (Helio_UnitsCategory)10;
+                    }
+                    break;
+                case 'O':
+                    switch (pinModeStr.length() >= 14 ? pinModeStr[13] : '\0') {
+                        case '\0':
+                            return (Helio_PinMode)3;
+                        case 'P':
+                            return (Helio_PinMode)4;
                     }
                     break;
             }
             break;
-        case 'D':
-            switch (unitsCategoryStr.length() >= 4 ? unitsCategoryStr[3] : '\0') {
+        case 'U':
+            return (Helio_PinMode)-1;
+    }
+    return Helio_PinMode_Undefined;
+}
+
+Helio_EnableMode enableModeFromString(String enableModeStr)
+{
+    switch (enableModeStr.length() >= 1 ? enableModeStr[0] : '\0') {
+        case 'A':
+            switch (enableModeStr.length() >= 2 ? enableModeStr[1] : '\0') {
                 case 's':
-                    return (Helio_UnitsCategory)1;
-                case 't':
-                    return (Helio_UnitsCategory)11;
+                    return (Helio_EnableMode)7;
+                case 'v':
+                    return (Helio_EnableMode)2;
+            }
+            break;
+        case 'C':
+            return (Helio_EnableMode)8;
+        case 'D':
+            return (Helio_EnableMode)6;
+        case 'H':
+            return (Helio_EnableMode)0;
+        case 'I':
+            return (Helio_EnableMode)4;
+        case 'L':
+            return (Helio_EnableMode)1;
+        case 'M':
+            return (Helio_EnableMode)3;
+        case 'R':
+            return (Helio_EnableMode)5;
+        case 'U':
+            return (Helio_EnableMode)-1;
+    }
+    return Helio_EnableMode_Undefined;
+}
+
+Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)
+{
+    switch (unitsCategoryStr.length() >= 1 ? unitsCategoryStr[0] : '\0') {
+        case 'A':
+            return (Helio_UnitsCategory)0;
+        case 'C':
+            return (Helio_UnitsCategory)6;
+        case 'D':
+            return (Helio_UnitsCategory)1;
+        case 'P':
+            switch (unitsCategoryStr.length() >= 2 ? unitsCategoryStr[1] : '\0') {
+                case 'e':
+                    return (Helio_UnitsCategory)2;
+                case 'o':
+                    return (Helio_UnitsCategory)3;
             }
             break;
         case 'S':
-            return (Helio_UnitsCategory)2;
-        case 'L':
-            switch (unitsCategoryStr.length() >= 4 ? unitsCategoryStr[3] : '\0') {
-                case 'T':
-                    return (Helio_UnitsCategory)3;
-                case 'V':
-                    return (Helio_UnitsCategory)4;
-                case 'F':
-                    return (Helio_UnitsCategory)5;
-                case 'D':
-                    return (Helio_UnitsCategory)6;
-            }
-            break;
-        case 'W':
-            return (Helio_UnitsCategory)12;
-        case 'P':
-            return (Helio_UnitsCategory)13;
-        case 'C':
-            return (Helio_UnitsCategory)14;
+            return (Helio_UnitsCategory)4;
+        case 'T':
+            return (Helio_UnitsCategory)5;
+        case 'U':
+            return (Helio_UnitsCategory)-1;
     }
     return Helio_UnitsCategory_Undefined;
 }
 
 Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
 {
-    // todo
     switch (unitsSymbolStr.length() >= 1 ? unitsSymbolStr[0] : '\0') {
+        case '%':
+            return (Helio_UnitsType)1;
         case 'A':
-            return (Helio_UnitsType)21;
-        case 'E':
-            return (Helio_UnitsType)3;
-        case 'f':
-            return (Helio_UnitsType)17;
-        case 'g':
-            switch (unitsSymbolStr.length() >= 4 ? unitsSymbolStr[3] : '\0') {
-                case '\0':
-                    return (Helio_UnitsType)8;
-                case '/':
-                    return (Helio_UnitsType)10;
+            return (Helio_UnitsType)7;
+        case 'J':
+            return (Helio_UnitsType)8;
+        case 'W':
+            return (Helio_UnitsType)8;
+        case '[':
+            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
+                case 'q':
+                    return (Helio_UnitsType)14;
+                case 'u':
+                    return (Helio_UnitsType)-1;
             }
             break;
-        case 'J':
-            return (Helio_UnitsType)20;
-        case 'K':
-            return (Helio_UnitsType)18;
-        case 'L':
-            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
+        case 'f':
+            switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\0') {
                 case '\0':
-                    return (Helio_UnitsType)7;
+                    return (Helio_UnitsType)5;
                 case '/':
                     return (Helio_UnitsType)9;
             }
             break;
-        case 'l':
-            return (Helio_UnitsType)19;
         case 'm':
             switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
-                case 'L':
-                    switch (unitsSymbolStr.length() >= 4 ? unitsSymbolStr[3] : '\0') {
-                        case 'L':
-                            return (Helio_UnitsType)11;
-                        case 'g':
-                            return (Helio_UnitsType)12;
-                    }
-                    break;
-                case 'S':
-                    return (Helio_UnitsType)3;
                 case '\0':
-                    return (Helio_UnitsType)16;
+                    return (Helio_UnitsType)6;
+                case '/':
+                    return (Helio_UnitsType)10;
+                case 'i':
+                    return (Helio_UnitsType)4;
             }
             break;
-        case 'p':
-            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
-                case 'H':
-                    return (Helio_UnitsType)2;
-                case 'p':
-                    switch (unitsSymbolStr.length() >= 5 ? unitsSymbolStr[4] : '\0') {
-                        case '\0':
-                        case '5':
-                            return (Helio_UnitsType)13;
-                        case '6':
-                            return (Helio_UnitsType)14;
-                        case '7':
-                            return (Helio_UnitsType)15;
-                    }
-                    break;
-            }
-            break;
-        case 'q':
-            return (Helio_UnitsType)22;
         case 'r':
             return (Helio_UnitsType)0;
-        case 'T':
-            return (Helio_UnitsType)3;
-        case 'W':
-            return (Helio_UnitsType)20;
-        case '%':
-            return (Helio_UnitsType)1;
-        default: // degree symbol
+        default:
             switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\0') {
+                case '\0':
+                    return (Helio_UnitsType)2;
                 case 'C':
-                    return (Helio_UnitsType)4;
+                    return (Helio_UnitsType)11;
                 case 'F':
-                    return (Helio_UnitsType)5;
+                    return (Helio_UnitsType)12;
                 case 'K':
-                    return (Helio_UnitsType)6;
+                    return (Helio_UnitsType)13;
+                case 'r':
+                    return (Helio_UnitsType)3;
             }
             break;
     }
