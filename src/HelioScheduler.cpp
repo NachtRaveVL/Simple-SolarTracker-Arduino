@@ -115,7 +115,7 @@ void HelioScheduler::performScheduling()
                     } else {
                         #ifdef HELIO_USE_VERBOSE_OUTPUT
                             Serial.print(F("Scheduler::performScheduling Travel actuator linkages found for: ")); Serial.print(iter->second->getKeyString());
-                            Serial.print(':'); Serial.print(' '); Serial.println(linksCountTravelActuators(feedReservoir->getLinkages())); flushYield();
+                            Serial.print(':'); Serial.print(' '); Serial.println(linksCountTravelActuators(panel->getLinkages())); flushYield();
                         #endif
 
                         HelioTracking *tracking = new HelioTracking(panel);
@@ -209,7 +209,8 @@ void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_S
 
 
 HelioTracking::HelioTracking(SharedPtr<HelioPanel> panel)
-    : HelioProcess(panel), stage(Unknown), canProcessAfter(0), lastEnvReport(0)
+    : HelioProcess(panel), stage(Unknown), canProcessAfter(0), lastEnvReport(0),
+      stormingReported(false), nightSeqReported(false), coverSeqReported(false)
 {
     reset();
 }
@@ -223,6 +224,7 @@ void HelioTracking::reset()
 {
     clearActuatorReqs();
     stage = Init; stageStart = unixNow(); canProcessAfter = 0;
+    stormingReported = false; nightSeqReported = false; coverSeqReported = false;
     setupStaging();
 }
 
@@ -233,7 +235,9 @@ void HelioTracking::setupStaging()
         Serial.print(F("Tracking::setupStaging stage: ")); Serial.println((_stageFS1 = (int8_t)stage)); flushYield(); } }
     #endif
 
-    bool canUncover = stage >= Uncover && stage <= Track && (!panel->isAnyTrackingClass() || !triggerStateToBool(static_pointer_cast<HelioTrackingPanel>(panel)->getStormingTriggerAttachment().getTriggerState()));
+    auto trackingPanel = panel->isAnyTrackingClass() ? static_pointer_cast<HelioTrackingPanel>(panel) : nullptr;
+    bool isStorming = trackingPanel && triggerStateToBool(trackingPanel->getStormingTriggerAttachment().getTriggerState());
+    bool canUncover = stage >= Uncover && stage < Cover && !isStorming;
 
     if (panel->drivesHorizontalAxis()) {
         auto axisHorz = linksFilterTravelActuatorsByPanelAxisAndMotor<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), 0, true);
@@ -355,101 +359,220 @@ void HelioTracking::update()
         Serial.print(F("Tracking::update stage: ")); Serial.println((_stageFU1 = (int8_t)stage)); flushYield(); } }
     #endif
 
-    if ((!lastEnvReport || unixNow() >= lastEnvReport + getScheduler()->schedulerData()->reportInterval) &&
+    time_t time = unixNow();
+    auto trackingPanel = panel->isAnyTrackingClass() ? static_pointer_cast<HelioTrackingPanel>(panel) : nullptr;
+
+    if (trackingPanel && (!lastEnvReport || time >= lastEnvReport + getScheduler()->schedulerData()->reportInterval) &&
         (getScheduler()->schedulerData()->reportInterval > 0) && // 0 disables
         (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getTemperatureSensor()) ||
         (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getWindSpeedSensor())) {
         getLogger()->logProcess(panel.get(), SFP(HStr_Log_EnvReport));
-        logTracking(HelioTrackingLogType_Setpoints);
-        logTracking(HelioTrackingLogType_Measures);
-        lastEnvReport = unixNow();
+        #ifdef HELIO_USE_MULTITASKING
+            // Yield will allow measurements to complete, ensures first log out doesn't contain zero'ed values
+            if ((trackingPanel->getTemperatureSensor() && !trackingPanel->getTemperatureSensorAttachment().getMeasurementFrame()) ||
+                (trackingPanel->getWindSpeedSensor() && !trackingPanel->getWindSpeedSensorAttachment().getMeasurementFrame())) {
+                yield();
+            }
+        #endif
+        if (trackingPanel->getTemperatureSensor()) {
+            auto temp = trackingPanel->getTemperatureSensorAttachment().getMeasurement(true);
+            convertUnits(&temp, trackingPanel->getTemperatureUnits());
+            getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Measured), measurementToString(temp));
+        }
+        if (trackingPanel->getWindSpeedSensor()) {
+            auto windSpeed = trackingPanel->getWindSpeedSensorAttachment().getMeasurement(true);
+            getLogger()->logMessage(SFP(HStr_Log_Field_WindSpeed_Measured), measurementToString(windSpeed));
+        }
+        lastEnvReport = time;
     }
 
-    if (!canProcessAfter || unixNow() >= canProcessAfter) {
+    if (!canProcessAfter || time >= canProcessAfter) {
+        auto stageWas = stage != Init ? stage : Cover;
+        TimeSpan elapsedTime(time - stageStart);
+        bool logStage = false;
+        auto currTime = localTime(time);
+        auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
+        auto sunset = getScheduler()->getDailyTwilight().getSunsetLocalTime();
+        bool afterSunset = currTime > sunset;
+        bool afterSunrise = currTime >= sunrise;
+        bool cleaningDue = trackingPanel && currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnCleaningMins,0) &&
+                           currTime >= trackingPanel->getLastPanelCleaningTime() + TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
+                           linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelSprayer).size();
+        bool preHeatingDue = trackingPanel && currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnHeatingMins,0) &&
+                             triggerStateToBool(trackingPanel->getHeatingTriggerAttachment().getTriggerState()) &&
+                             linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelHeater).size();
+        bool isStorming = trackingPanel && triggerStateToBool(trackingPanel->getStormingTriggerAttachment().getTriggerState());
+
         switch (stage) {
             case Init: {
-                stage = Cover; stageStart = unixNow(); canProcessAfter = 0;
-                setupStaging();
+                if (afterSunset) { // storm trigger handled in later update
+                    stage = Cover; stageStart = time;
+                    setupStaging();
+                } else if (afterSunrise || cleaningDue) {
+                    stage = Uncover; stageStart = time;
+                    setupStaging();
+                } else if (preHeatingDue) {
+                    stage = Warm; stageStart = time;
+                    setupStaging();
+                } else { // before-sunrise / fail-safe
+                    stage = Cover; stageStart = time;
+                    setupStaging();
+                }
             } break;
 
             case Warm: {
-                auto currTime = localNow();
-                auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
-
-                if (currTime > getScheduler()->getDailyTwilight().getSunsetLocalTime()) {
-                    stage = Cover; stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                } else if (currTime >= sunrise || (panel->isAnyTrackingClass() &&
-                           currTime >= static_pointer_cast<HelioTrackingPanel>(panel)->getLastPanelCleaningTime() +
-                                       TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
-                           currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnCleaningMins,0) &&
-                           linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer).size())) {
-                    stage = Uncover; stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                } else if (canProcessAfter) {
-                    canProcessAfter = unixNow() + 5;
+                if (afterSunset || isStorming) {
+                    stage = Cover; stageStart = time;
+                    setupStaging(); logStage = true;
+                } else if (afterSunrise || cleaningDue) {
+                    stage = Uncover; stageStart = time;
+                    setupStaging();  logStage = true;
+                } else { // running heating
                 }
             } break;
 
             case Uncover: {
-                if (!panel->getPanelCoverDriver() || panel->getPanelCoverDriver()->isAligned()) {
-                    bool needsCleaning = panel->isAnyTrackingClass() && localNow() >= static_pointer_cast<HelioTrackingPanel>(panel)->getLastPanelCleaningTime() +
-                                                                                      TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
-                                         linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer).size();
-                    stage = (needsCleaning ? Clean : Track); stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                } else if (canProcessAfter) {
-                    canProcessAfter = unixNow() + 5;
+                if (afterSunset || isStorming) {
+                    stage = Cover; stageStart = time;
+                    setupStaging(); logStage = true;
+                } else if (!panel->getPanelCoverDriver() || panel->getPanelCoverDriver()->isAligned()) {
+                    stage = (cleaningDue ? Clean : Track); stageStart = time;
+                    setupStaging(); logStage = true;
+                } else { // running uncover
                 }
             } break;
 
             case Clean: {
-                if (unixNow() >= stageStart + getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN) {
-                    if (panel->isAnyTrackingClass()) { static_pointer_cast<HelioTrackingPanel>(panel)->notifyPanelCleaned(); }
-                    stage = Track; stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                } else if (canProcessAfter) {
-                    canProcessAfter = unixNow() + 5;
+                if (afterSunset || isStorming) {
+                    stage = Cover; stageStart = time;
+                    setupStaging(); logStage = true;
+                } if (time >= stageStart + (getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN)) {
+                    stage = Track; stageStart = time;
+                    setupStaging(); logStage = true;
+
+                    if (trackingPanel) { trackingPanel->notifyPanelCleaned(); }
+                } else { // running cleaning
                 }
             } break;
 
             case Track: {
-                auto currTime = localNow();
-
-                if (currTime > getScheduler()->getDailyTwilight().getSunsetLocalTime()) {
-                    stage = Cover; stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                } else if (canProcessAfter) {
-                    canProcessAfter = unixNow() + 5;
+                if (afterSunset || isStorming) {
+                    stage = Cover; stageStart = time;
+                    setupStaging(); logStage = true;
+                } else { // running tracking
                 }
             } break;
 
             case Cover: {
-                auto currTime = localNow();
-
-                if (currTime > getScheduler()->getDailyTwilight().getSunsetLocalTime()) {
-                    if (canProcessAfter) { canProcessAfter = unixNow() + 5; }
-                } else {
-                    auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
-                    if (currTime >= sunrise || (panel->isAnyTrackingClass() &&
-                           currTime >= static_pointer_cast<HelioTrackingPanel>(panel)->getLastPanelCleaningTime() +
-                                       TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
-                           currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnCleaningMins,0) &&
-                           linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer).size())) {
-                    stage = Uncover; stageStart = unixNow(); canProcessAfter = 0;
-                    setupStaging();
-                    } else if (currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnHeatingMins,0) &&
-                            linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater).size()) {
-                        stage = Warm; stageStart = unixNow(); canProcessAfter = 0;
-                        setupStaging();
-                    } if (canProcessAfter) {
-                        canProcessAfter = unixNow() + 5;
-                    }
+                if (afterSunset || isStorming) { // running cover
+                    if (afterSunset && !nightSeqReported) { stormingReported = false; logStage = true; }
+                } else if (afterSunrise || cleaningDue) {
+                    stage = Uncover; stageStart = time;
+                    setupStaging(); logStage = true;
+                } else if (preHeatingDue) {
+                    stage = Warm; stageStart = time;
+                    setupStaging(); logStage = true;
+                } else { // before-sunrise / running cover
+                }
+                if (coverSeqReported && panel->getPanelCoverDriver() && panel->getPanelCoverDriver()->isAligned()) {
+                    getLogger()->logProcess(panel.get(), SFP(HStr_Log_CoverSequence), SFP(HStr_Log_HasEnded));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                    coverSeqReported = false;
                 }
             } break;
 
             default:
                 break;
+        }
+
+        if (logStage) {
+            if (stageWas != stage) {
+                switch (stageWas) {
+                    case Warm: {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnWarmup), SFP(HStr_Log_HasEnded));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                    } break;
+
+                    case Uncover: {
+                        if (panel->getPanelCoverDriver() && panel->getPanelCoverDriver()->isAligned()) {
+                            getLogger()->logProcess(panel.get(), SFP(HStr_Log_UncoverSequence), SFP(HStr_Log_HasEnded));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                        }
+                    } break;
+
+                    case Clean: {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnCleaning), SFP(HStr_Log_HasEnded));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                    } break;
+
+                    case Track: {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_TrackingSequence), SFP(HStr_Log_HasEnded));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                    } break;
+
+                    case Cover: {
+                        if (stormingReported) {
+                            getLogger()->logProcess(panel.get(), SFP(HStr_Log_StormingSequence), SFP(HStr_Log_HasEnded));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                            stormingReported = false;
+                        } else if (nightSeqReported) {
+                            getLogger()->logProcess(panel.get(), SFP(HStr_Log_NightSequence), SFP(HStr_Log_HasEnded));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                            nightSeqReported = false;
+                        }
+                        if (coverSeqReported) {
+                            coverSeqReported = false;
+                        }
+                    } break;
+                }
+            }
+
+            switch (stage) {
+                case Warm: {
+                    getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnWarmup), SFP(HStr_Log_HasBegan));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Heating_Duration), roundToString(getScheduler()->schedulerData()->preDawnHeatingMins), String('m'));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Start), localTime(stageStart).timestamp(DateTime::TIMESTAMP_TIME));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Finish), sunrise.timestamp(DateTime::TIMESTAMP_TIME));
+                } break;
+
+                case Uncover: {
+                    if (panel->getPanelCoverDriver() && panel->getPanelCoverDriver()->getActuators().size()) {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_UncoverSequence), SFP(HStr_Log_HasBegan));
+                    }
+                } break;
+
+                case Clean: {
+                    getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnCleaning), SFP(HStr_Log_HasBegan));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Cleaning_Duration), roundToString(getScheduler()->schedulerData()->preDawnCleaningMins), String('m'));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Start), localTime(stageStart).timestamp(DateTime::TIMESTAMP_TIME));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Finish), localTime(stageStart + (getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN)).timestamp(DateTime::TIMESTAMP_TIME));
+                } break;
+
+                case Track: {
+                    TimeSpan daySpan = sunrise - sunset;
+                    getLogger()->logProcess(panel.get(), SFP(HStr_Log_TrackingSequence), SFP(HStr_Log_HasBegan));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Light_Duration), roundToString(daySpan.totalseconds() / (float)SECS_PER_HOUR, 1), String('h'));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Start), localTime(stageStart).timestamp(DateTime::TIMESTAMP_TIME));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Finish), sunset.timestamp(DateTime::TIMESTAMP_TIME));
+                } break;
+
+                case Cover: {
+                    if (isStorming && !afterSunset && (afterSunrise || cleaningDue || preHeatingDue) && !stormingReported) {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_StormingSequence), SFP(HStr_Log_HasBegan));
+                        stormingReported = true;
+                    } else if (afterSunset && !nightSeqReported) {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_NightSequence), SFP(HStr_Log_HasBegan));
+                        nightSeqReported = true;
+                    }
+                    if (panel->getPanelCoverDriver() && !panel->getPanelCoverDriver()->isAligned() && !coverSeqReported) {
+                        getLogger()->logProcess(panel.get(), SFP(HStr_Log_CoverSequence), SFP(HStr_Log_HasBegan));
+                        coverSeqReported = true;
+                    }
+                } break;
+
+                default:
+                    break;
+            }
         }
     }
 
@@ -464,80 +587,6 @@ void HelioTracking::update()
     {   static int8_t _stageFU2 = (int8_t)-1; if (_stageFU2 != (int8_t)stage) {
         Serial.print(F("Tracking::~update stage: ")); Serial.println((_stageFU2 = (int8_t)stage)); flushYield(); } }
     #endif
-}
-
-void HelioTracking::logTracking(HelioTrackingLogType logType)
-{
-    // TODO: Logging.
-    // switch (logType) {
-    //     case HelioTrackingLogType_WaterSetpoints:
-    //         {   auto ph = HelioSingleMeasurement(phSetpoint, Helio_UnitsType_Alkalinity_pH_14);
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_pH_Setpoint), measurementToString(ph));
-    //         }
-    //         {   auto tds = HelioSingleMeasurement(tdsSetpoint, Helio_UnitsType_Concentration_TDS);
-    //             convertUnits(&tds, panel->getTDSUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_TDS_Setpoint), measurementToString(tds, 1));
-    //         }
-    //         {   auto temp = HelioSingleMeasurement(waterTempSetpoint, Helio_UnitsType_Temperature_Celsius);
-    //             convertUnits(&temp, panel->getTemperatureUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Setpoint), measurementToString(temp));
-    //         }
-    //         break;
-
-    //     case HelioTrackingLogType_WaterMeasures:
-    //         #ifdef HELIO_USE_MULTITASKING
-    //             // Yield will allow measurements to complete, ensures first log out doesn't contain zero'ed values
-    //             if ((panel->getWaterPHSensor() && !panel->getWaterPH().getMeasurementFrame()) ||
-    //                 (panel->getWaterTDSSensor() && !panel->getWaterTDS().getMeasurementFrame()) ||
-    //                 (panel->getWaterTemperatureSensor() && !panel->getWaterTemperature().getMeasurementFrame())) {
-    //                 yield();
-    //             }
-    //         #endif
-    //          if (panel->getWaterPHSensor()) {
-    //             auto ph = panel->getWaterPH().getMeasurement(true);
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_pH_Measured), measurementToString(ph));
-    //         }
-    //         if (panel->getWaterTDSSensor()) {
-    //             auto tds = panel->getWaterTDS().getMeasurement(true);
-    //             convertUnits(&tds, panel->getTDSUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_TDS_Measured), measurementToString(tds, 1));
-    //         }
-    //         if (panel->getWaterTemperatureSensor()) {
-    //             auto temp = panel->getWaterTemperature().getMeasurement(true);
-    //             convertUnits(&temp, panel->getTemperatureUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Measured), measurementToString(temp));
-    //         }
-    //         break;
-
-    //     case HelioTrackingLogType_Setpoints:
-    //         {   auto temp = HelioSingleMeasurement(airTempSetpoint, Helio_UnitsType_Temperature_Celsius);
-    //             convertUnits(&temp, panel->getTemperatureUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Setpoint), measurementToString(temp));
-    //         }
-    //         {   auto co2 = HelioSingleMeasurement(co2Setpoint, Helio_UnitsType_Concentration_PPM);
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_CO2_Setpoint), measurementToString(co2));
-    //         }
-    //         break;
-
-    //     case HelioTrackingLogType_Measures:
-    //         #ifdef HELIO_USE_MULTITASKING
-    //             // Yield will allow measurements to complete, ensures first log out doesn't contain zero'ed values
-    //             if ((panel->getTemperatureSensor() && !panel->getTemperatureSensorAttachment().getMeasurementFrame()) ||
-    //                 (panel->getAirCO2Sensor() && !panel->getAirCO2().getMeasurementFrame())) {
-    //                 yield();
-    //             }
-    //         #endif
-    //         if (panel->getTemperatureSensor()) {
-    //             auto temp = panel->getTemperatureSensorAttachment().getMeasurement(true);
-    //             convertUnits(&temp, panel->getTemperatureUnits());
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Measured), measurementToString(temp));
-    //         }
-    //         if (panel->getAirCO2Sensor()) {
-    //             auto co2 = panel->getAirCO2().getMeasurement(true);
-    //             getLogger()->logMessage(SFP(HStr_Log_Field_CO2_Measured), measurementToString(co2));
-    //         }
-    //         break;
-    // }
 }
 
 
