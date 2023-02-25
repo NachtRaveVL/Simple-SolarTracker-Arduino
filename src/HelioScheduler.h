@@ -57,22 +57,9 @@ protected:
     void broadcastDayChange();
 };
 
-
-// Scheduler Tracking Process Log Type
-enum HelioTrackingLogType : signed char {
-    HelioTrackingLogType_Setpoints,                         // Setpoints
-    HelioTrackingLogType_Measures,                          // Measurements
-};
-
-// Scheduler Tracking Process Broadcast Type
-enum HelioTrackingBroadcastType : signed char {
-    HelioTrackingBroadcastType_Began,                       // Began main process
-    HelioTrackingBroadcastType_Ended                        // Ended main process
-};
-
 // Scheduler Process Base
-// Processes are created and managed by Scheduler to manage the day tracking
-// sequences necessary for panel alignment.
+// Processes are created and managed by Scheduler to manage the daily control
+// sequences necessary for solar panel alignment.
 struct HelioProcess {
     SharedPtr<HelioPanel> panel;                            // Panel
 
@@ -92,6 +79,9 @@ struct HelioTracking : public HelioProcess {
 
     time_t canProcessAfter;                                 // Time next processing can occur (unix/UTC), else 0/disabled
     time_t lastEnvReport;                                   // Last time an environment report was generated (unix/UTC)
+    bool stormingReported;                                  // Flag for storming reported
+    bool nightSeqReported;                                  // Flag for night sequence reported
+    bool coverSeqReported;                                  // Flag for cover sequence reported
 
     HelioTracking(SharedPtr<HelioPanel> panel);
     ~HelioTracking();
@@ -101,7 +91,6 @@ struct HelioTracking : public HelioProcess {
 
 private:
     void reset();
-    void logTracking(HelioTrackingLogType logType);
 };
 
 

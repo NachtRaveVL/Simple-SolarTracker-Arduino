@@ -42,9 +42,9 @@ inline String getStringsFilename()
 
 String stringFromPGM(Helio_String strNum)
 {    
-    static Helio_String _lookupStrNum = HStr_Count; // Simple LRU cache reduces a lot of lookup access
+    static Helio_String _lookupStrNum = (Helio_String)-1; // Simple LRU cache reduces a lot of lookup access
     static String _lookupCachedRes;
-    if (strNum == _lookupStrNum && _lookupCachedRes.length()) { return _lookupCachedRes; }
+    if (strNum == _lookupStrNum) { return _lookupCachedRes; }
     else { _lookupStrNum = strNum; } // _lookupCachedRes set below
 
     if (_strDataAddress != (uint16_t)-1) {
@@ -72,10 +72,6 @@ String stringFromPGM(Helio_String strNum)
             }
         }
     }
-
-    #ifndef HELIO_DISABLE_BUILTIN_DATA
-        return (_lookupCachedRes = stringFromPGMAddr(pgmAddrForStr(strNum)));
-    #endif
 
     if (_strDataFilePrefix.length()) {
         #if HELIO_SYS_LEAVE_FILES_OPEN
@@ -124,7 +120,11 @@ String stringFromPGM(Helio_String strNum)
         }
     }
 
-    return (_lookupCachedRes = String());
+    #ifndef HELIO_DISABLE_BUILTIN_DATA
+        return (_lookupCachedRes = stringFromPGMAddr(pgmAddrForStr(strNum)));
+    #else
+        return (_lookupCachedRes = String());
+    #endif
 }
 
 String stringFromPGMAddr(const char *flashStr) {
@@ -258,6 +258,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Log_CalculatedTravel[] PROGMEM = {" travel request:"};
             return flashStr_Log_CalculatedTravel;
         } break;
+        case HStr_Log_CoverSequence: {
+            static const char flashStr_Log_CoverSequence[] PROGMEM = {" cover sequence"};
+            return flashStr_Log_CoverSequence;
+        } break;
         case HStr_Log_EnvReport: {
             static const char flashStr_Log_EnvReport[] PROGMEM = {" environment report:"};
             return flashStr_Log_EnvReport;
@@ -282,17 +286,25 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Log_MeasuredTravel[] PROGMEM = {" travel result:"};
             return flashStr_Log_MeasuredTravel;
         } break;
+        case HStr_Log_NightSequence: {
+            static const char flashStr_Log_NightSequence[] PROGMEM = {" night sequence"};
+            return flashStr_Log_NightSequence;
+        } break;
         case HStr_Log_PreDawnCleaning: {
             static const char flashStr_Log_PreDawnCleaning[] PROGMEM = {" pre-dawn cleaning"};
             return flashStr_Log_PreDawnCleaning;
         } break;
-        case HStr_Log_PreDawnHeating: {
-            static const char flashStr_Log_PreDawnHeating[] PROGMEM = {" pre-dawn heating"};
-            return flashStr_Log_PreDawnHeating;
+        case HStr_Log_PreDawnWarmup: {
+            static const char flashStr_Log_PreDawnWarmup[] PROGMEM = {" pre-dawn warm-up"};
+            return flashStr_Log_PreDawnWarmup;
         } break;
         case HStr_Log_RTCBatteryFailure: {
             static const char flashStr_Log_RTCBatteryFailure[] PROGMEM = {"RTC battery failure, time needs reset."};
             return flashStr_Log_RTCBatteryFailure;
+        } break;
+        case HStr_Log_StormingSequence: {
+            static const char flashStr_Log_StormingSequence[] PROGMEM = {" storming sequence"};
+            return flashStr_Log_StormingSequence;
         } break;
         case HStr_Log_SystemDataSaved: {
             static const char flashStr_Log_SystemDataSaved[] PROGMEM = {"System data saved"};
@@ -305,6 +317,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Log_TrackingSequence: {
             static const char flashStr_Log_TrackingSequence[] PROGMEM = {" tracking sequence"};
             return flashStr_Log_TrackingSequence;
+        } break;
+        case HStr_Log_UncoverSequence: {
+            static const char flashStr_Log_UncoverSequence[] PROGMEM = {" uncover sequence"};
+            return flashStr_Log_UncoverSequence;
         } break;
 
         case HStr_Log_Prefix_Info: {
@@ -320,25 +336,25 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Log_Prefix_Error;
         } break;
 
+        case HStr_Log_Field_Cleaning_Duration: {
+            static const char flashStr_Log_Field_Cleaning_Duration[] PROGMEM = {"  Sprayer run time: "};
+            return flashStr_Log_Field_Cleaning_Duration;
+        } break;
+        case HStr_Log_Field_Heating_Duration: {
+            static const char flashStr_Log_Field_Heating_Duration[] PROGMEM = {"  Heater run time: "};
+            return flashStr_Log_Field_Heating_Duration;
+        } break;
         case HStr_Log_Field_Light_Duration: {
             static const char flashStr_Log_Field_Light_Duration[] PROGMEM = {"  Daylight hours: "};
             return flashStr_Log_Field_Light_Duration;
         } break;
-        case HStr_Log_Field_Panel: {
-            static const char flashStr_Log_Field_Panel[] PROGMEM = {"  Solar panel: "};
-            return flashStr_Log_Field_Panel;
-        } break;
-        case HStr_Log_Field_Sprayer_Duration: {
-            static const char flashStr_Log_Field_Sprayer_Duration[] PROGMEM = {"  Sprayer run time: "};
-            return flashStr_Log_Field_Sprayer_Duration;
+        case HStr_Log_Field_Solar_Panel: {
+            static const char flashStr_Log_Field_SolarPanel[] PROGMEM = {"  Solar panel: "};
+            return flashStr_Log_Field_SolarPanel;
         } break;
         case HStr_Log_Field_Temp_Measured: {
-            static const char flashStr_Log_Field_Temp_Measured[] PROGMEM = {"  Temp sensor: "};
+            static const char flashStr_Log_Field_Temp_Measured[] PROGMEM = {"  Temperature: "};
             return flashStr_Log_Field_Temp_Measured;
-        } break;
-        case HStr_Log_Field_Temp_Setpoint: {
-            static const char flashStr_Log_Field_Temp_Setpoint[] PROGMEM = {"  Temp setpoint: "};
-            return flashStr_Log_Field_Temp_Setpoint;
         } break;
         case HStr_Log_Field_Time_Calculated: {
             static const char flashStr_Log_Field_Time_Calculated[] PROGMEM = {"  Motor run time: "};
@@ -352,6 +368,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Log_Field_Time_Measured[] PROGMEM = {"  Elapsed time: "};
             return flashStr_Log_Field_Time_Measured;
         } break;
+        case HStr_Log_Field_Time_Progress: {
+            static const char flashStr_Log_Field_Time_Progress[] PROGMEM = {"  Daytime progress: "};
+            return flashStr_Log_Field_Time_Progress;
+        } break;
         case HStr_Log_Field_Time_Start: {
             static const char flashStr_Log_Field_Time_Start[] PROGMEM = {"  Start time: "};
             return flashStr_Log_Field_Time_Start;
@@ -363,6 +383,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Log_Field_Travel_Measured: {
             static const char flashStr_Log_Field_Travel_Measured[] PROGMEM = {"  Act. travel dis.: "};
             return flashStr_Log_Field_Travel_Measured;
+        } break;
+        case HStr_Log_Field_WindSpeed_Measured: {
+            static const char flashStr_Log_Field_WindSpeed_Measured[] PROGMEM = {"  Wind speed: "};
+            return flashStr_Log_Field_WindSpeed_Measured;
         } break;
 
         case HStr_Key_ActiveLow: {
