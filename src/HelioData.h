@@ -41,9 +41,9 @@ struct HelioData : public HelioJSONSerializableInterface {
     uint8_t _revision;                                      // Revision # of stored data
     bool _modified;                                         // Flag tracking modified status (reset to false after save)
 
-    inline bool isStandardData() const { return id.chars[0] == 'S'; }
-    inline bool isSystemData() const { return id.chars[0] == 'S' && id.chars[1] == 'S' && id.chars[2] == 'Y' && id.chars[3] == 'S'; }
-    inline bool isCalibrationData() const { return id.chars[0] == 'S' && id.chars[1] == 'C' && id.chars[2] == 'A' && id.chars[3] == 'L'; }
+    inline bool isStandardData() const { return id.chars[0] == 'H'; }
+    inline bool isSystemData() const { return id.chars[0] == 'H' && id.chars[1] == 'S' && id.chars[2] == 'Y' && id.chars[3] == 'S'; }
+    inline bool isCalibrationData() const { return id.chars[0] == 'H' && id.chars[1] == 'C' && id.chars[2] == 'A' && id.chars[3] == 'L'; }
     inline bool isObjectData() const { return !isStandardData() && id.object.idType >= 0; }
 
     HelioData();                                            // Default constructor
