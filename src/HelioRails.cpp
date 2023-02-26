@@ -248,6 +248,11 @@ HelioSensorAttachment &HelioRegulatedRail::getPowerUsageSensorAttachment()
     return _powerUsage;
 }
 
+HelioTriggerAttachment &HelioRegulatedRail::getLimitTriggerAttachment()
+{
+    return _limitTrigger;
+}
+
 void HelioRegulatedRail::saveToData(HelioData *dataOut)
 {
     HelioRail::saveToData(dataOut);
