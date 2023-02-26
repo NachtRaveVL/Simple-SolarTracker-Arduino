@@ -81,6 +81,11 @@ Helio_UnitsType HelioTrigger::getMeasurementUnits(uint8_t measurementRow) const
     return _sensor.getMeasurementUnits();
 }
 
+HelioSensorAttachment &HelioTrigger::getSensorAttachment()
+{
+    return _sensor;
+}
+
 Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> &HelioTrigger::getTriggerSignal()
 {
     return _triggerSignal;
