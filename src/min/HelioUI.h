@@ -9,7 +9,7 @@ class HelioMinUI;
 
 class HelioMinUI : HelioUIInterface {
 public:
-    virtual void begin() override;
+    virtual bool begin() override;
 
     virtual void setNeedsLayout() override;
 

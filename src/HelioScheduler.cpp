@@ -283,7 +283,7 @@ void HelioTracking::setupStaging()
         }
     }
 
-    {   auto panelCovers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelCover);
+    {   auto panelCovers = linksFilterActuatorsByPanelAndType<HELIO_DRV_ACTUATORS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelCover);
         if (panelCovers.size()) {
             bool hasMotor = false;
             for (auto obj : panelCovers) { if (((HelioActuator *)obj)->isMotorType()) { hasMotor = true; break; } }
@@ -310,7 +310,7 @@ void HelioTracking::setupStaging()
     switch (stage) {
         case Init:
         case Cover: {
-            {   auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            {   auto panelBrakes = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             }
         } break;
@@ -318,22 +318,22 @@ void HelioTracking::setupStaging()
         case Warm:
         case Uncover:
         case Track: {
-            {   auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            {   auto panelBrakes = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             }
-            {   auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            {   auto panelHeaters = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
             }
         } break;
 
         case Clean: {
-            {   auto panelBrakes = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
+            {   auto panelBrakes = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelBrake);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelBrakes, nullptr, 0, newActuatorReqs);
             }
-            {   auto panelHeaters = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
+            {   auto panelHeaters = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelHeater);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelHeaters, nullptr, 0, newActuatorReqs);
             }
-            {   auto panelSprayers = linksFilterActuatorsByPanelAndType(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
+            {   auto panelSprayers = linksFilterActuatorsByPanelAndType<HELIO_SCH_REQACTS_MAXSIZE>(panel->getLinkages(), panel.get(), Helio_ActuatorType_PanelSprayer);
                 linksResolveActuatorsToAttachments<HELIO_SCH_REQACTS_MAXSIZE>(panelSprayers, nullptr, 0, newActuatorReqs);
             }
         } break;
@@ -578,7 +578,7 @@ void HelioTracking::update()
 
     if (actuatorReqs.size()) {
         for (auto attachIter = actuatorReqs.begin(); attachIter != actuatorReqs.end(); ++attachIter) {
-            attachIter->setupActivation(false);
+            attachIter->setupActivation();
             attachIter->enableActivation();
         }
     }

@@ -189,8 +189,7 @@ public:
     inline void setupActivation(const HelioActivation &activation) { _actSetup = activation; applySetup(); }
     inline void setupActivation(const HelioActivationHandle &handle) { setupActivation(handle.activation); }
     inline void setupActivation(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { setupActivation(HelioActivation(direction, intensity, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
-    inline void setupActivation(millis_t duration, bool force = false) { setupActivation(HelioActivation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
-    inline void setupActivation(bool force, millis_t duration = -1) { setupActivation(HelioActivation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
+    inline void setupActivation(millis_t duration = -1, bool force = false) { setupActivation(HelioActivation(Helio_DirectionMode_Forward, 1.0f, duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None))); }
     // These activation methods take a variable value that gets transformed by any user
     // curvature calibration data before being used, assuming units to be the same. It is
     // otherwise assumed the value is a normalized driving intensity ([0,1] or [-1,1]).

@@ -6,8 +6,10 @@
 #include "Helioduino.h"
 #include "HelioUI.h"
 
-void HelioFullUI::begin()
-{ }
+bool HelioFullUI::begin()
+{
+    return false;
+}
 
 void HelioFullUI::setNeedsLayout()
 { }
