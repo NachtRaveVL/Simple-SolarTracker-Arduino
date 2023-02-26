@@ -102,8 +102,6 @@ struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, 
                     uint8_t muxChannel = -1);               // Muxing channel select (else -1 if unused)
     HelioDigitalPin(const HelioPinData *dataIn);
 
-    inline operator HelioPin() const { return HelioPin((int)type, pin, mode, channel); }
-
     void saveToData(HelioPinData *dataOut) const;
 
     virtual ard_pinstatus_t digitalRead() override;
@@ -147,8 +145,6 @@ struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, pu
 #endif
                    uint8_t muxChannel = -1);                // Muxing channel select (else -1 if unused)
     HelioAnalogPin(const HelioPinData *dataIn);
-
-    inline operator HelioPin() const { return HelioPin((int)type, pin, mode, channel); }
 
     void init();
 

@@ -1080,6 +1080,7 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Unit_Undefined;
         } break;
     }
+    return nullptr;
 }
 
 #endif

@@ -53,8 +53,7 @@ public:
     // applied output is. See HelioActuatorAttachment for an abstraction of this process.
     inline HelioActivationHandle enableActuator(Helio_DirectionMode direction, float intensity = 1.0f, millis_t duration = -1, bool force = false) { return HelioActivationHandle(::getSharedPtr<HelioActuator>(this), direction, intensity, duration, force); }
     inline HelioActivationHandle enableActuator(float value, millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, calibrationInvTransform(value), duration, force); }
-    inline HelioActivationHandle enableActuator(millis_t duration, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
-    inline HelioActivationHandle enableActuator(bool force, millis_t duration = -1) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
+    inline HelioActivationHandle enableActuator(millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
 
     inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
     inline Helio_EnableMode getEnableMode() const { return _enableMode; }

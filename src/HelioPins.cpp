@@ -25,7 +25,7 @@ HelioPin *newPinObjectFromSubData(const HelioPinData *dataIn)
 
 
 HelioPin::HelioPin()
-    : type(Unknown), pin(-1), mode(Helio_PinMode_Undefined), channel(-1)
+    : type(Unknown), pin((pintype_t)-1), mode(Helio_PinMode_Undefined), channel(-1)
 { ; }
 
 HelioPin::HelioPin(int classType, pintype_t pinNumber, Helio_PinMode pinMode, uint8_t muxChannel)
@@ -220,10 +220,10 @@ HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, Helio_PinMode pinMode, uint8
 HelioAnalogPin::HelioAnalogPin(const HelioPinData *dataIn)
     : HelioPin(dataIn), bitRes(dataIn->dataAs.analogPin.bitRes)
 #ifdef ESP32
-      , pinPWMChannel(dataIn->dataAs.analogPin.pwmChannel)
+      , pwmChannel(dataIn->dataAs.analogPin.pwmChannel)
 #endif
 #ifdef ESP_PLATFORM
-      , pinPWMFrequency(dataIn->dataAs.analogPin.pwmFrequency)
+      , pwmFrequency(dataIn->dataAs.analogPin.pwmFrequency)
 #endif
 { ; }
 
@@ -281,7 +281,7 @@ void HelioAnalogPin::analogWrite_raw(int amount)
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid() && (!isMuxed() || selectMuxer())) {
             #ifdef ESP32
-                ledcWrite(pwmChannel, val);
+                ledcWrite(pwmChannel, amount);
             #else
                 #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
                     analogWriteResolution(bitRes.bits);
@@ -298,7 +298,7 @@ void HelioAnalogPin::analogWrite_raw(int amount)
 
 
 HelioPinData::HelioPinData()
-    : HelioSubData((int8_t)HelioPin::Unknown), pin(-1), mode(Helio_PinMode_Undefined), channel(-1), dataAs{0}
+    : HelioSubData((int8_t)HelioPin::Unknown), pin((pintype_t)-1), mode(Helio_PinMode_Undefined), channel(-1), dataAs{0}
 { ; }
 
 void HelioPinData::toJSONObject(JsonObject &objectOut) const
@@ -353,18 +353,18 @@ void HelioPinData::fromJSONObject(JsonObjectConst &objectIn)
 
 
 HelioPinMuxer::HelioPinMuxer()
-    : _signal(), _chipEnable(), _channelPins{-1,-1,-1,-1,-1}, _channelSelect(0)
+    : _signal(), _chipEnable(), _channelPins{(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1}, _channelSelect(0)
 { ; }
 
 HelioPinMuxer::HelioPinMuxer(HelioPin signalPin,
                              pintype_t *muxChannelPins, uint8_t muxChannelBits,
                              HelioDigitalPin chipEnablePin)
     : _signal(signalPin), _chipEnable(chipEnablePin),
-      _channelPins{ muxChannelBits > 0 ? muxChannelPins[0] : -1,
-                    muxChannelBits > 1 ? muxChannelPins[1] : -1,
-                    muxChannelBits > 2 ? muxChannelPins[2] : -1,
-                    muxChannelBits > 3 ? muxChannelPins[3] : -1,
-                    muxChannelBits > 4 ? muxChannelPins[4] : -1 },
+      _channelPins{ muxChannelBits > 0 ? muxChannelPins[0] : (pintype_t)-1,
+                    muxChannelBits > 1 ? muxChannelPins[1] : (pintype_t)-1,
+                    muxChannelBits > 2 ? muxChannelPins[2] : (pintype_t)-1,
+                    muxChannelBits > 3 ? muxChannelPins[3] : (pintype_t)-1,
+                    muxChannelBits > 4 ? muxChannelPins[4] : (pintype_t)-1 },
       _channelBits(muxChannelBits), _channelSelect(0)
 {
     _signal.channel = -1; // unused
@@ -471,7 +471,7 @@ void HelioPinMuxer::setIsActive(bool isActive)
 
 
 HelioPinMuxerData::HelioPinMuxerData()
-    : HelioSubData(0), signal(), chipEnable(), channelPins{-1,-1,-1,-1,-1}, channelBits(0)
+    : HelioSubData(0), signal(), chipEnable(), channelPins{(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1}, channelBits(0)
 { ; }
 
 void HelioPinMuxerData::toJSONObject(JsonObject &objectOut) const

@@ -84,7 +84,7 @@ public:
 // UI Interface
 class HelioUIInterface {
 public:
-    virtual void begin() = 0;
+    virtual bool begin() = 0;
 
     virtual void setNeedsLayout() = 0;
 };

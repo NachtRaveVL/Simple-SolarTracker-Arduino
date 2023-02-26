@@ -10,7 +10,6 @@ struct HelioActivation;
 struct HelioActivationHandle;
 
 #include "Helioduino.h"
-#include "HelioDatas.h"
 
 // Activation Flags
 enum Helio_ActivationFlags : unsigned char {

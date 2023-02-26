@@ -316,9 +316,9 @@ void HelioPublisher::publish(time_t timestamp)
 #endif
 
     #ifdef HELIO_USE_MULTITASKING
-        scheduleSignalFireOnce<Pair<uint8_t, const HelioDataColumn *>>(_publishSignal, make_pair(_columnCount, &_dataColumns[0]));
+        scheduleSignalFireOnce<Pair<uint8_t, const HelioDataColumn *>>(_publishSignal, make_pair(_columnCount, (const HelioDataColumn *)_dataColumns));
     #else
-        _publishSignal.fire(make_pair(_columnCount, &_dataColumns[0]));
+        _publishSignal.fire(make_pair(_columnCount, (const HelioDataColumn *)_dataColumns));
     #endif
 }
 

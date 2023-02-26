@@ -537,6 +537,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
             return enableActuator(direction, 1.0f, time);
         #endif
     }
+    return HelioActivationHandle();
 }
 
 void HelioRelayMotorActuator::setDistanceUnits(Helio_UnitsType distanceUnits)
