@@ -49,7 +49,7 @@ Note: Certain MCUs, such as those from STM, are sold in many different Flash/SRA
 
 The easiest way to install this controller is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this controller and extract its files into a `Simple-SolarTracker-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
 
-From there, you can make a local copy of one of the examples based on the kind of system setup you want to use. If you are unsure of which, we recommend using the (TODO) Example for older MCUs and the Full System Example for modern MCUs. Older storage constrained MCUs may need further modifications (and possibly external hardware) so is recommended only for advanced users.
+From there, you can make a local copy of one of the examples based on the kind of system setup you want to use. If you are unsure of which, we recommend using the Dual Axis Tracking Example for older MCUs and the Full System Example for modern MCUs. Older storage constrained MCUs may need further modifications (and possibly external hardware) so is recommended only for advanced users.
 
 ### Header Defines
 
@@ -118,7 +118,7 @@ From Helioduino.h, in class Helioduino:
 
 #### Controller Initialization
 
-Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
+Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (PositionCalculating or BrightnessBalancing), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
@@ -178,10 +178,10 @@ Note: Files on FAT32-based SD cards are limited to 8 character file/folder names
 From Helioduino.h, in class Helioduino:
 ```Arduino
     // Enables data logging to the SD card. Log file names will append YYMMDD.txt to the specified prefix. Returns success flag.
-    inline bool enableSysLoggingToSDCard(String logFilePrefix = "logs/hy");
+    inline bool enableSysLoggingToSDCard(String logFilePrefix = "logs/he");
 
     // Enables data publishing to the SD card. Log file names will append YYMMDD.csv to the specified prefix. Returns success flag.
-    inline bool enableDataPublishingToSDCard(String dataFilePrefix = "data/hy");
+    inline bool enableDataPublishingToSDCard(String dataFilePrefix = "data/he");
 ```
 
 ## Hookup Callouts
@@ -247,3 +247,204 @@ OneWire Devices Supported: DHT* Temp modules
 * For AVR, SAM/SAMD, and other architectures that do not have C++ STL (standard container) support, there are a series of *`_MAXSIZE` defines at the top of `HelioDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller uses.
 * To save on the cost of code size for constrained devices, focus on not enabling that which you won't need, which has the benefit of being able to utilize code stripping to remove sections of code that don't get used.
   * There are also header defines that can strip out certain libraries and functionality, such as ones that disable the UI, multi-tasking subsystems, etc.
+
+## Example Usage
+
+Below are several examples of controller usage.
+
+### Simple Light Dependent Resistor (LDR) System Example
+
+LDR setups are great for beginners, and has the advantage of being able to be built out of commonly available materials. A positional servo is used to tilt the panel, which is mounted horizontally facing the general direction of the sun.
+
+The Simple LDR Example sketch shows how a simple Helioduino system can be setup using the most minimal of work. In this sketch only that which you actually use is built into the final compiled binary, making it an ideal lean choice for those who don't need anything fancy. This sketch has no UI or input control, but with a simple buzzer and some additional sensors the system can control another axis for a gimballed system.
+
+```Arduino
+#include <Helioduino.h>
+
+#define SETUP_PIEZO_BUZZER_PIN          -1              // Piezo buzzer pin, else -1
+#define SETUP_AXIS_SERVO_PIN            A0              // Axis servo write pin (analog)
+#define SETUP_LDR_LOWER_PIN             A1              // Lower LDR read pin (analog)
+#define SETUP_LDR_UPPER_PIN             A2              // Upper LDR read pin (analog)
+
+#define SETUP_SERVO_MIN_DEG             -90             // Minimum degrees of axial servo
+#define SETUP_SERVO_MAX_DEG             90              // Maximum degrees of axial servo
+
+#define SETUP_PANEL_TYPE                Horizontal      // Panel type (Horizontal, Vertical, Gimballed, Equatorial)
+#define SETUP_PANEL_HOME                {0.0f,0.0f}     // Panel home position (azimuth,elevation or RA,declination)
+#define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel offset position (azi,ele or RA,dec)
+
+Helioduino helioController(SETUP_PIEZO_BUZZER_PIN);     // Controller using default setup aside from buzzer pin, if defined
+
+float SETUP_PANEL_HOME_[] = SETUP_PANEL_HOME;
+float SETUP_PANEL_OFFSET_[] = SETUP_PANEL_OFFSET;
+
+void setup() {
+    // Setup base interfaces
+    #ifdef HELIO_ENABLE_DEBUG_OUTPUT
+        Serial.begin(115200);           // Begin USB Serial interface
+        while (!Serial) { ; }           // Wait for USB Serial to connect
+    #endif
+
+    // Initializes controller with LDR environment (saves some time/space), no logging, eeprom, SD, or anything else.
+    helioController.init(Helio_SystemMode_BrightnessBalancing);
+
+    // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
+    auto ldrPanel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE), SETUP_PANEL_HOME_);
+    ldrPanel->setAxisOffset(SETUP_PANEL_OFFSET_);
+
+    // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
+    auto axisServo = helioController.addPositionServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
+    axisServo->setParentPanel(ldrPanel, Helio_PanelAxis_Elevation);
+
+    // Adds a light intensity sensor at SETUP_LDR_LOWER_PIN, installed on the lower side of the panel.
+    auto ldrMin = helioController.addLightIntensitySensor(SETUP_LDR_LOWER_PIN);
+    ldrPanel->setLDRSensor(ldrMin, Helio_PanelLDR_VerticalMin); // will provide downwards control
+
+    // Adds a light intensity sensor at SETUP_LDR_UPPER_PIN, installed on the upper side of the panel.
+    auto ldrMax = helioController.addLightIntensitySensor(SETUP_LDR_UPPER_PIN);
+    ldrPanel->setLDRSensor(ldrMax, Helio_PanelLDR_VerticalMax); // will provide upwards control
+
+    // Launches controller into main operation.
+    helioController.launch();
+}
+
+void loop()
+{
+    // Helioduino will manage most updates for us.
+    helioController.update();
+}
+
+```
+
+### Main System Examples
+
+There are two main system examples to choose from, Dual-Axis Tracking and Full System, each with its own requirements and capabilities. The Dual-Axis Tracking example is the recommended starting point for most system builds, and is perfect for those with only intermediate programming knowledge. It can also be easily extended to include other functionality if desired, simply by copying and pasting the example code.
+
+This system code has the benefit of being able to compile out what you don't use, making it ideal for storage constrained devices, but will not provide full UI functionality since it will be missing the code for all the other objects the system build code strips out.
+
+The Full System Example sketch will build an empty system with all object and system features enabled. It is recommended for modern MCUs that have lots of storage space to use such as ESP32, RasPi Pico, etc. It works similarly to the Dual-Axis Tracking Example, except is meant for systems where a GUI will be primarily used to create objects with (or done similarly in code to initialize, as is done in the Dual-Axis Tracking example). It involves the least amount of coding and setup, but comes at the highest cost.
+
+Included below is the default system setup defines of the Dual-Axis Tracking example (of which a smaller similar version is used for the Full System example) to illustrate a variety of the controller features. This is not an exhaustive list of course, as there are many more things the controller is capable of, as documented in its main header file include, GitHub Project Wiki, and elsewhere.
+
+```Arduino
+#include <Helioduino.h>
+
+/// Pins & Class Instances
+#define SETUP_PIEZO_BUZZER_PIN          -1              // Piezo buzzer pin, else -1
+#define SETUP_EEPROM_DEVICE_TYPE        None            // EEPROM device type/size (24LC01, 24LC02, 24LC04, 24LC08, 24LC16, 24LC32, 24LC64, 24LC128, 24LC256, 24LC512, None)
+#define SETUP_EEPROM_I2C_ADDR           0b000           // EEPROM i2c address
+#define SETUP_RTC_I2C_ADDR              0b000           // RTC i2c address (only 0b000 can be used atm)
+#define SETUP_RTC_DEVICE_TYPE           None            // RTC device type (DS1307, DS3231, PCF8523, PCF8563, None)
+#define SETUP_SD_CARD_SPI               SPI             // SD card SPI class instance
+#define SETUP_SD_CARD_SPI_CS            -1              // SD card CS pin, else -1
+#define SETUP_SD_CARD_SPI_SPEED         F_SPD           // SD card SPI speed, in Hz (ignored on Teensy)
+#define SETUP_LCD_I2C_ADDR              0b000           // LCD i2c address
+#define SETUP_CTRL_INPUT_PINS           {(pintype_t)-1} // Control input pin ribbon, else {-1}
+#define SETUP_I2C_WIRE                  Wire            // I2C wire class instance
+#define SETUP_I2C_SPEED                 400000U         // I2C speed, in Hz
+#define SETUP_ESP_I2C_SDA               SDA             // I2C SDA pin, if on ESP
+#define SETUP_ESP_I2C_SCL               SCL             // I2C SCL pin, if on ESP
+
+// WiFi Settings                                        (note: define HELIO_ENABLE_WIFI or HELIO_ENABLE_AT_WIFI to enable WiFi)
+// #include "secrets.h"                                 // Pro-tip: Put sensitive password information into a custom secrets.h
+#define SETUP_WIFI_SSID                 "CHANGE_ME"     // WiFi SSID
+#define SETUP_WIFI_PASS                 "CHANGE_ME"     // WiFi passphrase
+#define SETUP_WIFI_SPI                  SPIWIFI         // WiFi SPI class instance, if using spi
+#define SETUP_WIFI_SPI_CS               SPIWIFI_SS      // WiFi CS pin, if using spi
+#define SETUP_WIFI_SERIAL               Serial1         // WiFi serial class instance, if using serial
+
+// Ethernet Settings                                    (note: define HELIO_ENABLE_ETHERNET to enable Ethernet)
+#define SETUP_ETHERNET_MAC              { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED } // Ethernet MAC address
+#define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
+#define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
+
+// GPS Settings                                         (note: defined HELIO_ENABLE_GPS to enable GPS)
+#define SETUP_GPS_TYPE                  None            // Type of GPS (Serial, I2C, SPI, None)
+#define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
+#define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address, if using i2c
+#define SETUP_GPS_SPI                   SPI             // GPS SPI class instance, if using spi
+#define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
+
+// System Settings
+#define SETUP_SYSTEM_MODE               PositionCalculating // System run mode (PositionCalculating, BrightnessBalancing)
+#define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
+#define SETUP_LCD_OUT_MODE              Disabled        // System LCD output mode (Disabled, 20x4LCD, 20x4LCD_Swapped, 16x2LCD, 16x2LCD_Swapped)
+#define SETUP_CTRL_IN_MODE              Disabled        // System control input mode (Disabled, 2x2Matrix, 4xButton, 6xButton, RotaryEncoder)
+#define SETUP_SYS_UI_MODE               Minimal         // System user interface mode (Disabled, Minimal, Full)
+#define SETUP_SYS_NAME                  "Helioduino"    // System name
+#define SETUP_SYS_TIMEZONE              +0              // System timezone offset
+#define SETUP_SYS_LOGLEVEL              All             // System log level filter (All, Warnings, Errors, None)
+
+// System Saves Settings                                (note: only one primary and one fallback mechanism may be enabled at a time)
+#define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg" // System config file name for system saves
+#define SETUP_SAVES_SD_CARD_MODE        Disabled        // If saving/loading from SD card is enable (Primary, Fallback, Disabled)
+#define SETUP_SAVES_EEPROM_MODE         Disabled        // If saving/loading from EEPROM is enabled (Primary, Fallback, Disabled)
+#define SETUP_SAVES_WIFISTORAGE_MODE    Disabled        // If saving/loading from WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only) is enabled (Primary, Fallback, Disabled)
+
+// Logging & Data Publishing Settings
+#define SETUP_LOG_FILE_PREFIX           "logs/he"       // System logs file prefix (appended with YYMMDD.txt)
+#define SETUP_DATA_FILE_PREFIX          "data/he"       // System data publishing files prefix (appended with YYMMDD.csv)
+#define SETUP_DATA_SD_ENABLE            false           // If system data publishing is enabled to SD card
+#define SETUP_LOG_SD_ENABLE             false           // If system logging is enabled to SD card
+#define SETUP_DATA_WIFISTORAGE_ENABLE   false           // If system data publishing is enabled to WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only)
+#define SETUP_LOG_WIFISTORAGE_ENABLE    false           // If system logging is enabled to WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only)
+
+// MQTT Settings                                        (note: define HELIO_ENABLE_MQTT to enable MQTT)
+#define SETUP_MQTT_BROKER_CONNECT_BY    Hostname        // Which style of address broker uses (Hostname, IPAddress)
+#define SETUP_MQTT_BROKER_HOSTNAME      "hostname"      // Hostname that MQTT broker exists at
+#define SETUP_MQTT_BROKER_IPADDR        { 192, 168, 1, 2 } // IP address that MQTT broker exists at
+#define SETUP_MQTT_BROKER_PORT          1883            // Port number that MQTT broker exists at
+
+// External Data Settings
+#define SETUP_EXTDATA_SD_ENABLE         false           // If data should be read from an external SD card (searched first for panels lib data)
+#define SETUP_EXTDATA_SD_LIB_PREFIX     "lib/"          // Library data folder/data file prefix (appended with {type}##.dat)
+#define SETUP_EXTDATA_EEPROM_ENABLE     false           // If data should be read from an external EEPROM (searched first for strings data)
+
+// External EEPROM Settings
+#define SETUP_EEPROM_SYSDATA_ADDR       0x2e50          // System data memory offset for EEPROM saves (from Data Writer output)
+#define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
+
+// Device Setup
+#define SETUP_AC_POWER_SENSOR_PIN       -1              // AC power meter sensor pin (analog), else -1
+#define SETUP_DC_POWER_SENSOR_PIN       -1              // DC power meter sensor pin (analog), else -1
+#define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
+#define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
+
+// Base Setup
+#define SETUP_AC_POWER_RAIL_TYPE        AC110V          // Rail power type used for actuator AC rail (AC110V, AC220V)
+#define SETUP_DC_POWER_RAIL_TYPE        DC12V           // Rail power type used for actuator DC rail (DC3V3, DC5V, DC12V, DC24V, DC48V)
+#define SETUP_AC_SUPPLY_POWER           0               // Maximum AC supply power wattage, else 0 if not known (-> use simple rails)
+#define SETUP_DC_SUPPLY_POWER           0               // Maximum DC supply power wattage, else 0 if not known (-> use simple rails)
+
+// Panel Setup
+#define SETUP_PANEL_TYPE                Gimballed       // Panel type (Horizontal, Vertical, Gimballed, Equatorial)
+#define SETUP_PANEL_HOME                {0.0f,0.0f}     // Panel home position (azi,ele or RA,dec)
+#define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel offset position (azi,ele or RA,dec)
+```
+
+### Data Writer Example
+
+The Data Writer Example can be used on the same system setup to offload all exportable data, such as crop and string data, onto a connected external SD card or EEPROM storage device to help storage constrained MCUs compile system builds.
+
+This Example doesn't actually run the Helioduino controller in full, but a code stripped version of it that easily compiles with all extra data built-in. The compiled binary in this Example will include all exportable data stored as compact JSON string text, and typically easily fits in under 256kB compilation size.
+
+This data can further be exported into smaller binary chunks with native endianness for EEPROM storage, or into expanded pretty print JSON text files for SD card storage. You can also further customize default and/or extend library data that will be included in data export.
+
+If you are planning to utilize an external EEPROM storage device and have made any custom data modifications, you will have to update your system's sketch to include the proper offsets that the output of the Data Writer sketch produces. These defines can be copied over and overwrite the existing ones in the main system examples.
+
+In serial monitor (near end):
+```
+…
+2023-02-07T04:24:27 [INFO] Writing String: #365 "W"
+2023-02-07T04:24:27 [INFO] ... to byte offset: 11854 (0x2e4e)
+2023-02-07T04:24:27 [INFO] Wrote: 2 bytes
+2023-02-07T04:24:27 [INFO] Successfully wrote: 4908 bytes
+2023-02-07T04:24:27 [INFO] Total EEPROM usage: 11856 bytes
+2023-02-07T04:24:27 [INFO] EEPROM capacity used: 36.18% of 32768 bytes
+2023-02-07T04:24:27 [INFO] Use the following EEPROM setup defines in your sketch:
+#define SETUP_EEPROM_SYSDATA_ADDR       0x2e50
+#define SETUP_EEPROM_STRINGS_ADDR       0x0000
+2023-02-07T04:24:27 [INFO] Done!
+```
+
+Note: Again, you can get logging output sent to the Serial device by defining `HELIO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.

@@ -1,13 +1,13 @@
 /*  Helioduino: Simple automation controller for solar tracking systems.
     Copyright (C) 2023 NachtRaveVL          <nachtravevl@gmail.com>
-    Helioduino Minimal UI
+    Helioduino Full UI
 */
 
-class HelioMinUI;
+class HelioFullUI;
 
 #include "Helioduino.h"
 
-class HelioMinUI : HelioUIInterface {
+class HelioFullUI : HelioduinoUIInterface {
 public:
     virtual bool begin() override;
 

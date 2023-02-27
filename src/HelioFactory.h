@@ -38,7 +38,7 @@ public:
 #endif
     );
 
-// TODO: #9 in Helio.
+// TODO: #9 in Helioduino.
 //     // Adds a new PWM-based panel-axis-driving continuous servo to the system using the given parameters.
 //     // PWM continuous servos provide constant angular movement not just limited to two angles.
 //     SharedPtr<HelioVariableMotorActuator> addContinuousServo(pintype_t outputPin,           // Analog output pin this actuator sits on
@@ -60,7 +60,7 @@ public:
                                                               float maxPosition,            // Maximum stroke distance / position
                                                               float minPosition = 0.0f);    // Minimum stroke distance / position
 
-// TODO: #9 in Helio.
+// TODO: #9 in Helioduino.
 //     // Adds a new analog PWM-based panel-axis-driving linear actuator to the system using the given parameters.
 //     // PWM linear actuators allow a graduated adaptive speed control, typically via H-bridge.
 //     SharedPtr<HelioVariableMotorActuator> addAnalogLinearActuator(pintype_t outputPinA,     // Analog output pin A (forward) this actuator sits on

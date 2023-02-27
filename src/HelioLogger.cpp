@@ -248,7 +248,7 @@ void HelioLogger::notifyDayChanged()
 
 void HelioLogger::cleanupOldestLogs(bool force)
 {
-    // TODO: Old data cleanup. #17 in Helio.
+    // TODO: Old data cleanup. #17 in Hydruino.
 }
 
 

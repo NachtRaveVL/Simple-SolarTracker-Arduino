@@ -337,8 +337,8 @@ public:
     // Enables UI to run with passed instance.
     // Minimal UI only allows the user to edit existing objects, not create nor delete them.
     // Full UI allows the user to add/remove system objects, customize features, change settings, etc.
-    // Note: Be sure to manually include the appropriate UI system header file (e.g. #include "min/HelioUI.h") in Arduino sketch.
-    inline bool enableUI(HelioUIInterface *ui) { _activeUIInstance = ui; return ui->begin(); }
+    // Note: Be sure to manually include the appropriate UI system header file (e.g. #include "min/HelioduinoUI.h") in Arduino sketch.
+    inline bool enableUI(HelioduinoUIInterface *ui) { _activeUIInstance = ui; return ui->begin(); }
 #endif
 
     // Mutators.
@@ -481,7 +481,7 @@ public:
 protected:
     static Helioduino *_activeInstance;                     // Current active instance (set after init, weak)
 #ifdef HELIO_USE_GUI
-    HelioUIInterface *_activeUIInstance;                    // Current active UI instance (owned)
+    HelioduinoUIInterface *_activeUIInstance;               // Current active UI instance (owned)
 #endif
     HelioSystemData *_systemData;                           // System data (owned, saved to storage)
 
@@ -564,7 +564,7 @@ protected:
     friend HelioLogger *::getLogger();
     friend HelioPublisher *::getPublisher();
 #ifdef HELIO_USE_GUI
-    friend HelioUIInterface *::getUI();
+    friend HelioduinoUIInterface *::getUI();
 #endif
     friend class HelioCalibrations;
     friend class HelioScheduler;

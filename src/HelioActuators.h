@@ -261,7 +261,7 @@ protected:
 // Motors using this class have variable motor control but also can be paired with
 // a speed sensor for more precise running calculations.
 //class HelioVariableMotorActuator : public HelioVariableActuator, public HelioMotorObjectInterface, public HelioSpeedSensorAttachmentInterface {
-// TODO: #9 in Helio.
+// TODO: #9 in Helioduino.
 //};
 
 
