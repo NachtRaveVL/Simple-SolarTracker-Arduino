@@ -4,7 +4,7 @@
 */
 
 #include "Helioduino.h"
-#include "HelioUI.h"
+#include "HelioduinoUI.h"
 
 bool HelioFullUI::begin()
 {

@@ -487,7 +487,7 @@ void HelioPublisher::resetDataFile()
 
 void HelioPublisher::cleanupOldestData(bool force)
 {
-    // TODO: Old data cleanup. #17 in Helio.
+    // TODO: Old data cleanup. #17 in Hydruino.
 }
 
 

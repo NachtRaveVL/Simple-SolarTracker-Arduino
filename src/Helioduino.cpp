@@ -763,7 +763,7 @@ void Helioduino::commonPostSave()
 // Super tight updates (buzzer/gps/etc) that need to be ran often
 inline void tightUpdates()
 {
-    // TODO: put in link to buzzer update here. #5 in Helio.
+    // TODO: put in link to buzzer update here. #5 in Hydruino.
     #ifdef HELIO_USE_GPS
         if (Helioduino::_activeInstance->_gps) { while(Helioduino::_activeInstance->_gps->available()) { Helioduino::_activeInstance->_gps->read(); } }
     #endif
