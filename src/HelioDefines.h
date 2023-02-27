@@ -158,7 +158,7 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 #define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
 #define HELIO_SENSOR_ANALOGREAD_SAMPLES 5                   // Number of samples to take for any analogRead call inside of a sensor's takeMeasurement call, or 0 to disable sampling (note: bitRes.maxValue * # of samples must fit inside a uint32_t)
-#define HELIO_SENSOR_ANALOGREAD_DELAYMS 0                   // Delay time between samples, or 0 to disable delay, in milliseconds
+#define HELIO_SENSOR_ANALOGREAD_DELAY   0                   // Delay time between samples, or 0 to disable delay, in milliseconds
 
 #define HELIO_SYS_AUTOSAVE_INTERVAL     120                 // Default autosave interval, in minutes
 #define HELIO_SYS_I2CEEPROM_BASEADDR    0x50                // Base address of I2C EEPROM (bitwise or'ed with passed address)
@@ -432,7 +432,6 @@ enum Helio_DrivingState : signed char {
 
 // Panel State
 // Common panel states. Specifies panel operational status.
-// FIXME: Not yet finalized.
 enum Helio_PanelState : signed char {
     Helio_PanelState_AlignedToSun,                          // Aligned to sun
     Helio_PanelState_TravelingToSun,                        // Traveling to sun

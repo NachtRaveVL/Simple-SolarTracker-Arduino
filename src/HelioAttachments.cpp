@@ -40,11 +40,11 @@ void HelioDLinkObject::unresolve()
     _obj = nullptr;
 }
 
-SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject()
+SharedPtr<HelioObjInterface> HelioDLinkObject::resolveObject()
 {
     if (_obj || !isSet()) { return _obj; }
     if (Helioduino::_activeInstance) {
-        _obj = static_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
+        _obj = reinterpret_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
     }
     if (_obj && _keyStr) {
         free((void *)_keyStr); _keyStr = nullptr;
@@ -60,7 +60,7 @@ HelioAttachment::HelioAttachment(HelioObjInterface *parent, hposi_t subIndex)
 HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
     : HelioSubObject(attachment._parent), _obj(), _subIndex(attachment._subIndex)
 {
-    setObject(attachment._obj);
+    initObject(attachment._obj);
 }
 
 HelioAttachment::~HelioAttachment()
@@ -99,6 +99,11 @@ void HelioAttachment::setParent(HelioObjInterface *parent)
 
         if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) { _obj.get<HelioObject>()->addLinkage((HelioObject *)_parent); }
     }
+}
+
+SharedPtr<HelioObjInterface> HelioAttachment::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->getKey() == getKey() ? _obj._obj : HelioSubObject::getSharedPtrFor(obj);
 }
 
 

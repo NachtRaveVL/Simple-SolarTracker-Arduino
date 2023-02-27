@@ -22,7 +22,7 @@ HelioData *_allocateDataFromBaseDecode(const HelioData &baseDecode)
     HELIO_SOFT_ASSERT(retVal, F("Unknown data decode"));
     if (retVal) {
         retVal->id = baseDecode.id;
-        HELIO_SOFT_ASSERT(retVal->_version == baseDecode._version, F("Data version mismatch")); // TODO: Version updaters
+        HELIO_SOFT_ASSERT(retVal->_version == baseDecode._version, F("Data version mismatch"));
         retVal->_revision = baseDecode._revision;
         return retVal;
     }
@@ -131,9 +131,9 @@ void HelioSystemData::toJSONObject(JsonObject &objectOut) const
     if (!arrayElementsEqual<uint8_t>(macAddress, 6, 0)) {
         objectOut[SFP(HStr_Key_MACAddress)] = commaStringFromArray(macAddress, 6);
     }
-    if (!isFPEqual(latitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Latitude)] = latitude; }
-    if (!isFPEqual(longitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Longitude)] = longitude; }
-    if (!isFPEqual(altitude, DBL_UNDEF)) { objectOut[SFP(HStr_Key_Altitude)] = altitude; }
+    if (latitude != DBL_UNDEF) { objectOut[SFP(HStr_Key_Latitude)] = latitude; }
+    if (longitude != DBL_UNDEF) { objectOut[SFP(HStr_Key_Longitude)] = longitude; }
+    if (altitude != DBL_UNDEF) { objectOut[SFP(HStr_Key_Altitude)] = altitude; }
 
     JsonObject schedulerObj = objectOut.createNestedObject(SFP(HStr_Key_Scheduler));
     scheduler.toJSONObject(schedulerObj); if (!schedulerObj.size()) { objectOut.remove(SFP(HStr_Key_Scheduler)); }
@@ -233,7 +233,7 @@ void HelioCalibrationData::setFromTwoPoints(float point1MeasuredAt, float point1
     float bTerm = point2MeasuredAt - point1MeasuredAt;
     HELIO_SOFT_ASSERT(!isFPEqual(bTerm, 0.0f), SFP(HStr_Err_InvalidParameter));
     if (!isFPEqual(bTerm, 0.0f)) {
-        _bumpRevIfNotAlreadyModded();
+        bumpRevisionIfNeeded();
         multiplier = aTerm / bTerm;
         offset = ((aTerm * point2MeasuredAt) + (bTerm * point1CalibratedTo)) / bTerm;
     }

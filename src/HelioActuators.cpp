@@ -39,8 +39,8 @@ HelioActuator::HelioActuator(const HelioActuatorData *dataIn)
       _contPowerUsage(&(dataIn->contPowerUsage)),
       _parentRail(this), _parentPanel(this), _needsUpdate(false)
 {
-    _parentRail.setObject(dataIn->railName);
-    _parentPanel.setObject(dataIn->panelName);
+    _parentRail.initObject(dataIn->railName);
+    _parentPanel.initObject(dataIn->panelName);
 }
 
 void HelioActuator::update()
@@ -194,6 +194,7 @@ void HelioActuator::setContinuousPowerUsage(HelioSingleMeasurement contPowerUsag
 {
     _contPowerUsage = contPowerUsage;
     _contPowerUsage.setMinFrame(1);
+    bumpRevisionIfNeeded();
 }
 
 const HelioSingleMeasurement &HelioActuator::getContinuousPowerUsage()
@@ -213,6 +214,7 @@ HelioAttachment &HelioActuator::getParentPanelAttachment()
 
 void HelioActuator::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
 {
+    if (_calibrationData && _calibrationData != userCalibrationData) { bumpRevisionIfNeeded(); }
     if (getController()) {
         if (userCalibrationData && getController()->setUserCalibrationData(userCalibrationData)) {
             _calibrationData = getController()->getUserCalibrationData(_id.key);
@@ -381,10 +383,10 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *d
       _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
     _position.setMeasurementUnits(getDistanceUnits());
-    _position.setObject(dataIn->positionSensor);
+    _position.initObject(dataIn->positionSensor);
 
     _speed.setMeasurementUnits(getSpeedUnits());
-    _speed.setObject(dataIn->speedSensor);
+    _speed.initObject(dataIn->speedSensor);
 
     _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger);
     _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger);
@@ -411,6 +413,13 @@ void HelioRelayMotorActuator::update()
             handleTravelTime(time);
         }
     }
+}
+
+SharedPtr<HelioObjInterface> HelioRelayMotorActuator::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->getKey() == _minimum.getKey() ? _minimum.getSharedPtrFor(obj) :
+           obj->getKey() == _maximum.getKey() ? _maximum.getSharedPtrFor(obj) :
+           HelioObject::getSharedPtrFor(obj);
 }
 
 bool HelioRelayMotorActuator::getCanEnable()
@@ -548,6 +557,7 @@ void HelioRelayMotorActuator::setDistanceUnits(Helio_UnitsType distanceUnits)
         convertUnits(&_contSpeed, getSpeedUnits());
         _position.setMeasurementUnits(getDistanceUnits());
         _speed.setMeasurementUnits(getSpeedUnits());
+        bumpRevisionIfNeeded();
     }
 }
 
@@ -557,6 +567,7 @@ void HelioRelayMotorActuator::setContinuousSpeed(HelioSingleMeasurement contSpee
     _contSpeed.setMinFrame(1);
 
     convertUnits(&_contSpeed, getSpeedUnits());
+    bumpRevisionIfNeeded();
 }
 
 const HelioSingleMeasurement &HelioRelayMotorActuator::getContinuousSpeed()

@@ -88,6 +88,7 @@ void HelioDriver::setTargetSetpoint(float targetSetpoint)
 {
     if (!isFPEqual(_targetSetpoint, targetSetpoint)) {
         _targetSetpoint = targetSetpoint;
+        bumpRevisionIfNeeded();
     }
 }
 

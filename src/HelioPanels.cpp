@@ -53,7 +53,7 @@ HelioPanel::HelioPanel(const HelioPanelData *dataIn)
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
-    _powerProd.setObject(dataIn->powerProdSensor);
+    _powerProd.initObject(dataIn->powerProdSensor);
 }
 
 HelioPanel::~HelioPanel()
@@ -154,10 +154,10 @@ HelioBalancingPanel::HelioBalancingPanel(const HelioBalancingPanelData *dataIn)
       _minIntensity(dataIn->minIntensity),
       _ldrSensors{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1),HelioSensorAttachment(this,2),HelioSensorAttachment(this,3)}
 {
-    _ldrSensors[0].setObject(dataIn->ldrSensorHorzMin);
-    _ldrSensors[1].setObject(dataIn->ldrSensorHorzMax);
-    _ldrSensors[2].setObject(dataIn->ldrSensorVertMin);
-    _ldrSensors[3].setObject(dataIn->ldrSensorVertMax);
+    _ldrSensors[0].initObject(dataIn->ldrSensorHorzMin);
+    _ldrSensors[1].initObject(dataIn->ldrSensorHorzMax);
+    _ldrSensors[2].initObject(dataIn->ldrSensorVertMin);
+    _ldrSensors[3].initObject(dataIn->ldrSensorVertMax);
 }
 
 HelioBalancingPanel::~HelioBalancingPanel()
@@ -313,19 +313,19 @@ HelioTrackingPanel::HelioTrackingPanel(const HelioTrackingPanelData *dataIn)
       _temperature(this), _windSpeed(this), _heatingTrigger(this), _stormingTrigger(this)
 {
     _powerUsage.setMeasurementUnits(getPowerUnits());
-    _powerUsage.setObject(dataIn->powerUsageSensor);
+    _powerUsage.initObject(dataIn->powerUsageSensor);
 
     _axisAngle[0].setMeasurementUnits(Helio_UnitsType_Angle_Degrees_360);
-    _axisAngle[0].setObject(dataIn->axisSensorHorz);
+    _axisAngle[0].initObject(dataIn->axisSensorHorz);
 
     _axisAngle[1].setMeasurementUnits(Helio_UnitsType_Angle_Degrees_360);
-    _axisAngle[1].setObject(dataIn->axisSensorVert);
+    _axisAngle[1].initObject(dataIn->axisSensorVert);
 
     _temperature.setMeasurementUnits(getTemperatureUnits());
-    _temperature.setObject(dataIn->temperatureSensor);
+    _temperature.initObject(dataIn->temperatureSensor);
 
     _windSpeed.setMeasurementUnits(getSpeedUnits());
-    _windSpeed.setObject(dataIn->windSpeedSensor);
+    _windSpeed.initObject(dataIn->windSpeedSensor);
 
     _heatingTrigger.setObject(newTriggerObjectFromSubData(&dataIn->heatingTrigger));
     _stormingTrigger.setObject(newTriggerObjectFromSubData(&dataIn->stormingTrigger));
@@ -345,6 +345,13 @@ void HelioTrackingPanel::update()
     _stormingTrigger.updateIfNeeded(true);
 
     HelioPanel::update();
+}
+
+SharedPtr<HelioObjInterface> HelioTrackingPanel::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->getKey() == _heatingTrigger.getKey() ? _heatingTrigger.getSharedPtrFor(obj) :
+           obj->getKey() == _stormingTrigger.getKey() ? _stormingTrigger.getSharedPtrFor(obj) :
+           HelioObject::getSharedPtrFor(obj);
 }
 
 bool HelioTrackingPanel::canActivate(HelioActuator *actuator)

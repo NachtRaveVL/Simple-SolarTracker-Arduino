@@ -159,6 +159,7 @@ public:
     virtual ~HelioTrackingPanel();
 
     virtual void update() override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 
     virtual bool canActivate(HelioActuator *actuator) override;
     virtual bool isDaylight(bool poll = false) override;

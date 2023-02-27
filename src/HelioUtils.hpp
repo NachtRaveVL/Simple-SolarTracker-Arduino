@@ -237,7 +237,7 @@ Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
             if (actuator->isTravelType() && actuator->isMotorType() == isMotor &&
-                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAttachment().getParentSubIndex() == axisIndex) {
+                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAxisIndex() == axisIndex) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }

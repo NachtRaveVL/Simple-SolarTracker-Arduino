@@ -63,7 +63,7 @@ void HelioScheduler::setReportInterval(TimeSpan interval)
     HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
 
     if (hasSchedulerData() && schedulerData()->reportInterval != interval.totalseconds()) {
-        Helioduino::_activeInstance->_systemData->_bumpRevIfNotAlreadyModded();
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
         schedulerData()->reportInterval = interval.totalseconds();
     }
 }
@@ -367,20 +367,19 @@ void HelioTracking::update()
         (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getTemperatureSensor()) ||
         (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getWindSpeedSensor())) {
         getLogger()->logProcess(panel.get(), SFP(HStr_Log_EnvReport));
-        #ifdef HELIO_USE_MULTITASKING
-            // Yield will allow measurements to complete, ensures first log out doesn't contain zero'ed values
-            if ((trackingPanel->getTemperatureSensor() && !trackingPanel->getTemperatureSensorAttachment().getMeasurementFrame()) ||
-                (trackingPanel->getWindSpeedSensor() && !trackingPanel->getWindSpeedSensorAttachment().getMeasurementFrame())) {
-                yield();
-            }
-        #endif
-        if (trackingPanel->getTemperatureSensor()) {
-            auto temp = trackingPanel->getTemperatureSensorAttachment().getMeasurement(true);
+        if (trackingPanel->getTemperatureSensor(true)) {
+            #ifdef HELIO_USE_MULTITASKING
+                trackingPanel->getTemperatureSensor()->yieldForMeasurement();
+            #endif
+            auto temp = trackingPanel->getTemperatureSensorAttachment().getMeasurement();
             convertUnits(&temp, trackingPanel->getTemperatureUnits());
             getLogger()->logMessage(SFP(HStr_Log_Field_Temp_Measured), measurementToString(temp));
         }
-        if (trackingPanel->getWindSpeedSensor()) {
-            auto windSpeed = trackingPanel->getWindSpeedSensorAttachment().getMeasurement(true);
+        if (trackingPanel->getWindSpeedSensor(true)) {
+            #ifdef HELIO_USE_MULTITASKING
+                trackingPanel->getWindSpeedSensor()->yieldForMeasurement();
+            #endif
+            auto windSpeed = trackingPanel->getWindSpeedSensorAttachment().getMeasurement();
             getLogger()->logMessage(SFP(HStr_Log_Field_WindSpeed_Measured), measurementToString(windSpeed));
         }
         lastEnvReport = time;

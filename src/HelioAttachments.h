@@ -36,7 +36,7 @@ public:
     template<class U> inline void unresolveIf(U obj) { if (operator==(obj)) { unresolve(); } }
 
     template<class U> inline void setObject(U obj) { operator=(obj); }
-    template<class U = HelioObjInterface> inline SharedPtr<U> getObject() { return reinterpret_pointer_cast<U>(_getObject()); }
+    template<class U = HelioObjInterface> inline SharedPtr<U> getObject() { return reinterpret_pointer_cast<U>(resolveObject()); }
     template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
     inline HelioIdentity getId() const { return _obj ? _obj->getId() : (_keyStr ? HelioIdentity(_keyStr) : HelioIdentity(_key)); }
@@ -66,7 +66,7 @@ protected:
     const char *_keyStr;                                    // Copy of id.keyString (if not resolved, or unresolved)
 
 private:
-    SharedPtr<HelioObjInterface> _getObject();
+    SharedPtr<HelioObjInterface> resolveObject();
     friend class Helioduino;
     friend class HelioAttachment;
 };
@@ -95,7 +95,8 @@ public:
     inline void unresolve() { _obj.unresolve(); } 
     template<class U> inline void unresolveIf(U obj) { _obj.unresolveIf(obj); }
 
-    template<class U> void setObject(U obj);
+    template<class U> void setObject(U obj, bool modify = true);
+    template<class U> inline void initObject(U obj) { setObject(obj, false); }
     template<class U = HelioObjInterface> SharedPtr<U> getObject();
     template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
@@ -109,6 +110,7 @@ public:
     inline hkey_t getKey() const { return _obj.getKey(); }
     inline String getKeyString() const { return _obj.getKeyString(); }
     inline bool isSet() const { return _obj.isSet(); }
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 
     inline operator bool() const { return isResolved(); }
     inline HelioObjInterface* operator->() { return get<HelioObjInterface>(); }

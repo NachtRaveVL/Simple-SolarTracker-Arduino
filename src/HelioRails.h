@@ -103,7 +103,7 @@ public:
     HelioRegulatedRail(const HelioRegulatedRailData *dataIn);
 
     virtual void update() override;
-    virtual void handleLowMemory() override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 
     virtual bool canActivate(HelioActuator *actuator) override;
     virtual float getCapacity(bool poll = false) override;

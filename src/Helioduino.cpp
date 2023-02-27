@@ -744,13 +744,17 @@ void Helioduino::commonPostSave()
     logger.logSystemSave();
 
     if (_systemData) {
-        _systemData->_unsetModded();
+        _systemData->unsetModified();
     }
 
     if (hasUserCalibrations()) {
         for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
-            iter->second->_unsetModded();
+            iter->second->unsetModified();
         }
+    }
+
+    for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
+        iter->second->unsetModified();
     }
 }
 
@@ -759,7 +763,7 @@ void Helioduino::commonPostSave()
 // Super tight updates (buzzer/gps/etc) that need to be ran often
 inline void tightUpdates()
 {
-    // TODO: put in link to buzzer update here
+    // TODO: put in link to buzzer update here. #5 in Helio.
     #ifdef HELIO_USE_GPS
         if (Helioduino::_activeInstance->_gps) { while(Helioduino::_activeInstance->_gps->available()) { Helioduino::_activeInstance->_gps->read(); } }
     #endif
@@ -949,7 +953,7 @@ void Helioduino::setSystemName(String systemName)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && !systemName.equals(getSystemName())) {
-        _systemData->_bumpRevIfNotAlreadyModded();
+        _systemData->bumpRevisionIfNeeded();
         strncpy(_systemData->systemName, systemName.c_str(), HELIO_NAME_MAXSIZE);
         setNeedsLayout();
     }
@@ -959,7 +963,7 @@ void Helioduino::setTimeZoneOffset(int8_t timeZoneOffset)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
-        _systemData->_bumpRevIfNotAlreadyModded();
+        _systemData->bumpRevisionIfNeeded();
         _systemData->timeZoneOffset = timeZoneOffset;
         scheduler.broadcastDayChange();
     }
@@ -969,7 +973,7 @@ void Helioduino::setPollingInterval(uint16_t pollingInterval)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && _systemData->pollingInterval != pollingInterval) {
-        _systemData->_bumpRevIfNotAlreadyModded();
+        _systemData->bumpRevisionIfNeeded();
         _systemData->pollingInterval = pollingInterval;
 
         #ifdef HELIO_USE_MULTITASKING
@@ -991,7 +995,7 @@ void Helioduino::setAutosaveEnabled(Helio_Autosave autosaveEnabled, Helio_Autosa
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && (_systemData->autosaveEnabled != autosaveEnabled || _systemData->autosaveFallback != autosaveFallback || _systemData->autosaveInterval != autosaveInterval)) {
-        _systemData->_bumpRevIfNotAlreadyModded();
+        _systemData->bumpRevisionIfNeeded();
         _systemData->autosaveEnabled = autosaveEnabled;
         _systemData->autosaveFallback = autosaveFallback;
         _systemData->autosaveInterval = autosaveInterval;
@@ -1017,7 +1021,7 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
         bool passChanged = pass.equals(getWiFiPassword());
 
         if (ssidChanged || passChanged || (pass.length() && !_systemData->wifiPasswordSeed)) {
-            _systemData->_bumpRevIfNotAlreadyModded();
+            _systemData->bumpRevisionIfNeeded();
 
             if (ssid.length()) {
                 strncpy(_systemData->wifiSSID, ssid.c_str(), HELIO_NAME_MAXSIZE);
@@ -1053,7 +1057,7 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
         bool macChanged = memcmp(macAddress, getMACAddress(), sizeof(uint8_t[6])) != 0;
 
         if (macChanged) {
-            _systemData->_bumpRevIfNotAlreadyModded();
+            _systemData->bumpRevisionIfNeeded();
 
             memcpy(_systemData->macAddress, macAddress, sizeof(uint8_t[6]));
 
@@ -1071,7 +1075,7 @@ void Helioduino::setSystemLocation(double latitude, double longitude, double alt
         forceUpdate |= ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
                        ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
                        fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
-        if (forceUpdate) { _systemData->_bumpRevIfNotAlreadyModded(); }
+        if (forceUpdate) { _systemData->bumpRevisionIfNeeded(); }
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
