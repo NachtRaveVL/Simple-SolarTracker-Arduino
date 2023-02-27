@@ -70,8 +70,8 @@ protected:
     String _dataFilename;                                   // Resolved data file name (based on day)
     hframe_t _pollingFrame;                                 // Polling frame that publishing is caught up to
     bool _needsTabulation;                                  // Needs tabulation tracking flag
-    uint8_t _columnCount;                                   // Data columns count
-    HelioDataColumn *_dataColumns;                          // Data columns (owned)
+    uint8_t _columnSize;                                    // Number of data columns
+    HelioDataColumn *_dataColumns;                          // Data columns array (owned)
 
     Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> _publishSignal; // Data publishing signal
 
@@ -83,7 +83,7 @@ protected:
     void advancePollingFrame();
     friend void dataLoop();
 
-    void checkCanPublish();
+    void publishIfNeeded();
     void publish(time_t timestamp);
 
     void performTabulation();

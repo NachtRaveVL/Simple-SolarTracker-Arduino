@@ -548,7 +548,7 @@ protected:
     void commonPostInit();
     void commonPostSave();
 
-    friend SharedPtr<HelioObjInterface> HelioDLinkObject::_getObject();
+    friend SharedPtr<HelioObjInterface> HelioDLinkObject::resolveObject();
     friend void controlLoop();
     friend void dataLoop();
     friend void miscLoop();

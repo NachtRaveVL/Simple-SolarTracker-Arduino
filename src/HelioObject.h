@@ -90,44 +90,70 @@ public:
     inline bool isRailType() const { return _id.isRailType(); }
     inline bool isUnknownType() const { return _id.isUnknownType(); }
 
-    inline HelioObject(HelioIdentity id) : _id(id), _linksSize(0), _links(nullptr) { ; }
-    inline HelioObject(const HelioData *data) : _id(data), _linksSize(0), _links(nullptr) { ; }
-    virtual ~HelioObject();                                 // Destructor
+    inline HelioObject(HelioIdentity id) : _id(id), _revision(-1), _linksSize(0), _links(nullptr) { ; }
+    inline HelioObject(const HelioData *data) : _id(data), _revision(data->_revision), _linksSize(0), _links(nullptr) { ; }
+    virtual ~HelioObject();
 
-    virtual void update();                                  // Called over intervals of time by runloop
-    virtual void handleLowMemory();                         // Called upon low memory condition to try and free memory up
+    // Called over intervals of time by runloop
+    virtual void update();
+    // Called upon low memory condition to try and free memory up
+    virtual void handleLowMemory();
 
-    HelioData *newSaveData();                               // Saves object state to proper backing data
+    // Saves object state to proper backing data
+    HelioData *newSaveData();
 
-    void allocateLinkages(size_t size = 1);                 // Allocates linkage list of specified size (reallocates)
-    virtual bool addLinkage(HelioObject *obj);              // Adds linkage to this object, returns true upon initial add
-    virtual bool removeLinkage(HelioObject *obj);           // Removes linkage from this object, returns true upon last remove
-    bool hasLinkage(HelioObject *obj) const;                // Checks object linkage to this object
+    // (Re)allocates linkage list of specified size
+    void allocateLinkages(size_t size = 1);
+    // Adds linkage to this object, returns true upon initial add
+    virtual bool addLinkage(HelioObject *obj);
+    // Removes linkage from this object, returns true upon last remove
+    virtual bool removeLinkage(HelioObject *obj);
+    // Checks object linkage to this object
+    bool hasLinkage(HelioObject *obj) const;
 
     // Returns the linkages this object contains, along with refcount for how many times it has registered itself as linked (via attachment points).
     // Objects are considered strong pointers, since existence -> SharedPtr ref to this instance exists.
     inline Pair<uint8_t, Pair<HelioObject *, int8_t> *> getLinkages() const { return make_pair(_linksSize, _links); }
 
-    virtual void unresolveAny(HelioObject *obj) override;   // Unresolves any dlinks to obj prior to caching
-    inline void unresolve() { unresolveAny(this); }         // Unresolves this instance from any dlinks
+    // Unresolves any dlinks to obj prior to caching
+    virtual void unresolveAny(HelioObject *obj) override;
+    // Unresolves this instance from any dlinks
+    inline void unresolve() { unresolveAny(this); }
 
-    virtual HelioIdentity getId() const override;           // Returns the unique Identity of the object
-    virtual hkey_t getKey() const override;                 // Returns the unique key of the object
-    virtual String getKeyString() const override;           // Returns the key string of the object
-    virtual SharedPtr<HelioObjInterface> getSharedPtr() const override; // Returns the SharedPtr instance of the object
+    // Returns the unique Identity of the object
+    virtual HelioIdentity getId() const override;
+    // Returns the unique key of the object
+    virtual hkey_t getKey() const override;
+    // Returns the key string of the object
+    virtual String getKeyString() const override;
+    // Returns the SharedPtr instance for this object
+    virtual SharedPtr<HelioObjInterface> getSharedPtr() const override;
+    // Returns the SharedPtr instance for passed object
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
+    // Returns true for object
     virtual bool isObject() const override;
+
+    // Returns revision #
+    inline uint8_t getRevision() const { return abs(_revision); }
+    // If revision has been modified since last saved
+    inline bool isModified() const { return _revision < 0; }
+    // Bumps revision # if not already modified, and sets modified flag (called after modifying data)
+    inline void bumpRevisionIfNeeded() { if (!isModified()) { _revision = -(abs(_revision) + 1); } }
+    // Unsets modified flag from revision (called after save-out)
+    inline void unsetModified() { _revision = abs(_revision); }
 
 protected:
     HelioIdentity _id;                                      // Object id
-    uint8_t _linksSize;                                     // Size of object linkages
-    Pair<HelioObject *, int8_t> *_links;                    // Object linkages (owned, lazily allocated)
+    int8_t _revision;                                       // Revision # of stored data (uses -vals for modified flag)
+    uint8_t _linksSize;                                     // Number of object linkages
+    Pair<HelioObject *, int8_t> *_links;                    // Object linkages array (owned, lazily allocated/grown/shrunk)
 
     virtual HelioData *allocateData() const;                // Only up to base type classes (sensor, crop, etc.) does this need overriden
     virtual void saveToData(HelioData *dataOut);            // *ALL* derived classes must override and implement
 
 private:
     // Private constructor to disable derived/public access
-    inline HelioObject() : _id(), _linksSize(0), _links(nullptr) { ; }
+    inline HelioObject() : _id(), _revision(-1), _linksSize(0), _links(nullptr) { ; }
 };
 
 
@@ -138,16 +164,22 @@ class HelioSubObject : public HelioObjInterface {
 public:
     inline HelioSubObject(HelioObjInterface *parent = nullptr) : _parent(parent) { ; }
 
+    virtual void setParent(HelioObjInterface *parent);
+    inline HelioObjInterface *getParent() const { return _parent; }
+
     virtual void unresolveAny(HelioObject *obj) override;
 
     virtual HelioIdentity getId() const override;
     virtual hkey_t getKey() const override;
     virtual String getKeyString() const override;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
     virtual bool isObject() const override;
 
-    virtual void setParent(HelioObjInterface *parent);
-    inline HelioObjInterface *getParent() const { return _parent; }
+    inline uint8_t getRevision() const { return _parent && _parent->isObject() ? ((HelioObject *)_parent)->getRevision() : 0; }
+    inline bool isModified() const { return _parent && _parent->isObject() ? ((HelioObject *)_parent)->isModified() : false; }
+    inline void bumpRevisionIfNeeded() { if (_parent && _parent->isObject()) { ((HelioObject *)_parent)->bumpRevisionIfNeeded(); } }
+    inline void unsetModified() { ; }
 
 protected:
     HelioObjInterface *_parent;                             // Parent object pointer (reverse ownership)

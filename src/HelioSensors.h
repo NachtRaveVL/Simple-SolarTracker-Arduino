@@ -55,6 +55,8 @@ public:
     virtual bool isTakingMeasurement() const override;
     virtual bool needsPolling(hframe_t allowance = 0) const = 0;
 
+    void yieldForMeasurement(millis_t timeout = HELIO_DATA_LOOP_INTERVAL);
+
     virtual HelioAttachment &getParentPanelAttachment() override;
 
     void setUserCalibrationData(HelioCalibrationData *userCalibrationData);

@@ -187,8 +187,12 @@ String HelioObject::getKeyString() const
 
 SharedPtr<HelioObjInterface> HelioObject::getSharedPtr() const
 {
-    return getController() ? static_pointer_cast<HelioObjInterface>(getController()->objectById(_id))
-                           : SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
+    return getController() ? reinterpret_pointer_cast<HelioObjInterface>(getController()->objectById(_id)) : nullptr;
+}
+
+SharedPtr<HelioObjInterface> HelioObject::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->isObject() ? obj->getSharedPtr() : nullptr;
 }
 
 bool HelioObject::isObject() const
@@ -207,6 +211,7 @@ void HelioObject::saveToData(HelioData *dataOut)
     dataOut->id.object.idType = (hid_t)_id.type;
     dataOut->id.object.objType = _id.objTypeAs.idType;
     dataOut->id.object.posIndex = _id.posIndex;
+    dataOut->_revision = getRevision();
     if (_id.keyString.length()) {
         strncpy(((HelioObjectData *)dataOut)->name, _id.keyString.c_str(), HELIO_NAME_MAXSIZE);
     }
@@ -233,7 +238,12 @@ String HelioSubObject::getKeyString() const
 
 SharedPtr<HelioObjInterface> HelioSubObject::getSharedPtr() const
 {
-    return SharedPtr<HelioObjInterface>((HelioObjInterface *)this);
+    return _parent ? _parent->getSharedPtrFor((const HelioObjInterface *)this) : nullptr;
+}
+
+SharedPtr<HelioObjInterface> HelioSubObject::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->isObject() ? obj->getSharedPtr() : _parent ? _parent->getSharedPtrFor(obj) : nullptr;
 }
 
 bool HelioSubObject::isObject() const

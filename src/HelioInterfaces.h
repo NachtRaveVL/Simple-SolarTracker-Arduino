@@ -76,6 +76,7 @@ public:
     virtual hkey_t getKey() const = 0;
     virtual String getKeyString() const = 0;
     virtual SharedPtr<HelioObjInterface> getSharedPtr() const = 0;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const = 0;
 
     virtual bool isObject() const = 0;
     inline bool isSubObject() const { return !isObject(); }
@@ -313,6 +314,7 @@ public:
 
     template<class U> inline void setParentPanel(U panel, hposi_t axisIndex = 0);
     template<class U = HelioPanel> inline SharedPtr<U> getParentPanel();
+    inline hposi_t getParentPanelAxisIndex();
 };
 
 // Parent Rail Attachment Interface

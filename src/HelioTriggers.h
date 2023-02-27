@@ -41,7 +41,6 @@ public:
     virtual void saveToData(HelioTriggerSubData *dataOut) const;
 
     virtual void update();
-    virtual void handleLowMemory();
 
     virtual Helio_TriggerState getTriggerState(bool poll = false) override;
 

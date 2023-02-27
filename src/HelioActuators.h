@@ -55,7 +55,7 @@ public:
     inline HelioActivationHandle enableActuator(float value, millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, calibrationInvTransform(value), duration, force); }
     inline HelioActivationHandle enableActuator(millis_t duration = -1, bool force = false) { return enableActuator(Helio_DirectionMode_Forward, 1.0f, duration, force); }
 
-    inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); }
+    inline void setEnableMode(Helio_EnableMode enableMode) { _enableMode = enableMode; setNeedsUpdate(); bumpRevisionIfNeeded(); }
     inline Helio_EnableMode getEnableMode() const { return _enableMode; }
 
     inline bool isSerialMode() const { return getActuatorIsSerialFromMode(getEnableMode()); }
@@ -161,6 +161,7 @@ public:
     HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn);
 
     virtual void update() override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 
     virtual bool getCanEnable() override;
     virtual float getDriveIntensity() const override;
@@ -251,7 +252,7 @@ protected:
 // Motors using this class have variable motor control but also can be paired with
 // a speed sensor for more precise running calculations.
 //class HelioVariableMotorActuator : public HelioVariableActuator, public HelioMotorObjectInterface, public HelioSpeedSensorAttachmentInterface {
-// TODO
+// TODO: #9 in Helio.
 //};
 
 

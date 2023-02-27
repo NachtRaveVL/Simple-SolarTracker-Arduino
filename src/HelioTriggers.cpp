@@ -44,7 +44,7 @@ HelioTrigger::HelioTrigger(const HelioTriggerSubData *dataIn)
 {
     _sensor.setMeasurementRow(dataIn->measurementRow);
     _sensor.setMeasurementUnits(dataIn->measurementUnits);
-    _sensor.setObject(dataIn->sensorName);
+    _sensor.initObject(dataIn->sensorName);
 }
 
 void HelioTrigger::saveToData(HelioTriggerSubData *dataOut) const
@@ -61,9 +61,6 @@ void HelioTrigger::update()
 {
     _sensor.updateIfNeeded(true);
 }
-
-void HelioTrigger::handleLowMemory()
-{ ; }
 
 Helio_TriggerState HelioTrigger::getTriggerState(bool poll)
 {

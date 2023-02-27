@@ -75,6 +75,11 @@ inline SharedPtr<U> HelioParentPanelAttachmentInterface::getParentPanel()
     return getParentPanelAttachment().HelioAttachment::getObject<U>();
 }
 
+inline hposi_t HelioParentPanelAttachmentInterface::getParentPanelAxisIndex()
+{
+    getParentPanelAttachment().getParentSubIndex();
+}
+
 template <class U>
 inline void HelioParentRailAttachmentInterface::setParentRail(U rail)
 {

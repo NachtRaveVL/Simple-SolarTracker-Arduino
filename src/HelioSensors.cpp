@@ -90,7 +90,7 @@ HelioSensor::HelioSensor(const HelioSensorData *dataIn)
       _isTakingMeasure(false), _parentPanel(this), _calibrationData(nullptr)
 {
     _calibrationData = getController() ? getController()->getUserCalibrationData(_id.key) : nullptr;
-    _parentPanel.setObject(dataIn->panelName);
+    _parentPanel.initObject(dataIn->panelName);
 }
 
 HelioSensor::~HelioSensor()
@@ -110,6 +110,12 @@ bool HelioSensor::isTakingMeasurement() const
     return _isTakingMeasure;
 }
 
+void HelioSensor::yieldForMeasurement(millis_t timeout)
+{
+    timeout = millis() + timeout;
+    while (isTakingMeasurement() && timeout - millis() > 0) { yield(); }
+}
+
 HelioAttachment &HelioSensor::getParentPanelAttachment()
 {
     return _parentPanel;
@@ -117,6 +123,7 @@ HelioAttachment &HelioSensor::getParentPanelAttachment()
 
 void HelioSensor::setUserCalibrationData(HelioCalibrationData *userCalibrationData)
 {
+    if (_calibrationData && _calibrationData != userCalibrationData) { bumpRevisionIfNeeded(); }
     if (getController()) {
         if (userCalibrationData && getController()->setUserCalibrationData(userCalibrationData)) {
             _calibrationData = getController()->getUserCalibrationData(_id.key);
@@ -221,6 +228,7 @@ bool HelioBinarySensor::needsPolling(hframe_t allowance) const
 void HelioBinarySensor::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
 {
     HELIO_SOFT_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
+    bumpRevisionIfNeeded();
 }
 
 Helio_UnitsType HelioBinarySensor::getMeasurementUnits(uint8_t measurementRow) const
@@ -301,8 +309,8 @@ void HelioAnalogSensor::_takeMeasurement(unsigned int taskId)
             unsigned int rawRead = 0;
             #if HELIO_SENSOR_ANALOGREAD_SAMPLES > 1
                 for (int sampleIndex = 0; sampleIndex < HELIO_SENSOR_ANALOGREAD_SAMPLES; ++sampleIndex) {
-                    #if HELIO_SENSOR_ANALOGREAD_DELAYMS > 0
-                        if (sampleIndex) { delay(HELIO_SENSOR_ANALOGREAD_DELAYMS); }
+                    #if HELIO_SENSOR_ANALOGREAD_DELAY > 0
+                        if (sampleIndex) { delay(HELIO_SENSOR_ANALOGREAD_DELAY); }
                     #endif
                     rawRead += _inputPin.analogRead_raw();
                 }
@@ -356,6 +364,7 @@ void HelioAnalogSensor::setMeasurementUnits(Helio_UnitsType measurementUnits, ui
         if (_lastMeasurement.isSet()) {
             convertUnits(&_lastMeasurement, _measurementUnits[measurementRow]);
         }
+        bumpRevisionIfNeeded();
     }
 }
 
@@ -602,6 +611,7 @@ void HelioDHTTempHumiditySensor::setMeasurementUnits(Helio_UnitsType measurement
         if (_lastMeasurement.isSet()) {
             convertUnits(&_lastMeasurement.value[measurementRow], &_lastMeasurement.units[measurementRow], _measurementUnits[measurementRow]);
         }
+        bumpRevisionIfNeeded();
     }
 }
 

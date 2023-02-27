@@ -36,7 +36,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(const char *rhs)
 inline HelioDLinkObject &HelioDLinkObject::operator=(const HelioObjInterface *rhs)
 {
     _key = rhs ? rhs->getKey() : hkey_none;
-    _obj = rhs ? getSharedPtr<HelioObjInterface>(rhs) : nullptr;
+    _obj = rhs ? rhs->getSharedPtr() : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
 
     return *this;
@@ -71,7 +71,7 @@ inline HelioDLinkObject &HelioDLinkObject::operator=(SharedPtr<U> &rhs)
 
 
 template<class U>
-void HelioAttachment::setObject(U obj)
+void HelioAttachment::setObject(U obj, bool modify)
 {
     if (!(_obj == obj)) {
         if (_obj.isResolved()) { detachObject(); }
@@ -79,6 +79,14 @@ void HelioAttachment::setObject(U obj)
         _obj = obj; // will be replaced by templated operator= inline
 
         if (_obj.isResolved()) { attachObject(); }
+
+        if (modify && _parent) {
+            if (_parent->isObject()) {
+                ((HelioObject *)_parent)->bumpRevisionIfNeeded();
+            } else {
+                ((HelioSubObject *)_parent)->bumpRevisionIfNeeded();
+            }
+        }
     }
 }
 
@@ -86,9 +94,8 @@ template<class U>
 SharedPtr<U> HelioAttachment::getObject()
 {
     if (_obj) { return _obj.getObject<U>(); }
-    if (_obj.getKey() == hkey_none) { return nullptr; }
-
-    if (_obj.needsResolved() && _obj._getObject()) {
+    else if (!_obj.isSet()) { return nullptr; }
+    else if (_obj.needsResolved() && _obj.resolveObject()) {
         attachObject();
     }
     return _obj.getObject<U>();

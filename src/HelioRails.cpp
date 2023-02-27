@@ -196,7 +196,7 @@ HelioRegulatedRail::HelioRegulatedRail(const HelioRegulatedRailData *dataIn)
 {
     _powerUsage.setMeasurementUnits(HelioRail::getPowerUnits(), getRailVoltage());
     _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
-    _powerUsage.setObject(dataIn->powerUsageSensor);
+    _powerUsage.initObject(dataIn->powerUsageSensor);
 
     _limitTrigger.setHandleMethod(&HelioRail::handleLimit);
     _limitTrigger.setObject(newTriggerObjectFromSubData(&(dataIn->limitTrigger)));
@@ -212,11 +212,10 @@ void HelioRegulatedRail::update()
     _limitTrigger.updateIfNeeded();
 }
 
-void HelioRegulatedRail::handleLowMemory()
+SharedPtr<HelioObjInterface> HelioRegulatedRail::getSharedPtrFor(const HelioObjInterface *obj) const
 {
-    HelioRail::handleLowMemory();
-
-    if (_limitTrigger) { _limitTrigger->handleLowMemory(); }
+    return obj->getKey() == _limitTrigger.getKey() ? _limitTrigger.getSharedPtrFor(obj) :
+           HelioObject::getSharedPtrFor(obj);
 }
 
 bool HelioRegulatedRail::canActivate(HelioActuator *actuator)
@@ -240,6 +239,7 @@ void HelioRegulatedRail::setPowerUnits(Helio_UnitsType powerUnits)
         _powerUnits = powerUnits;
 
         _powerUsage.setMeasurementUnits(getPowerUnits(), getRailVoltage());
+        bumpRevisionIfNeeded();
     }
 }
 
