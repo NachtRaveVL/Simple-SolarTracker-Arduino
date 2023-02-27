@@ -26,7 +26,10 @@ extern HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 // Actuator Base
 // This is the base class for all actuators, which defines how the actuator is identified,
 // where it lives, and what it's attached to.
-class HelioActuator : public HelioObject, public HelioActuatorObjectInterface, public HelioParentRailAttachmentInterface, public HelioParentPanelAttachmentInterface {
+class HelioActuator : public HelioObject,
+                      public HelioActuatorObjectInterface,
+                      public HelioParentRailAttachmentInterface,
+                      public HelioParentPanelAttachmentInterface {
 public:
     const enum : signed char { Relay, RelayMotor, Variable, VariableMotor, Unknown = -1 } classType; // Actuator class type (custom RTTI)
     inline bool isRelayClass() const { return classType == Relay; }
@@ -150,7 +153,13 @@ protected:
 // This actuator acts as a motor and can control movement of attached objects. Motors using
 // this class are either forward/stop/reverse and do not contain any variable speed control,
 // but can be paired with a speed sensor for more precise running calculations.
-class HelioRelayMotorActuator : public HelioRelayActuator, public HelioMotorObjectInterface, public HelioDistanceUnitsInterfaceStorage, public HelioPositionSensorAttachmentInterface, public HelioSpeedSensorAttachmentInterface, public HelioMinimumTriggerAttachmentInterface, public HelioMaximumTriggerAttachmentInterface {
+class HelioRelayMotorActuator : public HelioRelayActuator,
+                                public HelioMotorObjectInterface,
+                                public HelioDistanceUnitsInterfaceStorage,
+                                public HelioPositionSensorAttachmentInterface,
+                                public HelioSpeedSensorAttachmentInterface,
+                                public HelioMinimumTriggerAttachmentInterface,
+                                public HelioMaximumTriggerAttachmentInterface {
 public:
     HelioRelayMotorActuator(Helio_ActuatorType actuatorType,
                             hposi_t actuatorIndex,

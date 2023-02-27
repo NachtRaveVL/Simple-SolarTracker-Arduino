@@ -25,22 +25,25 @@ HelioTrigger *newTriggerObjectFromSubData(const HelioTriggerSubData *dataIn)
 }
 
 
-HelioTrigger::HelioTrigger(HelioIdentity sensorId, uint8_t measurementRow, int typeIn)
-    : type((typeof(type))typeIn), _sensor(this), _triggerState(Helio_TriggerState_Disabled)
+HelioTrigger::HelioTrigger(HelioIdentity sensorId, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay, int typeIn)
+    : type((typeof(type))typeIn), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
+      _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled)
 {
     _sensor.setMeasurementRow(measurementRow);
-    _sensor.setObject(sensorId);
+    _sensor.initObject(sensorId);
 }
 
-HelioTrigger::HelioTrigger(SharedPtr<HelioSensor> sensor, uint8_t measurementRow, int typeIn)
-    : type((typeof(type))typeIn), _sensor(this), _triggerState(Helio_TriggerState_Disabled)
+HelioTrigger::HelioTrigger(SharedPtr<HelioSensor> sensor, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay, int typeIn)
+    : type((typeof(type))typeIn), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
+      _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled)
 {
     _sensor.setMeasurementRow(measurementRow);
-    _sensor.setObject(sensor);
+    _sensor.initObject(sensor);
 }
 
 HelioTrigger::HelioTrigger(const HelioTriggerSubData *dataIn)
-    : type((typeof(type))(dataIn->type)), _sensor(this), _triggerState(Helio_TriggerState_Disabled)
+    : type((typeof(type))(dataIn->type)), _sensor(this), _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled),
+      _detriggerTol(dataIn->detriggerTol), _detriggerDelay(dataIn->detriggerDelay)
 {
     _sensor.setMeasurementRow(dataIn->measurementRow);
     _sensor.setMeasurementUnits(dataIn->measurementUnits);
@@ -55,6 +58,8 @@ void HelioTrigger::saveToData(HelioTriggerSubData *dataOut) const
     }
     ((HelioTriggerSubData *)dataOut)->measurementRow = getMeasurementRow();
     ((HelioTriggerSubData *)dataOut)->measurementUnits = getMeasurementUnits();
+    ((HelioTriggerSubData *)dataOut)->detriggerTol = _detriggerTol;
+    ((HelioTriggerSubData *)dataOut)->detriggerDelay = _detriggerDelay;
 }
 
 void HelioTrigger::update()
@@ -68,12 +73,15 @@ Helio_TriggerState HelioTrigger::getTriggerState(bool poll)
     return _triggerState;
 }
 
-void HelioTrigger::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
+void HelioTrigger::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t)
 {
-    _sensor.setMeasurementUnits(measurementUnits);
+    if (_sensor.getMeasurementUnits() != measurementUnits) {
+        _sensor.setMeasurementUnits(measurementUnits);
+        bumpRevisionIfNeeded();
+    }
 }
 
-Helio_UnitsType HelioTrigger::getMeasurementUnits(uint8_t measurementRow) const
+Helio_UnitsType HelioTrigger::getMeasurementUnits(uint8_t) const
 {
     return _sensor.getMeasurementUnits();
 }
@@ -89,24 +97,23 @@ Signal<Helio_TriggerState, HELIO_TRIGGER_SIGNAL_SLOTS> &HelioTrigger::getTrigger
 }
 
 
-HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(HelioIdentity sensorId, float tolerance, bool triggerBelow, float detriggerTol, uint8_t measurementRow)
-    : HelioTrigger(sensorId, measurementRow, MeasureValue),
-      _triggerTol(tolerance), _detriggerTol(detriggerTol), _triggerBelow(triggerBelow)
+HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(HelioIdentity sensorId, float tolerance, bool triggerBelow, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
+    : HelioTrigger(sensorId, measurementRow, detriggerTol, detriggerDelay, MeasureValue),
+      _triggerTol(tolerance), _triggerBelow(triggerBelow)
 {
     _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
 }
 
-HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(SharedPtr<HelioSensor> sensor, float tolerance, bool triggerBelow, float detriggerTol, uint8_t measurementRow)
-    : HelioTrigger(sensor, measurementRow, MeasureValue),
-      _triggerTol(tolerance), _detriggerTol(detriggerTol), _triggerBelow(triggerBelow)
+HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(SharedPtr<HelioSensor> sensor, float tolerance, bool triggerBelow, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
+    : HelioTrigger(sensor, measurementRow, detriggerTol, detriggerDelay, MeasureValue),
+      _triggerTol(tolerance), _triggerBelow(triggerBelow)
 {
     _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
 }
 
 HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(const HelioTriggerSubData *dataIn)
     : HelioTrigger(dataIn),
-      _triggerTol(dataIn->dataAs.measureValue.tolerance), _detriggerTol(dataIn->detriggerTol),
-      _triggerBelow(dataIn->dataAs.measureValue.triggerBelow)
+      _triggerTol(dataIn->dataAs.measureValue.tolerance), _triggerBelow(dataIn->dataAs.measureValue.triggerBelow)
 {
     _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
 }
@@ -116,7 +123,6 @@ void HelioMeasurementValueTrigger::saveToData(HelioTriggerSubData *dataOut) cons
     HelioTrigger::saveToData(dataOut);
 
     ((HelioTriggerSubData *)dataOut)->dataAs.measureValue.tolerance = _triggerTol;
-    ((HelioTriggerSubData *)dataOut)->detriggerTol = _detriggerTol;
     ((HelioTriggerSubData *)dataOut)->dataAs.measureValue.triggerBelow = _triggerBelow;
 }
 
@@ -126,13 +132,15 @@ void HelioMeasurementValueTrigger::setTriggerTolerance(float tolerance)
         _triggerTol = tolerance;
 
         _sensor.setNeedsMeasurement();
+        bumpRevisionIfNeeded();
     }
 }
 
 void HelioMeasurementValueTrigger::handleMeasurement(const HelioMeasurement *measurement)
 {
     if (measurement && measurement->frame) {
-        bool nextState = triggerStateToBool(_triggerState);
+        bool wasState = triggerStateToBool(_triggerState);
+        bool nextState = wasState;
 
         if (measurement->isBinaryType()) {
             nextState = ((HelioBinaryMeasurement *)measurement)->state != _triggerBelow;
@@ -147,9 +155,14 @@ void HelioMeasurementValueTrigger::handleMeasurement(const HelioMeasurement *mea
                                        : measure.value >= _triggerTol - tolAdditive - FLT_EPSILON);
         }
 
+        if (isDetriggerDelayActive() && nzMillis() - _lastTrigger >= _detriggerDelay) {
+            _lastTrigger = 0;
+        }
+
         if (_triggerState == Helio_TriggerState_Disabled ||
-            nextState != triggerStateToBool(_triggerState)) {
+            (nextState != wasState && (nextState || !isDetriggerDelayActive()))) {
             _triggerState = triggerStateFromBool(nextState);
+            _lastTrigger = nextState && _detriggerDelay ? nzMillis() : 0;
 
             #ifdef HELIO_USE_MULTITASKING
                 scheduleSignalFireOnce<Helio_TriggerState>(_triggerSignal, _triggerState);
@@ -161,18 +174,16 @@ void HelioMeasurementValueTrigger::handleMeasurement(const HelioMeasurement *mea
 }
 
 
-HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(HelioIdentity sensorId, float toleranceLow, float toleranceHigh, bool triggerOutside, float detriggerTol, uint8_t measurementRow)
-    : HelioTrigger(sensorId, measurementRow, MeasureRange),
-      _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _detriggerTol(detriggerTol),
-      _triggerOutside(triggerOutside)
+HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(HelioIdentity sensorId, float toleranceLow, float toleranceHigh, bool triggerOutside, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
+    : HelioTrigger(sensorId, measurementRow, detriggerTol, detriggerDelay, MeasureRange),
+      _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _triggerOutside(triggerOutside)
 {
     _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
 }
 
-HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(SharedPtr<HelioSensor> sensor, float toleranceLow, float toleranceHigh, bool triggerOutside, float detriggerTol, uint8_t measurementRow)
-    : HelioTrigger(sensor, measurementRow, MeasureRange),
-      _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _detriggerTol(detriggerTol),
-      _triggerOutside(triggerOutside)
+HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(SharedPtr<HelioSensor> sensor, float toleranceLow, float toleranceHigh, bool triggerOutside, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
+    : HelioTrigger(sensor, measurementRow, detriggerTol, detriggerDelay, MeasureRange),
+      _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _triggerOutside(triggerOutside)
 {
     _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
 }
@@ -181,7 +192,6 @@ HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(const HelioTriggerSub
     : HelioTrigger(dataIn),
       _triggerTolLow(dataIn->dataAs.measureRange.toleranceLow),
       _triggerTolHigh(dataIn->dataAs.measureRange.toleranceHigh),
-      _detriggerTol(dataIn->detriggerTol),
       _triggerOutside(dataIn->dataAs.measureRange.triggerOutside)
 {
     _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
@@ -193,11 +203,10 @@ void HelioMeasurementRangeTrigger::saveToData(HelioTriggerSubData *dataOut) cons
 
     ((HelioTriggerSubData *)dataOut)->dataAs.measureRange.toleranceLow = _triggerTolLow;
     ((HelioTriggerSubData *)dataOut)->dataAs.measureRange.toleranceHigh = _triggerTolHigh;
-    ((HelioTriggerSubData *)dataOut)->detriggerTol = _detriggerTol;
     ((HelioTriggerSubData *)dataOut)->dataAs.measureRange.triggerOutside = _triggerOutside;
 }
 
-void HelioMeasurementRangeTrigger::updateTriggerMidpoint(float toleranceMid)
+void HelioMeasurementRangeTrigger::setTriggerMidpoint(float toleranceMid)
 {
     float toleranceRangeHalf = (_triggerTolHigh - _triggerTolLow) * 0.5f;
 
@@ -206,13 +215,15 @@ void HelioMeasurementRangeTrigger::updateTriggerMidpoint(float toleranceMid)
         _triggerTolHigh = toleranceMid + toleranceRangeHalf;
 
         _sensor.setNeedsMeasurement();
+        bumpRevisionIfNeeded();
     }
 }
 
 void HelioMeasurementRangeTrigger::handleMeasurement(const HelioMeasurement *measurement)
 {
     if (measurement && measurement->frame) {
-        bool nextState = triggerStateToBool(_triggerState);
+        bool wasState = triggerStateToBool(_triggerState);
+        bool nextState = wasState;
 
         auto measure = getAsSingleMeasurement(measurement, getMeasurementRow());
         convertUnits(&measure, getMeasurementUnits(), getMeasurementConvertParam());
@@ -228,9 +239,14 @@ void HelioMeasurementRangeTrigger::handleMeasurement(const HelioMeasurement *mea
                          measure.value >= _triggerTolHigh - tolAdditive - FLT_EPSILON);
         }
 
+        if (isDetriggerDelayActive() && nzMillis() - _lastTrigger >= _detriggerDelay) {
+            _lastTrigger = 0;
+        }
+
         if (_triggerState == Helio_TriggerState_Disabled ||
-            nextState != triggerStateToBool(_triggerState)) {
+            (nextState != wasState && (nextState || !isDetriggerDelayActive()))) {
             _triggerState = triggerStateFromBool(nextState);
+            _lastTrigger = nextState && _detriggerDelay ? nzMillis() : 0;
 
             #ifdef HELIO_USE_MULTITASKING
                 scheduleSignalFireOnce<Helio_TriggerState>(_triggerSignal, _triggerState);
@@ -243,7 +259,8 @@ void HelioMeasurementRangeTrigger::handleMeasurement(const HelioMeasurement *mea
 
 
 HelioTriggerSubData::HelioTriggerSubData()
-    : HelioSubData(), sensorName{0}, measurementRow(0), dataAs{.measureRange={0.0f,0.0f,false}}, detriggerTol(0), measurementUnits(Helio_UnitsType_Undefined)
+    : HelioSubData(), sensorName{0}, measurementRow(0), dataAs{.measureRange={0.0f,0.0f,false}},
+      detriggerTol(0), detriggerDelay(0), measurementUnits(Helio_UnitsType_Undefined)
 { ; }
 
 void HelioTriggerSubData::toJSONObject(JsonObject &objectOut) const
@@ -264,7 +281,8 @@ void HelioTriggerSubData::toJSONObject(JsonObject &objectOut) const
             break;
         default: break;
     }
-    if (detriggerTol > 0) { objectOut[SFP(HStr_Key_DetriggerTol)] = detriggerTol; }
+    if (detriggerTol > FLT_EPSILON) { objectOut[SFP(HStr_Key_DetriggerTol)] = detriggerTol; }
+    if (detriggerDelay > 0) { objectOut[SFP(HStr_Key_DetriggerDelay)] = detriggerDelay; }
     if (measurementUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_MeasurementUnits)] = unitsTypeToSymbol(measurementUnits); }
 }
 
@@ -288,5 +306,6 @@ void HelioTriggerSubData::fromJSONObject(JsonObjectConst &objectIn)
         default: break;
     }
     detriggerTol = objectIn[SFP(HStr_Key_DetriggerTol)] | detriggerTol;
+    detriggerDelay = objectIn[SFP(HStr_Key_DetriggerDelay)] | detriggerDelay;
     measurementUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_MeasurementUnits)]);
 }

@@ -225,13 +225,13 @@ bool HelioBinarySensor::needsPolling(hframe_t allowance) const
     return getController() ? getController()->isPollingFrameOld(_lastMeasurement.frame, allowance) : false;
 }
 
-void HelioBinarySensor::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
+void HelioBinarySensor::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t)
 {
     HELIO_SOFT_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
     bumpRevisionIfNeeded();
 }
 
-Helio_UnitsType HelioBinarySensor::getMeasurementUnits(uint8_t measurementRow) const
+Helio_UnitsType HelioBinarySensor::getMeasurementUnits(uint8_t) const
 {
     return _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Raw_1;
 }
@@ -356,21 +356,21 @@ bool HelioAnalogSensor::needsPolling(hframe_t allowance) const
     return getController() ? getController()->isPollingFrameOld(_lastMeasurement.frame, allowance) : false;
 }
 
-void HelioAnalogSensor::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
+void HelioAnalogSensor::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t)
 {
-    if (_measurementUnits[measurementRow] != measurementUnits) {
-        _measurementUnits[measurementRow] = measurementUnits;
+    if (_measurementUnits[0] != measurementUnits) {
+        _measurementUnits[0] = measurementUnits;
 
         if (_lastMeasurement.isSet()) {
-            convertUnits(&_lastMeasurement, _measurementUnits[measurementRow]);
+            convertUnits(&_lastMeasurement, _measurementUnits[0]);
         }
         bumpRevisionIfNeeded();
     }
 }
 
-Helio_UnitsType HelioAnalogSensor::getMeasurementUnits(uint8_t measurementRow) const
+Helio_UnitsType HelioAnalogSensor::getMeasurementUnits(uint8_t) const
 {
-    return _measurementUnits[measurementRow];
+    return _measurementUnits[0];
 }
 
 void HelioAnalogSensor::saveToData(HelioData *dataOut)

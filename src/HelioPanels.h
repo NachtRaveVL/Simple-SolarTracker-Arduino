@@ -27,7 +27,10 @@ extern HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn);
 // This is the base class for all panels, which defines how the panel is identified,
 // where it lives, what's attached to it, if it is aligned or not, and who can
 // activate under it.
-class HelioPanel : public HelioObject, public HelioPanelObjectInterface, public HelioPowerUnitsInterfaceStorage, public HelioPowerProductionSensorAttachmentInterface {
+class HelioPanel : public HelioObject,
+                   public HelioPanelObjectInterface,
+                   public HelioPowerUnitsInterfaceStorage,
+                   public HelioPowerProductionSensorAttachmentInterface {
 public:
     const enum : signed char { Balancing, Tracking, Reflecting, Unknown = -1 } classType; // Panel class type (custom RTTI)
     inline bool isBalancingClass() const { return classType == Balancing; }
@@ -44,6 +47,7 @@ public:
     virtual ~HelioPanel();
 
     virtual void update() override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 
     virtual bool canActivate(HelioActuator *actuator) override;
     virtual bool isDaylight(bool poll = false) override;
@@ -62,9 +66,9 @@ public:
     inline bool drivesHorizontalAxis() const { return _drivesHorz; }
     inline bool drivesVerticalAxis() const { return _drivesVert; }
 
-    template<typename T> inline void setAxisDriver(T axisDriver, hposi_t axisIndex = 0) { _axisDriver[axisIndex].setObject(axisDriver); }
-    inline SharedPtr<HelioDriver> getAxisDriver(hposi_t axisIndex = 0) { return _axisDriver[axisIndex].getObject(); }
-    inline HelioDriverAttachment &getAxisDriverAttachment(hposi_t axisIndex = 0) { return _axisDriver[axisIndex]; }
+    template<typename T> inline void setAxisDriver(T axisDriver, hposi_t axisIndex) { _axisDriver[axisIndex].setObject(axisDriver); }
+    inline SharedPtr<HelioDriver> getAxisDriver(hposi_t axisIndex) { return _axisDriver[axisIndex].getObject(); }
+    inline HelioDriverAttachment &getAxisDriverAttachment(hposi_t axisIndex) { return _axisDriver[axisIndex]; }
 
     template<typename T> inline void setPanelCoverDriver(T coverDriver) { _coverDriver.setObject(coverDriver); }
     inline SharedPtr<HelioDriver> getPanelCoverDriver() { return _coverDriver.getObject(); }
@@ -118,23 +122,10 @@ public:
 
     virtual bool isAligned(bool poll = false) override;
 
-    template<typename T> inline void setLDRSensor(T ldrSensor, hposi_t ldrIndex = 0) { _ldrSensors[ldrIndex].setObject(ldrSensor); }
-    inline SharedPtr<HelioSensor> getLDRSensor(hposi_t ldrIndex = 0, bool poll = false) { _ldrSensors[ldrIndex].updateIfNeeded(poll); return _ldrSensors[ldrIndex].getObject(); }
-    inline HelioSensorAttachment &getLDRSensorAttachment(hposi_t ldrIndex = 0) { return _ldrSensors[ldrIndex]; }
+    template<typename T> inline void setLDRSensor(T ldrSensor, hposi_t ldrIndex) { _ldrSensors[ldrIndex].setObject(ldrSensor); }
+    inline SharedPtr<HelioSensor> getLDRSensor(hposi_t ldrIndex, bool poll = false) { _ldrSensors[ldrIndex].updateIfNeeded(poll); return _ldrSensors[ldrIndex].getObject(); }
+    inline HelioSensorAttachment &getLDRSensorAttachment(hposi_t ldrIndex) { return _ldrSensors[ldrIndex]; }
     inline hposi_t getLDRCount() const { return (getPanelAxisCountFromType(getPanelType()) << 1); }
-
-    template<typename T> inline void setLDRSensorHorzMin(T ldrSensor) { setLDRSensor<T>(ldrSensor, 0); }
-    template<typename T> inline void setLDRSensorHorzMax(T ldrSensor) { setLDRSensor<T>(ldrSensor, 1); }
-    template<typename T> inline void setLDRSensorVertMin(T ldrSensor) { setLDRSensor<T>(ldrSensor, 2); }
-    template<typename T> inline void setLDRSensorVertMax(T ldrSensor) { setLDRSensor<T>(ldrSensor, 3); }
-    inline SharedPtr<HelioSensor> getLDRSensorHorzMin(bool poll = false) { return getLDRSensor(0, poll); }
-    inline SharedPtr<HelioSensor> getLDRSensorHorzMax(bool poll = false) { return getLDRSensor(1, poll); }
-    inline SharedPtr<HelioSensor> getLDRSensorVertMin(bool poll = false) { return getLDRSensor(2, poll); }
-    inline SharedPtr<HelioSensor> getLDRSensorVertMax(bool poll = false) { return getLDRSensor(3, poll); }
-    inline HelioSensorAttachment &getLDRSensorAttachmentHorzMin() { return getLDRSensorAttachment(0); }
-    inline HelioSensorAttachment &getLDRSensorAttachmentHorzMax() { return getLDRSensorAttachment(1); }
-    inline HelioSensorAttachment &getLDRSensorAttachmentVertMin() { return getLDRSensorAttachment(2); }
-    inline HelioSensorAttachment &getLDRSensorAttachmentVertMax() { return getLDRSensorAttachment(3); }
 
 protected:
     float _minIntensity;                                    // Minimum LDR light intensity for alignment query
@@ -149,7 +140,12 @@ protected:
 // Smart Tracking Panel
 // A panel that is able to calculate the sun's position in the sky and orient
 // towards it, maximizing the energy output of the panel across the day.
-class HelioTrackingPanel : public HelioPanel, public HelioTemperatureUnitsInterfaceStorage, public HelioDistanceUnitsInterfaceStorage, public HelioPowerUsageSensorAttachmentInterface, public HelioTemperatureSensorAttachmentInterface, public HelioWindSpeedSensorAttachmentInterface {
+class HelioTrackingPanel : public HelioPanel,
+                           public HelioTemperatureUnitsInterfaceStorage,
+                           public HelioDistanceUnitsInterfaceStorage,
+                           public HelioPowerUsageSensorAttachmentInterface,
+                           public HelioTemperatureSensorAttachmentInterface,
+                           public HelioWindSpeedSensorAttachmentInterface {
 public:
     HelioTrackingPanel(Helio_PanelType panelType,
                        hposi_t panelIndex,
@@ -167,9 +163,9 @@ public:
 
     inline void setLocationOffset(const double *locationOffset) { _locationOffset[0] = locationOffset[0]; _locationOffset[1] = locationOffset[1]; }
 
-    template<typename T> inline void setAxisAngleSensor(T angleSensor, hposi_t axisIndex = 0) { _axisAngle[axisIndex].setObject(angleSensor); }
-    inline SharedPtr<HelioSensor> getAxisAngleSensor(hposi_t axisIndex = 0, bool poll = false) { _axisAngle[axisIndex].updateIfNeeded(poll); return _axisAngle[axisIndex].getObject(poll); }
-    inline HelioSensorAttachment &getAxisAngleSensorAttachment(hposi_t axisIndex = 0) { return _axisAngle[axisIndex]; }
+    template<typename T> inline void setAxisAngleSensor(T angleSensor, hposi_t axisIndex) { _axisAngle[axisIndex].setObject(angleSensor); }
+    inline SharedPtr<HelioSensor> getAxisAngleSensor(hposi_t axisIndex, bool poll = false) { _axisAngle[axisIndex].updateIfNeeded(poll); return _axisAngle[axisIndex].getObject(poll); }
+    inline HelioSensorAttachment &getAxisAngleSensorAttachment(hposi_t axisIndex) { return _axisAngle[axisIndex]; }
 
     template<typename T> inline void setHeatingTrigger(T heatingTrigger) { _heatingTrigger.setObject(heatingTrigger); }
     inline SharedPtr<HelioTrigger> getHeatingTrigger() { return _heatingTrigger.getObject(); }

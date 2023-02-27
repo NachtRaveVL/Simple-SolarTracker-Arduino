@@ -19,7 +19,9 @@ class HelioIncrementalDriver;
 // environment via a set of movement actuators along a specified track. Drivers allow for
 // a set-point to be used to drive such tasks, with different drivers specializing the
 // manner in which they operate.
-class HelioDriver : public HelioSubObject, public HelioDriverObjectInterface, public HelioMeasurementUnitsInterfaceStorageSingle {
+class HelioDriver : public HelioSubObject,
+                    public HelioDriverObjectInterface,
+                    public HelioMeasurementUnitsInterfaceStorageSingle {
 public:
     const enum : signed char { Absolute, Incremental, Unknown = -1 } type; // Driver type (custom RTTI)
     inline bool isAbsoluteType() const { return type == Absolute; }
@@ -49,8 +51,8 @@ public:
     virtual void setEnabled(bool enabled);
     inline bool isEnabled() const { return _enabled; }
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t = 0) override;
+    virtual Helio_UnitsType getMeasurementUnits(uint8_t = 0) const override;
 
     Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> &getDrivingSignal();
 
@@ -100,8 +102,8 @@ class HelioIncrementalDriver : public HelioDriver {
 public:
     HelioIncrementalDriver(float nearbyRange = 0.5f,
                            float alignedRange = 0.05f,
-                           float travelRate = 1.0f,
                            float maxDifference = 2.5f,
+                           float travelRate = 1.0f,
                            int type = Incremental);
     virtual ~HelioIncrementalDriver();
 

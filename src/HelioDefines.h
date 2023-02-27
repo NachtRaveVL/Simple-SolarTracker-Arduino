@@ -442,6 +442,29 @@ enum Helio_PanelState : signed char {
     Helio_PanelState_Undefined = -1                         // Placeholder
 };
 
+// Panel Axis
+// Common panel axis aliases. Aliases axis names to axis indicies.
+enum Helio_PanelAxis : signed char {
+    Helio_PanelAxis_Azimuth = 0,                            // Azimuth axis (horizontal-coords, left/right control)
+    Helio_PanelAxis_Elevation = 1,                          // Elevation axis (horizontal-coords, up/down control)
+    Helio_PanelAxis_RightAscension = 0,                     // Right ascension axis (equatorial-coords, left/right control)
+    Helio_PanelAxis_Declination = 1,                        // Declination axis (equatorial-coords, up/down control)
+
+    Helio_PanelAxis_FacingHorizontal = 0,                   // Horizontal facing axis (azi or RA, left/right control)
+    Helio_PanelAxis_FacingVertical = 1,                     // Vertical facing axis (ele or dec, up/down control)
+    Helio_PanelAxis_AlignedHorizontal = 1,                  // Horizontally aligned axis (ele or dec, up/down control)
+    Helio_PanelAxis_AlignedVertical = 0,                    // Vertically aligned axis (azi or RA, left/right control)
+};
+
+// Panel LDR
+// Common LDR index aliases. Aliases LDR names to LDR indicies.
+enum Helio_PanelLDR : signed char {
+    Helio_PanelLDR_HorizontalMin = 0,                       // Horizontally mounted minimum LDR (left control)
+    Helio_PanelLDR_HorizontalMax = 1,                       // Horizontally mounted maximum LDR (right control)
+    Helio_PanelLDR_VerticalMin = 2,                         // Vertically mounted minimum LDR (down control)
+    Helio_PanelLDR_VerticalMax = 3                          // Vertically mounted maximum LDR (up control)
+};
+
 // Units Category
 // Unit of measurement category. Specifies the kind of unit.
 enum Helio_UnitsCategory : signed char {

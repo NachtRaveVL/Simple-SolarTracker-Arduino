@@ -75,6 +75,13 @@ void HelioPanel::update()
     }
 }
 
+SharedPtr<HelioObjInterface> HelioPanel::getSharedPtrFor(const HelioObjInterface *obj) const
+{
+    return obj->getKey() == _axisDriver[0].getKey() ? _axisDriver[0].getSharedPtrFor(obj) :
+           obj->getKey() == _axisDriver[1].getKey() ? _axisDriver[1].getSharedPtrFor(obj) :
+           HelioObject::getSharedPtrFor(obj);
+}
+
 bool HelioPanel::canActivate(HelioActuator *actuator)
 {
     switch (actuator->getActuatorType()) {
@@ -351,14 +358,14 @@ SharedPtr<HelioObjInterface> HelioTrackingPanel::getSharedPtrFor(const HelioObjI
 {
     return obj->getKey() == _heatingTrigger.getKey() ? _heatingTrigger.getSharedPtrFor(obj) :
            obj->getKey() == _stormingTrigger.getKey() ? _stormingTrigger.getSharedPtrFor(obj) :
-           HelioObject::getSharedPtrFor(obj);
+           HelioPanel::getSharedPtrFor(obj);
 }
 
 bool HelioTrackingPanel::canActivate(HelioActuator *actuator)
 {
     switch (actuator->getActuatorType()) {
         case Helio_ActuatorType_PanelHeater:
-            return !_heatingTrigger.resolve() || triggerStateToBool(_heatingTrigger.getTriggerState());
+            return !triggerStateToBool(_heatingTrigger.getTriggerState());
         default:
             return HelioPanel::canActivate(actuator);
     }
@@ -366,7 +373,7 @@ bool HelioTrackingPanel::canActivate(HelioActuator *actuator)
 
 bool HelioTrackingPanel::isDaylight(bool poll)
 {
-    return _inDaytimeMode && (!_stormingTrigger.resolve() || triggerStateToBool(_stormingTrigger.getTriggerState(poll)));
+    return _inDaytimeMode && !triggerStateToBool(_stormingTrigger.getTriggerState(poll));
 }
 
 bool HelioTrackingPanel::isAligned(bool poll)
