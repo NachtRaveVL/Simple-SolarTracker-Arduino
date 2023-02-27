@@ -477,6 +477,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_DataFilePrefix[] PROGMEM = {"dataFilePrefix"};
             return flashStr_Key_DataFilePrefix;
         } break;
+        case HStr_Key_DetriggerDelay: {
+            static const char flashStr_Key_DetriggerDelay[] PROGMEM = {"detriggerDelay"};
+            return flashStr_Key_DetriggerDelay;
+        } break;
         case HStr_Key_DetriggerTol: {
             static const char flashStr_Key_DetriggerTol[] PROGMEM = {"detriggerTol"};
             return flashStr_Key_DetriggerTol;

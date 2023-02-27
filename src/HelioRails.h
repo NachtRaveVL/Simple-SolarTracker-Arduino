@@ -23,7 +23,9 @@ extern HelioRail *newRailObjectFromData(const HelioRailData *dataIn);
 // Power Rail Base
 // This is the base class for all power rails, which defines how the rail is identified,
 // where it lives, what's attached to it, and who can activate under it.
-class HelioRail : public HelioObject, public HelioRailObjectInterface, public HelioPowerUnitsInterfaceStorage {
+class HelioRail : public HelioObject,
+                  public HelioRailObjectInterface,
+                  public HelioPowerUnitsInterfaceStorage {
 public:
     const enum : signed char { Simple, Regulated, Unknown = -1 } classType; // Power rail class (custom RTTI)
     inline bool isSimpleClass() const { return classType == Simple; }
@@ -94,7 +96,9 @@ protected:
 // Regulated Power Rail
 // Power rail that has a max power rating and power sensor that can track power
 // usage, with limit trigger for over-power state limiting actuator activation.
-class HelioRegulatedRail : public HelioRail, public HelioPowerUsageSensorAttachmentInterface, public HelioLimitTriggerAttachmentInterface {
+class HelioRegulatedRail : public HelioRail,
+                           public HelioPowerUsageSensorAttachmentInterface,
+                           public HelioLimitTriggerAttachmentInterface {
 public:
     HelioRegulatedRail(Helio_RailType railType,
                        hposi_t railIndex,

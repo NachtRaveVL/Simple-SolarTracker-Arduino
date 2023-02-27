@@ -97,16 +97,16 @@ void HelioDriver::setEnabled(bool enabled)
     _enabled = enabled;
 }
 
-void HelioDriver::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow)
+void HelioDriver::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t)
 {
-    if (_measurementUnits[measurementRow] != measurementUnits) {
-        _measurementUnits[measurementRow] = measurementUnits;
+    if (_measurementUnits[0] != measurementUnits) {
+        _measurementUnits[0] = measurementUnits;
     }
 }
 
-Helio_UnitsType HelioDriver::getMeasurementUnits(uint8_t measurementRow) const
+Helio_UnitsType HelioDriver::getMeasurementUnits(uint8_t) const
 {
-    return _measurementUnits[measurementRow];
+    return _measurementUnits[0];
 }
 
 Signal<Helio_DrivingState, HELIO_DRIVER_SIGNAL_SLOTS> &HelioDriver::getDrivingSignal()
@@ -179,8 +179,9 @@ void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
 }
 
 
-HelioIncrementalDriver::HelioIncrementalDriver(float nearbyRange, float alignedRange, float travelRate, float maxDifference, int typeIn)
-    : HelioDriver(FLT_UNDEF, travelRate, typeIn), _nearbyRange(nearbyRange), _alignedRange(alignedRange), _maxDifference(maxDifference)
+HelioIncrementalDriver::HelioIncrementalDriver(float nearbyRange, float alignedRange, float maxDifference, float travelRate, int typeIn)
+    : HelioDriver(FLT_UNDEF, travelRate, typeIn),
+     _nearbyRange(nearbyRange), _alignedRange(alignedRange), _maxDifference(maxDifference)
 { ; }
 
 HelioIncrementalDriver::~HelioIncrementalDriver()

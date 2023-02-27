@@ -94,6 +94,7 @@ enum Helio_String : unsigned short {
     HStr_Key_CtrlInMode,
     HStr_Key_DailyLightHours,
     HStr_Key_DataFilePrefix,
+    HStr_Key_DetriggerDelay,
     HStr_Key_DetriggerTol,
     HStr_Key_DHTType,
     HStr_Key_DispOutMode,

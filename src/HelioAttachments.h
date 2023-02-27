@@ -231,6 +231,7 @@ public:
     inline const HelioActivationHandle &getActivationHandle() const { return _actHandle; }
     inline const HelioActivation &getActivationSetup() const { return _actSetup; }
 
+    template<class U> inline void setObject(U obj, bool modify = false) { HelioAttachment::setObject(obj, modify); }
     inline SharedPtr<HelioActuator> getObject() { return HelioAttachment::getObject<HelioActuator>(); }
     inline HelioActuator *get() { return HelioAttachment::get<HelioActuator>(); }
 
@@ -351,6 +352,7 @@ public:
 
     inline Helio_DrivingState getDrivingState(bool poll = false);
 
+    template<class U> inline void setObject(U obj, bool modify = false) { HelioAttachment::setObject(obj, modify); }
     inline SharedPtr<HelioDriver> getObject() { return HelioAttachment::getObject<HelioDriver>(); }
     inline HelioDriver *get() { return HelioAttachment::get<HelioDriver>(); }
 

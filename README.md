@@ -118,7 +118,7 @@ From Helioduino.h, in class Helioduino:
 
 #### Controller Initialization
 
-Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a (TODO)) system set to Metric units, without any input control or output display.
+Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (TODO), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino

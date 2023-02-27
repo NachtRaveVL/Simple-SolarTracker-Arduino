@@ -312,7 +312,7 @@ class HelioParentPanelAttachmentInterface {
 public:
     virtual HelioAttachment &getParentPanelAttachment() = 0;
 
-    template<class U> inline void setParentPanel(U panel, hposi_t axisIndex = 0);
+    template<class U> inline void setParentPanel(U panel, hposi_t axisIndex);
     template<class U = HelioPanel> inline SharedPtr<U> getParentPanel();
     inline hposi_t getParentPanelAxisIndex();
 };

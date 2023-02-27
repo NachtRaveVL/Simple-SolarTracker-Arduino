@@ -24,7 +24,7 @@ public:
     // Panel sprayers can activate on schedule to keep panels clear of debris and dirt.
     SharedPtr<HelioRelayActuator> addPanelSprayerRelay(pintype_t outputPin);                // Digital output pin this actuator sits on
 
-    // Adds a new PWM-based positional relay to the system using the given parameters.
+    // Adds a new PWM-based panel-axis-driving positional servo to the system using the given parameters.
     // PWM positional servos provide simple angular movement control over panels.
     SharedPtr<HelioVariableActuator> addPositionServo(pintype_t outputPin,                  // Analog output pin this actuator sits on
                                                       float minDegrees = -90.0f,            // Minimum angular degrees
@@ -38,7 +38,8 @@ public:
 #endif
     );
 
-//     // Adds a new PWM-based continuous servo to the system using the given parameters.
+// TODO: #9 in Helio.
+//     // Adds a new PWM-based panel-axis-driving continuous servo to the system using the given parameters.
 //     // PWM continuous servos provide constant angular movement not just limited to two angles.
 //     SharedPtr<HelioVariableMotorActuator> addContinuousServo(pintype_t outputPin,           // Analog output pin this actuator sits on
 //                                                              float maxTravel = __FLT_MAX__, // Maximum travel range
@@ -52,14 +53,15 @@ public:
 // #endif
 //     );
 
-    // Adds a new relay-based linear actuator to the system using the given parameters.
+    // Adds a new relay-based panel-axis-driving linear actuator to the system using the given parameters.
     // Linear actuators allow angular movement of panels that are too large for servos by instead using hydraulics and lever action.
     SharedPtr<HelioRelayMotorActuator> addLinearActuatorRelay(pintype_t outputPinA,         // Digital output pin A (forward) this actuator sits on
                                                               pintype_t outputPinB,         // Digital output pin B (reverse) this actuator sits on
                                                               float maxPosition,            // Maximum stroke distance / position
                                                               float minPosition = 0.0f);    // Minimum stroke distance / position
 
-//     // Adds a new analog PWM-based linear actuator to the system using the given parameters.
+// TODO: #9 in Helio.
+//     // Adds a new analog PWM-based panel-axis-driving linear actuator to the system using the given parameters.
 //     // PWM linear actuators allow a graduated adaptive speed control, typically via H-bridge.
 //     SharedPtr<HelioVariableMotorActuator> addAnalogLinearActuator(pintype_t outputPinA,     // Analog output pin A (forward) this actuator sits on
 //                                                                   pintype_t outputPinB,     // Analog output pin B (reverse) this actuator sits on
@@ -138,21 +140,21 @@ public:
 
     // Adds a new LDR-based balancing panel to the system using the given parameters.
     // Balancing panels equalize two opposing photoresistors to drive their orientation.
-    SharedPtr<HelioBalancingPanel> addLDRBalancedPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
-                                                       float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
+    SharedPtr<HelioBalancingPanel> addLDRBalancingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
+                                                        float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
 
-    // Adds a new sun-tracking solar panel to the system using the given parameters.
+    // Adds a new solar-tracking smart panel to the system using the given parameters.
     // Tracking panels recalculate the sun's position across the day to drive their orientation.
-    SharedPtr<HelioTrackingPanel> addSunTrackingPanel(Helio_PanelType panelType,            // Panel type (mounting configuration)
-                                                      float axisOffset[2] = {0},            // Axis calibration offsets (azi,ele or RA,dec)
-                                                      float homePosition[2] = {0});         // Home position (azi,ele or RA,dec)
+    SharedPtr<HelioTrackingPanel> addSolarTrackingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
+                                                        float axisOffset[2] = {0},          // Axis calibration offsets (azi,ele or RA,dec)
+                                                        float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
 
     // Adds a new reflecting panel to the system using the given parameters.
     // Reflecting "panels" are mirrors that reflect the sun's light towards a preset direction.
-    SharedPtr<HelioReflectingPanel> addReflectingPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
-                                                       float reflectTowards[2] = {0},       // Direction to reflect towards (azi,ele or RA,dec)
-                                                       float axisOffset[2] = {0},           // Axis calibration offsets (azi,ele or RA,dec)
-                                                       float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
+    SharedPtr<HelioReflectingPanel> addSolarReflectingPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
+                                                            float reflectTowards[2] = {0},       // Direction to reflect towards (azi,ele or RA,dec)
+                                                            float axisOffset[2] = {0},           // Axis calibration offsets (azi,ele or RA,dec)
+                                                            float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
 
     // Convenience builders for common power rails (shared, nullptr return -> failure).
 

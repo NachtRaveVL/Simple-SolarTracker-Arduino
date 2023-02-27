@@ -33,7 +33,10 @@ extern Helio_UnitsCategory defaultCategoryForSensor(Helio_SensorType sensorType,
 // Sensor Base
 // This is the base class for all sensors, which defines how the sensor is identified,
 // where it lives, and what it's attached to.
-class HelioSensor : public HelioObject, public HelioSensorObjectInterface, public HelioMeasurementUnitsInterface, public HelioParentPanelAttachmentInterface {
+class HelioSensor : public HelioObject,
+                    public HelioSensorObjectInterface,
+                    public HelioMeasurementUnitsInterface,
+                    public HelioParentPanelAttachmentInterface {
 public:
     const enum : signed char { Binary, Analog, Digital, DHT1W, Unknown = -1 } classType; // Sensor class type (custom RTTI)
     inline bool isBinaryClass() const { return classType == Binary; }
@@ -107,8 +110,8 @@ public:
     virtual const HelioMeasurement *getMeasurement(bool poll = false) override;
     virtual bool needsPolling(hframe_t allowance = 0) const override;
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t = 0) override;
+    virtual Helio_UnitsType getMeasurementUnits(uint8_t = 0) const override;
 
     // ISR registration requires an interruptable pin, i.e. a valid digitalPinToInterrupt().
     // Active-low input pins interrupt on falling-edge, while active-high pins interrupt on rising-edge.
@@ -136,7 +139,8 @@ protected:
 // The ever reliant master of the analogRead(), this class manages polling an analog input
 // signal and converting it into the proper figures for use. Examples include everything
 // from TDS EC meters to PWM based flow sensors.
-class HelioAnalogSensor : public HelioSensor, public HelioMeasurementUnitsInterfaceStorageSingle {
+class HelioAnalogSensor : public HelioSensor,
+                          public HelioMeasurementUnitsInterfaceStorageSingle {
 public:
     HelioAnalogSensor(Helio_SensorType sensorType,
                       hposi_t sensorIndex,
@@ -149,8 +153,8 @@ public:
     virtual const HelioMeasurement *getMeasurement(bool poll = false) override;
     virtual bool needsPolling(hframe_t allowance = 0) const override;
 
-    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t measurementRow = 0) override;
-    virtual Helio_UnitsType getMeasurementUnits(uint8_t measurementRow = 0) const override;
+    virtual void setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t = 0) override;
+    virtual Helio_UnitsType getMeasurementUnits(uint8_t = 0) const override;
 
     inline const HelioAnalogPin &getInputPin() const { return _inputPin; }
     inline bool getInputInversion() const { return _inputInversion; }
@@ -201,7 +205,8 @@ protected:
 
 // Digital DHT* Temperature & Humidity Sensor
 // This class is for working with DHT* OneWire-based air temperature and humidity sensors.
-class HelioDHTTempHumiditySensor : public HelioDigitalSensor, public HelioMeasurementUnitsInterfaceStorageTriple {
+class HelioDHTTempHumiditySensor : public HelioDigitalSensor,
+                                   public HelioMeasurementUnitsInterfaceStorageTriple {
 public:
     HelioDHTTempHumiditySensor(hposi_t sensorIndex,
                                HelioDigitalPin inputPin,
