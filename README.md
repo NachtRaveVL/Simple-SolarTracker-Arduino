@@ -118,13 +118,13 @@ From Helioduino.h, in class Helioduino:
 
 #### Controller Initialization
 
-Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (PositionCalculating or BrightnessBalancing), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
+Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (Tracking or Balancing), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
     // Initializes default empty system. Typically called near top of setup().
     // See individual enums for more info.
-    void init(Helio_SystemMode systemMode = Helio_SystemMode_PositionCalculating,       // What mode of panel orientation is performed
+    void init(Helio_SystemMode systemMode = Helio_SystemMode_Tracking,                  // What mode of panel orientation is performed
               Helio_MeasurementMode measureMode = Helio_MeasurementMode_Default,        // What units of measurement should be used
               Helio_DisplayOutputMode dispOutMode = Helio_DisplayOutputMode_Disabled,   // What display output mode should be used
               Helio_ControlInputMode ctrlInMode = Helio_ControlInputMode_Disabled);     // What control input mode should be used
@@ -286,24 +286,24 @@ void setup() {
     #endif
 
     // Initializes controller with LDR environment (saves some time/space), no logging, eeprom, SD, or anything else.
-    helioController.init(Helio_SystemMode_BrightnessBalancing);
+    helioController.init(Helio_SystemMode_Balancing);
 
     // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
-    auto ldrPanel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE), SETUP_PANEL_HOME_);
-    ldrPanel->setHomePosition(SETUP_PANEL_HOME_);
-    ldrPanel->setAxisOffset(SETUP_PANEL_OFFSET_);
+    auto panel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
+    panel->setHomePosition(SETUP_PANEL_HOME_);
+    panel->setAxisOffset(SETUP_PANEL_OFFSET_);
 
     // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
     auto axisServo = helioController.addPositionalServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
-    axisServo->setParentPanel(ldrPanel, Helio_PanelAxis_Elevation);
+    axisServo->setParentPanel(panel, Helio_PanelAxis_Elevation);
 
     // Adds a light intensity sensor at SETUP_LDR_LOWER_PIN, installed on the lower side of the panel.
-    auto ldrMin = helioController.addLightIntensitySensor(SETUP_LDR_LOWER_PIN);
-    ldrPanel->setLDRSensor(ldrMin, Helio_PanelLDR_VerticalMin); // will provide downwards control
+    auto ldrLower = helioController.addLightIntensitySensor(SETUP_LDR_LOWER_PIN);
+    panel->setLDRSensor(ldrLower, Helio_PanelLDR_VerticalMin); // will provide downwards control
 
     // Adds a light intensity sensor at SETUP_LDR_UPPER_PIN, installed on the upper side of the panel.
-    auto ldrMax = helioController.addLightIntensitySensor(SETUP_LDR_UPPER_PIN);
-    ldrPanel->setLDRSensor(ldrMax, Helio_PanelLDR_VerticalMax); // will provide upwards control
+    auto ldrUpper = helioController.addLightIntensitySensor(SETUP_LDR_UPPER_PIN);
+    panel->setLDRSensor(ldrUpper, Helio_PanelLDR_VerticalMax); // will provide upwards control
 
     // Launches controller into main operation.
     helioController.launch();
@@ -359,7 +359,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
 #define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
 
-// GPS Settings                                         (note: defined HELIO_ENABLE_GPS to enable GPS)
+// GPS Settings                                         (note: define HELIO_ENABLE_GPS to enable GPS)
 #define SETUP_GPS_TYPE                  None            // Type of GPS (Serial, I2C, SPI, None)
 #define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
 #define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address, if using i2c
@@ -367,7 +367,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
 
 // System Settings
-#define SETUP_SYSTEM_MODE               PositionCalculating // System run mode (PositionCalculating, BrightnessBalancing)
+#define SETUP_SYSTEM_MODE               Tracking // System run mode (Tracking, Balancing)
 #define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
 #define SETUP_LCD_OUT_MODE              Disabled        // System LCD output mode (Disabled, 20x4LCD, 20x4LCD_Swapped, 16x2LCD, 16x2LCD_Swapped)
 #define SETUP_CTRL_IN_MODE              Disabled        // System control input mode (Disabled, 2x2Matrix, 4xButton, 6xButton, RotaryEncoder)
@@ -375,6 +375,9 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_SYS_NAME                  "Helioduino"    // System name
 #define SETUP_SYS_TIMEZONE              +0              // System timezone offset
 #define SETUP_SYS_LOGLEVEL              All             // System log level filter (All, Warnings, Errors, None)
+#define SETUP_SYS_STATIC_LAT            DBL_UNDEF       // System static latitude (if not using GPS, else DBL_UNDEF), in degrees
+#define SETUP_SYS_STATIC_LONG           DBL_UNDEF       // System static longitude (if not using GPS, else DBL_UNDEF), in minutes
+#define SETUP_SYS_STATIC_ALT            DBL_UNDEF       // System static altitude (if not using GPS, else DBL_UNDEF), in meters above sea level (msl)
 
 // System Saves Settings                                (note: only one primary and one fallback mechanism may be enabled at a time)
 #define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg" // System config file name for system saves

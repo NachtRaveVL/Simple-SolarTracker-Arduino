@@ -40,7 +40,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
 #define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
 
-// GPS Settings                                         (note: defined HELIO_ENABLE_GPS to enable GPS)
+// GPS Settings                                         (note: define HELIO_ENABLE_GPS to enable GPS)
 #define SETUP_GPS_TYPE                  None            // Type of GPS (Serial, I2C, SPI, None)
 #define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
 #define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address, if using i2c
@@ -48,7 +48,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
 
 // System Settings
-#define SETUP_SYSTEM_MODE               PositionCalculating // System run mode (PositionCalculating, BrightnessBalancing)
+#define SETUP_SYSTEM_MODE               Tracking        // System run mode (Tracking, Balancing)
 #define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
 #define SETUP_LCD_OUT_MODE              Disabled        // System LCD output mode (Disabled, 20x4LCD, 20x4LCD_Swapped, 16x2LCD, 16x2LCD_Swapped)
 #define SETUP_CTRL_IN_MODE              Disabled        // System control input mode (Disabled, 2x2Matrix, 4xButton, 6xButton, RotaryEncoder)
@@ -56,6 +56,9 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_SYS_NAME                  "Helioduino"    // System name
 #define SETUP_SYS_TIMEZONE              +0              // System timezone offset
 #define SETUP_SYS_LOGLEVEL              All             // System log level filter (All, Warnings, Errors, None)
+#define SETUP_SYS_STATIC_LAT            DBL_UNDEF       // System static latitude (if not using GPS, else DBL_UNDEF), in degrees
+#define SETUP_SYS_STATIC_LONG           DBL_UNDEF       // System static longitude (if not using GPS, else DBL_UNDEF), in minutes
+#define SETUP_SYS_STATIC_ALT            DBL_UNDEF       // System static altitude (if not using GPS, else DBL_UNDEF), in meters above sea level (msl)
 
 // System Saves Settings                                (note: only one primary and one fallback mechanism may be enabled at a time)
 #define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg" // System config file name for system saves
@@ -173,6 +176,8 @@ Helioduino helioController((pintype_t)SETUP_PIEZO_BUZZER_PIN,
 #define SETUP_USE_ANALOG_BITRES     10
 #endif
 #define SETUP_USE_ONEWIRE_BITRES    12
+float SETUP_PANEL_HOME_[] = SETUP_PANEL_HOME;
+float SETUP_PANEL_OFFSET_[] = SETUP_PANEL_OFFSET;
 
 void setup() {
     // Setup base interfaces
@@ -197,7 +202,7 @@ void setup() {
         beginStringsFromEEPROM(SETUP_EEPROM_STRINGS_ADDR);
     #endif
     #if SETUP_EXTDATA_SD_ENABLE
-        beginStringsFromSDCard(String(F(SETUP_EXTDATA_SD_LIB_PREFIX)) + String(F("strings")));
+        beginStringsFromSDCard(String(F(SETUP_EXTDATA_SD_LIB_PREFIX)));
     #endif
 
     // Sets system config name used in any of the following inits.
@@ -278,6 +283,8 @@ void setup() {
         #endif
         #ifdef HELIO_USE_GPS
             helioController.getGPS()->sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+        #else
+            helioController.setSystemLocation(SETUP_SYS_STATIC_LAT, SETUP_SYS_STATIC_LONG, SETUP_SYS_STATIC_ALT);
         #endif
         #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Primary
             helioController.setAutosaveEnabled(Helio_Autosave_EnabledToWiFiStorageJson
@@ -323,52 +330,31 @@ void setup() {
                 auto dcRelayPower = helioController.addSimplePowerRail(JOIN(Helio_RailType,SETUP_DC_POWER_RAIL_TYPE));
             #endif
         #endif
-        
-        // Panel
-        // {   auto panelType = JOIN(Helio_PanelType,SETUP_PANEL_TYPE);
-        //     if (panelType != Helio_PanelType_Undefined) {
-        //         #if SETUP_PANEL_SOILM_PIN >= 0
-        //             auto moistureSensor = helioController.addAnalogMoistureSensor(SETUP_PANEL_SOILM_PIN, SETUP_USE_ANALOG_BITRES);
-        //             auto panel = helioController.addAdaptiveFedPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE),
-        //                                                            JOIN(Helio_SubstrateType,SETUP_PANEL_SUBSTRATE),
-        //                                                            SETUP_PANEL_SOW_DATE);
-        //             moistureSensor->setPanel(panel);
-        //             panel->setSoilMoistureSensor(moistureSensor);
-        //         #else
-        //             auto panel = helioController.addTimerFedPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE),
-        //                                                         JOIN(Helio_SubstrateType,SETUP_PANEL_SUBSTRATE),
-        //                                                         SETUP_PANEL_SOW_DATE,
-        //                                                         SETUP_PANEL_ON_TIME,
-        //                                                         SETUP_PANEL_OFF_TIME);
-        //         #endif
-        //         panel->setFeedReservoir(feedReservoir);
-        //         panel->setFeedingWeight(SETUP_PANEL_NUMBER);
-        //     }
-        // }
+        auto panel = helioController.addSolarTrackingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
+        panel->setHomePosition(SETUP_PANEL_HOME_);
+        panel->setAxisOffset(SETUP_PANEL_OFFSET_);
 
         // Analog Sensors
         // todo
         // #if SETUP_PH_METER_PIN >= 0
         // {   auto phMeter = helioController.addAnalogPhMeter(SETUP_PH_METER_PIN, SETUP_USE_ANALOG_BITRES);
-        //     phMeter->setReservoir(feedReservoir);
+        //     phMeter->setParentPanel(feedReservoir);
         //     feedReservoir->setWaterPHSensor(phMeter);
         // }
         // #endif
-        
+
         // Digital Sensors
-        // todo
-        // #if SETUP_DHT_AIR_TEMP_HUMID_PIN >= 0
-        // {   auto dhtTemperatureSensor = helioController.addDHTTempHumiditySensor(SETUP_DHT_AIR_TEMP_HUMID_PIN, JOIN(Helio_DHTType,SETUP_DHT_SENSOR_TYPE));
-        //     dhtTemperatureSensor->setReservoir(feedReservoir);
-        //     feedReservoir->setAirTemperatureSensor(dhtTemperatureSensor);
-        // }
-        // #endif
+        #if SETUP_DHT_AIR_TEMP_HUMID_PIN >= 0
+        {   auto dhtTemperatureSensor = helioController.addDHTTempHumiditySensor(SETUP_DHT_AIR_TEMP_HUMID_PIN, JOIN(Helio_DHTType,SETUP_DHT_SENSOR_TYPE));
+            panel->setTemperatureSensor(dhtTemperatureSensor);
+        }
+        #endif
 
         // Binary->Distance Sensors
         // todo
         // #if SETUP_VOL_EMPTY_PIN >= 0
         // {   auto emptyIndicator = helioController.addLevelIndicator(SETUP_VOL_EMPTY_PIN);
-        //     emptyIndicator->setReservoir(feedReservoir);
+        //     emptyIndicator->setParentPanel(feedReservoir);
         //     feedReservoir->setEmptyTrigger(new HelioMeasurementValueTrigger(emptyIndicator, 0.5, SETUP_VOL_INDICATOR_TYPE));
         // }
         // #endif
@@ -378,7 +364,7 @@ void setup() {
         // #if SETUP_VOL_LEVEL_PIN >= 0
         //     #if SETUP_VOL_LEVEL_TYPE == Ultrasonic
         //     {   auto distanceSensor = helioController.addUltrasonicDistanceSensor(SETUP_VOL_LEVEL_PIN, SETUP_USE_ANALOG_BITRES);
-        //         distanceSensor->setReservoir(feedReservoir);
+        //         distanceSensor->setParentPanel(feedReservoir);
         //         feedReservoir->setWaterVolumeSensor(distanceSensor);
         //         #if SETUP_VOL_FILLED_PIN < 0
         //             feedReservoir->setFilledTrigger(new HelioMeasurementValueTrigger(distanceSensor, HELIO_FEEDRES_FRACTION_FILLED, ACTIVE_ABOVE));
@@ -389,7 +375,7 @@ void setup() {
         //     }
         //     #elif SETUP_VOL_LEVEL_TYPE == AnalogHeight
         //     {   auto heightMeter = helioController.addAnalogWaterHeightMeter(SETUP_VOL_LEVEL_PIN, SETUP_USE_ANALOG_BITRES);
-        //         heightMeter->setReservoir(feedReservoir);
+        //         heightMeter->setParentPanel(feedReservoir);
         //         feedReservoir->setWaterVolumeSensor(heightMeter);
         //         #if SETUP_VOL_FILLED_PIN < 0
         //             feedReservoir->setFilledTrigger(new HelioMeasurementValueTrigger(heightMeter, HELIO_FEEDRES_FRACTION_FILLED, ACTIVE_ABOVE));

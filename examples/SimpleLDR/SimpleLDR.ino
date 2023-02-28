@@ -37,24 +37,24 @@ void setup() {
     #endif
 
     // Initializes controller with LDR environment (saves some time/space), no logging, eeprom, SD, or anything else.
-    helioController.init(Helio_SystemMode_BrightnessBalancing);
+    helioController.init(Helio_SystemMode_Balancing);
 
     // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
-    auto ldrPanel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
-    ldrPanel->setHomePosition(SETUP_PANEL_HOME_);
-    ldrPanel->setAxisOffset(SETUP_PANEL_OFFSET_);
+    auto panel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
+    panel->setHomePosition(SETUP_PANEL_HOME_);
+    panel->setAxisOffset(SETUP_PANEL_OFFSET_);
 
     // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
     auto axisServo = helioController.addPositionalServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
-    axisServo->setParentPanel(ldrPanel, Helio_PanelAxis_Elevation);
+    axisServo->setParentPanel(panel, Helio_PanelAxis_Elevation);
 
     // Adds a light intensity sensor at SETUP_LDR_LOWER_PIN, installed on the lower side of the panel.
-    auto ldrMin = helioController.addLightIntensitySensor(SETUP_LDR_LOWER_PIN);
-    ldrPanel->setLDRSensor(ldrMin, Helio_PanelLDR_VerticalMin); // will provide downwards control
+    auto ldrLower = helioController.addLightIntensitySensor(SETUP_LDR_LOWER_PIN);
+    panel->setLDRSensor(ldrLower, Helio_PanelLDR_VerticalMin); // will provide downwards control
 
     // Adds a light intensity sensor at SETUP_LDR_UPPER_PIN, installed on the upper side of the panel.
-    auto ldrMax = helioController.addLightIntensitySensor(SETUP_LDR_UPPER_PIN);
-    ldrPanel->setLDRSensor(ldrMax, Helio_PanelLDR_VerticalMax); // will provide upwards control
+    auto ldrUpper = helioController.addLightIntensitySensor(SETUP_LDR_UPPER_PIN);
+    panel->setLDRSensor(ldrUpper, Helio_PanelLDR_VerticalMax); // will provide upwards control
 
     // Launches controller into main operation.
     helioController.launch();

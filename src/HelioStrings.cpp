@@ -874,9 +874,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Average[] PROGMEM = {"Average"};
             return flashStr_Enum_Average;
         } break;
-        case HStr_Enum_BrightnessBalancing: {
-            static const char flashStr_Enum_BrightnessBalancing[] PROGMEM = {"BrightnessBalancing"};
-            return flashStr_Enum_BrightnessBalancing;
+        case HStr_Enum_Balancing: {
+            static const char flashStr_Enum_Balancing[] PROGMEM = {"Balancing"};
+            return flashStr_Enum_Balancing;
         } break;
         case HStr_Enum_ContinuousServo: {
             static const char flashStr_Enum_ContinuousServo[] PROGMEM = {"ContinuousServo"};
@@ -902,9 +902,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_DC5V[] PROGMEM = {"DC5V"};
             return flashStr_Enum_DC5V;
         } break;
-        case HStr_Enum_DesOrder: {
-            static const char flashStr_Enum_DesOrder[] PROGMEM = {"DesOrder"};
-            return flashStr_Enum_DesOrder;
+        case HStr_Enum_DescOrder: {
+            static const char flashStr_Enum_DescOrder[] PROGMEM = {"DescOrder"};
+            return flashStr_Enum_DescOrder;
         } break;
         case HStr_Enum_DigitalInput: {
             static const char flashStr_Enum_DigitalInput[] PROGMEM = {"DigitalInput"};
@@ -982,9 +982,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelBrake[] PROGMEM = {"PanelBrake"};
             return flashStr_Enum_PanelBrake;
         } break;
-        case HStr_Enum_coverDriver: {
-            static const char flashStr_Enum_coverDriver[] PROGMEM = {"PanelCover"};
-            return flashStr_Enum_coverDriver;
+        case HStr_Enum_PanelCover: {
+            static const char flashStr_Enum_PanelCover[] PROGMEM = {"PanelCover"};
+            return flashStr_Enum_PanelCover;
         } break;
         case HStr_Enum_PanelHeater: {
             static const char flashStr_Enum_PanelHeater[] PROGMEM = {"PanelHeater"};
@@ -1001,10 +1001,6 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Enum_PositionalServo: {
             static const char flashStr_Enum_PositionalServo[] PROGMEM = {"PositionalServo"};
             return flashStr_Enum_PositionalServo;
-        } break;
-        case HStr_Enum_PositionCalculating: {
-            static const char flashStr_Enum_PositionCalculating[] PROGMEM = {"PositionCalculating"};
-            return flashStr_Enum_PositionCalculating;
         } break;
         case HStr_Enum_Power: {
             static const char flashStr_Enum_Power[] PROGMEM = {"Power"};
@@ -1041,6 +1037,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Enum_TiltAngle: {
             static const char flashStr_Enum_TiltAngle[] PROGMEM = {"TiltAngle"};
             return flashStr_Enum_TiltAngle;
+        } break;
+        case HStr_Enum_Tracking: {
+            static const char flashStr_Enum_Tracking[] PROGMEM = {"Tracking"};
+            return flashStr_Enum_Tracking;
         } break;
         case HStr_Enum_TravelPosition: {
             static const char flashStr_Enum_TravelPosition[] PROGMEM = {"TravelPosition"};

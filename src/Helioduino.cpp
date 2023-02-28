@@ -1360,7 +1360,7 @@ void Helioduino::notifyRTCTimeUpdated()
 
 void Helioduino::notifyDayChanged()
 {
-    if (getSystemMode() == Helio_SystemMode_PositionCalculating) {
+    if (getSystemMode() == Helio_SystemMode_Tracking) {
         for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
             if (iter->second->isPanelType()) {
                 auto panel = static_pointer_cast<HelioPanel>(iter->second);
