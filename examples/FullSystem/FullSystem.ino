@@ -144,6 +144,83 @@ Helioduino helioController((pintype_t)SETUP_PIEZO_BUZZER_PIN,
                            _SETUP_CTRL_INPUT_PINS,
                            I2CDeviceSetup((uint8_t)SETUP_LCD_I2C_ADDR, &SETUP_I2C_WIRE, SETUP_I2C_SPEED));
 
+inline void setupOnce()
+{
+    helioController.setSystemName(F(SETUP_SYS_NAME));
+    helioController.setTimeZoneOffset(SETUP_SYS_TIMEZONE);
+    #ifdef HELIO_USE_WIFI
+    {   String wifiSSID = F(SETUP_WIFI_SSID);
+        String wifiPassword = F(SETUP_WIFI_PASS);
+        helioController.setWiFiConnection(wifiSSID, wifiPassword);
+    }
+    #endif
+    #ifdef HELIO_USE_ETHERNET
+    {   uint8_t _SETUP_ETHERNET_MAC[] = SETUP_ETHERNET_MAC;
+        helioController.setEthernetConnection(_SETUP_ETHERNET_MAC);
+    }
+    #endif
+    getLogger()->setLogLevel(JOIN(Helio_LogLevel,SETUP_SYS_LOGLEVEL));
+    #if !defined(HELIO_USE_GPS)
+        helioController.setSystemLocation(SETUP_SYS_STATIC_LAT, SETUP_SYS_STATIC_LONG, SETUP_SYS_STATIC_ALT);
+    #endif
+    #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Primary
+        helioController.setAutosaveEnabled(Helio_Autosave_EnabledToWiFiStorageJson
+    #elif SETUP_SD_CARD_SPI_CS >= 0 && SETUP_SAVES_SD_CARD_MODE == Primary
+        helioController.setAutosaveEnabled(Helio_Autosave_EnabledToSDCardJson
+    #elif SETUP_EEPROM_DEVICE_SIZE && SETUP_SAVES_EEPROM_MODE == Primary
+        helioController.setAutosaveEnabled(Helio_Autosave_EnabledToEEPROMRaw
+    #else
+        helioController.setAutosaveEnabled(Helio_Autosave_Disabled
+    #endif
+    #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Fallback
+        , Helio_Autosave_EnabledToWiFiStorageJson);
+    #elif SETUP_SD_CARD_SPI_CS >= 0 && SETUP_SAVES_SD_CARD_MODE == Fallback
+        , Helio_Autosave_EnabledToSDCardJson);
+    #elif SETUP_EEPROM_DEVICE_SIZE && SETUP_SAVES_EEPROM_MODE == Fallback
+        , Helio_Autosave_EnabledToEEPROMRaw);
+    #else
+        );
+    #endif
+}
+
+inline void setupAlways()
+{
+    #if SETUP_LOG_SD_ENABLE
+        helioController.enableSysLoggingToSDCard(F(SETUP_LOG_FILE_PREFIX));
+    #endif
+    #if SETUP_DATA_SD_ENABLE
+        helioController.enableDataPublishingToSDCard(F(SETUP_DATA_FILE_PREFIX));
+    #endif
+    #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_LOG_WIFISTORAGE_ENABLE
+        helioController.enableSysLoggingToWiFiStorage(F(SETUP_LOG_FILE_PREFIX));
+    #endif
+    #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_DATA_WIFISTORAGE_ENABLE
+        helioController.enableDataPublishingToWiFiStorage(F(SETUP_DATA_FILE_PREFIX));
+    #endif
+    #ifdef HELIO_USE_MQTT
+        bool netBegan = false;
+        #if defined(HELIO_USE_WIFI)
+            netBegan = helioController.getWiFi();
+        #elif defined(HELIO_USE_ETHERNET)
+            netBegan = helioController.getEthernet();
+        #endif
+        if (netBegan) {
+            #if SETUP_MQTT_BROKER_CONNECT_BY == Hostname
+                mqttClient.begin(String(F(SETUP_MQTT_BROKER_HOSTNAME)).c_str(), SETUP_MQTT_BROKER_PORT, netClient);
+            #elif SETUP_MQTT_BROKER_CONNECT_BY == IPAddress
+            {   uint8_t ipAddr[4] = SETUP_MQTT_BROKER_IPADDR;
+                IPAddress ip(ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
+                mqttClient.begin(ip, SETUP_MQTT_BROKER_PORT, netClient);
+            }
+            #endif
+            helioController.enableDataPublishingToMQTTClient(mqttClient);
+        }
+    #endif
+    #ifdef HELIO_USE_GPS
+        helioController.getGPS()->sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    #endif
+}
+
 void setup() {
     // Setup base interfaces
     #ifdef HELIO_ENABLE_DEBUG_OUTPUT
@@ -152,14 +229,6 @@ void setup() {
     #endif
     #if defined(ESP_PLATFORM)
         SETUP_I2C_WIRE.begin(SETUP_ESP_I2C_SDA, SETUP_ESP_I2C_SCL); // Begin i2c Wire for ESP
-    #endif
-    #ifdef HELIO_USE_WIFI
-        String wifiSSID = F(SETUP_WIFI_SSID);
-        String wifiPassword = F(SETUP_WIFI_PASS);
-        #ifdef HELIO_USE_AT_WIFI
-            SETUP_WIFI_SERIAL.begin(HELIO_SYS_ATWIFI_SERIALBAUD);
-            WiFi.init(SETUP_WIFI_SERIAL);
-        #endif
     #endif
 
     // Begin external data storage devices for panel, strings, and other data.
@@ -203,74 +272,10 @@ void setup() {
                              JOIN(Helio_DisplayOutputMode,SETUP_LCD_OUT_MODE),
                              JOIN(Helio_ControlInputMode,SETUP_CTRL_IN_MODE));
 
-        // Set Settings
-        helioController.setSystemName(F(SETUP_SYS_NAME));
-        helioController.setTimeZoneOffset(SETUP_SYS_TIMEZONE);
-        #ifdef HELIO_USE_WIFI
-            helioController.setWiFiConnection(wifiSSID, wifiPassword); wifiSSID = wifiPassword = String();
-        #endif
-        #ifdef HELIO_USE_ETHERNET
-        {   uint8_t _SETUP_ETHERNET_MAC[] = SETUP_ETHERNET_MAC;
-            helioController.setEthernetConnection(_SETUP_ETHERNET_MAC);
-        }
-        #endif
-        getLogger()->setLogLevel(JOIN(Helio_LogLevel,SETUP_SYS_LOGLEVEL));
-        #if SETUP_LOG_SD_ENABLE
-            helioController.enableSysLoggingToSDCard(F(SETUP_LOG_FILE_PREFIX));
-        #endif
-        #if SETUP_DATA_SD_ENABLE
-            helioController.enableDataPublishingToSDCard(F(SETUP_DATA_FILE_PREFIX));
-        #endif
-        #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_LOG_WIFISTORAGE_ENABLE
-            helioController.enableSysLoggingToWiFiStorage(F(SETUP_LOG_FILE_PREFIX));
-        #endif
-        #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_DATA_WIFISTORAGE_ENABLE
-            helioController.enableDataPublishingToWiFiStorage(F(SETUP_DATA_FILE_PREFIX));
-        #endif
-        #ifdef HELIO_USE_MQTT
-            bool netBegan = false;
-            #if defined(HELIO_USE_WIFI)
-                netBegan = helioController.getWiFi();
-            #elif defined(HELIO_USE_ETHERNET)
-                netBegan = helioController.getEthernet();
-            #endif
-            if (netBegan) {
-                #if SETUP_MQTT_BROKER_CONNECT_BY == Hostname
-                    mqttClient.begin(String(F(SETUP_MQTT_BROKER_HOSTNAME)).c_str(), SETUP_MQTT_BROKER_PORT, netClient);
-                #elif SETUP_MQTT_BROKER_CONNECT_BY == IPAddress
-                {   uint8_t ipAddr[4] = SETUP_MQTT_BROKER_IPADDR;
-                    IPAddress ip(ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
-                    mqttClient.begin(ip, SETUP_MQTT_BROKER_PORT, netClient);
-                }
-                #endif
-                helioController.enableDataPublishingToMQTTClient(mqttClient);
-            }
-        #endif
-        #ifdef HELIO_USE_GPS
-            helioController.getGPS()->sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-        #else
-            helioController.setSystemLocation(SETUP_SYS_STATIC_LAT, SETUP_SYS_STATIC_LONG, SETUP_SYS_STATIC_ALT);
-        #endif
-        #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Primary
-            helioController.setAutosaveEnabled(Helio_Autosave_EnabledToWiFiStorageJson
-        #elif SETUP_SD_CARD_SPI_CS >= 0 && SETUP_SAVES_SD_CARD_MODE == Primary
-            helioController.setAutosaveEnabled(Helio_Autosave_EnabledToSDCardJson
-        #elif SETUP_EEPROM_DEVICE_SIZE && SETUP_SAVES_EEPROM_MODE == Primary
-            helioController.setAutosaveEnabled(Helio_Autosave_EnabledToEEPROMRaw
-        #else
-            helioController.setAutosaveEnabled(Helio_Autosave_Disabled
-        #endif
-        #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Fallback
-            , Helio_Autosave_EnabledToWiFiStorageJson);
-        #elif SETUP_SD_CARD_SPI_CS >= 0 && SETUP_SAVES_SD_CARD_MODE == Fallback
-            , Helio_Autosave_EnabledToSDCardJson);
-        #elif SETUP_EEPROM_DEVICE_SIZE && SETUP_SAVES_EEPROM_MODE == Fallback
-            , Helio_Autosave_EnabledToEEPROMRaw);
-        #else
-            );
-        #endif
-
-        // No further setup is necessary, as system is assumed to be built/managed via UI.
+        setupOnce();
+        setupAlways();
+    } else {
+        setupAlways();
     }
 
     #if defined(HELIO_USE_GUI) && SETUP_LCD_OUT_MODE != Disabled
