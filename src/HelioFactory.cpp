@@ -318,7 +318,7 @@ SharedPtr<HelioDHTTempHumiditySensor> HelioFactory::addDHTTempHumiditySensor(pin
     return nullptr;
 }
 
-SharedPtr<HelioBalancingPanel> HelioFactory::addLDRBalancingPanel(Helio_PanelType panelType, float intTolerance, float minIntensity, float axisOffset[2], float homePosition[2])
+SharedPtr<HelioBalancingPanel> HelioFactory::addLDRBalancingPanel(Helio_PanelType panelType, float intTolerance, float minIntensity)
 {
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(panelType));
     HELIO_SOFT_ASSERT((int)panelType >= 0 && panelType <= Helio_PanelType_Count, SFP(HStr_Err_InvalidParameter));
@@ -331,18 +331,13 @@ SharedPtr<HelioBalancingPanel> HelioFactory::addLDRBalancingPanel(Helio_PanelTyp
             intTolerance,
             minIntensity
         ));
-        if (getController()->registerObject(panel)) {
-            panel->setAxisOffset(axisOffset);
-            panel->setHomePosition(homePosition);
-
-            return panel;
-        }
+        if (getController()->registerObject(panel)) { return panel; }
     }
 
     return nullptr;
 }
 
-SharedPtr<HelioTrackingPanel> HelioFactory::addSolarTrackingPanel(Helio_PanelType panelType, float angleTolerance, float axisOffset[2], float homePosition[2])
+SharedPtr<HelioTrackingPanel> HelioFactory::addSolarTrackingPanel(Helio_PanelType panelType, float angleTolerance)
 {
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(panelType));
     HELIO_SOFT_ASSERT((int)panelType >= 0 && panelType <= Helio_PanelType_Count, SFP(HStr_Err_InvalidParameter));
@@ -354,18 +349,13 @@ SharedPtr<HelioTrackingPanel> HelioFactory::addSolarTrackingPanel(Helio_PanelTyp
             positionIndex,
             angleTolerance
         ));
-        if (getController()->registerObject(panel)) {
-            panel->setAxisOffset(axisOffset);
-            panel->setHomePosition(homePosition);
-
-            return panel;
-        }
+        if (getController()->registerObject(panel)) { return panel; }
     }
 
     return nullptr;
 }
 
-SharedPtr<HelioReflectingPanel> HelioFactory::addSolarReflectingPanel(Helio_PanelType panelType, float angleTolerance, float reflectPosition[2], float axisOffset[2], float homePosition[2])
+SharedPtr<HelioReflectingPanel> HelioFactory::addSolarReflectingPanel(Helio_PanelType panelType, float angleTolerance)
 {
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(panelType));
     HELIO_SOFT_ASSERT((int)panelType >= 0 && panelType <= Helio_PanelType_Count, SFP(HStr_Err_InvalidParameter));
@@ -377,13 +367,7 @@ SharedPtr<HelioReflectingPanel> HelioFactory::addSolarReflectingPanel(Helio_Pane
             positionIndex,
             angleTolerance
         ));
-        if (getController()->registerObject(panel)) {
-            panel->setReflectPosition(reflectPosition);
-            panel->setAxisOffset(axisOffset);
-            panel->setHomePosition(homePosition);
-            
-            return panel;
-        }
+        if (getController()->registerObject(panel)) { return panel; }
     }
 
     return nullptr;

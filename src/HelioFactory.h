@@ -138,24 +138,17 @@ public:
     // Balancing panels equalize two opposing photoresistors to drive their orientation.
     SharedPtr<HelioBalancingPanel> addLDRBalancingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
                                                         float intTolerance = HELIO_PANEL_ALIGN_LDRTOL, // LDR intensity balancing tolerance, in % ([0.0,1.0])
-                                                        float minIntensity = HELIO_PANEL_ALIGN_LDRMIN, // LDR minimum intensity, in % ([0.0,1.0])
-                                                        float axisOffset[2] = {0},          // Axis offset (azi,ele or RA,dec)
-                                                        float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
+                                                        float minIntensity = HELIO_PANEL_ALIGN_LDRMIN); // LDR minimum intensity, in % ([0.0,1.0])
 
     // Adds a new solar-tracking smart panel to the system using the given parameters.
     // Tracking panels recalculate the sun's position across the day to drive their orientation.
     SharedPtr<HelioTrackingPanel> addSolarTrackingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
-                                                        float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL, // Angle alignment tolerance, in degrees
-                                                        float axisOffset[2] = {0},          // Axis offset (azi,ele or RA,dec)
-                                                        float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
+                                                        float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL); // Angle alignment tolerance, in degrees
 
     // Adds a new reflecting panel to the system using the given parameters.
     // Reflecting "panels" are mirrors that reflect the sun's light towards a preset direction.
     SharedPtr<HelioReflectingPanel> addSolarReflectingPanel(Helio_PanelType panelType,      // Panel type (mounting configuration)
-                                                            float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL, // Angle alignment tolerance, in degrees
-                                                            float reflectPosition[2] = {0}, // Position to reflect towards (azi,ele or RA,dec)
-                                                            float axisOffset[2] = {0},      // Axis offset (azi,ele or RA,dec)
-                                                            float homePosition[2] = {0});   // Home position (azi,ele or RA,dec)
+                                                            float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL); // Angle alignment tolerance, in degrees
 
     // Convenience builders for common power rails (shared, nullptr return -> failure).
 
