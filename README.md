@@ -428,7 +428,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 
 ### Data Writer Example
 
-The Data Writer Example can be used on the same system setup to offload all exportable data, such as crop and string data, onto a connected external SD card or EEPROM storage device to help storage constrained MCUs compile system builds.
+The Data Writer Example can be used on the same system setup to offload all exportable data, such as string data, onto a connected external SD card or EEPROM storage device to help storage constrained MCUs compile system builds.
 
 This Example doesn't actually run the Helioduino controller in full, but a code stripped version of it that easily compiles with all extra data built-in. The compiled binary in this Example will include all exportable data stored as compact JSON string text, and typically easily fits in under 256kB compilation size.
 
