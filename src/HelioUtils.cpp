@@ -1036,10 +1036,10 @@ bool checkPinIsAnalogOutput(pintype_t pin)
 String systemModeToString(Helio_SystemMode systemMode, bool excludeSpecial)
 {
     switch (systemMode) {
-        case Helio_SystemMode_PositionCalculating:
-            return SFP(HStr_Enum_PositionCalculating);
-        case Helio_SystemMode_BrightnessBalancing:
-            return SFP(HStr_Enum_BrightnessBalancing);
+        case Helio_SystemMode_Tracking:
+            return SFP(HStr_Enum_Tracking);
+        case Helio_SystemMode_Balancing:
+            return SFP(HStr_Enum_Balancing);
         case Helio_SystemMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_SystemMode_Undefined:
@@ -1117,7 +1117,7 @@ String actuatorTypeToString(Helio_ActuatorType actuatorType, bool excludeSpecial
         case Helio_ActuatorType_PanelBrake:
             return SFP(HStr_Enum_PanelBrake);
         case Helio_ActuatorType_PanelCover:
-            return SFP(HStr_Enum_coverDriver);
+            return SFP(HStr_Enum_PanelCover);
         case Helio_ActuatorType_PanelHeater:
             return SFP(HStr_Enum_PanelHeater);
         case Helio_ActuatorType_PanelSprayer:
@@ -1281,8 +1281,8 @@ String enableModeToString(Helio_EnableMode enableMode, bool excludeSpecial)
             return SFP(HStr_Enum_InOrder);
         case Helio_EnableMode_RevOrder:
             return SFP(HStr_Enum_RevOrder);
-        case Helio_EnableMode_DesOrder:
-            return SFP(HStr_Enum_DesOrder);
+        case Helio_EnableMode_DescOrder:
+            return SFP(HStr_Enum_DescOrder);
         case Helio_EnableMode_AscOrder:
             return SFP(HStr_Enum_AscOrder);
         case Helio_EnableMode_Count:

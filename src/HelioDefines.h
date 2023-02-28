@@ -256,8 +256,8 @@ enum Helio_DHTType : signed char {
 // System Run Mode
 // Specifies the general solar setup, how orientation is determined, etc.
 enum Helio_SystemMode : signed char {
-    Helio_SystemMode_PositionCalculating,                   // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
-    Helio_SystemMode_BrightnessBalancing,                   // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
+    Helio_SystemMode_Tracking,                              // System will aim panels towards the sun's precise position in the sky as properly calculated (requires location/time, light/power sensing not required).
+    Helio_SystemMode_Balancing,                             // System will aim panels towards a position based on driving/maximizing light/power sensor data (location/time not required, requires light/power sensing).
 
     Helio_SystemMode_Count,                                 // Placeholder
     Helio_SystemMode_Undefined = -1                         // Placeholder
@@ -389,7 +389,7 @@ enum Helio_EnableMode : signed char {
 
     Helio_EnableMode_InOrder,                               // Serial activation using in-order/fifo-queue drive intensities
     Helio_EnableMode_RevOrder,                              // Serial activation using reverse-order/lifo-stack drive intensities
-    Helio_EnableMode_DesOrder,                              // Serial activation using highest-to-lowest/descending-order drive intensities
+    Helio_EnableMode_DescOrder,                             // Serial activation using highest-to-lowest/descending-order drive intensities
     Helio_EnableMode_AscOrder,                              // Serial activation using lowest-to-highest/ascending-order drive intensities
 
     Helio_EnableMode_Count,                                 // Placeholder

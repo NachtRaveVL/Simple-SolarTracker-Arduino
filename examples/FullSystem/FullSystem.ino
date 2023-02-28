@@ -3,7 +3,7 @@
 // This sketch will build the entire library onto a device, while supporting all of its
 // functionality, and thus has the highest cost. Not meant for constrained devices.
 //
-// TODO: STILL A WIP!
+// TODO: STILL A WIP! #4 in Helioduino.
 
 #ifdef USE_SW_SERIAL
 #include "SoftwareSerial.h"
@@ -48,7 +48,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
 #define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
 
-// GPS Settings                                         (note: defined HELIO_ENABLE_GPS to enable GPS)
+// GPS Settings                                         (note: define HELIO_ENABLE_GPS to enable GPS)
 #define SETUP_GPS_TYPE                  None            // Type of GPS (Serial, I2C, SPI, None)
 #define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
 #define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address, if using i2c
@@ -56,16 +56,19 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
 
 // System Settings
-#define SETUP_SYSTEM_MODE               PositionCalculating // System run mode (PositionCalculating, BrightnessBalancing)
+#define SETUP_SYSTEM_MODE               Tracking        // System run mode (Tracking, Balancing)
 #define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
 #define SETUP_LCD_OUT_MODE              Disabled        // System LCD output mode (Disabled, 20x4LCD, 20x4LCD_Swapped, 16x2LCD, 16x2LCD_Swapped)
 #define SETUP_CTRL_IN_MODE              Disabled        // System control input mode (Disabled, 2x2Matrix, 4xButton, 6xButton, RotaryEncoder)
-#define SETUP_SYS_NAME                  "Helioduino"      // System name
+#define SETUP_SYS_NAME                  "Helioduino"    // System name
 #define SETUP_SYS_TIMEZONE              +0              // System timezone offset
 #define SETUP_SYS_LOGLEVEL              All             // System log level filter (All, Warnings, Errors, None)
+#define SETUP_SYS_STATIC_LAT            DBL_UNDEF       // System static latitude (if not using GPS, else DBL_UNDEF), in degrees
+#define SETUP_SYS_STATIC_LONG           DBL_UNDEF       // System static longitude (if not using GPS, else DBL_UNDEF), in minutes
+#define SETUP_SYS_STATIC_ALT            DBL_UNDEF       // System static altitude (if not using GPS, else DBL_UNDEF), in meters above sea level (msl)
 
 // System Saves Settings                                (note: only one primary and one fallback mechanism may be enabled at a time)
-#define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg"  // System config file name for system saves
+#define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg" // System config file name for system saves
 #define SETUP_SAVES_SD_CARD_MODE        Disabled        // If saving/loading from SD card is enable (Primary, Fallback, Disabled)
 #define SETUP_SAVES_EEPROM_MODE         Disabled        // If saving/loading from EEPROM is enabled (Primary, Fallback, Disabled)
 #define SETUP_SAVES_WIFISTORAGE_MODE    Disabled        // If saving/loading from WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only only) is enabled (Primary, Fallback, Disabled)
@@ -159,12 +162,12 @@ void setup() {
         #endif
     #endif
 
-    // Begin external data storage devices for crop, strings, and other data.
+    // Begin external data storage devices for panel, strings, and other data.
     #if SETUP_EXTDATA_EEPROM_ENABLE
         beginStringsFromEEPROM(SETUP_EEPROM_STRINGS_ADDR);
     #endif
     #if SETUP_EXTDATA_SD_ENABLE
-        beginStringsFromSDCard(String(F(SETUP_EXTDATA_SD_LIB_PREFIX)) + String(F("strings")));
+        beginStringsFromSDCard(String(F(SETUP_EXTDATA_SD_LIB_PREFIX)));
     #endif
 
     // Sets system config name used in any of the following inits.
@@ -245,6 +248,8 @@ void setup() {
         #endif
         #ifdef HELIO_USE_GPS
             helioController.getGPS()->sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+        #else
+            helioController.setSystemLocation(SETUP_SYS_STATIC_LAT, SETUP_SYS_STATIC_LONG, SETUP_SYS_STATIC_ALT);
         #endif
         #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Primary
             helioController.setAutosaveEnabled(Helio_Autosave_EnabledToWiFiStorageJson
