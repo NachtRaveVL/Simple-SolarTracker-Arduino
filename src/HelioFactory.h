@@ -15,7 +15,6 @@ public:
     // Object Factory.
 
     // Convenience builders for common actuators (shared, nullptr return -> failure).
-
     // Adds a new relay-based panel heater to the system using the given parameters.
     // Panel heaters can keep panels clear during colder months or when ice is detected.
     SharedPtr<HelioRelayActuator> addPanelHeaterRelay(pintype_t outputPin);                 // Digital output pin this actuator sits on

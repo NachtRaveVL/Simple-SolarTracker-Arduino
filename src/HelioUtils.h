@@ -353,18 +353,17 @@ inline String roundToString(float value, unsigned int additionalDecPlaces = 0) {
 // Returns linkages list filtered down to just actuators.
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);
 
-// wip
-template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *srcPanel, bool isMotor);
-// wip
-template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor);
-
-// Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel axis.
-template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, Helio_ActuatorType actuatorType);
+// Returns linkages list filtered down to just actuators of a certain motor'ed/or not type that operate on a specific panel.
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *panel, bool isMotor);
+// Returns linkages list filtered down to just travel actuators of a motor'ed/or not type that operate on a specific panel and axis.
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, bool isMotor);
+// Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel and axis.
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, Helio_ActuatorType actuatorType);
 
 // Returns the # of actuators that are travel based as found in the linkages list.
 extern int linksCountTravelActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);
 // Returns the # of actuators of a certain type that operate on a specific panel.
-extern int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType);
+extern int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, Helio_ActuatorType actuatorType);
 
 // Recombines filtered object list back into SharedPtr actuator list.
 template<size_t N = HELIO_DEFAULT_MAXSIZE> void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType);

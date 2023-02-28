@@ -209,7 +209,7 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
 }
 
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
-Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *srcPanel, bool isMotor)
+Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *panel, bool isMotor)
 {
     Vector<HelioObject *, N> retVal;
 
@@ -217,7 +217,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, P
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel &&
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == panel &&
                 actuator->isMotorType() == isMotor) {
                 retVal.push_back(links.second[linksIndex].first);
             }
@@ -228,7 +228,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, P
 }
 
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
-Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, hposi_t axisIndex, bool isMotor)
+Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, bool isMotor)
 {
     Vector<HelioObject *, N> retVal;
 
@@ -237,7 +237,7 @@ Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
             if (actuator->isTravelType() && actuator->isMotorType() == isMotor &&
-                actuator->getParentPanel().get() == srcPanel && actuator->getParentPanelAxisIndex() == axisIndex) {
+                actuator->getParentPanel().get() == panel && actuator->getParentPanelAxisIndex() == axisIndex) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }
@@ -247,7 +247,7 @@ Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint
 }
 
 template<size_t N = HELIO_DEFAULT_MAXSIZE>
-Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType)
+Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, Helio_ActuatorType actuatorType)
 {
     Vector<HelioObject *, N> retVal;
 
@@ -255,7 +255,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == panel) {
                 retVal.push_back(links.second[linksIndex].first);
             }
         }

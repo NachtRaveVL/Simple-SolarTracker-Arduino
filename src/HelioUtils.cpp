@@ -876,7 +876,7 @@ int linksCountTravelActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links
     return retVal;
 }
 
-int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *srcPanel, Helio_ActuatorType actuatorType)
+int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, Helio_ActuatorType actuatorType)
 {
     int retVal = 0;
 
@@ -884,7 +884,7 @@ int linksCountActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> 
         if (links.second[linksIndex].first->isActuatorType()) {
             auto actuator = static_cast<HelioActuator *>(links.second[linksIndex].first);
 
-            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == srcPanel) {
+            if (actuator->getActuatorType() == actuatorType && actuator->getParentPanel().get() == panel) {
                 retVal++;
             }
         }

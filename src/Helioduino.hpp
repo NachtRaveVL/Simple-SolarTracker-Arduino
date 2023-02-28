@@ -162,7 +162,3 @@ inline bool HelioScheduler::hasSchedulerData() const
 {
     return Helioduino::_activeInstance && Helioduino::_activeInstance->_systemData;
 }
-
-inline void HelioScheduler::setNeedsScheduling() {
-    _needsScheduling = hasSchedulerData();
-}

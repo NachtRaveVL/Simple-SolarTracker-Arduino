@@ -66,12 +66,12 @@ bool HelioPublisher::beginPublishingToSDCard(String dataFilePrefix)
                     Helioduino::_activeInstance->endSDCard(sd);
                 #endif
 
-                Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
                 strncpy(publisherData()->dataFilePrefix, dataFilePrefix.c_str(), 16);
                 publisherData()->pubToSDCard = true;
                 _dataFilename = dataFilename;
-
+                
                 setNeedsTabulation();
+                Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
 
                 return true;
             }
@@ -104,12 +104,12 @@ bool HelioPublisher::beginPublishingToWiFiStorage(String dataFilePrefix)
                 dataFile.close();
             #endif
 
-            Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
             strncpy(publisherData()->dataFilePrefix, dataFilePrefix.c_str(), 16);
             publisherData()->pubToWiFiStorage = true;
             _dataFilename = dataFilename;
 
             setNeedsTabulation();
+            Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
 
             return true;
         }
