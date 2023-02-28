@@ -58,14 +58,68 @@ void HelioScheduler::update()
     }
 }
 
+void HelioScheduler::setCleaningIntervalDays(unsigned int cleaningIntDays)
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+
+    if (hasSchedulerData() && schedulerData()->cleaningIntervalDays != cleaningIntDays) {
+        schedulerData()->cleaningIntervalDays = cleaningIntDays;
+
+        setNeedsScheduling();
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
+    }
+}
+
+void HelioScheduler::setPreDawnCleaningMins(unsigned int cleaningMins)
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+
+    if (hasSchedulerData() && schedulerData()->preDawnCleaningMins != cleaningMins) {
+        schedulerData()->preDawnCleaningMins = cleaningMins;
+
+        setNeedsScheduling();
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
+    }
+}
+
+void HelioScheduler::setPreDawnHeatingMins(unsigned int heatingMins)
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+
+    if (hasSchedulerData() && schedulerData()->preDawnHeatingMins != heatingMins) {
+        schedulerData()->preDawnHeatingMins = heatingMins;
+
+        setNeedsScheduling();
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
+    }
+}
+
 void HelioScheduler::setReportInterval(TimeSpan interval)
 {
     HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
 
     if (hasSchedulerData() && schedulerData()->reportInterval != interval.totalseconds()) {
-        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
         schedulerData()->reportInterval = interval.totalseconds();
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
     }
+}
+
+unsigned int HelioScheduler::getCleaningIntervalDays() const
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+    return hasSchedulerData() ? schedulerData()->cleaningIntervalDays : 0;
+}
+
+unsigned int HelioScheduler::getPreDawnCleaningMins() const
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+    return hasSchedulerData() ? schedulerData()->preDawnCleaningMins : 0;
+}
+
+unsigned int HelioScheduler::getPreDawnHeatingMins() const
+{
+    HELIO_SOFT_ASSERT(hasSchedulerData(), SFP(HStr_Err_NotYetInitialized));
+    return hasSchedulerData() ? schedulerData()->preDawnHeatingMins : 0;
 }
 
 TimeSpan HelioScheduler::getReportInterval() const
@@ -171,12 +225,13 @@ void HelioScheduler::broadcastDayChange()
 
 
 HelioProcess::HelioProcess(SharedPtr<HelioPanel> panelIn)
-    : panel(panelIn), stageStart(0)
+    : panel(panelIn), stageStart(unixNow())
 { ; }
 
 void HelioProcess::clearActuatorReqs()
 {
     while (actuatorReqs.size()) {
+        actuatorReqs.begin()->disableActivation();
         actuatorReqs.erase(actuatorReqs.begin());
     }
 }
@@ -186,14 +241,14 @@ void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_S
     for (auto attachIter = actuatorReqs.begin(); attachIter != actuatorReqs.end(); ++attachIter) {
         bool found = false;
         auto key = attachIter->getKey();
-    
+
         for (auto attachInIter = actuatorReqsIn.begin(); attachInIter != actuatorReqsIn.end(); ++attachInIter) {
             if (key == attachInIter->getKey()) {
                 found = true;
                 break;
             }
         }
-    
+
         if (!found) { // disables actuators not found in new list
             attachIter->disableActivation();
         }
@@ -209,23 +264,15 @@ void HelioProcess::setActuatorReqs(const Vector<HelioActuatorAttachment, HELIO_S
 
 
 HelioTracking::HelioTracking(SharedPtr<HelioPanel> panel)
-    : HelioProcess(panel), stage(Unknown), canProcessAfter(0), lastEnvReport(0),
+    : HelioProcess(panel), stage(Init), canProcessAfter(0), lastEnvReport(0),
       stormingReported(false), nightSeqReported(false), coverSeqReported(false)
 {
-    reset();
+    setupStaging();
 }
 
 HelioTracking::~HelioTracking()
 {
     clearActuatorReqs();
-}
-
-void HelioTracking::reset()
-{
-    clearActuatorReqs();
-    stage = Init; stageStart = unixNow(); canProcessAfter = 0;
-    stormingReported = false; nightSeqReported = false; coverSeqReported = false;
-    setupStaging();
 }
 
 void HelioTracking::setupStaging()
@@ -387,9 +434,8 @@ void HelioTracking::update()
 
     if (!canProcessAfter || time >= canProcessAfter) {
         auto stageWas = stage != Init ? stage : Cover;
-        TimeSpan elapsedTime(time - stageStart);
-        bool logStage = false;
         auto currTime = localTime(time);
+        bool logStage = false;
         auto sunrise = getScheduler()->getDailyTwilight().getSunriseLocalTime();
         auto sunset = getScheduler()->getDailyTwilight().getSunsetLocalTime();
         bool afterSunset = currTime > sunset;
@@ -426,8 +472,7 @@ void HelioTracking::update()
                 } else if (afterSunrise || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging();  logStage = true;
-                } else { // running heating
-                }
+                } // else running heating
             } break;
 
             case Uncover: {
@@ -437,8 +482,7 @@ void HelioTracking::update()
                 } else if (!panel->getPanelCoverDriver() || panel->getPanelCoverDriver()->isAligned()) {
                     stage = (cleaningDue ? Clean : Track); stageStart = time;
                     setupStaging(); logStage = true;
-                } else { // running uncover
-                }
+                } // else running uncover
             } break;
 
             case Clean: {
@@ -450,16 +494,14 @@ void HelioTracking::update()
                     setupStaging(); logStage = true;
 
                     if (trackingPanel) { trackingPanel->notifyPanelCleaned(); }
-                } else { // running cleaning
-                }
+                } // else running cleaning
             } break;
 
             case Track: {
                 if (afterSunset || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
-                } else { // running tracking
-                }
+                } // else running tracking
             } break;
 
             case Cover: {
@@ -471,11 +513,11 @@ void HelioTracking::update()
                 } else if (preHeatingDue) {
                     stage = Warm; stageStart = time;
                     setupStaging(); logStage = true;
-                } else { // before-sunrise / running cover
-                }
+                } // else before-sunrise / running cover
+
                 if (coverSeqReported && panel->getPanelCoverDriver() && panel->getPanelCoverDriver()->isAligned()) {
                     getLogger()->logProcess(panel.get(), SFP(HStr_Log_CoverSequence), SFP(HStr_Log_HasEnded));
-                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                    getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                     coverSeqReported = false;
                 }
             } break;
@@ -489,34 +531,34 @@ void HelioTracking::update()
                 switch (stageWas) {
                     case Warm: {
                         getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnWarmup), SFP(HStr_Log_HasEnded));
-                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                     } break;
 
                     case Uncover: {
                         if (panel->getPanelCoverDriver() && panel->getPanelCoverDriver()->isAligned()) {
                             getLogger()->logProcess(panel.get(), SFP(HStr_Log_UncoverSequence), SFP(HStr_Log_HasEnded));
-                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                         }
                     } break;
 
                     case Clean: {
                         getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnCleaning), SFP(HStr_Log_HasEnded));
-                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                     } break;
 
                     case Track: {
                         getLogger()->logProcess(panel.get(), SFP(HStr_Log_TrackingSequence), SFP(HStr_Log_HasEnded));
-                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                     } break;
 
                     case Cover: {
                         if (stormingReported) {
                             getLogger()->logProcess(panel.get(), SFP(HStr_Log_StormingSequence), SFP(HStr_Log_HasEnded));
-                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                             stormingReported = false;
                         } else if (nightSeqReported) {
                             getLogger()->logProcess(panel.get(), SFP(HStr_Log_NightSequence), SFP(HStr_Log_HasEnded));
-                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(elapsedTime));
+                            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
                             nightSeqReported = false;
                         }
                         if (coverSeqReported) {

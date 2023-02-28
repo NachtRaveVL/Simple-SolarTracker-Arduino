@@ -953,9 +953,10 @@ void Helioduino::setSystemName(String systemName)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && !systemName.equals(getSystemName())) {
-        _systemData->bumpRevisionIfNeeded();
         strncpy(_systemData->systemName, systemName.c_str(), HELIO_NAME_MAXSIZE);
+
         setNeedsLayout();
+        _systemData->bumpRevisionIfNeeded();
     }
 }
 
@@ -963,9 +964,10 @@ void Helioduino::setTimeZoneOffset(int8_t timeZoneOffset)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
-        _systemData->bumpRevisionIfNeeded();
         _systemData->timeZoneOffset = timeZoneOffset;
-        scheduler.broadcastDayChange();
+
+        setNeedsLayout();
+        _systemData->bumpRevisionIfNeeded();
     }
 }
 
@@ -973,8 +975,8 @@ void Helioduino::setPollingInterval(uint16_t pollingInterval)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && _systemData->pollingInterval != pollingInterval) {
-        _systemData->bumpRevisionIfNeeded();
         _systemData->pollingInterval = pollingInterval;
+        _systemData->bumpRevisionIfNeeded();
 
         #ifdef HELIO_USE_MULTITASKING
             if (isValidTask(_dataTaskId)) {
@@ -995,10 +997,10 @@ void Helioduino::setAutosaveEnabled(Helio_Autosave autosaveEnabled, Helio_Autosa
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && (_systemData->autosaveEnabled != autosaveEnabled || _systemData->autosaveFallback != autosaveFallback || _systemData->autosaveInterval != autosaveInterval)) {
-        _systemData->bumpRevisionIfNeeded();
         _systemData->autosaveEnabled = autosaveEnabled;
         _systemData->autosaveFallback = autosaveFallback;
         _systemData->autosaveInterval = autosaveInterval;
+        _systemData->bumpRevisionIfNeeded();
     }
 }
 
@@ -1021,8 +1023,6 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
         bool passChanged = pass.equals(getWiFiPassword());
 
         if (ssidChanged || passChanged || (pass.length() && !_systemData->wifiPasswordSeed)) {
-            _systemData->bumpRevisionIfNeeded();
-
             if (ssid.length()) {
                 strncpy(_systemData->wifiSSID, ssid.c_str(), HELIO_NAME_MAXSIZE);
             } else {
@@ -1042,6 +1042,8 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
                 memset(_systemData->wifiPassword, '\0', HELIO_NAME_MAXSIZE);
             }
 
+            _systemData->bumpRevisionIfNeeded();
+
             if (_netBegan && (ssidChanged || passChanged)) { WiFi.disconnect(); _netBegan = false; } // forces re-connect on next getWiFi
         }
     }
@@ -1057,9 +1059,8 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
         bool macChanged = memcmp(macAddress, getMACAddress(), sizeof(uint8_t[6])) != 0;
 
         if (macChanged) {
-            _systemData->bumpRevisionIfNeeded();
-
             memcpy(_systemData->macAddress, macAddress, sizeof(uint8_t[6]));
+            _systemData->bumpRevisionIfNeeded();
 
             if (_netBegan) { Ethernet.setMACAddress(macAddress); }
         }
@@ -1075,11 +1076,10 @@ void Helioduino::setSystemLocation(double latitude, double longitude, double alt
         forceUpdate |= ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
                        ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
                        fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
-        if (forceUpdate) { _systemData->bumpRevisionIfNeeded(); }
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
-        if (forceUpdate) { scheduler.broadcastDayChange(); }
+        if (forceUpdate) { _systemData->bumpRevisionIfNeeded(); }
     }
 }
 
@@ -1355,7 +1355,6 @@ void Helioduino::notifyRTCTimeUpdated()
     _rtcBattFail = false;
     _lastAutosave = 0;
     logger.updateInitTracking();
-    scheduler.broadcastDayChange();
 }
 
 void Helioduino::notifyDayChanged()

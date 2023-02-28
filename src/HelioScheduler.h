@@ -28,12 +28,18 @@ public:
 
     void update();
 
-    void setReportInterval(TimeSpan interval);
-
-    inline void setNeedsScheduling();
+    inline void setNeedsScheduling() { _needsScheduling = hasSchedulerData(); }
     inline bool needsScheduling() { return _needsScheduling; }
     inline bool inDaytimeMode() const { return _inDaytimeMode; }
 
+    void setCleaningIntervalDays(unsigned int cleaningIntDays);
+    void setPreDawnCleaningMins(unsigned int cleaningMins);
+    void setPreDawnHeatingMins(unsigned int heatingMins);
+    void setReportInterval(TimeSpan reportInterval);
+
+    unsigned int getCleaningIntervalDays() const;
+    unsigned int getPreDawnCleaningMins() const;
+    unsigned int getPreDawnHeatingMins() const;
     TimeSpan getReportInterval() const;
 
     inline const Twilight &getDailyTwilight() const { return _dailyTwilight; }
@@ -75,7 +81,7 @@ struct HelioProcess {
 
 // Scheduler Tracking Process
 struct HelioTracking : public HelioProcess {
-    enum : signed char {Init,Warm,Uncover,Clean,Track,Cover,Unknown = -1} stage; // Current tracking stage
+    enum : signed char {Init,Warm,Uncover,Clean,Track,Cover} stage; // Current tracking stage
 
     time_t canProcessAfter;                                 // Time next processing can occur (unix/UTC), else 0/disabled
     time_t lastEnvReport;                                   // Last time an environment report was generated (unix/UTC)

@@ -96,20 +96,20 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
 #define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
 #define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
-#define SETUP_LIN_ACT1_AXIS1_PINA       -1              // Vertical axis linear actuator #1 pin A (digital), else -1
-#define SETUP_LIN_ACT1_AXIS1_PINB       -1              // Vertical axis linear actuator #1 pin B (digital), else -1
-#define SETUP_LIN_ACT1_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 min endstop pin (digital), else -1
-#define SETUP_LIN_ACT1_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 max endstop pin (digital), else -1
-#define SETUP_LIN_ACT2_AXIS1_PINA       -1              // Vertical axis linear actuator #2 pin A (digital), else -1
-#define SETUP_LIN_ACT2_AXIS1_PINB       -1              // Vertical axis linear actuator #2 pin B (digital), else -1
-#define SETUP_LIN_ACT2_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 min endstop pin (digital), else -1
-#define SETUP_LIN_ACT2_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 max endstop pin (digital), else -1
+#define SETUP_LIN_ACT1_AXIS1_PINA       -1              // Ele/dec axis linear actuator #1 pin A (digital), else -1
+#define SETUP_LIN_ACT1_AXIS1_PINB       -1              // Ele/dec axis linear actuator #1 pin B (digital), else -1
+#define SETUP_LIN_ACT1_MIN_ENDSTOP_PIN  -1              // Ele/dec axis linear actuator #1 min endstop pin (digital), else -1
+#define SETUP_LIN_ACT1_MAX_ENDSTOP_PIN  -1              // Ele/dec axis linear actuator #1 max endstop pin (digital), else -1
+#define SETUP_LIN_ACT2_AXIS1_PINA       -1              // Ele/dec axis linear actuator #2 pin A (digital), else -1
+#define SETUP_LIN_ACT2_AXIS1_PINB       -1              // Ele/dec axis linear actuator #2 pin B (digital), else -1
+#define SETUP_LIN_ACT2_MIN_ENDSTOP_PIN  -1              // Ele/dec axis linear actuator #2 min endstop pin (digital), else -1
+#define SETUP_LIN_ACT2_MAX_ENDSTOP_PIN  -1              // Ele/dec axis linear actuator #2 max endstop pin (digital), else -1
 #define SETUP_PANEL_BRAKE_PIN           -1              // Panel brake relay pin (digital), else -1
 #define SETUP_PANEL_HEATER_PIN          -1              // Panel heater relay pin (digital), else -1
-#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer relay pin (digital), else -1
-#define SETUP_PANEL_TILT_SENSOR_PIN     -1              // Panel tilt angle sensor pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Horizontal axis positional servo pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Vertical axis positional servo pin (analog), else -1
+#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer/wiper relay pin (digital), else -1
+#define SETUP_PANEL_TILT_AXIS1_PIN      -1              // Ele/dec axis panel tilt angle sensor pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Azi/RA axis positional servo pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Ele/dec axis positional servo pin (analog), else -1
 #define SETUP_WIND_SPEED_SENSOR_PIN     -1              // Wind speed sensor pin (analog), else -1
 
 // Base Setup
@@ -117,6 +117,8 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_DC_POWER_RAIL_TYPE        DC12V           // Rail power type used for actuator DC rail (DC3V3, DC5V, DC12V, DC24V, DC48V)
 #define SETUP_AC_SUPPLY_POWER           0               // Maximum AC supply power wattage, else 0 if not known (-> use simple rails)
 #define SETUP_DC_SUPPLY_POWER           0               // Maximum DC supply power wattage, else 0 if not known (-> use simple rails)
+#define SETUP_PANEL_HEATER_TEMP         0               // Temperature celsius at which panel heaters are engaged (if using temp sensor)
+
 
 // Panel Setup
 #define SETUP_PANEL_TYPE                Gimballed       // Panel type (Horizontal, Vertical, Gimballed, Equatorial)

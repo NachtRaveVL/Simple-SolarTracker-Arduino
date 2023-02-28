@@ -1,4 +1,4 @@
-// Simple-Helioponics-Arduino Simple Light Dependent Resistor (LDR) Example
+// Simple-SolarTracker-Arduino Simple Light Dependent Resistor (LDR) Example
 //
 // The Simple LDR Example sketch shows how a simple Helioduino system can be setup using
 // the most minimal of work. In this sketch only that which you actually use is built
