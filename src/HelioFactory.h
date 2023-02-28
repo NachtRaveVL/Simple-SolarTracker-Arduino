@@ -24,17 +24,21 @@ public:
     // Panel sprayers can activate on schedule to keep panels clear of debris and dirt.
     SharedPtr<HelioRelayActuator> addPanelSprayerRelay(pintype_t outputPin);                // Digital output pin this actuator sits on
 
+    // Adds a new relay-based panel brake to the system using the given parameters.
+    // Panel brakes can activate between travel movements to reduce power demands.
+    SharedPtr<HelioRelayActuator> addPanelBrakeRelay(pintype_t outputPin);                  // Digital output pin this actuator sits on
+
     // Adds a new PWM-based panel-axis-driving positional servo to the system using the given parameters.
     // PWM positional servos provide simple angular movement control over panels.
-    SharedPtr<HelioVariableActuator> addPositionServo(pintype_t outputPin,                  // Analog output pin this actuator sits on
-                                                      float minDegrees = -90.0f,            // Minimum angular degrees
-                                                      float maxDegrees = 90.0,              // Maximum angular degrees
-                                                      uint8_t outputBitRes = DAC_RESOLUTION // PWM output bit resolution to use
+    SharedPtr<HelioVariableActuator> addPositionalServo(pintype_t outputPin,                // Analog output pin this actuator sits on
+                                                        float minDegrees = -90.0f,          // Minimum angular degrees
+                                                        float maxDegrees = 90.0,            // Maximum angular degrees
+                                                        uint8_t outputBitRes = DAC_RESOLUTION // PWM output bit resolution to use
 #ifdef ESP32
-                                                      , uint8_t pwmChannel = 1              // PWM output channel (0 reserved for buzzer)
+                                                        , uint8_t pwmChannel = 1            // PWM output channel (0 reserved for buzzer)
 #endif
 #ifdef ESP_PLATFORM
-                                                      , float pwmFrequency = 1000           // PWM output frequency
+                                                        , float pwmFrequency = 1000         // PWM output frequency
 #endif
     );
 
@@ -80,8 +84,7 @@ public:
 
     // Adds a new binary endstop indicator to the system using the given parameters.
     // Endstops can provide triggering that limit actuator travel to within an enclosed track.
-    SharedPtr<HelioBinarySensor> addEndstopIndicator(pintype_t inputPin,                    // Digital input pin this sensor sits on
-                                                     float position);                       // Position representation when triggered
+    SharedPtr<HelioBinarySensor> addEndstopIndicator(pintype_t inputPin);                   // Digital input pin this sensor sits on
 
     // Adds a new binary ice indicator to the system using the given parameters.
     // Ice detection can drive panel heaters that keep ice and snow off panels during cold months.
@@ -89,7 +92,8 @@ public:
 
     // Adds a new analog light intensity sensor/LDR to the system using the given parameters.
     // LDRs can be used in a simple balancing panel to orient towards the strongest light source.
-    SharedPtr<HelioAnalogSensor> addLightIntensitySensor(pintype_t inputPin);               // Analog input pin this sensor sits on
+    SharedPtr<HelioAnalogSensor> addLightIntensitySensor(pintype_t inputPin,                // Analog input pin this sensor sits on
+                                                         uint8_t inputBitRes = ADC_RESOLUTION); // ADC input bit resolution to use
 
     // Adds a new analog power production meter to the system using the given parameters.
     // Power production meters can be used to determine the amount of energy generation.
@@ -106,19 +110,11 @@ public:
     // Adds a new analog stroke position/distance sensor to the system using the given parameters.
     // Linear actuators with feedback can utilize potentiometer-based position sensing for accurate travel.
     SharedPtr<HelioAnalogSensor> addAnalogPositionSensor(pintype_t inputPin,                // Analog input pin this sensor sits on
-                                                         float maxDistance,                 // Maximum distance (max extended position)
-                                                         float minDistance = 0,             // Minimum distance (min retracted position)
-                                                         float maxReading = 1.0f,           // Maximum normalized analogRead() value [0,1]
-                                                         float minReading = 0.0f,           // Minimum normalized analogRead() value [0,1]
                                                          uint8_t inputBitRes = ADC_RESOLUTION); // ADC input bit resolution to use
 
     // Adds a new analog tilt/lean angle sensor to the system using the given parameters.
     // Tilt angle sensors measure resistance using natural gravity, but can only measure straight-up to fully-tilted elevations.
     SharedPtr<HelioAnalogSensor> addAnalogTiltAngleSensor(pintype_t inputPin,               // Analog input pin this sensor sits on
-                                                          float maxElevation = 90,          // Maximum elevation (max vertical angle)
-                                                          float minElevation = 0,           // Minimum elevation (min vertical angle)
-                                                          float maxReading = 1.0f,          // Maximum normalized analogRead() value [0,1]
-                                                          float minReading = 0.0f,          // Minimum normalized analogRead() value [0,1]
                                                           uint8_t inputBitRes = ADC_RESOLUTION); // ADC input bit resolution to use
 
     // Adds a new analog temperature sensor to the system using the given parameters.
@@ -141,20 +137,25 @@ public:
     // Adds a new LDR-based balancing panel to the system using the given parameters.
     // Balancing panels equalize two opposing photoresistors to drive their orientation.
     SharedPtr<HelioBalancingPanel> addLDRBalancingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
+                                                        float intTolerance = HELIO_PANEL_ALIGN_LDRTOL, // LDR intensity balancing tolerance, in % ([0.0,1.0])
+                                                        float minIntensity = HELIO_PANEL_ALIGN_LDRMIN, // LDR minimum intensity, in % ([0.0,1.0])
+                                                        float axisOffset[2] = {0},          // Axis offset (azi,ele or RA,dec)
                                                         float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
 
     // Adds a new solar-tracking smart panel to the system using the given parameters.
     // Tracking panels recalculate the sun's position across the day to drive their orientation.
     SharedPtr<HelioTrackingPanel> addSolarTrackingPanel(Helio_PanelType panelType,          // Panel type (mounting configuration)
-                                                        float axisOffset[2] = {0},          // Axis calibration offsets (azi,ele or RA,dec)
+                                                        float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL, // Angle alignment tolerance, in degrees
+                                                        float axisOffset[2] = {0},          // Axis offset (azi,ele or RA,dec)
                                                         float homePosition[2] = {0});       // Home position (azi,ele or RA,dec)
 
     // Adds a new reflecting panel to the system using the given parameters.
     // Reflecting "panels" are mirrors that reflect the sun's light towards a preset direction.
-    SharedPtr<HelioReflectingPanel> addSolarReflectingPanel(Helio_PanelType panelType,           // Panel type (mounting configuration)
-                                                            float reflectTowards[2] = {0},       // Direction to reflect towards (azi,ele or RA,dec)
-                                                            float axisOffset[2] = {0},           // Axis calibration offsets (azi,ele or RA,dec)
-                                                            float homePosition[2] = {0});        // Home position (azi,ele or RA,dec)
+    SharedPtr<HelioReflectingPanel> addSolarReflectingPanel(Helio_PanelType panelType,      // Panel type (mounting configuration)
+                                                            float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL, // Angle alignment tolerance, in degrees
+                                                            float reflectPosition[2] = {0}, // Position to reflect towards (azi,ele or RA,dec)
+                                                            float axisOffset[2] = {0},      // Axis offset (azi,ele or RA,dec)
+                                                            float homePosition[2] = {0});   // Home position (azi,ele or RA,dec)
 
     // Convenience builders for common power rails (shared, nullptr return -> failure).
 
