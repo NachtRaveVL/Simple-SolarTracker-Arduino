@@ -40,11 +40,12 @@ void setup() {
     helioController.init(Helio_SystemMode_BrightnessBalancing);
 
     // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
-    auto ldrPanel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE), SETUP_PANEL_HOME_);
+    auto ldrPanel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
+    ldrPanel->setHomePosition(SETUP_PANEL_HOME_);
     ldrPanel->setAxisOffset(SETUP_PANEL_OFFSET_);
 
     // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
-    auto axisServo = helioController.addPositionServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
+    auto axisServo = helioController.addPositionalServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
     axisServo->setParentPanel(ldrPanel, Helio_PanelAxis_Elevation);
 
     // Adds a light intensity sensor at SETUP_LDR_LOWER_PIN, installed on the lower side of the panel.
