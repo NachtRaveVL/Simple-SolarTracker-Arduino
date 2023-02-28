@@ -273,10 +273,9 @@ void setup() {
                              JOIN(Helio_ControlInputMode,SETUP_CTRL_IN_MODE));
 
         setupOnce();
-        setupAlways();
-    } else {
-        setupAlways();
     }
+
+    setupAlways();
 
     #if defined(HELIO_USE_GUI) && SETUP_LCD_OUT_MODE != Disabled
         helioController.enableUI(new HelioduinoFullUI());

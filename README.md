@@ -275,8 +275,8 @@ The Simple LDR Example sketch shows how a simple Helioduino system can be setup 
 
 Helioduino helioController(SETUP_PIEZO_BUZZER_PIN);     // Controller using default setup aside from buzzer pin, if defined
 
-float SETUP_PANEL_HOME_[] = SETUP_PANEL_HOME;
-float SETUP_PANEL_OFFSET_[] = SETUP_PANEL_OFFSET;
+float _SETUP_PANEL_HOME[] = SETUP_PANEL_HOME;
+float _SETUP_PANEL_OFFSET[] = SETUP_PANEL_OFFSET;
 
 void setup() {
     // Setup base interfaces
@@ -290,8 +290,8 @@ void setup() {
 
     // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
     auto panel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
-    panel->setHomePosition(SETUP_PANEL_HOME_);
-    panel->setAxisOffset(SETUP_PANEL_OFFSET_);
+    panel->setHomePosition(_SETUP_PANEL_HOME);
+    panel->setAxisOffset(_SETUP_PANEL_OFFSET);
 
     // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
     auto axisServo = helioController.addPositionalServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
@@ -409,10 +409,27 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
 
 // Device Setup
-#define SETUP_AC_POWER_SENSOR_PIN       -1              // AC power meter sensor pin (analog), else -1
-#define SETUP_DC_POWER_SENSOR_PIN       -1              // DC power meter sensor pin (analog), else -1
+#define SETUP_AC_USAGE_SENSOR_PIN       -1              // AC power usage meter sensor pin (analog), else -1
+#define SETUP_DC_USAGE_SENSOR_PIN       -1              // DC power usage meter sensor pin (analog), else -1
+#define SETUP_DC_GEN_SENSOR_PIN         -1              // DC power generation meter sensor pin (analog), else -1
 #define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
 #define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
+#define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
+#define SETUP_LIN_ACT1_AXIS1_PINA       -1              // Vertical axis linear actuator #1 pin A (digital), else -1
+#define SETUP_LIN_ACT1_AXIS1_PINB       -1              // Vertical axis linear actuator #1 pin B (digital), else -1
+#define SETUP_LIN_ACT1_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 min endstop pin (digital), else -1
+#define SETUP_LIN_ACT1_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 max endstop pin (digital), else -1
+#define SETUP_LIN_ACT2_AXIS1_PINA       -1              // Vertical axis linear actuator #2 pin A (digital), else -1
+#define SETUP_LIN_ACT2_AXIS1_PINB       -1              // Vertical axis linear actuator #2 pin B (digital), else -1
+#define SETUP_LIN_ACT2_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 min endstop pin (digital), else -1
+#define SETUP_LIN_ACT2_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 max endstop pin (digital), else -1
+#define SETUP_PANEL_BRAKE_PIN           -1              // Panel brake relay pin (digital), else -1
+#define SETUP_PANEL_HEATER_PIN          -1              // Panel heater relay pin (digital), else -1
+#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer relay pin (digital), else -1
+#define SETUP_PANEL_TILT_SENSOR_PIN     -1              // Panel tilt angle sensor pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Horizontal axis positional servo pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Vertical axis positional servo pin (analog), else -1
+#define SETUP_WIND_SPEED_SENSOR_PIN     -1              // Wind speed sensor pin (analog), else -1
 
 // Base Setup
 #define SETUP_AC_POWER_RAIL_TYPE        AC110V          // Rail power type used for actuator AC rail (AC110V, AC220V)
