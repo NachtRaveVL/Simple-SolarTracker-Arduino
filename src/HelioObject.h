@@ -148,7 +148,7 @@ protected:
     uint8_t _linksSize;                                     // Number of object linkages
     Pair<HelioObject *, int8_t> *_links;                    // Object linkages array (owned, lazily allocated/grown/shrunk)
 
-    virtual HelioData *allocateData() const;                // Only up to base type classes (sensor, crop, etc.) does this need overriden
+    virtual HelioData *allocateData() const;                // Only up to base type classes (sensor, panel, etc.) does this need overriden
     virtual void saveToData(HelioData *dataOut);            // *ALL* derived classes must override and implement
 
 private:
