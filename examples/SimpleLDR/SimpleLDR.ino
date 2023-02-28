@@ -26,8 +26,8 @@
 
 Helioduino helioController(SETUP_PIEZO_BUZZER_PIN);     // Controller using default setup aside from buzzer pin, if defined
 
-float SETUP_PANEL_HOME_[] = SETUP_PANEL_HOME;
-float SETUP_PANEL_OFFSET_[] = SETUP_PANEL_OFFSET;
+float _SETUP_PANEL_HOME[] = SETUP_PANEL_HOME;
+float _SETUP_PANEL_OFFSET[] = SETUP_PANEL_OFFSET;
 
 void setup() {
     // Setup base interfaces
@@ -41,8 +41,8 @@ void setup() {
 
     // Adds a simple horizontal LDR balanced solar panel, and sets up any specified offsets.
     auto panel = helioController.addLDRBalancingPanel(JOIN(Helio_PanelType,SETUP_PANEL_TYPE));
-    panel->setHomePosition(SETUP_PANEL_HOME_);
-    panel->setAxisOffset(SETUP_PANEL_OFFSET_);
+    panel->setHomePosition(_SETUP_PANEL_HOME);
+    panel->setAxisOffset(_SETUP_PANEL_OFFSET);
 
     // Adds a simple positional servo at SETUP_AXIS_SERVO_PIN, installed to control the vertical elevation of the panel.
     auto axisServo = helioController.addPositionalServo(SETUP_AXIS_SERVO_PIN, SETUP_SERVO_MIN_DEG, SETUP_SERVO_MAX_DEG);
