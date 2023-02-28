@@ -62,7 +62,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelBrakeRelay(pintype_t outputP
     return nullptr;
 }
 
-SharedPtr<HelioVariableActuator> addPositionalServo(pintype_t outputPin, float minDegrees, float maxDegrees, uint8_t outputBitRes
+SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outputPin, float minDegrees, float maxDegrees, uint8_t outputBitRes
 #ifdef ESP32
                                                       , uint8_t pwmChannel
 #endif
@@ -89,9 +89,8 @@ SharedPtr<HelioVariableActuator> addPositionalServo(pintype_t outputPin, float m
 #endif
         )));
         if (getController()->registerObject(actuator)) {
-            HelioCalibrationData userCalibData(actuator->getId());
+            HelioCalibrationData userCalibData(actuator->getId(), Helio_UnitsType_Angle_Degrees_360);
             userCalibData.setFromServo(minDegrees, maxDegrees);
-            userCalibData.calibrationUnits = Helio_UnitsType_Angle_Degrees_360;
             actuator->setUserCalibrationData(&userCalibData);
 
             return actuator;
@@ -101,7 +100,7 @@ SharedPtr<HelioVariableActuator> addPositionalServo(pintype_t outputPin, float m
     return nullptr;
 }
 
-SharedPtr<HelioRelayMotorActuator> addLinearActuatorRelay(pintype_t outputPinA, pintype_t outputPinB, float maxPosition, float minPosition)
+SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_t outputPinA, pintype_t outputPinB, float maxPosition, float minPosition)
 {
     bool outputPinAIsDigital = checkPinIsDigital(outputPinA);
     bool outputPinBIsDigital = checkPinIsDigital(outputPinB);
