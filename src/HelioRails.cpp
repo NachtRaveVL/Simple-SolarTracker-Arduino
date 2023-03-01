@@ -184,9 +184,9 @@ HelioRegulatedRail::HelioRegulatedRail(Helio_RailType railType, hposi_t railInde
     : HelioRail(railType, railIndex, classType), _maxPower(maxPower), _powerUsage(this), _limitTrigger(this)
 {
     _powerUsage.setMeasurementUnits(getPowerUnits(), getRailVoltage());
-    _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
+    _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower, this);
 
-    _limitTrigger.setHandleMethod(&HelioRail::handleLimit);
+    _limitTrigger.setHandleMethod(&HelioRail::handleLimit, this);
 }
 
 HelioRegulatedRail::HelioRegulatedRail(const HelioRegulatedRailData *dataIn)
@@ -195,10 +195,10 @@ HelioRegulatedRail::HelioRegulatedRail(const HelioRegulatedRailData *dataIn)
       _powerUsage(this), _limitTrigger(this)
 {
     _powerUsage.setMeasurementUnits(HelioRail::getPowerUnits(), getRailVoltage());
-    _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower);
+    _powerUsage.setHandleMethod(&HelioRegulatedRail::handlePower, this);
     _powerUsage.initObject(dataIn->powerUsageSensor);
 
-    _limitTrigger.setHandleMethod(&HelioRail::handleLimit);
+    _limitTrigger.setHandleMethod(&HelioRail::handleLimit, this);
     _limitTrigger.setObject(newTriggerObjectFromSubData(&(dataIn->limitTrigger)));
     HELIO_SOFT_ASSERT(_limitTrigger, SFP(HStr_Err_AllocationFailure));
 }
