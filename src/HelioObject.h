@@ -19,7 +19,7 @@ struct HelioObjectData;
 extern HelioObject *newObjectFromData(const HelioData *dataIn);
 
 // Shortcut to get shared pointer for object with static pointer cast built-in.
-template<class T = HelioObjInterface> inline SharedPtr<T> getSharedPtr(const HelioObjInterface *obj) { return obj ? reinterpret_pointer_cast<T>(obj->getSharedPtr()) : nullptr; }
+template<class T = HelioObjInterface> inline SharedPtr<T> getSharedPtr(const HelioObjInterface *obj) { return obj ? static_pointer_cast<T>(obj->getSharedPtr()) : nullptr; }
 
 
 // Object Identity

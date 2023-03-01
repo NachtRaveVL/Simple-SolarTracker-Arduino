@@ -63,7 +63,7 @@ template<class U>
 inline HelioDLinkObject &HelioDLinkObject::operator=(SharedPtr<U> &rhs)
 {
     _key = rhs ? rhs->getKey() : hkey_none;
-    _obj = rhs ? reinterpret_pointer_cast<HelioObjInterface>(rhs) : nullptr;
+    _obj = rhs ? static_pointer_cast<HelioObjInterface>(rhs) : nullptr;
     if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
 
     return *this;

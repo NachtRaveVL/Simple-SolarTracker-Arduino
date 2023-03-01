@@ -44,7 +44,7 @@ SharedPtr<HelioObjInterface> HelioDLinkObject::resolveObject()
 {
     if (_obj || !isSet()) { return _obj; }
     if (Helioduino::_activeInstance) {
-        _obj = reinterpret_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
+        _obj = static_pointer_cast<HelioObjInterface>(Helioduino::_activeInstance->_objects[_key]);
     }
     if (_obj && _keyStr) {
         free((void *)_keyStr); _keyStr = nullptr;
@@ -200,7 +200,7 @@ HelioSensorAttachment::HelioSensorAttachment(HelioObjInterface *parent, hposi_t 
     : HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>(parent, subIndex, &HelioSensor::getMeasurementSignal),
       _measurementRow(measurementRow), _convertParam(FLT_UNDEF), _needsMeasurement(true)
 {
-    setHandleMethod(&HelioSensorAttachment::handleMeasurement);
+    setHandleMethod(&HelioSensorAttachment::handleMeasurement, this);
 }
 
 HelioSensorAttachment::HelioSensorAttachment(const HelioSensorAttachment &attachment)
