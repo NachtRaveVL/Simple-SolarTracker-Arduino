@@ -397,10 +397,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_AlignedTolerance[] PROGMEM = {"alignedTolerance"};
             return flashStr_Key_AlignedTolerance;
         } break;
-        case HStr_Key_Altitude: {
-            static const char flashStr_Key_Altitude[] PROGMEM = {"altitude"};
-            return flashStr_Key_Altitude;
-        } break;
         case HStr_Key_AutosaveEnabled: {
             static const char flashStr_Key_AutosaveEnabled[] PROGMEM = {"autosaveEnabled"};
             return flashStr_Key_AutosaveEnabled;
@@ -533,10 +529,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_LastCleanedTime[] PROGMEM = {"lastCleanedTime"};
             return flashStr_Key_LastCleanedTime;
         } break;
-        case HStr_Key_Latitude: {
-            static const char flashStr_Key_Latitude[] PROGMEM = {"latitude"};
-            return flashStr_Key_Latitude;
-        } break;
         case HStr_Key_LDRSensorHorzMin: {
             static const char flashStr_Key_LDRSensorHorzMin[] PROGMEM = {"ldrSensorHorzMin"};
             return flashStr_Key_LDRSensorHorzMin;
@@ -556,6 +548,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_LimitTrigger: {
             static const char flashStr_Key_LimitTrigger[] PROGMEM = {"limitTrigger"};
             return flashStr_Key_LimitTrigger;
+        } break;
+        case HStr_Key_Location: {
+            static const char flashStr_Key_Location[] PROGMEM = {"location"};
+            return flashStr_Key_Location;
         } break;
         case HStr_Key_LocationOffset: {
             static const char flashStr_Key_LocationOffset[] PROGMEM = {"locationOffset"};
