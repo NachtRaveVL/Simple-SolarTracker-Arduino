@@ -10,7 +10,6 @@ template<typename RTCType> class HelioRTCWrapper;
 #ifdef HELIO_USE_MULTITASKING
 template<typename ParameterType, int Slots> class SignalFireTask;
 template<class ObjectType, typename ParameterType> class MethodSlotCallTask;
-class ActuatorTimedEnableTask;
 #endif
 
 #include "Helioduino.h"
@@ -125,24 +124,6 @@ private:
     friend taskid_t scheduleObjectMethodCallWithTaskIdOnce<ObjectType>(SharedPtr<ObjectType> object, void (ObjectType::*method)(taskid_t));
     friend taskid_t scheduleObjectMethodCallWithTaskIdOnce<ObjectType>(ObjectType *object, void (ObjectType::*method)(taskid_t));
 };
-
-
-// Actuator Precise Timed Enable Task
-// This task will enable an actuator for a period of time finely, and then deactivate it.
-class ActuatorTimedEnableTask : public Executable {
-public:
-    taskid_t taskId;
-    ActuatorTimedEnableTask(SharedPtr<HelioActuator> actuator,
-                            float intensity,
-                            millis_t duration);
-
-    virtual void exec() override;
-private:
-    SharedPtr<HelioActuator> _actuator;
-    float _intensity;
-    millis_t _duration;
-};
-
 
 #endif // /ifdef HELIO_USE_MULTITASKING
 
