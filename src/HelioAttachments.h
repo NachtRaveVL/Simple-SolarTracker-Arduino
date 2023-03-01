@@ -323,6 +323,7 @@ public:
     virtual void updateIfNeeded(bool poll = false) override;
 
     inline Helio_TriggerState getTriggerState(bool poll = false);
+    inline bool isTriggered(bool poll = false) { return getTriggerState(poll) == Helio_TriggerState_Triggered; }
 
     inline SharedPtr<HelioTrigger> getObject() { return HelioAttachment::getObject<HelioTrigger>(); }
     inline HelioTrigger *get() { return HelioAttachment::get<HelioTrigger>(); }

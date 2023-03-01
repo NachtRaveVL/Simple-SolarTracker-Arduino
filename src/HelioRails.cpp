@@ -220,16 +220,14 @@ SharedPtr<HelioObjInterface> HelioRegulatedRail::getSharedPtrFor(const HelioObjI
 
 bool HelioRegulatedRail::canActivate(HelioActuator *actuator)
 {
-    if (_limitTrigger.resolve() && triggerStateToBool(_limitTrigger.getTriggerState())) { return false; }
-
+    if (_limitTrigger.isTriggered()) { return false; }
     HelioSingleMeasurement powerReq = actuator->getContinuousPowerUsage().asUnits(getPowerUnits(), getRailVoltage());
-
     return _powerUsage.getMeasurementValue(true) + powerReq.value < (HELIO_RAILS_FRACTION_SATURATED * _maxPower) - FLT_EPSILON;
 }
 
 float HelioRegulatedRail::getCapacity(bool poll)
 {
-    if (_limitTrigger.resolve() && triggerStateToBool(_limitTrigger.getTriggerState())) { return 1.0f; }
+    if (_limitTrigger.isTriggered(poll)) { return 1.0f; }
     return _powerUsage.getMeasurementValue(poll) / (HELIO_RAILS_FRACTION_SATURATED * _maxPower);
 }
 

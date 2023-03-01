@@ -283,7 +283,7 @@ void HelioTracking::setupStaging()
     #endif
 
     auto trackingPanel = panel->isAnyTrackingClass() ? static_pointer_cast<HelioTrackingPanel>(panel) : nullptr;
-    bool isStorming = trackingPanel && triggerStateToBool(trackingPanel->getStormingTriggerAttachment().getTriggerState());
+    bool isStorming = trackingPanel && trackingPanel->getStormingTriggerAttachment().isTriggered();
     bool canUncover = stage >= Uncover && stage < Cover && !isStorming;
 
     if (panel->drivesHorizontalAxis()) {
@@ -444,9 +444,9 @@ void HelioTracking::update()
                            currTime >= trackingPanel->getLastPanelCleaningTime() + TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
                            linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelSprayer).size();
         bool preHeatingDue = trackingPanel && currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnHeatingMins,0) &&
-                             triggerStateToBool(trackingPanel->getHeatingTriggerAttachment().getTriggerState()) &&
+                             trackingPanel->getHeatingTriggerAttachment().isTriggered() &&
                              linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelHeater).size();
-        bool isStorming = trackingPanel && triggerStateToBool(trackingPanel->getStormingTriggerAttachment().getTriggerState());
+        bool isStorming = trackingPanel && trackingPanel->getStormingTriggerAttachment().isTriggered();
 
         switch (stage) {
             case Init: {
