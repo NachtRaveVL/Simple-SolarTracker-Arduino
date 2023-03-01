@@ -129,10 +129,10 @@ void HelioActuatorAttachment::updateIfNeeded(bool poll)
     if (_actHandle.isValid()) {
         if (isActivated()) {
             _actHandle.elapseTo();
-            if (_updateSlot) { _updateSlot->operator()(this); }
+            if (_updateSlot) { (*_updateSlot)(this); }
             _calledLastUpdate = _actHandle.isDone();
         } else if (_actHandle.isDone() && !_calledLastUpdate) {
-            if (_updateSlot) { _updateSlot->operator()(this); }
+            if (_updateSlot) { (*_updateSlot)(this); }
             _calledLastUpdate = true;
         }
     }
@@ -218,7 +218,7 @@ void HelioSensorAttachment::attachObject()
 {
     HelioSignalAttachment<const HelioMeasurement *, HELIO_SENSOR_SIGNAL_SLOTS>::attachObject();
 
-    if (_handleSlot) { _handleSlot->operator()(get()->getMeasurement()); }
+    if (_handleSlot) { (*_handleSlot)(get()->getMeasurement()); }
     else { handleMeasurement(get()->getMeasurement()); }
 }
 
@@ -232,7 +232,7 @@ void HelioSensorAttachment::detachObject()
 void HelioSensorAttachment::updateIfNeeded(bool poll)
 {
     if ((poll || _needsMeasurement) && resolve()) {
-        if (_handleSlot) { _handleSlot->operator()(get()->getMeasurement()); }
+        if (_handleSlot) { (*_handleSlot)(get()->getMeasurement()); }
         else { handleMeasurement(get()->getMeasurement()); }
 
         get()->takeMeasurement((poll || _needsMeasurement)); // purposeful recheck
