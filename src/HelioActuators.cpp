@@ -582,13 +582,13 @@ Pair<float,float> HelioRelayMotorActuator::getTravelRange() const
 
 bool HelioRelayMotorActuator::isMinTravel(bool poll)
 {
-    if (triggerStateToBool(_minimum.getTriggerState(poll))) { return true; }
+    if (_minimum.isTriggered(poll)) { return true; }
     return _position.getMeasurementValue(poll) <= _travelRange.first + FLT_EPSILON;
 }
 
 bool HelioRelayMotorActuator::isMaxTravel(bool poll)
 {
-    if (triggerStateToBool(_maximum.getTriggerState(poll))) { return true; }
+    if (_maximum.isTriggered(poll)) { return true; }
     return _position.getMeasurementValue(poll) >= _travelRange.second - FLT_EPSILON;
 }
 

@@ -365,7 +365,7 @@ bool HelioTrackingPanel::canActivate(HelioActuator *actuator)
 {
     switch (actuator->getActuatorType()) {
         case Helio_ActuatorType_PanelHeater:
-            return !triggerStateToBool(_heatingTrigger.getTriggerState());
+            return _heatingTrigger.isTriggered();
         default:
             return HelioPanel::canActivate(actuator);
     }
@@ -373,7 +373,7 @@ bool HelioTrackingPanel::canActivate(HelioActuator *actuator)
 
 bool HelioTrackingPanel::isDaylight(bool poll)
 {
-    return _inDaytimeMode && !triggerStateToBool(_stormingTrigger.getTriggerState(poll));
+    return _inDaytimeMode && !_stormingTrigger.isTriggered(poll);
 }
 
 bool HelioTrackingPanel::isAligned(bool poll)
