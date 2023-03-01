@@ -101,21 +101,21 @@ HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(HelioIdentity sensorI
     : HelioTrigger(sensorId, measurementRow, detriggerTol, detriggerDelay, MeasureValue),
       _triggerTol(tolerance), _triggerBelow(triggerBelow)
 {
-    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement, this);
 }
 
 HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(SharedPtr<HelioSensor> sensor, float tolerance, bool triggerBelow, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
     : HelioTrigger(sensor, measurementRow, detriggerTol, detriggerDelay, MeasureValue),
       _triggerTol(tolerance), _triggerBelow(triggerBelow)
 {
-    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement, this);
 }
 
 HelioMeasurementValueTrigger::HelioMeasurementValueTrigger(const HelioTriggerSubData *dataIn)
     : HelioTrigger(dataIn),
       _triggerTol(dataIn->dataAs.measureValue.tolerance), _triggerBelow(dataIn->dataAs.measureValue.triggerBelow)
 {
-    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementValueTrigger::handleMeasurement, this);
 }
 
 void HelioMeasurementValueTrigger::saveToData(HelioTriggerSubData *dataOut) const
@@ -178,14 +178,14 @@ HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(HelioIdentity sensorI
     : HelioTrigger(sensorId, measurementRow, detriggerTol, detriggerDelay, MeasureRange),
       _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _triggerOutside(triggerOutside)
 {
-    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement, this);
 }
 
 HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(SharedPtr<HelioSensor> sensor, float toleranceLow, float toleranceHigh, bool triggerOutside, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay)
     : HelioTrigger(sensor, measurementRow, detriggerTol, detriggerDelay, MeasureRange),
       _triggerTolLow(toleranceLow), _triggerTolHigh(toleranceHigh), _triggerOutside(triggerOutside)
 {
-    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement, this);
 }
 
 HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(const HelioTriggerSubData *dataIn)
@@ -194,7 +194,7 @@ HelioMeasurementRangeTrigger::HelioMeasurementRangeTrigger(const HelioTriggerSub
       _triggerTolHigh(dataIn->dataAs.measureRange.toleranceHigh),
       _triggerOutside(dataIn->dataAs.measureRange.triggerOutside)
 {
-    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement);
+    _sensor.setHandleMethod(&HelioMeasurementRangeTrigger::handleMeasurement, this);
 }
 
 void HelioMeasurementRangeTrigger::saveToData(HelioTriggerSubData *dataOut) const

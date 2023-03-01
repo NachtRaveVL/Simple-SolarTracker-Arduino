@@ -36,7 +36,7 @@ public:
     template<class U> inline void unresolveIf(U obj) { if (operator==(obj)) { unresolve(); } }
 
     template<class U> inline void setObject(U obj) { operator=(obj); }
-    template<class U = HelioObjInterface> inline SharedPtr<U> getObject() { return reinterpret_pointer_cast<U>(resolveObject()); }
+    template<class U = HelioObjInterface> inline SharedPtr<U> getObject() { return static_pointer_cast<U>(resolveObject()); }
     template<class U = HelioObjInterface> inline U *get() { return getObject<U>().get(); }
 
     inline HelioIdentity getId() const { return _obj ? _obj->getId() : (_keyStr ? HelioIdentity(_keyStr) : HelioIdentity(_key)); }
@@ -153,7 +153,7 @@ public:
     // Sets a handle slot to run when attached signal fires
     void setHandleSlot(const Slot<ParameterType> &handleSlot);
     inline void setHandleFunction(void (*handleFunctionPtr)(ParameterType)) { setHandleSlot(FunctionSlot<ParameterType>(handleFunctionPtr)); }
-    template<class U> inline void setHandleMethod(void (U::*handleMethodPtr)(ParameterType), U *handleClassInst = nullptr) { setHandleSlot(MethodSlot<U,ParameterType>(handleClassInst ? handleClassInst : reinterpret_cast<U *>(_parent), handleMethodPtr)); }
+    template<class U, class V = U> inline void setHandleMethod(void (U::*handleMethodPtr)(ParameterType), V *handleClassInst = nullptr) { setHandleSlot(MethodSlot<V,ParameterType>(handleClassInst ? handleClassInst : static_cast<V *>(_parent), handleMethodPtr)); }
 
     inline HelioSignalAttachment<ParameterType,Slots> &operator=(const HelioIdentity &rhs) { setObject(rhs); return *this; }
     inline HelioSignalAttachment<ParameterType,Slots> &operator=(const char *rhs) { setObject(HelioIdentity(rhs)); return *this; }
