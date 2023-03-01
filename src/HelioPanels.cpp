@@ -365,7 +365,7 @@ bool HelioTrackingPanel::canActivate(HelioActuator *actuator)
 {
     switch (actuator->getActuatorType()) {
         case Helio_ActuatorType_PanelHeater:
-            return _heatingTrigger.isTriggered();
+            return !_heatingTrigger.isSet() || _heatingTrigger.isTriggered();
         default:
             return HelioPanel::canActivate(actuator);
     }
