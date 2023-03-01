@@ -168,7 +168,7 @@ void HelioScheduler::performScheduling()
                         }
                     } else {
                         #ifdef HELIO_USE_VERBOSE_OUTPUT
-                            Serial.print(F("Scheduler::performScheduling Travel actuator linkages found for: ")); Serial.print(iter->second->getKeyString());
+                            Serial.print(F("Scheduler::performScheduling Travel actuator linkages found for: ")); Serial.print(iter->second->getId().getDisplayString());
                             Serial.print(':'); Serial.print(' '); Serial.println(linksCountTravelActuators(panel->getLinkages())); flushYield();
                         #endif
 
@@ -178,7 +178,7 @@ void HelioScheduler::performScheduling()
                     }
                 } else if (trackingIter != _trackings.end()) { // No travel actuators to warrant process -> delete if exists
                     #ifdef HELIO_USE_VERBOSE_OUTPUT
-                        Serial.print(F("Scheduler::performScheduling NO travel actuator linkages found for: ")); Serial.println(iter->second->getKeyString()); flushYield();
+                        Serial.print(F("Scheduler::performScheduling NO travel actuator linkages found for: ")); Serial.println(iter->second->getId().getDisplayString()); flushYield();
                     #endif
                     if (trackingIter->second) { delete trackingIter->second; }
                     _trackings.erase(trackingIter);

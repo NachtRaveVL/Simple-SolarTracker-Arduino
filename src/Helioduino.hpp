@@ -77,22 +77,22 @@ inline bool HelioLogger::isLoggingToWiFiStorage() const
 
 inline void HelioLogger::logActivation(const HelioActuator *actuator)
 {
-    if (actuator) { logMessage(actuator->getKeyString(), SFP(HStr_Log_HasEnabled)); }
+    if (actuator) { logMessage(actuator->getId().getDisplayString(), SFP(HStr_Log_HasEnabled)); }
 }
 
 inline void HelioLogger::logDeactivation(const HelioActuator *actuator)
 {
-    if (actuator) { logMessage(actuator->getKeyString(), SFP(HStr_Log_HasDisabled)); }
+    if (actuator) { logMessage(actuator->getId().getDisplayString(), SFP(HStr_Log_HasDisabled)); }
 }
 
-inline void HelioLogger::logProcess(const HelioObject *obj, const String &processString, const String &statusString)
+inline void HelioLogger::logProcess(const HelioObjInterface *obj, const String &processString, const String &statusString)
 {
-    if (obj) { logMessage(obj->getKeyString(), processString, statusString); }
+    if (obj) { logMessage(obj->getId().getDisplayString(), processString, statusString); }
 }
 
-inline void HelioLogger::logStatus(const HelioObject *obj, const String &statusString)
+inline void HelioLogger::logStatus(const HelioObjInterface *obj, const String &statusString)
 {
-    if (obj) { logMessage(obj->getKeyString(), statusString); }
+    if (obj) { logMessage(obj->getId().getDisplayString(), statusString); }
 }
 
 inline Helio_LogLevel HelioLogger::getLogLevel() const

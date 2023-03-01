@@ -491,7 +491,7 @@ void HelioRelayMotorActuator::handleActivation()
         float duration = time - _travelTimeStart;
 
         getLogger()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
-        if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getKeyString()); }
+        if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
         getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistAccum, baseUnits(getSpeedUnits()), 1));
         getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
     }
@@ -530,7 +530,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
     if (getParentPanel()) {
         #ifdef HELIO_USE_MULTITASKING
             getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getKeyString()); }
+            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
             if (_contSpeed.value > FLT_EPSILON) {
                 getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
@@ -538,7 +538,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
             return enableActuator(direction, 1.0f, time);
         #else
             getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getPanel()->getKeyString()); }
+            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getPanel()->getId().getDisplayString()); }
             if (_contSpeed.value > FLT_EPSILON) {
                 getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
