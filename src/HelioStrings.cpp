@@ -577,10 +577,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_Logger[] PROGMEM = {"logger"};
             return flashStr_Key_Logger;
         } break;
-        case HStr_Key_Longitude: {
-            static const char flashStr_Key_Longitude[] PROGMEM = {"longitude"};
-            return flashStr_Key_Longitude;
-        } break;
         case HStr_Key_MACAddress: {
             static const char flashStr_Key_MACAddress[] PROGMEM = {"macAddress"};
             return flashStr_Key_MACAddress;

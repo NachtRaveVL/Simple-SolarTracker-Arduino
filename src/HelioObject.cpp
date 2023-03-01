@@ -54,6 +54,17 @@ hkey_t HelioIdentity::regenKey()
     return key;
 }
 
+String HelioIdentity::getDisplayString()
+{
+    switch (type) {
+        case Actuator: return String(F("Actuator ")) + keyString;
+        case Sensor: return String(F("Sensor ")) + keyString;
+        case Panel: return String(F("Panel ")) + keyString;
+        case Rail: return String(F("Rail ")) + keyString;
+        default: return String(F("Unknown ")) + keyString;
+    }
+}
+
 
 HelioObject::~HelioObject()
 {
