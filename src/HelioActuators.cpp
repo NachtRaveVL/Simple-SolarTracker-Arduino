@@ -370,8 +370,8 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType
     _position.setMeasurementUnits(getDistanceUnits());
     _speed.setMeasurementUnits(getSpeedUnits());
 
-    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger);
-    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger);
+    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger, this);
+    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger, this);
 }
 
 HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn)
@@ -388,8 +388,8 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *d
     _speed.setMeasurementUnits(getSpeedUnits());
     _speed.initObject(dataIn->speedSensor);
 
-    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger);
-    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger);
+    _minimum.setHandleMethod(&HelioRelayMotorActuator::handleMinimumTrigger, this);
+    _maximum.setHandleMethod(&HelioRelayMotorActuator::handleMaximumTrigger, this);
 
     _minimum = newTriggerObjectFromSubData(&(dataIn->minTrigger));
     HELIO_SOFT_ASSERT(_minimum, SFP(HStr_Err_AllocationFailure));
