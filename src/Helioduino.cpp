@@ -760,7 +760,7 @@ void Helioduino::commonPostSave()
 
 // Runloops
 
-// Super tight updates (buzzer/gps/etc) that need to be ran often
+// Tight updates (buzzer/gps/etc) that need to be ran often
 inline void tightUpdates()
 {
     // TODO: put in link to buzzer update here. #5 in Hydruino.
@@ -769,12 +769,23 @@ inline void tightUpdates()
     #endif
 }
 
+// Loose updates (mqtt/etc) that need ran every so often
+inline void looseUpdates()
+{
+    #ifdef HELIO_USE_MQTT
+        if (publisher._mqttClient) { publisher._mqttClient->loop(); }
+    #endif
+}
+
 // Yields upon time limit exceed
 inline void yieldIfNeeded(millis_t &lastYield)
 {
     tightUpdates();
     millis_t time = millis();
-    if (time - lastYield >= HELIO_SYS_YIELD_AFTERMILLIS) { lastYield = time; yield(); }
+    if (time - lastYield >= HELIO_SYS_YIELD_AFTERMILLIS) {
+        looseUpdates();
+        lastYield = time; yield();
+    }
 }
 
 void controlLoop()
@@ -799,7 +810,6 @@ void controlLoop()
     }
 
     tightUpdates();
-    yield();
 }
 
 void dataLoop()
@@ -829,7 +839,6 @@ void dataLoop()
     }
 
     tightUpdates();
-    yield();
 }
 
 void miscLoop()
@@ -879,7 +888,6 @@ void miscLoop()
     }
 
     tightUpdates();
-    yield();
 }
 
 void Helioduino::launch()
@@ -942,10 +950,7 @@ void Helioduino::update()
         miscLoop();
     #endif
 
-    #ifdef HELIO_USE_MQTT
-        if (publisher._mqttClient) { publisher._mqttClient->loop(); }
-    #endif
-
+    looseUpdates();
     tightUpdates();
 }
 
