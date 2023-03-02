@@ -86,7 +86,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_EXTDATA_EEPROM_ENABLE     false           // If data should be read from an external EEPROM (searched first for strings data)
 
 // External EEPROM Settings
-#define SETUP_EEPROM_SYSDATA_ADDR       0x2e50          // System data memory offset for EEPROM saves (from Data Writer output)
+#define SETUP_EEPROM_SYSDATA_ADDR       0x1111          // System data memory offset for EEPROM saves (from Data Writer output)
 #define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
 
 // Device Setup
@@ -154,6 +154,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel axis alignment offset (azi,ele or RA,dec)
 #define SETUP_PANEL_HEATER_TEMP         0               // Temperature at which panel heaters are engaged (if using temp sensor), in Celsius
 #define SETUP_PANEL_STORMING_SPEED      500             // Wind speed at which storming mode is engaged (if using wind sensor), in m/min
+#define SETUP_LINACT_TRAVEL_SPEED       1.0/0.5         // The base continuous linear actuator travel speed, in m/min.
 #define SETUP_PANEL_TILT_AXIS1_SCALE    0,0 , 1,90      // Ele/dec axis panel tilt angle sensor scaling parameters used for angle calibration (passed to setFromTwoPoints), from raw into degrees
 #define SETUP_POS_SERVO_MINMAX_ANGLE    -90, 90         // Axial positional servo min,max angle range used for angle calibration (passed to setFromServo), in degrees
 #define SETUP_WIND_SPEED_SENSOR_SCALE   0.08,0 , 0.4,0.54 // Wind speed sensor scaling parameters used for speed calibration (passed to setFromTwoPoints), from raw into m/min
@@ -440,6 +441,7 @@ inline void setupObjects()
         auto linearAct1 = helioController.addLinearActuatorRelay(SETUP_LINACT1_AXIS1_PINA, SETUP_LINACT1_AXIS1_PINB, SETUP_LINACT_AXIS1_STROKE, 0, SETUP_LINACT1_AXIS1_MUXCHNA, SETUP_LINACT1_AXIS1_MUXCHNB);
         linearAct1->setParentPanel(trackingPanel, 1);
         linearAct1->setParentRail(dcRelayPower);
+        linearAct1->setContinuousSpeed(HelioSingleMeasurement(SETUP_LINACT_TRAVEL_SPEED, Helio_UnitsType_Speed_MetersPerMin));
     #endif
     #if SETUP_LINACT1_POS_SENSOR_PIN >= 0
     {   auto positionSensor = helioController.addAnalogPositionSensor(SETUP_LINACT1_POS_SENSOR_PIN, ADC_RESOLUTION, SETUP_LINACT1_POS_SENSOR_MUXCHN);
@@ -469,6 +471,7 @@ inline void setupObjects()
         auto linearAct2 = helioController.addLinearActuatorRelay(SETUP_LINACT2_AXIS1_PINA, SETUP_LINACT2_AXIS1_PINB, SETUP_LINACT_AXIS1_STROKE, 0, SETUP_LINACT2_AXIS1_MUXCHNA, SETUP_LINACT2_AXIS1_MUXCHNB);
         linearAct2->setParentPanel(trackingPanel, 1);
         linearAct2->setParentRail(dcRelayPower);
+        linearAct2->setContinuousSpeed(HelioSingleMeasurement(SETUP_LINACT_TRAVEL_SPEED, Helio_UnitsType_Speed_MetersPerMin));
     #endif
     #if SETUP_LINACT2_POS_SENSOR_PIN >= 0
     {   auto positionSensor = helioController.addAnalogPositionSensor(SETUP_LINACT2_POS_SENSOR_PIN, ADC_RESOLUTION, SETUP_LINACT2_POS_SENSOR_MUXCHN);
