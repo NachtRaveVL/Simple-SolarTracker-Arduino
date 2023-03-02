@@ -319,7 +319,7 @@ void loop()
 
 ### Main System Examples
 
-There are two main system examples to choose from, Dual-Axis Tracking and Full System, each with its own requirements and capabilities. The Dual-Axis Tracking example is the recommended starting point for most system builds, and is perfect for those with only intermediate programming knowledge. It can also be easily extended to include other functionality if desired, simply by copying and pasting the example code.
+There are two main system examples to choose from, Dual-Axis Tracking and Full System, each with its own requirements and capabilities. The Dual-Axis Tracking example is the recommended starting point for most system builds, and is perfect for those with only basic programming knowledge. It can also be easily extended to include other functionality if desired, simply by copying and pasting the example code.
 
 This system code has the benefit of being able to compile out what you don't use, making it ideal for storage constrained devices, but will not provide full UI functionality since it will be missing the code for all the other objects the system build code strips out.
 
