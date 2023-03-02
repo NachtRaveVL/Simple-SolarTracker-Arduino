@@ -25,7 +25,7 @@ extern HelioTrigger *newTriggerObjectFromSubData(const HelioTriggerSubData *data
 // to some change in a tracked property.
 class HelioTrigger : public HelioSubObject,
                      public HelioTriggerObjectInterface,
-                     public HelioMeasurementUnitsInterface,
+                     public HelioMeasurementUnitsInterfaceStorageSingle,
                      public HelioSensorAttachmentInterface {
 public:
     const enum : signed char { MeasureValue, MeasureRange, Unknown = -1 } type; // Trigger type (custom RTTI)

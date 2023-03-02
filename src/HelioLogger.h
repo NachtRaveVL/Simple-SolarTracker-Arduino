@@ -109,7 +109,7 @@ protected:
 // A part of HSYS system data.
 struct HelioLoggerSubData : public HelioSubData {
     Helio_LogLevel logLevel;                                // Log level filter (default: All)
-    char logFilePrefix[16];                                 // Base log file name prefix / folder (default: "logs/he")
+    char logFilePrefix[HELIO_PREFIX_MAXSIZE];               // Base log file name prefix / folder (default: "logs/he")
     bool logToSDCard;                                       // If system logging to SD card is enabled (default: false)
     bool logToWiFiStorage;                                  // If system logging to WiFiStorage is enabled (default: false)
 

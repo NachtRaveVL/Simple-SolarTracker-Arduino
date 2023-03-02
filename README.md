@@ -328,9 +328,7 @@ The Full System Example sketch will build an empty system with all object and sy
 Included below is the default system setup defines of the Dual-Axis Tracking example (of which a smaller similar version is used for the Full System example) to illustrate a variety of the controller features. This is not an exhaustive list of course, as there are many more things the controller is capable of, as documented in its main header file include, GitHub Project Wiki, and elsewhere.
 
 ```Arduino
-#include <Helioduino.h>
-
-/// Pins & Class Instances
+// Pins & Class Instances
 #define SETUP_PIEZO_BUZZER_PIN          -1              // Piezo buzzer pin, else -1
 #define SETUP_EEPROM_DEVICE_TYPE        None            // EEPROM device type/size (24LC01, 24LC02, 24LC04, 24LC08, 24LC16, 24LC32, 24LC64, 24LC128, 24LC256, 24LC512, None)
 #define SETUP_EEPROM_I2C_ADDR           0b000           // EEPROM i2c address
@@ -355,7 +353,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_WIFI_SERIAL               Serial1         // WiFi serial class instance, if using serial
 
 // Ethernet Settings                                    (note: define HELIO_ENABLE_ETHERNET to enable Ethernet)
-#define SETUP_ETHERNET_MAC              { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED } // Ethernet MAC address
+#define SETUP_ETHERNET_MAC              { (uint8_t)0xDE, (uint8_t)0xAD, (uint8_t)0xBE, (uint8_t)0xEF, (uint8_t)0xFE, (uint8_t)0xED } // Ethernet MAC address
 #define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
 #define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
 
@@ -367,7 +365,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
 
 // System Settings
-#define SETUP_SYSTEM_MODE               Tracking // System run mode (Tracking, Balancing)
+#define SETUP_SYSTEM_MODE               Tracking        // System run mode (Tracking, Balancing)
 #define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
 #define SETUP_LCD_OUT_MODE              Disabled        // System LCD output mode (Disabled, 20x4LCD, 20x4LCD_Swapped, 16x2LCD, 16x2LCD_Swapped)
 #define SETUP_CTRL_IN_MODE              Disabled        // System control input mode (Disabled, 2x2Matrix, 4xButton, 6xButton, RotaryEncoder)
@@ -396,7 +394,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 // MQTT Settings                                        (note: define HELIO_ENABLE_MQTT to enable MQTT)
 #define SETUP_MQTT_BROKER_CONNECT_BY    Hostname        // Which style of address broker uses (Hostname, IPAddress)
 #define SETUP_MQTT_BROKER_HOSTNAME      "hostname"      // Hostname that MQTT broker exists at
-#define SETUP_MQTT_BROKER_IPADDR        { 192, 168, 1, 2 } // IP address that MQTT broker exists at
+#define SETUP_MQTT_BROKER_IPADDR        { (uint8_t)192, (uint8_t)168, (uint8_t)1, (uint8_t)2 } // IP address that MQTT broker exists at
 #define SETUP_MQTT_BROKER_PORT          1883            // Port number that MQTT broker exists at
 
 // External Data Settings
@@ -415,32 +413,67 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
 #define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
 #define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
-#define SETUP_LIN_ACT1_AXIS1_PINA       -1              // Vertical axis linear actuator #1 pin A (digital), else -1
-#define SETUP_LIN_ACT1_AXIS1_PINB       -1              // Vertical axis linear actuator #1 pin B (digital), else -1
-#define SETUP_LIN_ACT1_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 min endstop pin (digital), else -1
-#define SETUP_LIN_ACT1_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #1 max endstop pin (digital), else -1
-#define SETUP_LIN_ACT2_AXIS1_PINA       -1              // Vertical axis linear actuator #2 pin A (digital), else -1
-#define SETUP_LIN_ACT2_AXIS1_PINB       -1              // Vertical axis linear actuator #2 pin B (digital), else -1
-#define SETUP_LIN_ACT2_MIN_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 min endstop pin (digital), else -1
-#define SETUP_LIN_ACT2_MAX_ENDSTOP_PIN  -1              // Vertical axis linear actuator #2 max endstop pin (digital), else -1
+#define SETUP_ICE_INDICATOR_TYPE        ACTIVE_HIGH     // Ice indicator type/active level (ACTIVE_HIGH, ACTIVE_LOW)
+#define SETUP_MINMAX_INDICATOR_TYPE     ACTIVE_HIGH     // Linear actuator min/max endstop indicator type/active level (ACTIVE_HIGH, ACTIVE_LOW)
+#define SETUP_LINACT_AXIS1_STROKE       1               // Stroke length of linear actuators on axis 1, in meters
+#define SETUP_LINACT1_AXIS1_PINA        -1              // Ele/dec axis linear actuator #1 pin A (digital), else -1
+#define SETUP_LINACT1_AXIS1_PINB        -1              // Ele/dec axis linear actuator #1 pin B (digital), else -1
+#define SETUP_LINACT1_POS_SENSOR_PIN    -1              // Ele/dec axis linear actuator #1 position sensor pin (analog), else -1
+#define SETUP_LINACT1_MIN_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #1 min endstop pin (digital), else -1
+#define SETUP_LINACT1_MAX_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #1 max endstop pin (digital), else -1
+#define SETUP_LINACT2_AXIS1_PINA        -1              // Ele/dec axis linear actuator #2 pin A (digital), else -1
+#define SETUP_LINACT2_AXIS1_PINB        -1              // Ele/dec axis linear actuator #2 pin B (digital), else -1
+#define SETUP_LINACT2_POS_SENSOR_PIN    -1              // Ele/dec axis linear actuator #2 position sensor pin (analog), else -1
+#define SETUP_LINACT2_MIN_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #2 min endstop pin (digital), else -1
+#define SETUP_LINACT2_MAX_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #2 max endstop pin (digital), else -1
 #define SETUP_PANEL_BRAKE_PIN           -1              // Panel brake relay pin (digital), else -1
 #define SETUP_PANEL_HEATER_PIN          -1              // Panel heater relay pin (digital), else -1
-#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer relay pin (digital), else -1
-#define SETUP_PANEL_TILT_SENSOR_PIN     -1              // Panel tilt angle sensor pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Horizontal axis positional servo pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Vertical axis positional servo pin (analog), else -1
+#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer/wiper relay pin (digital), else -1
+#define SETUP_PANEL_TILT_AXIS1_PIN      -1              // Ele/dec axis panel tilt angle sensor pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Azi/RA axis positional servo pin (analog), else -1
+#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Ele/dec axis positional servo pin (analog), else -1
 #define SETUP_WIND_SPEED_SENSOR_PIN     -1              // Wind speed sensor pin (analog), else -1
 
-// Base Setup
+// Device Multiplexing Setup
+#define SETUP_MUXING_CHANNEL_BITS       -1              // Number of channel bits for multiplexer, else -1
+#define SETUP_MUXING_ADDRESS_PINS       {(pintype_t)-1} // Address channel pins, else {-1}
+#define SETUP_MUXING_ENABLE_PIN         -1              // Chip enable pin for multiplexer (optional), else -1
+#define SETUP_MUXING_ENABLE_TYPE        ACTIVE_LOW      // Chip enable pin type/active level (ACTIVE_HIGH, ACTIVE_LOW)
+#define SETUP_AC_USAGE_SENSOR_MUXCHN    -1              // AC power usage meter sensor pin muxing channel #, else -1
+#define SETUP_DC_USAGE_SENSOR_MUXCHN    -1              // DC power usage meter sensor pin muxing channel #, else -1
+#define SETUP_DC_GEN_SENSOR_MUXCHN      -1              // DC power generation meter sensor pin muxing channel #, else -1
+#define SETUP_ICE_INDICATOR_MUXCHN      -1              // Ice indicator pin muxing channel #, else -1
+#define SETUP_LINACT1_AXIS1_MUXCHNA     -1              // Ele/dec axis linear actuator #1 pin A muxing channel #, else -1
+#define SETUP_LINACT1_AXIS1_MUXCHNB     -1              // Ele/dec axis linear actuator #1 pin B muxing channel #, else -1
+#define SETUP_LINACT1_POS_SENSOR_MUXCHN -1              // Ele/dec axis linear actuator #1 position sensor pin muxing channel #, else -1
+#define SETUP_LINACT1_MIN_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #1 min endstop pin muxing channel #, else -1
+#define SETUP_LINACT1_MAX_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #1 max endstop pin muxing channel #, else -1
+#define SETUP_LINACT2_AXIS1_MUXCHNA     -1              // Ele/dec axis linear actuator #2 pin A muxing channel #, else -1
+#define SETUP_LINACT2_AXIS1_MUXCHNB     -1              // Ele/dec axis linear actuator #2 pin B muxing channel #, else -1
+#define SETUP_LINACT2_POS_SENSOR_MUXCHN -1              // Ele/dec axis linear actuator #2 position sensor pin muxing channel #, else -1
+#define SETUP_LINACT2_MIN_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #2 min endstop pin muxing channel #, else -1
+#define SETUP_LINACT2_MAX_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #2 max endstop pin muxing channel #, else -1
+#define SETUP_PANEL_BRAKE_MUXCHN        -1              // Panel brake relay pin muxing channel #, else -1
+#define SETUP_PANEL_HEATER_MUXCHN       -1              // Panel heater relay pin muxing channel #, else -1
+#define SETUP_PANEL_SPRAYER_MUXCHN      -1              // Panel sprayer/wiper relay pin muxing channel #, else -1
+#define SETUP_PANEL_TILT_AXIS1_MUXCHN   -1              // Ele/dec axis panel tilt angle sensor pin muxing channel #, else -1
+#define SETUP_POS_SERVO_AXIS0_MUXCHN    -1              // Azi/RA axis positional servo pin muxing channel #, else -1
+#define SETUP_POS_SERVO_AXIS1_MUXCHN    -1              // Ele/dec axis positional servo pin muxing channel #, else -1
+#define SETUP_WIND_SPEED_SENSOR_MUXCHN  -1              // Wind speed sensor pin muxing channel #, else -1
+
+// System Setup
 #define SETUP_AC_POWER_RAIL_TYPE        AC110V          // Rail power type used for actuator AC rail (AC110V, AC220V)
 #define SETUP_DC_POWER_RAIL_TYPE        DC12V           // Rail power type used for actuator DC rail (DC3V3, DC5V, DC12V, DC24V, DC48V)
 #define SETUP_AC_SUPPLY_POWER           0               // Maximum AC supply power wattage, else 0 if not known (-> use simple rails)
 #define SETUP_DC_SUPPLY_POWER           0               // Maximum DC supply power wattage, else 0 if not known (-> use simple rails)
-
-// Panel Setup
-#define SETUP_PANEL_TYPE                Gimballed       // Panel type (Horizontal, Vertical, Gimballed, Equatorial)
-#define SETUP_PANEL_HOME                {0.0f,0.0f}     // Panel home position (azi,ele or RA,dec)
-#define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel offset position (azi,ele or RA,dec)
+#define SETUP_PANEL_TYPE                Gimballed       // Panel/mount type (Horizontal, Vertical, Gimballed, Equatorial)
+#define SETUP_PANEL_HOME                {0.0f,0.0f}     // Panel home axis position (azi,ele or RA,dec)
+#define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel axis alignment offset (azi,ele or RA,dec)
+#define SETUP_PANEL_HEATER_TEMP         0               // Temperature at which panel heaters are engaged (if using temp sensor), in Celsius
+#define SETUP_PANEL_STORMING_SPEED      500             // Wind speed at which storming mode is engaged (if using wind sensor), in m/min
+#define SETUP_PANEL_TILT_AXIS1_SCALE    0,0 , 1,90      // Ele/dec axis panel tilt angle sensor scaling parameters used for angle calibration (passed to setFromTwoPoints), from raw into degrees
+#define SETUP_POS_SERVO_MINMAX_ANGLE    -90, 90         // Axial positional servo min,max angle range used for angle calibration (passed to setFromServo), in degrees
+#define SETUP_WIND_SPEED_SENSOR_SCALE   0.08,0 , 0.4,0.54 // Wind speed sensor scaling parameters used for speed calibration (passed to setFromTwoPoints), from raw into m/min
 ```
 
 ### Data Writer Example

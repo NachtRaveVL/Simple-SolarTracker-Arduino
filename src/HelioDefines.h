@@ -101,6 +101,7 @@ typedef typeof(INPUT)                   ard_pinmode_t;      // Arduino pin mode 
 typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin status type alias
 
 // The following sizes apply to all architectures
+#define HELIO_PREFIX_MAXSIZE            16                  // Prefix names maximum size (for logging/publishing)
 #define HELIO_NAME_MAXSIZE              24                  // Naming character maximum size (system name, panel name, etc.)
 #define HELIO_POS_MAXSIZE               32                  // Position indicies maximum size (max # of objs of same type)
 #define HELIO_URL_MAXSIZE               64                  // URL string maximum size (max url length)
@@ -109,7 +110,6 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 #define HELIO_STRING_BUFFER_SIZE        32                  // Size in bytes of string serialization buffers
 #define HELIO_WIFISTREAM_BUFFER_SIZE    128                 // Size in bytes of WiFi serialization buffers
 // The following sizes only matter for architectures that do not have STL support
-
 #define HELIO_DEFAULT_MAXSIZE           8                   // Default maximum array/map size
 #define HELIO_ACTUATOR_SIGNAL_SLOTS     4                   // Maximum number of slots for actuator's activation signal
 #define HELIO_SENSOR_SIGNAL_SLOTS       6                   // Maximum number of slots for sensor's measurement signal
