@@ -103,7 +103,7 @@ struct HelioDataColumn {
 // Publisher Serialization Sub Data
 // A part of HSYS system data.
 struct HelioPublisherSubData : public HelioSubData {
-    char dataFilePrefix[16];                                // Base data file name prefix / folder (default: "data/he")
+    char dataFilePrefix[HELIO_PREFIX_MAXSIZE];              // Base data file name prefix / folder (default: "data/he")
     bool pubToSDCard;                                       // If publishing sensor data to SD card is enabled (default: false)
     bool pubToWiFiStorage;                                  // If publishing sensor data to WiFiStorage is enabled (default: false)
 

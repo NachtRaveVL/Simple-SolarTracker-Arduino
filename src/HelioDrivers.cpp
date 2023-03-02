@@ -101,6 +101,7 @@ void HelioDriver::setMeasurementUnits(Helio_UnitsType measurementUnits, uint8_t)
 {
     if (_measurementUnits[0] != measurementUnits) {
         _measurementUnits[0] = measurementUnits;
+        //bumpRevisionIfNeeded();
     }
 }
 

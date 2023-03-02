@@ -5,7 +5,7 @@
 
 #include "Helioduino.h"
 
-SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t outputPin)
+SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t outputPin, uint8_t muxChannel)
 {
     bool outputPinIsDigital = checkPinIsDigital(outputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelHeater));
@@ -16,7 +16,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t output
         auto actuator = SharedPtr<HelioRelayActuator>(new HelioRelayActuator(
             Helio_ActuatorType_PanelHeater,
             positionIndex,
-            HelioDigitalPin(outputPin, OUTPUT)
+            HelioDigitalPin(outputPin, OUTPUT, muxChannel)
         ));
         if (getController()->registerObject(actuator)) { return actuator; }
     }
@@ -24,7 +24,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelHeaterRelay(pintype_t output
     return nullptr;
 }
 
-SharedPtr<HelioRelayActuator> HelioFactory::addPanelSprayerRelay(pintype_t outputPin)
+SharedPtr<HelioRelayActuator> HelioFactory::addPanelSprayerRelay(pintype_t outputPin, uint8_t muxChannel)
 {
     bool outputPinIsDigital = checkPinIsDigital(outputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelSprayer));
@@ -35,7 +35,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelSprayerRelay(pintype_t outpu
         auto actuator = SharedPtr<HelioRelayActuator>(new HelioRelayActuator(
             Helio_ActuatorType_PanelSprayer,
             positionIndex,
-            HelioDigitalPin(outputPin, OUTPUT)
+            HelioDigitalPin(outputPin, OUTPUT, muxChannel)
         ));
         if (getController()->registerObject(actuator)) { return actuator; }
     }
@@ -43,7 +43,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelSprayerRelay(pintype_t outpu
     return nullptr;
 }
 
-SharedPtr<HelioRelayActuator> HelioFactory::addPanelBrakeRelay(pintype_t outputPin)
+SharedPtr<HelioRelayActuator> HelioFactory::addPanelBrakeRelay(pintype_t outputPin, uint8_t muxChannel)
 {
     bool outputPinIsDigital = checkPinIsDigital(outputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PanelBrake));
@@ -54,7 +54,7 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelBrakeRelay(pintype_t outputP
         auto actuator = SharedPtr<HelioRelayActuator>(new HelioRelayActuator(
             Helio_ActuatorType_PanelBrake,
             positionIndex,
-            HelioDigitalPin(outputPin, OUTPUT)
+            HelioDigitalPin(outputPin, OUTPUT, muxChannel)
         ));
         if (getController()->registerObject(actuator)) { return actuator; }
     }
@@ -62,14 +62,14 @@ SharedPtr<HelioRelayActuator> HelioFactory::addPanelBrakeRelay(pintype_t outputP
     return nullptr;
 }
 
-SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outputPin, float minDegrees, float maxDegrees, uint8_t outputBitRes
+SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outputPin, float minDegrees, float maxDegrees, uint8_t outputBitRes,
 #ifdef ESP32
-                                                      , uint8_t pwmChannel
+                                                                  uint8_t pwmChannel,
 #endif
 #ifdef ESP_PLATFORM
-                                                      , float pwmFrequency
+                                                                  float pwmFrequency,
 #endif
-)
+                                                                  uint8_t muxChannel)
 {
     bool outputPinIsPWM = checkPinIsPWMOutput(outputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_PositionalServo));
@@ -80,14 +80,14 @@ SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outp
         auto actuator = SharedPtr<HelioVariableActuator>(new HelioVariableActuator(
             Helio_ActuatorType_PositionalServo,
             positionIndex,
-            HelioAnalogPin(outputPin, OUTPUT, outputBitRes
+            HelioAnalogPin(outputPin, OUTPUT, outputBitRes,
 #ifdef ESP32
-                           , pwmChannel
+                           pwmChannel,
 #endif
 #ifdef ESP_PLATFORM
-                           , pwmFrequency
+                           pwmFrequency,
 #endif
-        )));
+                           muxChannel)));
         if (getController()->registerObject(actuator)) {
             HelioCalibrationData userCalibData(actuator->getId(), Helio_UnitsType_Angle_Degrees_360);
             userCalibData.setFromServo(minDegrees, maxDegrees);
@@ -100,7 +100,7 @@ SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outp
     return nullptr;
 }
 
-SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_t outputPinA, pintype_t outputPinB, float maxPosition, float minPosition)
+SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_t outputPinA, pintype_t outputPinB, float maxPosition, float minPosition, uint8_t muxChannelA, uint8_t muxChannelB)
 {
     bool outputPinAIsDigital = checkPinIsDigital(outputPinA);
     bool outputPinBIsDigital = checkPinIsDigital(outputPinB);
@@ -112,8 +112,8 @@ SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_
         auto actuator = SharedPtr<HelioRelayMotorActuator>(new HelioRelayMotorActuator(
             Helio_ActuatorType_LinearActuator,
             positionIndex,
-            HelioDigitalPin(outputPinA, OUTPUT),
-            HelioDigitalPin(outputPinB, OUTPUT),
+            HelioDigitalPin(outputPinA, OUTPUT, muxChannelA),
+            HelioDigitalPin(outputPinB, OUTPUT, muxChannelB),
             make_pair(minPosition, maxPosition)
         ));
         if (getController()->registerObject(actuator)) { return actuator; }
@@ -122,7 +122,7 @@ SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_
     return nullptr;
 }
 
-SharedPtr<HelioBinarySensor> HelioFactory::addEndstopIndicator(pintype_t inputPin)
+SharedPtr<HelioBinarySensor> HelioFactory::addEndstopIndicator(pintype_t inputPin, bool isActiveLow, uint8_t muxChannel)
 {
     bool inputPinIsDigital = checkPinIsDigital(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TravelPosition));
@@ -133,7 +133,7 @@ SharedPtr<HelioBinarySensor> HelioFactory::addEndstopIndicator(pintype_t inputPi
         auto sensor = SharedPtr<HelioBinarySensor>(new HelioBinarySensor(
             Helio_SensorType_TravelPosition,
             positionIndex,
-            HelioDigitalPin(inputPin, INPUT_PULLUP)
+            HelioDigitalPin(inputPin, INPUT, isActiveLow, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -141,7 +141,7 @@ SharedPtr<HelioBinarySensor> HelioFactory::addEndstopIndicator(pintype_t inputPi
     return nullptr;
 }
 
-SharedPtr<HelioBinarySensor> HelioFactory::addIceIndicator(pintype_t inputPin)
+SharedPtr<HelioBinarySensor> HelioFactory::addIceIndicator(pintype_t inputPin, bool isActiveLow, uint8_t muxChannel)
 {
     bool inputPinIsDigital = checkPinIsDigital(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_IceDetector));
@@ -152,7 +152,7 @@ SharedPtr<HelioBinarySensor> HelioFactory::addIceIndicator(pintype_t inputPin)
         auto sensor = SharedPtr<HelioBinarySensor>(new HelioBinarySensor(
             Helio_SensorType_IceDetector,
             positionIndex,
-            HelioDigitalPin(inputPin, INPUT_PULLUP)
+            HelioDigitalPin(inputPin, INPUT, isActiveLow, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -160,7 +160,7 @@ SharedPtr<HelioBinarySensor> HelioFactory::addIceIndicator(pintype_t inputPin)
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addLightIntensitySensor(pintype_t inputPin, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addLightIntensitySensor(pintype_t inputPin, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_LightIntensity));
@@ -171,7 +171,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addLightIntensitySensor(pintype_t inp
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_LightIntensity,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -179,7 +179,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addLightIntensitySensor(pintype_t inp
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addPowerProductionMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addPowerProductionMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerProduction));
@@ -190,7 +190,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerProductionMeter(pintype_t inp
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_PowerProduction,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) {
             if (!isWattageBased) { sensor->setMeasurementUnits(Helio_UnitsType_Power_Amperage); }
@@ -201,7 +201,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerProductionMeter(pintype_t inp
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageLevelMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageLevelMeter(pintype_t inputPin, bool isWattageBased, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_PowerUsage));
@@ -212,7 +212,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageLevelMeter(pintype_t inp
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_PowerUsage,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) {
             if (!isWattageBased) { sensor->setMeasurementUnits(Helio_UnitsType_Power_Amperage); }
@@ -223,7 +223,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addPowerUsageLevelMeter(pintype_t inp
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogPositionSensor(pintype_t inputPin, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogPositionSensor(pintype_t inputPin, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TravelPosition));
@@ -234,7 +234,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogPositionSensor(pintype_t inp
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_TravelPosition,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -242,7 +242,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogPositionSensor(pintype_t inp
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTiltAngleSensor(pintype_t inputPin, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTiltAngleSensor(pintype_t inputPin, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TiltAngle));
@@ -253,7 +253,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTiltAngleSensor(pintype_t in
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_TiltAngle,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -261,7 +261,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTiltAngleSensor(pintype_t in
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t inputPin, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t inputPin, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_TemperatureHumidity));
@@ -272,7 +272,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_TemperatureHumidity,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
@@ -280,7 +280,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogTemperatureSensor(pintype_t 
     return nullptr;
 }
 
-SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogWindSpeedSensor(pintype_t inputPin, uint8_t inputBitRes)
+SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogWindSpeedSensor(pintype_t inputPin, uint8_t inputBitRes, uint8_t muxChannel)
 {
     bool inputPinIsAnalog = checkPinIsAnalogInput(inputPin);
     hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_SensorType_WindSpeed));
@@ -291,7 +291,7 @@ SharedPtr<HelioAnalogSensor> HelioFactory::addAnalogWindSpeedSensor(pintype_t in
         auto sensor = SharedPtr<HelioAnalogSensor>(new HelioAnalogSensor(
             Helio_SensorType_WindSpeed,
             positionIndex,
-            HelioAnalogPin(inputPin, INPUT, inputBitRes)
+            HelioAnalogPin(inputPin, INPUT, inputBitRes, muxChannel)
         ));
         if (getController()->registerObject(sensor)) { return sensor; }
     }
