@@ -412,7 +412,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_EXTDATA_EEPROM_ENABLE     false           // If data should be read from an external EEPROM (searched first for strings data)
 
 // External EEPROM Settings
-#define SETUP_EEPROM_SYSDATA_ADDR       0x2e50          // System data memory offset for EEPROM saves (from Data Writer output)
+#define SETUP_EEPROM_SYSDATA_ADDR       0x1111          // System data memory offset for EEPROM saves (from Data Writer output)
 #define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
 
 // Device Setup
@@ -480,6 +480,7 @@ Included below is the default system setup defines of the Dual-Axis Tracking exa
 #define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel axis alignment offset (azi,ele or RA,dec)
 #define SETUP_PANEL_HEATER_TEMP         0               // Temperature at which panel heaters are engaged (if using temp sensor), in Celsius
 #define SETUP_PANEL_STORMING_SPEED      500             // Wind speed at which storming mode is engaged (if using wind sensor), in m/min
+#define SETUP_LINACT_TRAVEL_SPEED       1.0/0.5         // The base continuous linear actuator travel speed, in m/min.
 #define SETUP_PANEL_TILT_AXIS1_SCALE    0,0 , 1,90      // Ele/dec axis panel tilt angle sensor scaling parameters used for angle calibration (passed to setFromTwoPoints), from raw into degrees
 #define SETUP_POS_SERVO_MINMAX_ANGLE    -90, 90         // Axial positional servo min,max angle range used for angle calibration (passed to setFromServo), in degrees
 #define SETUP_WIND_SPEED_SENSOR_SCALE   0.08,0 , 0.4,0.54 // Wind speed sensor scaling parameters used for speed calibration (passed to setFromTwoPoints), from raw into m/min
@@ -505,7 +506,7 @@ In serial monitor (near end):
 2023-02-07T04:24:27 [INFO] Total EEPROM usage: 11856 bytes
 2023-02-07T04:24:27 [INFO] EEPROM capacity used: 36.18% of 32768 bytes
 2023-02-07T04:24:27 [INFO] Use the following EEPROM setup defines in your sketch:
-#define SETUP_EEPROM_SYSDATA_ADDR       0x2e50
+#define SETUP_EEPROM_SYSDATA_ADDR       0x1111
 #define SETUP_EEPROM_STRINGS_ADDR       0x0000
 2023-02-07T04:24:27 [INFO] Done!
 ```
