@@ -967,9 +967,10 @@ void Helioduino::setSystemName(String systemName)
     }
 }
 
-void Helioduino::setTimeZoneOffset(int8_t timeZoneOffset)
+void Helioduino::setTimeZoneOffset(int8_t hoursOffset, int8_t minsOffset)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
+    int16_t timeZoneOffset = (hoursOffset * 100) + ((minsOffset * 100) / 60);
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
         _systemData->timeZoneOffset = timeZoneOffset;
 
@@ -1015,7 +1016,7 @@ void Helioduino::setRTCTime(DateTime time)
 {
     auto rtc = getRTC();
     if (rtc) {
-        rtc->adjust(DateTime((uint32_t)(time.unixtime() + (-getTimeZoneOffset() * SECS_PER_HOUR))));
+        rtc->adjust(DateTime((uint32_t)unixTime(time)));
         notifyRTCTimeUpdated();
     }
 }
@@ -1283,10 +1284,10 @@ String Helioduino::getSystemName() const
     return _systemData ? String(_systemData->systemName) : String();
 }
 
-int8_t Helioduino::getTimeZoneOffset() const
+time_t Helioduino::getTimeZoneOffset() const
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
-    return _systemData ? _systemData->timeZoneOffset : 0;
+    return _systemData ? (_systemData->timeZoneOffset * SECS_PER_HOUR) / 100 : 0;
 }
 
 uint16_t Helioduino::getPollingInterval() const
