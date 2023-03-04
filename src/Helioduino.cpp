@@ -1096,13 +1096,28 @@ void Helioduino::setSystemLocation(double latitude, double longitude, double alt
 int Helioduino::getControlInputPins() const
 {
     switch (getControlInputMode()) {
-        case Helio_ControlInputMode_2x2Matrix:
-        case Helio_ControlInputMode_4xButton:
-            return 4;
-        case Helio_ControlInputMode_6xButton:
-            return 6;
         case Helio_ControlInputMode_RotaryEncoder:
+            return 2;
+        case Helio_ControlInputMode_RotaryEncoder_Ok:
+            return 3;
+        case Helio_ControlInputMode_RotaryEncoder_OkLR:
             return 5;
+        case Helio_ControlInputMode_2x2Matrix:
+            return 4;
+        case Helio_ControlInputMode_2x2Matrix_Ok:
+            return 5;
+        case Helio_ControlInputMode_Joystick:
+            return 2;
+        case Helio_ControlInputMode_Joystick_Ok:
+            return 3;
+        case Helio_ControlInputMode_3x4Matrix:
+            return 2;
+        case Helio_ControlInputMode_3x4Matrix_Ok:
+            return 3;
+        case Helio_ControlInputMode_3x4Matrix_OkLR:
+            return 5;
+        case Helio_ControlInputMode_ResistiveTouch:
+            return 4;
         default:
             return 0;
     }
