@@ -9,7 +9,7 @@
 struct HelioJSONSerializableInterface;
 
 class HelioObjInterface;
-class HelioduinoUIInterface;
+class HelioUIInterface;
 class HelioRTCInterface;
 
 struct HelioDigitalInputPinInterface;
@@ -83,7 +83,7 @@ public:
 };
 
 // UI Interface
-class HelioduinoUIInterface {
+class HelioUIInterface {
 public:
     virtual bool begin() = 0;
 

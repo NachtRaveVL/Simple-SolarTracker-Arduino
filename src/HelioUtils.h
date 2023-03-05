@@ -154,7 +154,7 @@ inline HelioLogger *getLogger();
 inline HelioPublisher *getPublisher();
 #ifdef HELIO_USE_GUI
 // Returns the active UI instance. Not guaranteed to be non-null.
-inline HelioduinoUIInterface *getUI();
+inline HelioUIInterface *getUI();
 #endif
 
 // Publishes latest data from sensor to Publisher output.

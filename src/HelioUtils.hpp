@@ -342,7 +342,7 @@ inline HelioPublisher *getPublisher()
 
 #ifdef HELIO_USE_GUI
 
-inline HelioduinoUIInterface *getUI()
+inline HelioUIInterface *getUI()
 {
     return Helioduino::_activeInstance ? Helioduino::_activeInstance->_activeUIInstance : nullptr;
 }
