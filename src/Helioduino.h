@@ -164,6 +164,7 @@ typedef Adafruit_GPS GPSClass;
 #include "TimeLib.h"                    // Time library
 #ifndef HELIO_DISABLE_GUI
 #include "tcMenu.h"                     // tcMenu library
+#include "LiquidCrystalIO.h"            // LiquidCrystal IO
 #define HELIO_USE_GUI
 #endif
 

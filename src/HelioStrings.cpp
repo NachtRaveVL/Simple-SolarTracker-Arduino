@@ -974,6 +974,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Multiply[] PROGMEM = {"Multiply"};
             return flashStr_Enum_Multiply;
         } break;
+        case HStr_Enum_Nokia5110: {
+            static const char flashStr_Enum_Nokia5110[] PROGMEM = {"Nokia5110"};
+            return flashStr_Enum_Nokia5110;
+        } break;
         case HStr_Enum_PanelBrake: {
             static const char flashStr_Enum_PanelBrake[] PROGMEM = {"PanelBrake"};
             return flashStr_Enum_PanelBrake;
@@ -990,9 +994,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelSprayer[] PROGMEM = {"PanelSprayer"};
             return flashStr_Enum_PanelSprayer;
         } break;
-        case HStr_Enum_PCD8544Nokia5110: {
-            static const char flashStr_Enum_PCD8544Nokia5110[] PROGMEM = {"PCD8544Nokia5110"};
-            return flashStr_Enum_PCD8544Nokia5110;
+        case HStr_Enum_PCD8544: {
+            static const char flashStr_Enum_PCD8544[] PROGMEM = {"PCD8544"};
+            return flashStr_Enum_PCD8544;
         } break;
         case HStr_Enum_Percentile: {
             static const char flashStr_Enum_Percentile[] PROGMEM = {"Percentile"};
@@ -1042,9 +1046,9 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_SSD1305[] PROGMEM = {"SSD1305"};
             return flashStr_Enum_SSD1305;
         } break;
-        case HStr_Enum_SSD1305x32: {
-            static const char flashStr_Enum_SSD1305x32[] PROGMEM = {"SSD1305x32"};
-            return flashStr_Enum_SSD1305x32;
+        case HStr_Enum_SSD1305x32Ada: {
+            static const char flashStr_Enum_SSD1305x32Ada[] PROGMEM = {"SSD1305x32Ada"};
+            return flashStr_Enum_SSD1305x32Ada;
         } break;
         case HStr_Enum_SSD1305x64: {
             static const char flashStr_Enum_SSD1305x64[] PROGMEM = {"SSD1305x64"};

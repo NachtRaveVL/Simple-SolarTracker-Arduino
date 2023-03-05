@@ -1054,21 +1054,25 @@ String displayOutputModeToString(Helio_DisplayOutputMode displayOutMode, bool ex
             return SFP(HStr_Enum_16x2LCD);
         case Helio_DisplayOutputMode_16x2LCD_Swapped: {
             String retVal(SFP(HStr_Enum_16x2LCD));
-            retVal.concat(SFP(HStr_Enum_Swapped));
+            String concat(SFP(HStr_Enum_Swapped));
+            retVal.reserve(retVal.length() + concat.length());
+            retVal.concat(concat);
             return retVal;
         }
         case Helio_DisplayOutputMode_20x4LCD:
             return SFP(HStr_Enum_20x4LCD);
         case Helio_DisplayOutputMode_20x4LCD_Swapped: {
             String retVal(SFP(HStr_Enum_20x4LCD));
-            retVal.concat(SFP(HStr_Enum_Swapped));
+            String concat(SFP(HStr_Enum_Swapped));
+            retVal.reserve(retVal.length() + concat.length());
+            retVal.concat(concat);
             return retVal;
         }
         case Helio_DisplayOutputMode_SSD1305:
             return SFP(HStr_Enum_SSD1305);
-        case Helio_DisplayOutputMode_SSD1305_x32:
-            return SFP(HStr_Enum_SSD1305x32);
-        case Helio_DisplayOutputMode_SSD1305_x64:
+        case Helio_DisplayOutputMode_SSD1305_x32Ada:
+            return SFP(HStr_Enum_SSD1305x32Ada);
+        case Helio_DisplayOutputMode_SSD1305_x64Ada:
             return SFP(HStr_Enum_SSD1305x64);
         case Helio_DisplayOutputMode_SSD1306:
             return SFP(HStr_Enum_SSD1306);
@@ -1082,12 +1086,44 @@ String displayOutputModeToString(Helio_DisplayOutputMode displayOutMode, bool ex
             return SFP(HStr_Enum_IL3820V2);
         case Helio_DisplayOutputMode_ST7735:
             return SFP(HStr_Enum_ST7735);
+        case Helio_DisplayOutputMode_ST7735_TFT: {
+            String retVal(SFP(HStr_Enum_ST7735));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
+            return retVal;
+        }
         case Helio_DisplayOutputMode_ST7789:
             return SFP(HStr_Enum_ST7789);
+        case Helio_DisplayOutputMode_ST7789_TFT: {
+            String retVal(SFP(HStr_Enum_ST7789));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
+            return retVal;
+        }
         case Helio_DisplayOutputMode_ILI9341:
             return SFP(HStr_Enum_ILI9341);
-        case Helio_DisplayOutputMode_PCD8544_Nokia5110:
-            return SFP(HStr_Enum_PCD8544Nokia5110);
+        case Helio_DisplayOutputMode_ILI9341_TFT: {
+            String retVal(SFP(HStr_Enum_ILI9341));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
+            return retVal;
+        }
+        case Helio_DisplayOutputMode_PCD8544:
+            return SFP(HStr_Enum_PCD8544);
+        case Helio_DisplayOutputMode_PCD8544_TFT: {
+            String retVal(SFP(HStr_Enum_PCD8544));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
+            return retVal;
+        }
+        case Helio_DisplayOutputMode_Nokia5110:
+            return SFP(HStr_Enum_Nokia5110);
+        case Helio_DisplayOutputMode_Nokia5110_TFT: {
+            String retVal(SFP(HStr_Enum_Nokia5110));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
+            return retVal;
+        }
         case Helio_DisplayOutputMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_DisplayOutputMode_Undefined:
@@ -1105,11 +1141,13 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             return SFP(HStr_Enum_RotaryEncoder);
         case Helio_ControlInputMode_RotaryEncoder_Ok: {
             String retVal(SFP(HStr_Enum_RotaryEncoder));
+            retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
         case Helio_ControlInputMode_RotaryEncoder_OkLR: {
             String retVal(SFP(HStr_Enum_RotaryEncoder));
+            retVal.reserve(retVal.length() + 4);
             retVal.concat('O'); retVal.concat('k');
             retVal.concat('L'); retVal.concat('R');
             return retVal;
@@ -1118,6 +1156,7 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             return SFP(HStr_Enum_2x2Matrix);
         case Helio_ControlInputMode_2x2Matrix_Ok: {
             String retVal(SFP(HStr_Enum_2x2Matrix));
+            retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
@@ -1125,6 +1164,7 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             return SFP(HStr_Enum_Joystick);
         case Helio_ControlInputMode_Joystick_Ok: {
             String retVal(SFP(HStr_Enum_Joystick));
+            retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
@@ -1132,11 +1172,13 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             return SFP(HStr_Enum_3x4Matrix);
         case Helio_ControlInputMode_3x4Matrix_Ok: {
             String retVal(SFP(HStr_Enum_3x4Matrix));
+            retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
         case Helio_ControlInputMode_3x4Matrix_OkLR: {
             String retVal(SFP(HStr_Enum_3x4Matrix));
+            retVal.reserve(retVal.length() + 4);
             retVal.concat('O'); retVal.concat('k');
             retVal.concat('L'); retVal.concat('R');
             return retVal;
@@ -1375,7 +1417,9 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             return SFP(HStr_Unit_Degree);
         case Helio_UnitsType_Angle_Radians_2pi: {
             String retVal(SFP(HStr_Unit_Degree));
-            retVal.concat(SFP(HStr_Unit_Radians));
+            String concat(SFP(HStr_Unit_Radians));
+            retVal.reserve(retVal.length() + concat.length());
+            retVal.concat(concat);
             return retVal;
         }
         case Helio_UnitsType_Angle_Minutes_24hr:
@@ -1390,26 +1434,33 @@ String unitsTypeToSymbol(Helio_UnitsType unitsType, bool excludeSpecial)
             return String('W');
         case Helio_UnitsType_Speed_FeetPerMin: {
             String retVal(SFP(HStr_Unit_Feet));
-            retVal.concat(SFP(HStr_Unit_PerMinute));
+            String concat(SFP(HStr_Unit_PerMinute));
+            retVal.reserve(retVal.length() + concat.length());
+            retVal.concat(concat);
             return retVal;
         }
         case Helio_UnitsType_Speed_MetersPerMin: {
             String retVal('m');
-            retVal.concat(SFP(HStr_Unit_PerMinute));
+            String concat(SFP(HStr_Unit_PerMinute));
+            retVal.reserve(retVal.length() + concat.length());
+            retVal.concat(concat);
             return retVal;
         }
         case Helio_UnitsType_Temperature_Celsius: {
             String retVal(SFP(HStr_Unit_Degree));
+            retVal.reserve(retVal.length() + 1);
             retVal.concat('C');
             return retVal;
         }
         case Helio_UnitsType_Temperature_Fahrenheit: {
             String retVal(SFP(HStr_Unit_Degree));
+            retVal.reserve(retVal.length() + 1);
             retVal.concat('F');
             return retVal;
         }
         case Helio_UnitsType_Temperature_Kelvin: {
             String retVal(SFP(HStr_Unit_Degree));
+            retVal.reserve(retVal.length() + 1);
             retVal.concat('K');
             return retVal;
         }
@@ -1538,9 +1589,21 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                 case 'T':
                     switch (displayOutModeStr.length() >= 5 ? displayOutModeStr[4] : '\0') {
                         case '3':
-                            return (Helio_DisplayOutputMode)13;
+                            switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\0') {
+                                case '\0':
+                                    return (Helio_DisplayOutputMode)13;
+                                case 'T':
+                                    return (Helio_DisplayOutputMode)14;
+                            }
+                            break;
                         case '8':
-                            return (Helio_DisplayOutputMode)14;
+                            switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\0') {
+                                case '\0':
+                                    return (Helio_DisplayOutputMode)15;
+                                case 'T':
+                                    return (Helio_DisplayOutputMode)16;
+                            }
+                            break;
                     }
                     break;
             }
@@ -1556,13 +1619,33 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                     }
                     break;
                 case 'I':
-                    return (Helio_DisplayOutputMode)15;
+                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                        case '\0':
+                            return (Helio_DisplayOutputMode)17;
+                        case 'T':
+                            return (Helio_DisplayOutputMode)18;
+                    }
+                    break;
             }
             break;
         case 'P':
-            return (Helio_DisplayOutputMode)16;
+            switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                case '\0':
+                    return (Helio_DisplayOutputMode)19;
+                case 'T':
+                    return (Helio_DisplayOutputMode)20;
+            }
+            break;
+        case 'N':
+            switch (displayOutModeStr.length() >= 10 ? displayOutModeStr[9] : '\0') {
+                case '\0':
+                    return (Helio_DisplayOutputMode)21;
+                case 'T':
+                    return (Helio_DisplayOutputMode)22;
+            }
+            break;
         case 'C':
-            return (Helio_DisplayOutputMode)17;
+            return (Helio_DisplayOutputMode)23;
     }
     return Helio_DisplayOutputMode_Undefined;
 }
