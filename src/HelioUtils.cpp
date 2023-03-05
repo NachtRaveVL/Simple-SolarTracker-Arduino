@@ -1187,6 +1187,12 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             return SFP(HStr_Enum_ResistiveTouch);
         case Helio_ControlInputMode_TouchScreen:
             return SFP(HStr_Enum_TouchScreen);
+        case Helio_ControlInputMode_TouchScreen_XPT: {
+            String retVal(SFP(HStr_Enum_TouchScreen));
+            retVal.reserve(retVal.length() + 3);
+            retVal.concat('X'); retVal.concat('P'); retVal.concat('T');
+            return retVal;
+        }
         case Helio_ControlInputMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_ControlInputMode_Undefined:
@@ -1708,9 +1714,15 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
             }
             break;
         case 'T':
-            return (Helio_ControlInputMode)12;
+            switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
+                case '\0':
+                    return (Helio_ControlInputMode)12;
+                case 'X':
+                    return (Helio_ControlInputMode)13;
+            }
+            break;
         case 'C':
-            return (Helio_ControlInputMode)13;
+            return (Helio_ControlInputMode)14;
     }
     return Helio_ControlInputMode_Undefined;
 }
