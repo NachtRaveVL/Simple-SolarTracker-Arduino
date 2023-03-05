@@ -308,7 +308,7 @@ inline void setupOnce()
     }
     #endif
     getLogger()->setLogLevel(JOIN(Helio_LogLevel,SETUP_SYS_LOGLEVEL));
-    #if !defined(HELIO_USE_GPS)
+    #ifndef HELIO_USE_GPS
         helioController.setSystemLocation(SETUP_SYS_STATIC_LAT, SETUP_SYS_STATIC_LONG, SETUP_SYS_STATIC_ALT);
     #endif
     #if defined(HELIO_USE_WIFI_STORAGE) && SETUP_SAVES_WIFISTORAGE_MODE == Primary
