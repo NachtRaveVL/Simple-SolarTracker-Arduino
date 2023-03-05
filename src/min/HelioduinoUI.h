@@ -9,7 +9,7 @@
 #define HelioUI_H
 
 class HelioduinoMinUI;
-typedef HelioduinoMinUI HydruinoUI;
+typedef HelioduinoMinUI HelioduinoUI;
 
 #include "..\shared\HelioduinoUI.h"
 
