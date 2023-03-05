@@ -230,6 +230,7 @@ enum Helio_String : unsigned short {
     HStr_Enum_Power,
     HStr_Enum_PowerProduction,
     HStr_Enum_PowerUsage,
+    HStr_Enum_RemoteControl,
     HStr_Enum_ResistiveTouch,
     HStr_Enum_RevOrder,
     HStr_Enum_RotaryEncoder,

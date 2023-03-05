@@ -1018,6 +1018,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PowerUsage[] PROGMEM = {"PowerUsage"};
             return flashStr_Enum_PowerUsage;
         } break;
+        case HStr_Enum_RemoteControl: {
+            static const char flashStr_Enum_RemoteControl[] PROGMEM = {"RemoteControl"};
+            return flashStr_Enum_RemoteControl;
+        } break;
         case HStr_Enum_ResistiveTouch: {
             static const char flashStr_Enum_ResistiveTouch[] PROGMEM = {"ResistiveTouch"};
             return flashStr_Enum_ResistiveTouch;

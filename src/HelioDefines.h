@@ -294,7 +294,7 @@ enum Helio_MeasurementMode : signed char {
 
 // LCD/Display Output Mode
 // Specifies what kind of visual output device is to be used.
-// Currently, all ouput devices must ultimately be supported by tcMenu.
+// Display output mode support provided by tcMenu.
 enum Helio_DisplayOutputMode : signed char {
     Helio_DisplayOutputMode_Disabled,                       // No display output
     Helio_DisplayOutputMode_16x2LCD,                        // 16x2 text LCD (with pins: {EN,RW,RS,BL,Data})
@@ -326,7 +326,7 @@ enum Helio_DisplayOutputMode : signed char {
 
 // Control Input Mode
 // Specifies what kind of control input mode is to be used.
-// Currently, all input devices must ultimately be supported by tcMenu.
+// Control input mode support provided by tcMenu.
 enum Helio_ControlInputMode : signed char {
     Helio_ControlInputMode_Disabled,                        // No control input
     Helio_ControlInputMode_RotaryEncoder,                   // Rotary encoder, pins: {A,B} (A = pin 1)
@@ -342,6 +342,7 @@ enum Helio_ControlInputMode : signed char {
     Helio_ControlInputMode_ResistiveTouch,                  // Resistive touchscreen, pins: {X+,X-,Y+,Y-}
     Helio_ControlInputMode_TouchScreen,                     // Full touchscreen (Adafruit's FT6206), pins: {}
     Helio_ControlInputMode_TouchScreen_XPT,                 // Full touchscreen (Paul Stoffregen's XPT2046), pins: {}
+    Helio_ControlInputMode_RemoteControl,                   // Fully remote controlled (no input /w possibly disabled display)
 
     Helio_ControlInputMode_Count,                           // Placeholder
     Helio_ControlInputMode_Undefined = -1                   // Placeholder

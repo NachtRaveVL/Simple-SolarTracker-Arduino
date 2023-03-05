@@ -1193,6 +1193,8 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             retVal.concat('X'); retVal.concat('P'); retVal.concat('T');
             return retVal;
         }
+        case Helio_ControlInputMode_RemoteControl:
+            return SFP(HStr_Enum_RemoteControl);
         case Helio_ControlInputMode_Count:
             return !excludeSpecial ? SFP(HStr_Count) : String();
         case Helio_ControlInputMode_Undefined:
@@ -1680,7 +1682,13 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
                     }
                     break;
                 case 'e':
-                    return (Helio_ControlInputMode)11;
+                    switch (controlInModeStr.length() >= 3 ? controlInModeStr[2] : '\0') {
+                        case 's':
+                            return (Helio_ControlInputMode)11;
+                        case 'm':
+                            return (Helio_ControlInputMode)14;
+                    }
+                    break;
             }
             break;
         case '2':
@@ -1722,7 +1730,7 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
             }
             break;
         case 'C':
-            return (Helio_ControlInputMode)14;
+            return (Helio_ControlInputMode)15;
     }
     return Helio_ControlInputMode_Undefined;
 }
