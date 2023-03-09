@@ -762,18 +762,18 @@ void Helioduino::commonPostSave()
 
 // Runloops
 
-// Tight updates (buzzer/gps/etc) that need to be ran often
+// Tight updates (buzzer/etc) that need to be ran often
 inline void tightUpdates()
 {
     // TODO: put in link to buzzer update here. #5 in Hydruino.
+}
+
+// Loose updates (gps/etc) that need ran every so often
+inline void looseUpdates()
+{
     #ifdef HELIO_USE_GPS
         if (Helioduino::_activeInstance->_gps) { while(Helioduino::_activeInstance->_gps->available()) { Helioduino::_activeInstance->_gps->read(); } }
     #endif
-}
-
-// Loose updates (mqtt/etc) that need ran every so often
-inline void looseUpdates()
-{
     #ifdef HELIO_USE_MQTT
         if (publisher._mqttClient) { publisher._mqttClient->loop(); }
     #endif
