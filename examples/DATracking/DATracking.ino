@@ -50,8 +50,8 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 // System Settings
 #define SETUP_SYSTEM_MODE               Tracking        // System run mode (Tracking, Balancing)
 #define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
-#define SETUP_DISPLAY_OUT_MODE          Disabled        // System display output mode (Disabled, 16x2LCD, 16x2LCD_Swapped, 20x4LCD, 20x4LCD_Swapped, SSD1305, SSD1305_x32Ada, SSD1305_x64Ada, SSD1306, SH1106, SSD1607, IL3820, IL3820_V2, ST7735, ST7735_TFT, ST7789, ST7789_TFT, ILI9341, ILI9341_TFT, PCD8544, PCD8544_TFT, Nokia5110, Nokia5110_TFT)
-#define SETUP_CONTROL_IN_MODE           Disabled        // System control input mode (Disabled, RotaryEncoder, RotaryEncoder_Ok, RotaryEncoder_OkLR, 2x2Matrix, 2x2Matrix_Ok, Joystick, Joystick_Ok, 3x4Matrix, 3x4Matrix_Ok, 3x4Matrix_OkLR, ResistiveTouch, TouchScreen)
+#define SETUP_DISPLAY_OUT_MODE          Disabled        // System display output mode (Disabled, 16x2LCD, 16x2LCD_Swapped, 20x4LCD, 20x4LCD_Swapped, SSD1305, SSD1305_x32Ada, SSD1305_x64Ada, SSD1306, SH1106, SSD1607_GD, SSD1607_WS, IL3820, IL3820_V2, ST7735, ILI9341, PCD8544, TFT)
+#define SETUP_CONTROL_IN_MODE           Disabled        // System control input mode (Disabled, RotaryEncoderOk, RotaryEncoderOk_LR, UpDownOkButtons, UpDownOkButtons_LR, AnalogJoystickOk, 3x4MatrixKeyboard_OptRotEncOk, 3x4MatrixKeyboard_OptRotEncOkLR, 4x4MatrixKeyboard_OptRotEncOk, 4x4MatrixKeyboard_OptRotEncOkLR, ResistiveTouch, TouchScreen, TFTTouch, RemoteControl)
 #define SETUP_SYS_UI_MODE               Minimal         // System user interface mode (Disabled, Minimal, Full)
 #define SETUP_SYS_NAME                  "Helioduino"    // System name
 #define SETUP_SYS_TIMEZONE              +0              // System timezone offset
@@ -96,8 +96,8 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
 #define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
 #define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
-#define SETUP_ICE_INDICATOR_TYPE        ACTIVE_HIGH     // Ice indicator type/active level (ACTIVE_HIGH, ACTIVE_LOW)
-#define SETUP_MINMAX_INDICATOR_TYPE     ACTIVE_HIGH     // Linear actuator min/max endstop indicator type/active level (ACTIVE_HIGH, ACTIVE_LOW)
+#define SETUP_ICE_INDICATOR_TYPE        ACT_HIGH        // Ice indicator type/active level (ACT_HIGH, ACT_LOW)
+#define SETUP_MINMAX_INDICATOR_TYPE     ACT_HIGH        // Linear actuator min/max endstop indicator type/active level (ACT_HIGH, ACT_LOW)
 #define SETUP_LINACT_AXIS1_STROKE       1               // Stroke length of linear actuators on axis 1, in meters
 #define SETUP_LINACT1_AXIS1_PINA        -1              // Ele/dec axis linear actuator #1 pin A (digital), else -1
 #define SETUP_LINACT1_AXIS1_PINB        -1              // Ele/dec axis linear actuator #1 pin B (digital), else -1
@@ -121,7 +121,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_MUXING_CHANNEL_BITS       -1              // Number of channel bits for multiplexer, else -1
 #define SETUP_MUXING_ADDRESS_PINS       {(pintype_t)-1} // Address channel pins, else {-1}
 #define SETUP_MUXING_ENABLE_PIN         -1              // Chip enable pin for multiplexer (optional), else -1
-#define SETUP_MUXING_ENABLE_TYPE        ACTIVE_LOW      // Chip enable pin type/active level (ACTIVE_HIGH, ACTIVE_LOW)
+#define SETUP_MUXING_ENABLE_TYPE        ACT_LOW         // Chip enable pin type/active level (ACT_HIGH, ACT_LOW)
 #define SETUP_AC_USAGE_SENSOR_MUXCHN    -1              // AC power usage meter sensor pin muxing channel #, else -1
 #define SETUP_DC_USAGE_SENSOR_MUXCHN    -1              // DC power usage meter sensor pin muxing channel #, else -1
 #define SETUP_DC_GEN_SENSOR_MUXCHN      -1              // DC power generation meter sensor pin muxing channel #, else -1
@@ -405,7 +405,7 @@ inline void setupObjects()
     #if SETUP_ICE_INDICATOR_PIN >= 0
     {   auto iceIndicator = helioController.addIceIndicator(SETUP_ICE_INDICATOR_PIN, SETUP_ICE_INDICATOR_TYPE, SETUP_ICE_INDICATOR_MUXCHN);
         iceIndicator->setParentPanel(trackingPanel);
-        trackingPanel->setHeatingTrigger(new HelioMeasurementValueTrigger(iceIndicator, 0.5, ACTIVE_ABOVE));
+        trackingPanel->setHeatingTrigger(new HelioMeasurementValueTrigger(iceIndicator, 0.5, ACT_ABOVE));
     }
     #endif
     #if SETUP_DC_GEN_SENSOR_PIN >= 0
@@ -421,14 +421,14 @@ inline void setupObjects()
         windSpeedCalib.setFromTwoPoints(SETUP_WIND_SPEED_SENSOR_SCALE);
         windSpeedSensor->setUserCalibrationData(&windSpeedCalib);
         trackingPanel->setWindSpeedSensor(windSpeedSensor);
-        trackingPanel->setStormingTrigger(new HelioMeasurementValueTrigger(windSpeedSensor, SETUP_PANEL_STORMING_SPEED, ACTIVE_ABOVE, 0, SETUP_PANEL_STORMING_SPEED * 0.1f, 30000));
+        trackingPanel->setStormingTrigger(new HelioMeasurementValueTrigger(windSpeedSensor, SETUP_PANEL_STORMING_SPEED, ACT_ABOVE, 0, SETUP_PANEL_STORMING_SPEED * 0.1f, 30000));
     }
     #endif
     #if SETUP_DHT_AIR_TEMP_HUMID_PIN >= 0
     {   auto dhtTemperatureSensor = helioController.addDHTTempHumiditySensor(SETUP_DHT_AIR_TEMP_HUMID_PIN, JOIN(Helio_DHTType,SETUP_DHT_SENSOR_TYPE));
         trackingPanel->setTemperatureSensor(dhtTemperatureSensor);
         #if !(SETUP_ICE_INDICATOR_PIN >= 0)
-            trackingPanel->setHeatingTrigger(new HelioMeasurementValueTrigger(dhtTemperatureSensor, SETUP_PANEL_HEATER_TEMP, ACTIVE_BELOW));
+            trackingPanel->setHeatingTrigger(new HelioMeasurementValueTrigger(dhtTemperatureSensor, SETUP_PANEL_HEATER_TEMP, ACT_BELOW));
             trackingPanel->getHeatingTrigger()->setMeasurementUnits(Helio_UnitsType_Temperature_Celsius);
         #endif
     }
@@ -453,7 +453,7 @@ inline void setupObjects()
     {   auto minimumIndicator = helioController.addEndstopIndicator(SETUP_LINACT1_MIN_ENDSTOP_PIN, SETUP_MINMAX_INDICATOR_TYPE, SETUP_LINACT1_MIN_ENDSTOP_MUXCHN);
         minimumIndicator->setParentPanel(trackingPanel, 1);
         #if SETUP_LINACT1_AXIS1_PINA >= 0 && SETUP_LINACT1_AXIS1_PINB >= 0
-            linearAct1->setMinimumTrigger(new HelioMeasurementValueTrigger(minimumIndicator, 0.5, ACTIVE_ABOVE));
+            linearAct1->setMinimumTrigger(new HelioMeasurementValueTrigger(minimumIndicator, 0.5, ACT_ABOVE));
         #endif
     }
     #endif
@@ -461,7 +461,7 @@ inline void setupObjects()
     {   auto maximumIndicator = helioController.addEndstopIndicator(SETUP_LINACT1_MAX_ENDSTOP_PIN, SETUP_MINMAX_INDICATOR_TYPE, SETUP_LINACT1_MAX_ENDSTOP_MUXCHN);
         maximumIndicator->setParentPanel(trackingPanel, 1);
         #if SETUP_LINACT1_AXIS1_PINA >= 0 && SETUP_LINACT1_AXIS1_PINB >= 0
-            linearAct1->setMaximumTrigger(new HelioMeasurementValueTrigger(maximumIndicator, 0.5, ACTIVE_ABOVE));
+            linearAct1->setMaximumTrigger(new HelioMeasurementValueTrigger(maximumIndicator, 0.5, ACT_ABOVE));
         #endif
     }
     #endif
@@ -483,7 +483,7 @@ inline void setupObjects()
     {   auto minimumIndicator = helioController.addEndstopIndicator(SETUP_LINACT2_MIN_ENDSTOP_PIN, SETUP_MINMAX_INDICATOR_TYPE, SETUP_LINACT2_MIN_ENDSTOP_MUXCHN);
         minimumIndicator->setParentPanel(trackingPanel, 1);
         #if SETUP_LINACT2_AXIS1_PINA >= 0 && SETUP_LINACT2_AXIS1_PINB >= 0
-            linearAct2->setMinimumTrigger(new HelioMeasurementValueTrigger(minimumIndicator, 0.5, ACTIVE_ABOVE));
+            linearAct2->setMinimumTrigger(new HelioMeasurementValueTrigger(minimumIndicator, 0.5, ACT_ABOVE));
         #endif
     }
     #endif
@@ -491,7 +491,7 @@ inline void setupObjects()
     {   auto maximumIndicator = helioController.addEndstopIndicator(SETUP_LINACT2_MAX_ENDSTOP_PIN, SETUP_MINMAX_INDICATOR_TYPE, SETUP_LINACT2_MAX_ENDSTOP_MUXCHN);
         maximumIndicator->setParentPanel(trackingPanel, 1);
         #if SETUP_LINACT2_AXIS1_PINA >= 0 && SETUP_LINACT2_AXIS1_PINB >= 0
-            linearAct2->setMaximumTrigger(new HelioMeasurementValueTrigger(maximumIndicator, 0.5, ACTIVE_ABOVE));
+            linearAct2->setMaximumTrigger(new HelioMeasurementValueTrigger(maximumIndicator, 0.5, ACT_ABOVE));
         #endif
     }
     #endif

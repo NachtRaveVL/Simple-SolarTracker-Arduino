@@ -65,7 +65,7 @@ void HelioActuator::update()
                 setNeedsUpdate();
                 continue;
             }
-            forced |= (*handleIter)->isForced();
+            forced = forced || (*handleIter)->isForced();
         }
     }
 

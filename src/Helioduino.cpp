@@ -1077,59 +1077,52 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
 
 #endif
 
-void Helioduino::setSystemLocation(double latitude, double longitude, double altitude, bool forceUpdate)
+void Helioduino::setSystemLocation(double latitude, double longitude, double altitude, bool isSigChange)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && (!isFPEqual(_systemData->latitude, latitude) || !isFPEqual(_systemData->longitude, longitude) || !isFPEqual(_systemData->altitude, altitude))) {
-        forceUpdate |= ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
-                       ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
-                       fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
+        isSigChange = isSigChange || ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
+                                     ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
+                                     fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
-        if (forceUpdate) { _systemData->bumpRevisionIfNeeded(); }
+        if (isSigChange) { _systemData->bumpRevisionIfNeeded(); }
     }
 }
 
 #ifdef HELIO_USE_GUI
 
-int Helioduino::getControlInputPins() const
+Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
 {
-    switch (getControlInputMode()) {
-        case Helio_ControlInputMode_RotaryEncoder:
-            return 2;
-        case Helio_ControlInputMode_RotaryEncoder_Ok:
-            return 3;
-        case Helio_ControlInputMode_RotaryEncoder_OkLR:
-            return 5;
-        case Helio_ControlInputMode_2x2Matrix:
-            return 4;
-        case Helio_ControlInputMode_2x2Matrix_Ok:
-            return 5;
-        case Helio_ControlInputMode_Joystick:
-            return 2;
-        case Helio_ControlInputMode_Joystick_Ok:
-            return 3;
-        case Helio_ControlInputMode_3x4Matrix:
-            return 2;
-        case Helio_ControlInputMode_3x4Matrix_Ok:
-            return 3;
-        case Helio_ControlInputMode_3x4Matrix_OkLR:
-            return 5;
-        case Helio_ControlInputMode_ResistiveTouch:
-            return 4;
-        default:
-            return 0;
+    if (_ctrlInputPins) {
+        switch (getControlInputMode()) {
+            case Helio_ControlInputMode_RotaryEncoderOk:
+                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_RotaryEncoderOk_LR:
+                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_UpDownOkButtons:
+                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_UpDownOkButtons_LR:
+                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_AnalogJoystickOk:
+                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_3x4MatrixKeyboard_OptRotEncOk:  
+                return make_pair((uint8_t)10, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_3x4MatrixKeyboard_OptRotEncOkLR:
+                return make_pair((uint8_t)12, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_4x4MatrixKeyboard_OptRotEncOk:
+                return make_pair((uint8_t)11, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_4x4MatrixKeyboard_OptRotEncOkLR:
+                return make_pair((uint8_t)13, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_ResistiveTouch:
+                return make_pair((uint8_t)4, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_TFTTouch:
+                return make_pair((uint8_t)2, (const pintype_t *)_ctrlInputPins);
+            default: break;
+        }
     }
-}
-
-pintype_t Helioduino::getControlInputPin(int ribbonPinIndex) const
-{
-    int ctrlInPinCount = getControlInputPins();
-    HELIO_SOFT_ASSERT(ctrlInPinCount > 0, SFP(HStr_Err_UnsupportedOperation));
-    HELIO_SOFT_ASSERT(ctrlInPinCount <= 0 || (ribbonPinIndex >= 0 && ribbonPinIndex < ctrlInPinCount), SFP(HStr_Err_InvalidParameter));
-
-    return ctrlInPinCount && ribbonPinIndex >= 0 && ribbonPinIndex < ctrlInPinCount ? _ctrlInputPins[ribbonPinIndex] : -1;
+    return make_pair((uint8_t)0, (const pintype_t *)nullptr);
 }
 
 #endif

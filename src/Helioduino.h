@@ -22,7 +22,7 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
-    Simple-SolarTracker-Arduino - Version 0.6.0.1
+    Simple-SolarTracker-Arduino - Version 0.6.5.0
 */
 
 #ifndef Helioduino_H
@@ -53,11 +53,14 @@
 // Uncomment or -D this define to enable usage of the Adafruit GPS library, which enables GPS capabilities.
 //#define HELIO_ENABLE_GPS                        // https://github.com/adafruit/Adafruit_GPS
 
+// Uncomment or -D this define to enable usage of the XPT2046_Touchscreen library, in place of the Adafruit FT6206 library.
+//#define HELIO_ENABLE_XPT2046TS                  // https://github.com/PaulStoffregen/XPT2046_Touchscreen
+
 // Uncomment or -D this define to enable external data storage (SD card or EEPROM) to save on sketch size. Required for constrained devices.
 //#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, instead relying solely on external storage.
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
-//#define HELIO_ENABLE_DEBUG_OUTPUT
+#define HELIO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
 //#define HELIO_ENABLE_VERBOSE_DEBUG
@@ -164,7 +167,6 @@ typedef Adafruit_GPS GPSClass;
 #include "TimeLib.h"                    // Time library
 #ifndef HELIO_DISABLE_GUI
 #include "tcMenu.h"                     // tcMenu library
-#include "LiquidCrystalIO.h"            // LiquidCrystal IO
 #define HELIO_USE_GUI
 #endif
 
@@ -374,7 +376,7 @@ public:
     void setEthernetConnection(const uint8_t *macAddress);
 #endif
     // Sets system location (lat/long/alt, note: only triggers update if significant or forced)
-    void setSystemLocation(double latitude, double longitude, double altitude = DBL_UNDEF, bool forceUpdate = false);
+    void setSystemLocation(double latitude, double longitude, double altitude = DBL_UNDEF, bool isSigChange = false);
 
     // Accessors.
 
@@ -397,10 +399,8 @@ public:
 #ifdef HELIO_USE_GUI
     // LCD output device setup configuration
     inline const DeviceSetup &getLCDSetup() const { return _lcdSetup; }
-    // Total number of pins being used for the current control input ribbon
-    int getControlInputPins() const;
-    // Control input pin mapped to ribbon pin index, or -1 if not used
-    pintype_t getControlInputPin(int ribbonPinIndex) const;
+    // Returns control input pins ribbon
+    Pair<uint8_t, const pintype_t *> getControlInputPins() const;
 #endif
 
     // EEPROM instance (lazily instantiated, nullptr return -> failure/no device)
