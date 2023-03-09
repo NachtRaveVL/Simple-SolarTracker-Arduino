@@ -60,7 +60,7 @@
 //#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, instead relying solely on external storage.
 
 // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
-#define HELIO_ENABLE_DEBUG_OUTPUT
+//#define HELIO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
 //#define HELIO_ENABLE_VERBOSE_DEBUG
