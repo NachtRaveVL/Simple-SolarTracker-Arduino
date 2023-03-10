@@ -235,7 +235,7 @@ Helioduino helioController((pintype_t)SETUP_PIEZO_BUZZER_PIN,
 #else
                            DeviceSetup(),
 #endif
-#if defined(HELIO_USE_GPS) && IS_SETUP_AS(SETUP_GPS_TYPE, UART)
+#if defined(HELIO_USE_GPS) && (IS_SETUP_AS(SETUP_GPS_TYPE, UART) || IS_SETUP_AS(SETUP_GPS_TYPE, Serial))
                            UARTDeviceSetup(&SETUP_GPS_SERIAL, HELIO_SYS_NMEAGPS_SERIALBAUD),
 #elif defined(HELIO_USE_GPS) && IS_SETUP_AS(SETUP_GPS_TYPE, I2C)
                            I2CDeviceSetup(SETUP_GPS_I2C_ADDR, &SETUP_I2C_WIRE, SETUP_I2C_SPEED),
