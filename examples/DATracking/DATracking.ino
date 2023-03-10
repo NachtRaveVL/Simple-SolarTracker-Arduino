@@ -200,7 +200,7 @@ EthernetClient netClient;
 MQTTClient mqttClient;
 #endif
 
-#if defined(HELIO_USE_GUI) && NOT_SETUP_AS(SETUP_DISPLAY_OUT_MODE, Disabled)
+#if defined(HELIO_USE_GUI) && (NOT_SETUP_AS(SETUP_CONTROL_IN_MODE, Disabled) || NOT_SETUP_AS(SETUP_DISPLAY_OUT_MODE, Disabled)) && NOT_SETUP_AS(SETUP_SYS_UI_MODE, Disabled)
 #if IS_SETUP_AS(SETUP_SYS_UI_MODE, Minimal)
 #include "min/HelioduinoUI.h"
 #elif IS_SETUP_AS(SETUP_SYS_UI_MODE, Full)
@@ -641,7 +641,7 @@ void setup() {
         setupAlways();
     }
 
-    #if defined(HELIO_USE_GUI) && NOT_SETUP_AS(SETUP_DISPLAY_OUT_MODE, Disabled) && NOT_SETUP_AS(SETUP_SYS_UI_MODE, Disabled)
+    #if defined(HELIO_USE_GUI) && (NOT_SETUP_AS(SETUP_CONTROL_IN_MODE, Disabled) || NOT_SETUP_AS(SETUP_DISPLAY_OUT_MODE, Disabled)) && NOT_SETUP_AS(SETUP_SYS_UI_MODE, Disabled)
         UIControlSetup uiCtrlSetup;
         UIDisplaySetup uiDispSetup;
         #if SETUP_UI_IS_DFROBOTSHIELD
