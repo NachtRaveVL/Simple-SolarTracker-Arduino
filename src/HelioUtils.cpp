@@ -1050,19 +1050,19 @@ String displayOutputModeToString(Helio_DisplayOutputMode displayOutMode, bool ex
     switch (displayOutMode) {
         case Helio_DisplayOutputMode_Disabled:
             return SFP(HStr_Disabled);
-        case Helio_DisplayOutputMode_16x2LCD:
-            return SFP(HStr_Enum_16x2LCD);
-        case Helio_DisplayOutputMode_16x2LCD_Swapped: {
-            String retVal(SFP(HStr_Enum_16x2LCD));
+        case Helio_DisplayOutputMode_LCD16x2:
+            return SFP(HStr_Enum_LCD16x2);
+        case Helio_DisplayOutputMode_LCD16x2_Swapped: {
+            String retVal(SFP(HStr_Enum_LCD16x2));
             String concat(SFP(HStr_Enum_Swapped));
             retVal.reserve(retVal.length() + concat.length());
             retVal.concat(concat);
             return retVal;
         }
-        case Helio_DisplayOutputMode_20x4LCD:
-            return SFP(HStr_Enum_20x4LCD);
-        case Helio_DisplayOutputMode_20x4LCD_Swapped: {
-            String retVal(SFP(HStr_Enum_20x4LCD));
+        case Helio_DisplayOutputMode_LCD20x4:
+            return SFP(HStr_Enum_LCD20x4);
+        case Helio_DisplayOutputMode_LCD20x4_Swapped: {
+            String retVal(SFP(HStr_Enum_LCD20x4));
             String concat(SFP(HStr_Enum_Swapped));
             retVal.reserve(retVal.length() + concat.length());
             retVal.concat(concat);
@@ -1152,27 +1152,27 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
-        case Helio_ControlInputMode_3x4MatrixKeyboard_OptRotEncOk: {
-            String retVal(SFP(HStr_Enum_3x4Matrix));
+        case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk: {
+            String retVal(SFP(HStr_Enum_Matrix3x4));
             retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
-        case Helio_ControlInputMode_3x4MatrixKeyboard_OptRotEncOkLR: {
-            String retVal(SFP(HStr_Enum_3x4Matrix));
+        case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR: {
+            String retVal(SFP(HStr_Enum_Matrix3x4));
             retVal.reserve(retVal.length() + 4);
             retVal.concat('O'); retVal.concat('k');
             retVal.concat('L'); retVal.concat('R');
             return retVal;
         }
-        case Helio_ControlInputMode_4x4MatrixKeyboard_OptRotEncOk: {
-            String retVal(SFP(HStr_Enum_4x4Matrix));
+        case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOk: {
+            String retVal(SFP(HStr_Enum_Matrix4x4));
             retVal.reserve(retVal.length() + 2);
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
-        case Helio_ControlInputMode_4x4MatrixKeyboard_OptRotEncOkLR: {
-            String retVal(SFP(HStr_Enum_4x4Matrix));
+        case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR: {
+            String retVal(SFP(HStr_Enum_Matrix4x4));
             retVal.reserve(retVal.length() + 4);
             retVal.concat('O'); retVal.concat('k');
             retVal.concat('L'); retVal.concat('R');
@@ -1539,20 +1539,24 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
             return (Helio_DisplayOutputMode)-1;
         case 'D':
             return (Helio_DisplayOutputMode)0;
-        case '1':
-            switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                case '\0':
-                    return (Helio_DisplayOutputMode)1;
-                case 'S':
-                    return (Helio_DisplayOutputMode)2;
-            }
-            break;
-        case '2':
-            switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                case '\0':
-                    return (Helio_DisplayOutputMode)3;
-                case 'S':
-                    return (Helio_DisplayOutputMode)4;
+        case 'L':
+            switch (displayOutModeStr.length() >= 4 ? displayOutModeStr[3] : '\0') {
+                case '1':
+                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                        case '\0':
+                            return (Helio_DisplayOutputMode)1;
+                        case 'S':
+                            return (Helio_DisplayOutputMode)2;
+                    }
+                    break;
+                case '2':
+                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                        case '\0':
+                            return (Helio_DisplayOutputMode)3;
+                        case 'S':
+                            return (Helio_DisplayOutputMode)4;
+                    }
+                    break;
             }
             break;
         case 'S':

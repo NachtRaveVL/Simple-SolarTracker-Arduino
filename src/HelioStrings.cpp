@@ -814,22 +814,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             return flashStr_Key_WirePosIndex;
         } break;
 
-        case HStr_Enum_16x2LCD: {
-            static const char flashStr_Enum_16x2LCD[] PROGMEM = {"16x2LCD"};
-            return flashStr_Enum_16x2LCD;
-        } break;
-        case HStr_Enum_20x4LCD: {
-            static const char flashStr_Enum_20x4LCD[] PROGMEM = {"20x4LCD"};
-            return flashStr_Enum_20x4LCD;
-        } break;
-        case HStr_Enum_3x4Matrix: {
-            static const char flashStr_Enum_3x4Matrix[] PROGMEM = {"3x4Matrix"};
-            return flashStr_Enum_3x4Matrix;
-        } break;
-        case HStr_Enum_4x4Matrix: {
-            static const char flashStr_Enum_4x4Matrix[] PROGMEM = {"4x4Matrix"};
-            return flashStr_Enum_4x4Matrix;
-        } break;
         case HStr_Enum_AC110V: {
             static const char flashStr_Enum_AC110V[] PROGMEM = {"AC110V"};
             return flashStr_Enum_AC110V;
@@ -958,6 +942,14 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_InOrder[] PROGMEM = {"InOrder"};
             return flashStr_Enum_InOrder;
         } break;
+        case HStr_Enum_LCD16x2: {
+            static const char flashStr_Enum_LCD16x2[] PROGMEM = {"LCD16x2"};
+            return flashStr_Enum_LCD16x2;
+        } break;
+        case HStr_Enum_LCD20x4: {
+            static const char flashStr_Enum_LCD20x4[] PROGMEM = {"LCD20x4"};
+            return flashStr_Enum_LCD20x4;
+        } break;
         case HStr_Enum_LightIntensity: {
             static const char flashStr_Enum_LightIntensity[] PROGMEM = {"LightIntensity"};
             return flashStr_Enum_LightIntensity;
@@ -969,6 +961,14 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Enum_Lowest: {
             static const char flashStr_Enum_Lowest[] PROGMEM = {"Lowest"};
             return flashStr_Enum_Lowest;
+        } break;
+        case HStr_Enum_Matrix3x4: {
+            static const char flashStr_Enum_Matrix3x4[] PROGMEM = {"Matrix3x4"};
+            return flashStr_Enum_Matrix3x4;
+        } break;
+        case HStr_Enum_Matrix4x4: {
+            static const char flashStr_Enum_Matrix4x4[] PROGMEM = {"Matrix4x4"};
+            return flashStr_Enum_Matrix4x4;
         } break;
         case HStr_Enum_Metric: {
             static const char flashStr_Enum_Metric[] PROGMEM = {"Metric"};
