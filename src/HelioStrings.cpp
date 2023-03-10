@@ -489,6 +489,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_DHTType[] PROGMEM = {"dhtType"};
             return flashStr_Key_DHTType;
         } break;
+        case HStr_Key_DisplayTheme: {
+            static const char flashStr_Key_DisplayTheme[] PROGMEM = {"displayTheme"};
+            return flashStr_Key_DisplayTheme;
+        } break;
         case HStr_Key_DispOutMode: {
             static const char flashStr_Key_DispOutMode[] PROGMEM = {"dispOutMode"};
             return flashStr_Key_DispOutMode;
@@ -524,6 +528,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_InputPin: {
             static const char flashStr_Key_InputPin[] PROGMEM = {"inputPin"};
             return flashStr_Key_InputPin;
+        } break;
+        case HStr_Key_JoystickCalib: {
+            static const char flashStr_Key_JoystickCalib[] PROGMEM = {"joystickCalib"};
+            return flashStr_Key_JoystickCalib;
         } break;
         case HStr_Key_LastAlignedTime: {
             static const char flashStr_Key_LastAlignedTime[] PROGMEM = {"lastAlignedTime"};
@@ -776,6 +784,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_Units: {
             static const char flashStr_Key_Units[] PROGMEM = {"units"};
             return flashStr_Key_Units;
+        } break;
+        case HStr_Key_UpdatesPerSec: {
+            static const char flashStr_Key_UpdatesPerSec[] PROGMEM = {"updatesPerSec"};
+            return flashStr_Key_UpdatesPerSec;
         } break;
         case HStr_Key_UsingISR: {
             static const char flashStr_Key_UsingISR[] PROGMEM = {"usingISR"};
