@@ -94,7 +94,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 // UI Settings
 #define SETUP_UI_LOGIC_LEVEL            ACT_LOW         // I/O signaling logic active level (ACT_LOW, ACT_HIGH)
 #define SETUP_UI_ALLOW_INTERRUPTS       true            // Allow interrupt driven I/O if able, else force polling
-#define SEUTP_UI_USE_UNICODE_FONTS      true            // Use tcUnicode fonts instead of default, if using graphical display
+#define SETUP_UI_USE_UNICODE_FONTS      true            // Use tcUnicode fonts instead of default, if using graphical display
 #define SETUP_UI_IS_DFROBOTSHIELD       false           // Using DFRobotShield as preset (SETUP_CTRL_INPUT_PINS may be left {-1})
 
 // UI Display Output Settings
@@ -642,7 +642,74 @@ void setup() {
     }
 
     #if defined(HELIO_USE_GUI) && NOT_SETUP_AS(SETUP_DISPLAY_OUT_MODE, Disabled) && NOT_SETUP_AS(SETUP_SYS_UI_MODE, Disabled)
-        helioController.enableUI(new HelioduinoUI());
+        UIControlSetup uiCtrlSetup;
+        UIDisplaySetup uiDispSetup;
+        #if SETUP_UI_IS_DFROBOTSHIELD
+            uiCtrlSetup = UIControlSetup::usingDFRobotShield();
+            uiDispSetup = UIDisplaySetup::usingDFRobotShield();
+        #else
+            switch (helioController.getControlInputMode()) {
+                case Helio_ControlInputMode_RotaryEncoderOk:
+                case Helio_ControlInputMode_RotaryEncoderOk_LR:
+                    uiCtrlSetup = UIControlSetup(RotaryControlSetup(SETUP_UI_ENC_ROTARY_SPEED));
+                    break;
+                case Helio_ControlInputMode_UpDownOkButtons:
+                case Helio_ControlInputMode_UpDownOkButtons_LR:
+                    uiCtrlSetup = UIControlSetup(ButtonsControlSetup(SETUP_UI_KEY_REPEAT_SPEED));
+                    break;
+                case Helio_ControlInputMode_AnalogJoystickOk:
+                    uiCtrlSetup = UIControlSetup(JoystickControlSetup(SETUP_UI_KEY_REPEAT_DELAY, SETUP_UI_JS_ACCELERATION));
+                    break;
+                case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk:
+                case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR:
+                case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOk:
+                case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
+                    uiCtrlSetup = UIControlSetup(MatrixControlSetup(SETUP_UI_KEY_REPEAT_DELAY, SETUP_UI_KEY_REPEAT_INTERVAL, SETUP_UI_ENC_ROTARY_SPEED));
+                    break;
+                default: break;
+            }
+            switch (helioController.getDisplayOutputMode()) {
+                case Helio_DisplayOutputMode_LCD16x2:
+                case Helio_DisplayOutputMode_LCD16x2_Swapped:
+                case Helio_DisplayOutputMode_LCD20x4:
+                case Helio_DisplayOutputMode_LCD20x4_Swapped:
+                    uiDispSetup = UIDisplaySetup(LCDDisplaySetup(SETUP_UI_LCD_BIT_INVERSION, SETUP_UI_LCD_BACKLIGHT_MODE));
+                    break;
+                case Helio_DisplayOutputMode_SSD1305:
+                case Helio_DisplayOutputMode_SSD1305_x32Ada:
+                case Helio_DisplayOutputMode_SSD1305_x64Ada:
+                case Helio_DisplayOutputMode_SSD1306:
+                case Helio_DisplayOutputMode_SH1106:
+                case Helio_DisplayOutputMode_SSD1607_GD:
+                case Helio_DisplayOutputMode_SSD1607_WS:
+                case Helio_DisplayOutputMode_IL3820:
+                case Helio_DisplayOutputMode_IL3820_V2:
+                case Helio_DisplayOutputMode_ST7789:
+                case Helio_DisplayOutputMode_ILI9341:
+                case Helio_DisplayOutputMode_PCD8544:
+                    uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_DISP_ORIENTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN));
+                    break;
+                case Helio_DisplayOutputMode_ST7735:
+                    uiDispSetup = UIDisplaySetup(ST7735DisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_DISP_ORIENTATION), JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN));
+                    break;
+                case Helio_DisplayOutputMode_TFT:
+                    uiDispSetup = UIDisplaySetup(TFTDisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_DISP_ORIENTATION), SETUP_UI_TFT_SCREEN_WIDTH, SETUP_UI_TFT_SCREEN_HEIGHT));
+                    break;
+                default: break;
+            }
+        #endif
+        HelioduinoUI *ui = new HelioduinoUI(uiCtrlSetup, uiDispSetup, SETUP_UI_LOGIC_LEVEL, SETUP_UI_ALLOW_INTERRUPTS, SETUP_UI_USE_UNICODE_FONTS);
+        HELIO_SOFT_ASSERT(ui, SFP(HStr_Err_AllocationFailure));
+
+        if (ui) {
+            #if NOT_SETUP_AS(SETUP_UI_REMOTE1_TYPE, Disabled)
+                ui->addRemote(JOIN(Helio_RemoteControl,SETUP_UI_REMOTE1_TYPE), UARTDeviceSetup(&SETUP_UI_REMOTE1_UART), SETUP_UI_RC_NETWORKING_PORT);
+            #endif
+            #if NOT_SETUP_AS(SETUP_UI_REMOTE2_TYPE, Disabled)
+                ui->addRemote(JOIN(Helio_RemoteControl,SETUP_UI_REMOTE2_TYPE), UARTDeviceSetup(&SETUP_UI_REMOTE2_UART), SETUP_UI_RC_NETWORKING_PORT);
+            #endif
+            helioController.enableUI(ui);
+        }
     #endif
 
     // Launches controller into main operation.
