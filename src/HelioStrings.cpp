@@ -974,6 +974,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_Lowest[] PROGMEM = {"Lowest"};
             return flashStr_Enum_Lowest;
         } break;
+        case HStr_Enum_Matrix2x2: {
+            static const char flashStr_Enum_Matrix2x2[] PROGMEM = {"Matrix2x2"};
+            return flashStr_Enum_Matrix2x2;
+        } break;
         case HStr_Enum_Matrix3x4: {
             static const char flashStr_Enum_Matrix3x4[] PROGMEM = {"Matrix3x4"};
             return flashStr_Enum_Matrix3x4;

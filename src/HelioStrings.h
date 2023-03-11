@@ -219,6 +219,7 @@ enum Helio_String : unsigned short {
     HStr_Enum_LightIntensity,
     HStr_Enum_LinearActuator,
     HStr_Enum_Lowest,
+    HStr_Enum_Matrix2x2,
     HStr_Enum_Matrix3x4,
     HStr_Enum_Matrix4x4,
     HStr_Enum_Metric,

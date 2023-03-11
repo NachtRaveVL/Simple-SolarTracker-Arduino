@@ -1171,6 +1171,15 @@ String controlInputModeToString(Helio_ControlInputMode controlInMode, bool exclu
             retVal.concat('O'); retVal.concat('k');
             return retVal;
         }
+        case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL: {
+            String retVal(SFP(HStr_Enum_Matrix2x2));
+            String concat(SFP(HStr_Enum_UpDownButtons));
+            retVal.reserve(retVal.length() + concat.length() + 3);
+            retVal.concat(concat);
+            retVal.concat('O'); retVal.concat('k');
+            retVal.concat('L');
+            return retVal;
+        }
         case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk: {
             String retVal(SFP(HStr_Enum_Matrix3x4));
             retVal.reserve(retVal.length() + 2);
@@ -1651,6 +1660,62 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
 Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
 {
     switch (controlInModeStr.length() >= 1 ? controlInModeStr[0] : '\0') {
+        case 'A':
+            return (Helio_ControlInputMode)7;
+        case 'C':
+            return (Helio_ControlInputMode)17;
+        case 'D':
+            return (Helio_ControlInputMode)0;
+        case 'M':
+            switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\0') {
+                case '2':
+                    return (Helio_ControlInputMode)8;
+                case '3':
+                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
+                        case '\0':
+                            return (Helio_ControlInputMode)9;
+                        case 'L':
+                            return (Helio_ControlInputMode)10;
+                    }
+                    break;
+                case '4':
+                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
+                        case '\0':
+                            return (Helio_ControlInputMode)11;
+                        case 'L':
+                            return (Helio_ControlInputMode)12;
+                    }
+                    break;
+            }
+            break;
+        case 'R':
+            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
+                case 'e':
+                    switch (controlInModeStr.length() >= 3 ? controlInModeStr[2] : '\0') {
+                        case 'm':
+                            return (Helio_ControlInputMode)16;
+                        case 's':
+                            return (Helio_ControlInputMode)13;
+                    }
+                    break;
+                case 'o':
+                    switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\0') {
+                        case '\0':
+                            return (Helio_ControlInputMode)1;
+                        case 'L':
+                            return (Helio_ControlInputMode)2;
+                    }
+                    break;
+            }
+            break;
+        case 'T':
+            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
+                case 'F':
+                    return (Helio_ControlInputMode)15;
+                case 'o':
+                    return (Helio_ControlInputMode)14;
+            }
+            break;
         case 'U':
             switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
                 case 'n':
@@ -1677,60 +1742,6 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
                     break;
             }
             break;
-        case 'D':
-            return (Helio_ControlInputMode)0;
-        case 'R':
-            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
-                case 'o':
-                    switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\0') {
-                        case '\0':
-                            return (Helio_ControlInputMode)1;
-                        case 'L':
-                            return (Helio_ControlInputMode)2;
-                    }
-                    break;
-                case 'e':
-                    switch (controlInModeStr.length() >= 3 ? controlInModeStr[2] : '\0') {
-                        case 's':
-                            return (Helio_ControlInputMode)12;
-                        case 'm':
-                            return (Helio_ControlInputMode)15;
-                    }
-                    break;
-            }
-            break;
-        case 'A':
-            return (Helio_ControlInputMode)7;
-        case 'M':
-            switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\0') {
-                case '3':
-                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
-                        case '\0':
-                            return (Helio_ControlInputMode)8;
-                        case 'L':
-                            return (Helio_ControlInputMode)9;
-                    }
-                    break;
-                case '4':
-                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
-                        case '\0':
-                            return (Helio_ControlInputMode)10;
-                        case 'L':
-                            return (Helio_ControlInputMode)11;
-                    }
-                    break;
-            }
-            break;
-        case 'T':
-            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
-                case 'o':
-                    return (Helio_ControlInputMode)13;
-                case 'F':
-                    return (Helio_ControlInputMode)14;
-            }
-            break;
-        case 'C':
-            return (Helio_ControlInputMode)16;
     }
     return Helio_ControlInputMode_Undefined;
 }

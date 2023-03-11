@@ -1114,6 +1114,7 @@ Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
                 return make_pair((uint8_t)11, (const pintype_t *)_ctrlInputPins);
             case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
                 return make_pair((uint8_t)13, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL:
             case Helio_ControlInputMode_ResistiveTouch:
                 return make_pair((uint8_t)4, (const pintype_t *)_ctrlInputPins);
             case Helio_ControlInputMode_TFTTouch:
