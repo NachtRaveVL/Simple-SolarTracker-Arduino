@@ -1086,10 +1086,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_ST7789[] PROGMEM = {"ST7789"};
             return flashStr_Enum_ST7789;
         } break;
-        case HStr_Enum_Swapped: {
-            static const char flashStr_Enum_Swapped[] PROGMEM = {"Swapped"};
-            return flashStr_Enum_Swapped;
-        } break;
         case HStr_Enum_Temperature: {
             static const char flashStr_Enum_Temperature[] PROGMEM = {"Temperature"};
             return flashStr_Enum_Temperature;

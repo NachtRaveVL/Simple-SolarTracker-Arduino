@@ -247,7 +247,6 @@ enum Helio_String : unsigned short {
     HStr_Enum_SSD1607,
     HStr_Enum_ST7735,
     HStr_Enum_ST7789,
-    HStr_Enum_Swapped,
     HStr_Enum_Temperature,
     HStr_Enum_TFTTouch,
     HStr_Enum_TiltAngle,

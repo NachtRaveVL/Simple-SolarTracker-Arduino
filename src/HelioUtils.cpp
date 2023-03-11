@@ -1050,22 +1050,28 @@ String displayOutputModeToString(Helio_DisplayOutputMode displayOutMode, bool ex
     switch (displayOutMode) {
         case Helio_DisplayOutputMode_Disabled:
             return SFP(HStr_Disabled);
-        case Helio_DisplayOutputMode_LCD16x2:
-            return SFP(HStr_Enum_LCD16x2);
-        case Helio_DisplayOutputMode_LCD16x2_Swapped: {
+        case Helio_DisplayOutputMode_LCD16x2_EN: {
             String retVal(SFP(HStr_Enum_LCD16x2));
-            String concat(SFP(HStr_Enum_Swapped));
-            retVal.reserve(retVal.length() + concat.length());
-            retVal.concat(concat);
+            retVal.reserve(retVal.length() + 2);
+            retVal.concat('E'); retVal.concat('N');
             return retVal;
         }
-        case Helio_DisplayOutputMode_LCD20x4:
-            return SFP(HStr_Enum_LCD20x4);
-        case Helio_DisplayOutputMode_LCD20x4_Swapped: {
+        case Helio_DisplayOutputMode_LCD16x2_RS: {
+            String retVal(SFP(HStr_Enum_LCD16x2));
+            retVal.reserve(retVal.length() + 2);
+            retVal.concat('R'); retVal.concat('S');
+            return retVal;
+        }
+        case Helio_DisplayOutputMode_LCD20x4_EN: {
             String retVal(SFP(HStr_Enum_LCD20x4));
-            String concat(SFP(HStr_Enum_Swapped));
-            retVal.reserve(retVal.length() + concat.length());
-            retVal.concat(concat);
+            retVal.reserve(retVal.length() + 2);
+            retVal.concat('E'); retVal.concat('N');
+            return retVal;
+        }
+        case Helio_DisplayOutputMode_LCD20x4_RS: {
+            String retVal(SFP(HStr_Enum_LCD20x4));
+            retVal.reserve(retVal.length() + 2);
+            retVal.concat('R'); retVal.concat('S');
             return retVal;
         }
         case Helio_DisplayOutputMode_SSD1305:
@@ -1556,17 +1562,17 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
             switch (displayOutModeStr.length() >= 4 ? displayOutModeStr[3] : '\0') {
                 case '1':
                     switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                        case '\0':
+                        case 'E':
                             return (Helio_DisplayOutputMode)1;
-                        case 'S':
+                        case 'R':
                             return (Helio_DisplayOutputMode)2;
                     }
                     break;
                 case '2':
                     switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                        case '\0':
+                        case 'E':
                             return (Helio_DisplayOutputMode)3;
-                        case 'S':
+                        case 'R':
                             return (Helio_DisplayOutputMode)4;
                     }
                     break;
