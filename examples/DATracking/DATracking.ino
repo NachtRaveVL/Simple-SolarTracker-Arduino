@@ -723,6 +723,7 @@ inline void setupUI()
                     ui->addRemote(JOIN(Helio_RemoteControl,SETUP_UI_REMOTE2_TYPE), UARTDeviceSetup(&SETUP_UI_REMOTE2_UART), SETUP_UI_RC_NETWORKING_PORT);
                 #endif
             #endif
+            ui->init();
             helioController.enableUI(ui);
         }
     #endif
