@@ -6,10 +6,13 @@
 #include "Helioduino.h"
 #include "HelioduinoUI.h"
 
+void HelioduinoBaseUI::init()
+{ ; }
+
 bool HelioduinoBaseUI::begin()
 {
     return false;
 }
 
 void HelioduinoBaseUI::setNeedsLayout()
-{ }
+{ ; }
