@@ -1098,15 +1098,14 @@ Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
     if (_ctrlInputPins) {
         switch (getControlInputMode()) {
             case Helio_ControlInputMode_RotaryEncoderOk:
-                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
-            case Helio_ControlInputMode_RotaryEncoderOk_LR:
-                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
-            case Helio_ControlInputMode_UpDownOkButtons:
-                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
-            case Helio_ControlInputMode_UpDownOkButtons_LR:
-                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_UpDownButtonsOk:
+            case Helio_ControlInputMode_UpDownESP32TouchOk:
             case Helio_ControlInputMode_AnalogJoystickOk:
                 return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_RotaryEncoderOkLR:
+            case Helio_ControlInputMode_UpDownButtonsOkLR:
+            case Helio_ControlInputMode_UpDownESP32TouchOkLR:
+                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
             case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk:  
                 return make_pair((uint8_t)10, (const pintype_t *)_ctrlInputPins);
             case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR:

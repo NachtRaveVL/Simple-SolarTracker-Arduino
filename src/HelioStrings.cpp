@@ -1118,6 +1118,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_UpDownButtons[] PROGMEM = {"UpDownButtons"};
             return flashStr_Enum_UpDownButtons;
         } break;
+        case HStr_Enum_UpDownESP32Touch: {
+            static const char flashStr_Enum_UpDownESP32Touch[] PROGMEM = {"UpDownESP32Touch"};
+            return flashStr_Enum_UpDownESP32Touch;
+        } break;
         case HStr_Enum_Vertical: {
             static const char flashStr_Enum_Vertical[] PROGMEM = {"Vertical"};
             return flashStr_Enum_Vertical;

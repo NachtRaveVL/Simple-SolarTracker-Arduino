@@ -255,6 +255,7 @@ enum Helio_String : unsigned short {
     HStr_Enum_Tracking,
     HStr_Enum_TravelPosition,
     HStr_Enum_UpDownButtons,
+    HStr_Enum_UpDownESP32Touch,
     HStr_Enum_Vertical,
     HStr_Enum_WindSpeed,
 
