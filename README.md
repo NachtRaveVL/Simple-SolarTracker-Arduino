@@ -120,7 +120,7 @@ From Helioduino.h, in class Helioduino:
                DeviceSetup netSetup = DeviceSetup(),                // Network device setup (spi/uart)
                DeviceSetup gpsSetup = DeviceSetup(),                // GPS device setup (uart/i2c/spi)
                pintype_t *ctrlInputPins = nullptr,                  // Control input pins, else nullptr
-               DeviceSetup dispSetup = DeviceSetup());              // Display device setup (i2c/spi)
+               DeviceSetup displaySetup = DeviceSetup());           // Display device setup (i2c/spi)
 ```
 
 #### Controller Initialization

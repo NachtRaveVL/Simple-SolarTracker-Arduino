@@ -35,7 +35,7 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
                        DeviceSetup netSetup,
                        DeviceSetup gpsSetup,
                        pintype_t *ctrlInputPins,
-                       DeviceSetup dispSetup)
+                       DeviceSetup displaySetup)
     : _piezoBuzzerPin(piezoBuzzerPin),
       _eepromType(eepromType), _eepromSetup(eepromSetup), _eeprom(nullptr), _eepromBegan(false),
       _rtcType(rtcType), _rtcSetup(rtcSetup), _rtc(nullptr), _rtcBegan(false), _rtcBattFail(false),
@@ -47,7 +47,7 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
       _gpsSetup(gpsSetup), _gps(nullptr), _gpsBegan(false),
 #endif
 #ifdef HELIO_USE_GUI
-      _activeUIInstance(nullptr), _ctrlInputPins(ctrlInputPins), _dispSetup(dispSetup),
+      _activeUIInstance(nullptr), _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
 #endif
 #ifdef HELIO_USE_MULTITASKING
       _controlTaskId(TASKMGR_INVALIDID), _dataTaskId(TASKMGR_INVALIDID), _miscTaskId(TASKMGR_INVALIDID),
@@ -607,10 +607,10 @@ void Helioduino::commonPreInit()
         }
     }
     #ifdef HELIO_USE_GUI
-        if (getDisplayOutputMode() != Helio_DisplayOutputMode_Disabled && _dispSetup.cfgType == DeviceSetup::I2CSetup) {
-            if (began.find((uintptr_t)_dispSetup.cfgAs.i2c.wire) == began.end() || _dispSetup.cfgAs.i2c.speed < began[(uintptr_t)_dispSetup.cfgAs.i2c.wire]) {
-                _dispSetup.cfgAs.i2c.wire->begin();
-                _dispSetup.cfgAs.i2c.wire->setClock((began[(uintptr_t)_dispSetup.cfgAs.i2c.wire] = _dispSetup.cfgAs.i2c.speed));
+        if (getDisplayOutputMode() != Helio_DisplayOutputMode_Disabled && _displaySetup.cfgType == DeviceSetup::I2CSetup) {
+            if (began.find((uintptr_t)_displaySetup.cfgAs.i2c.wire) == began.end() || _displaySetup.cfgAs.i2c.speed < began[(uintptr_t)_displaySetup.cfgAs.i2c.wire]) {
+                _displaySetup.cfgAs.i2c.wire->begin();
+                _displaySetup.cfgAs.i2c.wire->setClock((began[(uintptr_t)_displaySetup.cfgAs.i2c.wire] = _displaySetup.cfgAs.i2c.speed));
             }
         }
     #endif
@@ -726,7 +726,7 @@ void Helioduino::commonPostInit()
                     Serial.print('}');
                 }
                 else { Serial.print(SFP(HStr_Disabled)); }
-                printDeviceSetup(F("displaySetup"), _dispSetup);
+                printDeviceSetup(F("displaySetup"), _displaySetup);
             #endif
             Serial.print(F(", systemMode: "));
             Serial.print(systemModeToString(getSystemMode()));

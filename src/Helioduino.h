@@ -257,7 +257,7 @@ public:
                DeviceSetup netSetup = DeviceSetup(),                // Network device setup (spi/uart)
                DeviceSetup gpsSetup = DeviceSetup(),                // GPS device setup (uart/i2c/spi)
                pintype_t *ctrlInputPins = nullptr,                  // Control input pins, else nullptr
-               DeviceSetup dispSetup = DeviceSetup());              // Display device setup (i2c/spi)
+               DeviceSetup displaySetup = DeviceSetup());           // Display device setup (i2c/spi)
     // Library destructor. Just in case.
     ~Helioduino();
 
@@ -402,7 +402,7 @@ public:
 #endif
 #ifdef HELIO_USE_GUI
     // LCD output device setup configuration
-    inline const DeviceSetup &getDisplaySetup() const { return _dispSetup; }
+    inline const DeviceSetup &getDisplaySetup() const { return _displaySetup; }
     // Returns control input pins ribbon
     Pair<uint8_t, const pintype_t *> getControlInputPins() const;
 #endif
@@ -504,7 +504,7 @@ protected:
 #endif
 #ifdef HELIO_USE_GUI
     const pintype_t *_ctrlInputPins;                        // Control input pin mapping (weak, default: Disabled/nullptr)
-    const DeviceSetup _dispSetup;                           // Display device setup
+    const DeviceSetup _displaySetup;                        // Display device setup
 #endif
 
     I2C_eeprom *_eeprom;                                    // EEPROM instance (owned, lazy)
