@@ -112,6 +112,25 @@
 #endif
 #endif
 
+// Standardized TFT WxH
+#ifdef HELIO_USE_GUI
+#include <User_Setup.h>
+#endif
+#ifndef TFT_GFX_WIDTH
+#ifdef TFT_WIDTH
+#define TFT_GFX_WIDTH                   TFT_WIDTH           // Custom defined
+#else
+#define TFT_GFX_WIDTH                   320                 // Default 320x
+#endif
+#endif
+#ifndef TFT_GFX_HEIGHT
+#ifdef TFT_HEIGHT
+#define TFT_GFX_HEIGHT                  TFT_HEIGHT          // Custom defined
+#else
+#define TFT_GFX_HEIGHT                  240                 // Default x240
+#endif
+#endif
+
 typedef typeof(millis())                millis_t;           // Millisecond time type
 typedef int8_t                          hposi_t;            // Position indexing type alias
 typedef uint32_t                        hkey_t;             // Key type alias, for hashing
