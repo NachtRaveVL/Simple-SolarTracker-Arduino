@@ -10,15 +10,31 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 
 **UNDER ACTIVE DEVELOPMENT -- WORK IN PROGRESS**
 
-This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and double axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with linear actuators, use power sensing to auto-optimize daily panel offset, spray/wipe panels on routine to keep panels clean, deploy/retract panels at sunrise/sunset, or even provide panel heating during cold temperatures or when ice is detected.
+This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and dual axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with multiple in-step linear actuators, engaging axis brakes to prevent large panels from moving/taking strain off motors that can then disengage, spray/wipe panels on routine to keep panels clean, deploy panels at sunrise and retract at sunset or when it's too windy out, remind when to realign panels, or even provide panel heating during cold temperatures or when ice is detected.
 
-Can be used with GPS and RTC modules for accurate sun angle measurements and sunrise/sunset timings, or through enabled WiFi/Ethernet from on-board or external ESP8266 WiFi module. Configured system can be saved/loaded to/from external EEPROM, SD card, or WiFiStorage-like device in JSON or binary, along with auto-save, recovery, and cleanup functionality, and can even use a piezo buzzer for audible system alerts. Actuator and sensor I/O pins can be multiplexed for pin-limited environments. Library data can be built into onboard Flash or exported alongside system/user data onto external storage. Supports sensor data and system event logging/publishing to external storage and MQTT, and can be extended to work with other JSON based Web APIs or Client-like derivatives. UI support pending, but will include system setup/configuration and monitoring abilities with basic LCD support via LiquidCrystal, or with advanced LCD and input controller support similar in operation to low-cost 3D printers [via tcMenu](https://github.com/davetcc/tcMenu).
+* Can be used entirely off-line with RTC module and optional GPS module (or known static location) for accurate sun angle measurements and sunrise/sunset timings, or used on-line through enabled on-board WiFi/Ethernet or external ESP-AT WiFi module.
+  * Uses SolarCalculator Arduino library, based upon NOAA Solar Calculator, for fine calculations of the sun's solar position (until 2100).
+* Configured system setup can be saved/loaded to/from EEPROM, SD card, or WiFiStorage-like external storage device.
+  * Can export/import in JSON for human-readability (allowing easy text editing), or in Binary for ultra-compactness/speed.
+  * Auto-save, backup-auto-save (for auto-recovery), and low-disk cleanup (TODO) functionality.
+  * Import functions are optimized with minimum spanning trie for ultra-fast text parsing.
+* Supports interval-based sensor data publishing & system event data logging to MQTT IoT via network or to external storage in .csv/.txt format.
+  * Can be extended to work with other JSON based Web APIs or Client-like derivatives.
+  * Can add a piezo buzzer for audible system alerts (TODO).
+* Library data can be built into onboard Flash (increasing build size) or exported onto external storage (decreasing build size).
+  * Data export may allow enough space savings for certain 256kB Flash builds.
+* Actuator and Sensor I/O pins can be multiplexed or expanded (TODO) for pin-limited environments.
+* Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by tcMenu).
+  * Contains at-a-glance system overview screen and UI menu system for system configuration, calibration, and more (TODO).
+  * GUI I/O can be setup as fully interrupt driven (5~20ms) or polling based (50~100ms).
+  * Can be built in Minimal mode, saving space at the cost of having to re-compile and re-upload upon system setup changes (i.e. a R/O UI), or Full mode, which uses large amounts of Flash space to provide everything at once (i.e. a R/W UI), with only pinout changes requiring rebuild.
+  * Includes remote UI access through enabled Ethernet, WiFi, Serial, and/or Simhub connection.
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
 Dependencies include: Adafruit BusIO (dep of RTClib/tcMenu), Adafruit GPS Library (ext NMEA, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManagerIO), LiquidCrystalIO (dep of tcMenu), OneWire, RTClib, SimpleCollections (dep of TaskManagerIO), a SD-like library, SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcUnicodeHelper (dep of tcMenu), tcMenu (disableable), TFT_eSPI (dep of tcMenu), Time, U8g2 (dep of tcMenu), a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, WiFiEspAT (ext serial AT), or Ethernet, and XPT2046_Touchscreen (optional, dep of tcMenu).
 
-UI Dependencies of tcMenu include: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit PCD8544 Nokia 5110 LCD library, Adafruit ST7735 and ST7789 Library, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional).
+GUI Dependencies (building with tcMenu) include: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit PCD8544 Nokia 5110 LCD library, Adafruit ST7735 and ST7789 Library, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional).
 
 Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
@@ -53,7 +69,9 @@ Note: Certain MCUs, such as those from STM, are sold in many different Flash/SRA
 
 The easiest way to install this controller is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this controller and extract its files into a `Simple-SolarTracker-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
 
-From there, you can make a local copy of one of the example sketches based on the kind of system setup you want to use. If you are unsure of which, we recommend the Dual-Axis Tracking Example, as it is our standard implementation built for most common system setups and only requires changing setup defines at the top of the file. Older storage constrained MCUs (< 512kB Flash) may need further tweaking, and possibly external storage hardware (such as EEPROM or SD Card - see the Data Writer example for more details). Modern MCUs with lots of Flash storage can instead simply build the Full System Example (TODO: Still a WIP).
+From there, you can make a local copy of one of the example sketches based on the kind of system setup you want to use. If you are unsure of which, we recommend the Dual-Axis Tracking Example, as it is our standard implementation built for most common system setups and only requires changing setup defines at the top of the file.
+
+Older storage constrained MCUs (< 512kB Flash) may need further tweaking, and possibly external storage hardware (such as EEPROM or SD Card - see the Data Writer example for more details). Modern MCUs with lots of Flash storage can instead simply build the Full System Example (TODO: Still a WIP).
 
 ### Setup
 
