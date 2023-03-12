@@ -1117,6 +1117,9 @@ Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
             case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL:
             case Helio_ControlInputMode_ResistiveTouch:
                 return make_pair((uint8_t)4, (const pintype_t *)_ctrlInputPins);
+            #ifdef HELIO_ENABLE_XPT2046TS
+                case Helio_ControlInputMode_TouchScreen:
+            #endif
             case Helio_ControlInputMode_TFTTouch:
                 return make_pair((uint8_t)2, (const pintype_t *)_ctrlInputPins);
             default: break;
