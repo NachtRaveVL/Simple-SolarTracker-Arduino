@@ -13,19 +13,20 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and dual axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with multiple in-step linear actuators, engaging axis brakes to prevent large panels from moving/taking strain off motors that can then disengage, spray/wipe panels on routine to keep panels clean, deploy panels at sunrise and retract at sunset or when it's too windy out, remind when to realign panels, or even provide panel heating during cold temperatures or when ice is detected.
 
 * Can be used entirely off-line with RTC module and optional GPS module (or known static location) for accurate sun angle measurements and sunrise/sunset timings, or used on-line through enabled on-board WiFi/Ethernet or external ESP-AT WiFi module.
-  * Uses SolarCalculator Arduino library, based upon NOAA Solar Calculator, for fine calculations of the sun's solar position (until 2100).
+  * Uses SolarCalculator Arduino library, based upon NOAA Solar Calculator, for fine calculations of the sun's solar position (accurate until 2100).
 * Configured system setup can be saved/loaded to/from EEPROM, SD card, or WiFiStorage-like external storage device.
   * Can export/import in JSON for human-readability (allowing easy text editing), or in Binary for ultra-compactness/speed.
   * Auto-save, backup-auto-save (for auto-recovery), and low-disk cleanup (TODO) functionality.
   * Import functions are optimized with minimum spanning trie for ultra-fast text parsing.
-* Supports interval-based sensor data publishing & system event data logging to MQTT IoT via network or to external storage in .csv/.txt format.
-  * Can be extended to work with other JSON based Web APIs or Client-like derivatives.
+* Supports interval-based sensor data publishing & system event data logging to MQTT IoT broker or to external storage in .csv/.txt format.
+  * Can be extended to work with other JSON based Web APIs or Client-like derivatives (for DB storage or server-endpoint support).
   * Can add a piezo buzzer for audible system alerts (TODO).
-* Library data can be built into onboard Flash (increasing build size) or exported onto external storage (decreasing build size).
-  * Data export may allow enough space savings for certain 256kB Flash builds.
+* Library data can be built into onboard Flash or exported onto external storage to save on compiled build size.
+  * Data export may allow enough space savings for certain 256kB Flash device builds.
 * Actuator and Sensor I/O pins can be multiplexed or expanded (TODO) for pin-limited environments.
 * Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by tcMenu).
   * Contains at-a-glance system overview screen and UI menu system for system configuration, calibration, and more (TODO).
+  * System configuration menus can be pin-coded to prevent tampering, thus still allowing informational/read-only menu access.
   * GUI I/O can be setup as fully interrupt driven (5-20ms) or polling based (50-100ms).
   * Can be built in Minimal mode, saving space at the cost of having to re-compile and re-upload upon system setup changes (i.e. a R/O UI), or Full mode, which uses large amounts of Flash space to provide everything at once (i.e. a R/W UI), with only pinout changes requiring rebuild.
   * Includes remote UI access through enabled Ethernet, WiFi, Serial, and/or Simhub connection.
