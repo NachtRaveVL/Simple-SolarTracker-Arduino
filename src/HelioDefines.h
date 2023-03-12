@@ -161,7 +161,7 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 #define HELIO_DRIVER_SIGNAL_SLOTS       2                   // Maximum number of slots for driver's state signal
 #define HELIO_LOG_SIGNAL_SLOTS          2                   // Maximum number of slots for system log signal
 #define HELIO_PUBLISH_SIGNAL_SLOTS      2                   // Maximum number of slots for data publish signal
-#define HELIO_PANEL_SIGNAL_SLOTS        2                   // Maximum number of slots for various signals
+#define HELIO_PANEL_SIGNAL_SLOTS        2                   // Maximum number of slots for various panel signals
 #define HELIO_RAIL_SIGNAL_SLOTS         8                   // Maximum number of slots for rail capacity signal
 #define HELIO_SYS_OBJECTS_MAXSIZE       16                  // Maximum array size for system objects (max # of objects in system)
 #define HELIO_CAL_CALIBS_MAXSIZE        8                   // Maximum array size for calibration store objects (max # of different custom calibrations)
