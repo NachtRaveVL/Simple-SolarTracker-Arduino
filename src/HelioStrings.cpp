@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "shared/HelioUIDefines.h"
 
 #ifndef HELIO_DISABLE_BUILTIN_DATA
 String stringFromPGMAddr(const char *flashStr);
@@ -195,6 +196,19 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Default_ConfigFilename: {
             static const char flashStr_Default_ConfigFilename[] PROGMEM = {"Helioduino.cfg"};
             return flashStr_Default_ConfigFilename;
+        } break;
+
+        case HStr_UI_MatrixActions: {
+            static const char flashStr_UI_MatrixActions[] PROGMEM = {HELIO_UI_MATRIX_ACTIONS};
+            return flashStr_UI_MatrixActions;
+        } break;
+        case HStr_UI_Matrix3x4Keys: {
+            static const char flashStr_UI_Matrix3x4Keys[] PROGMEM = {HELIO_UI_3X4MATRIX_KEYS};
+            return flashStr_UI_Matrix3x4Keys;
+        } break;
+        case HStr_UI_Matrix4x4Keys: {
+            static const char flashStr_UI_Matrix4x4Keys[] PROGMEM = {HELIO_UI_4X4MATRIX_KEYS};
+            return flashStr_UI_Matrix4x4Keys;
         } break;
 
         case HStr_Err_AllocationFailure: {
