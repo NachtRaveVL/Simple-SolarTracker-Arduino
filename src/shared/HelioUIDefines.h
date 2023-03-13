@@ -47,17 +47,17 @@ enum Helio_ST7735Tab : signed char {
     Helio_ST7735Tab_Undefined           = (int8_t)0xff      // Placeholder
 };
 
-// Display Orientation
-enum Helio_DisplayOrientation : signed char {
-    Helio_DisplayOrientation_R0,                            // Standard landscape orientation
-    Helio_DisplayOrientation_R1,                            // 90 degree clockwise rotation
-    Helio_DisplayOrientation_R2,                            // 180 degree clockwise rotation
-    Helio_DisplayOrientation_R3,                            // 270 degree clockwise rotation
-    Helio_DisplayOrientation_HorzMirror,                    // Horizontally mirrored (if supported)
-    Helio_DisplayOrientation_VertMirror,                    // Vertically mirrored (if supported)
+// Display Rotation
+enum Helio_DisplayRotation : signed char {
+    Helio_DisplayRotation_R0,                               // 0 degree clockwise rotation
+    Helio_DisplayRotation_R1,                               // 90 degree clockwise rotation
+    Helio_DisplayRotation_R2,                               // 180 degree clockwise rotation
+    Helio_DisplayRotation_R3,                               // 270 degree clockwise rotation
+    Helio_DisplayRotation_HorzMirror,                       // Horizontally mirrored (if supported)
+    Helio_DisplayRotation_VertMirror,                       // Vertically mirrored (if supported)
 
-    Helio_DisplayOrientation_Count,                         // Placeholder
-    Helio_DisplayOrientation_Undefined = -1                 // Placeholder
+    Helio_DisplayRotation_Count,                            // Placeholder
+    Helio_DisplayRotation_Undefined = -1                    // Placeholder
 };
 
 // Display Theme

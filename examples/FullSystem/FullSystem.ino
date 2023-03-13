@@ -317,13 +317,13 @@ inline void setupUI()
                 case Helio_DisplayOutputMode_ST7789:
                 case Helio_DisplayOutputMode_ILI9341:
                 case Helio_DisplayOutputMode_PCD8544:
-                    uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_ORIENTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_LED_PIN, SETUP_UI_GFX_RESET_PIN, JOIN(Helio_BacklightMode,SETUP_UI_LCD_BACKLIGHT_MODE)));
+                    uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ORIENTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_LED_PIN, SETUP_UI_GFX_RESET_PIN, JOIN(Helio_BacklightMode,SETUP_UI_LCD_BACKLIGHT_MODE)));
                     break;
                 case Helio_DisplayOutputMode_ST7735:
-                    uiDispSetup = UIDisplaySetup(ST7735DisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_ORIENTATION), JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_LED_PIN, SETUP_UI_GFX_RESET_PIN, JOIN(Helio_BacklightMode,SETUP_UI_LCD_BACKLIGHT_MODE)));
+                    uiDispSetup = UIDisplaySetup(ST7735DisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ORIENTATION), JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_LED_PIN, SETUP_UI_GFX_RESET_PIN, JOIN(Helio_BacklightMode,SETUP_UI_LCD_BACKLIGHT_MODE)));
                     break;
                 case Helio_DisplayOutputMode_TFT:
-                    uiDispSetup = UIDisplaySetup(TFTDisplaySetup(JOIN(Helio_DisplayOrientation,SETUP_UI_GFX_ORIENTATION), SETUP_UI_TFT_SCREEN_WIDTH, SETUP_UI_TFT_SCREEN_HEIGHT));
+                    uiDispSetup = UIDisplaySetup(TFTDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ORIENTATION), SETUP_UI_TFT_SCREEN_WIDTH, SETUP_UI_TFT_SCREEN_HEIGHT));
                     break;
                 default: break;
             }
