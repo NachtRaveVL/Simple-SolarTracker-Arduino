@@ -130,11 +130,11 @@ enum Helio_ESP32Touch_HighRefAtten : signed char {
     Helio_ESP32Touch_HighRefAtten_Undefined = -1            // Placeholder
 };
 
-// LCD Backlight Mode
+// Backlight Operation Mode
 enum Helio_BacklightMode : signed char {
-    Helio_BacklightMode_Normal,                             // The backlight is active HIGH
-    Helio_BacklightMode_Inverted,                           // The backlight is active LOW
-    Helio_BacklightMode_PWM,                                // The backlight is connected directly to a PWM pin
+    Helio_BacklightMode_Normal,                             // The backlight is active HIGH, standard amongst most displays
+    Helio_BacklightMode_Inverted,                           // The backlight is active LOW, inverted ouput signal
+    Helio_BacklightMode_PWM,                                // The backlight uses analog PWM for variable intensity control
 
     Helio_BacklightMode_Undefined = -1                      // Placeholder
 };
