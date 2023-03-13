@@ -241,39 +241,39 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 
 // EEPROM Device Type Enumeration
 enum Helio_EEPROMType : signed short {
-    Helio_EEPROMType_AT24LC01 = I2C_DEVICESIZE_24LC01 >> 7,     // Generic 24LC01 (1K bits, 128 bytes), 7-bit address space
-    Helio_EEPROMType_AT24LC02 = I2C_DEVICESIZE_24LC02 >> 7,     // Generic 24LC02 (2K bits, 256 bytes), 8-bit address space
-    Helio_EEPROMType_AT24LC04 = I2C_DEVICESIZE_24LC04 >> 7,     // Generic 24LC04 (4K bits, 512 bytes), 9-bit address space
-    Helio_EEPROMType_AT24LC08 = I2C_DEVICESIZE_24LC08 >> 7,     // Generic 24LC08 (8K bits, 1024 bytes), 10-bit address space
-    Helio_EEPROMType_AT24LC16 = I2C_DEVICESIZE_24LC16 >> 7,     // Generic 24LC16 (16K bits, 2048 bytes), 11-bit address space
-    Helio_EEPROMType_AT24LC32 = I2C_DEVICESIZE_24LC32 >> 7,     // Generic 24LC32 (32K bits, 4096 bytes), 12-bit address space
-    Helio_EEPROMType_AT24LC64 = I2C_DEVICESIZE_24LC64 >> 7,     // Generic 24LC64 (64K bits, 8192 bytes), 13-bit address space
-    Helio_EEPROMType_AT24LC128 = I2C_DEVICESIZE_24LC128 >> 7,   // Generic 24LC128 (128K bits, 16384 bytes), 14-bit address space
-    Helio_EEPROMType_AT24LC256 = I2C_DEVICESIZE_24LC256 >> 7,   // Generic 24LC256 (256K bits, 32768 bytes), 15-bit address space
-    Helio_EEPROMType_AT24LC512 = I2C_DEVICESIZE_24LC512 >> 7,   // Generic 24LC512 (512K bits, 65536 bytes), 16-bit address space
+    Helio_EEPROMType_AT24LC01 = I2C_DEVICESIZE_24LC01 >> 7,     // AT24LC01 (1K bits, 128 bytes), 7-bit address space
+    Helio_EEPROMType_AT24LC02 = I2C_DEVICESIZE_24LC02 >> 7,     // AT24LC02 (2K bits, 256 bytes), 8-bit address space
+    Helio_EEPROMType_AT24LC04 = I2C_DEVICESIZE_24LC04 >> 7,     // AT24LC04 (4K bits, 512 bytes), 9-bit address space
+    Helio_EEPROMType_AT24LC08 = I2C_DEVICESIZE_24LC08 >> 7,     // AT24LC08 (8K bits, 1024 bytes), 10-bit address space
+    Helio_EEPROMType_AT24LC16 = I2C_DEVICESIZE_24LC16 >> 7,     // AT24LC16 (16K bits, 2048 bytes), 11-bit address space
+    Helio_EEPROMType_AT24LC32 = I2C_DEVICESIZE_24LC32 >> 7,     // AT24LC32 (32K bits, 4096 bytes), 12-bit address space
+    Helio_EEPROMType_AT24LC64 = I2C_DEVICESIZE_24LC64 >> 7,     // AT24LC64 (64K bits, 8192 bytes), 13-bit address space
+    Helio_EEPROMType_AT24LC128 = I2C_DEVICESIZE_24LC128 >> 7,   // AT24LC128 (128K bits, 16384 bytes), 14-bit address space
+    Helio_EEPROMType_AT24LC256 = I2C_DEVICESIZE_24LC256 >> 7,   // AT24LC256 (256K bits, 32768 bytes), 15-bit address space
+    Helio_EEPROMType_AT24LC512 = I2C_DEVICESIZE_24LC512 >> 7,   // AT24LC512 (512K bits, 65536 bytes), 16-bit address space
     Helio_EEPROMType_None = -1,                                 // No EEPROM
 
-    Helio_EEPROMType_Bits_1k = Helio_EEPROMType_AT24LC01,       // 1K bits (alias of 24LC01)
-    Helio_EEPROMType_Bits_2k = Helio_EEPROMType_AT24LC02,       // 2K bits (alias of 24LC02)
-    Helio_EEPROMType_Bits_4k = Helio_EEPROMType_AT24LC04,       // 4K bits (alias of 24LC04)
-    Helio_EEPROMType_Bits_8k = Helio_EEPROMType_AT24LC08,       // 8K bits (alias of 24LC08)
-    Helio_EEPROMType_Bits_16k = Helio_EEPROMType_AT24LC16,      // 16K bits (alias of 24LC16)
-    Helio_EEPROMType_Bits_32k = Helio_EEPROMType_AT24LC32,      // 32K bits (alias of 24LC32)
-    Helio_EEPROMType_Bits_64k = Helio_EEPROMType_AT24LC64,      // 64K bits (alias of 24LC64)
-    Helio_EEPROMType_Bits_128k = Helio_EEPROMType_AT24LC128,    // 128K bits (alias of 24LC128)
-    Helio_EEPROMType_Bits_256k = Helio_EEPROMType_AT24LC256,    // 256K bits (alias of 24LC256)
-    Helio_EEPROMType_Bits_512k = Helio_EEPROMType_AT24LC512,    // 512K bits (alias of 24LC512)
+    Helio_EEPROMType_Bits_1k = Helio_EEPROMType_AT24LC01,       // 1K bits (alias of AT24LC01)
+    Helio_EEPROMType_Bits_2k = Helio_EEPROMType_AT24LC02,       // 2K bits (alias of AT24LC02)
+    Helio_EEPROMType_Bits_4k = Helio_EEPROMType_AT24LC04,       // 4K bits (alias of AT24LC04)
+    Helio_EEPROMType_Bits_8k = Helio_EEPROMType_AT24LC08,       // 8K bits (alias of AT24LC08)
+    Helio_EEPROMType_Bits_16k = Helio_EEPROMType_AT24LC16,      // 16K bits (alias of AT24LC16)
+    Helio_EEPROMType_Bits_32k = Helio_EEPROMType_AT24LC32,      // 32K bits (alias of AT24LC32)
+    Helio_EEPROMType_Bits_64k = Helio_EEPROMType_AT24LC64,      // 64K bits (alias of AT24LC64)
+    Helio_EEPROMType_Bits_128k = Helio_EEPROMType_AT24LC128,    // 128K bits (alias of AT24LC128)
+    Helio_EEPROMType_Bits_256k = Helio_EEPROMType_AT24LC256,    // 256K bits (alias of AT24LC256)
+    Helio_EEPROMType_Bits_512k = Helio_EEPROMType_AT24LC512,    // 512K bits (alias of AT24LC512)
 
-    Helio_EEPROMType_Bytes_128 = Helio_EEPROMType_AT24LC01,     // 128 bytes (alias of 24LC01)
-    Helio_EEPROMType_Bytes_256 = Helio_EEPROMType_AT24LC02,     // 256 bytes (alias of 24LC02)
-    Helio_EEPROMType_Bytes_512 = Helio_EEPROMType_AT24LC04,     // 512 bytes (alias of 24LC04)
-    Helio_EEPROMType_Bytes_1024 = Helio_EEPROMType_AT24LC08,    // 1024 bytes (alias of 24LC08)
-    Helio_EEPROMType_Bytes_2048 = Helio_EEPROMType_AT24LC16,    // 2048 bytes (alias of 24LC16)
-    Helio_EEPROMType_Bytes_4096 = Helio_EEPROMType_AT24LC32,    // 4096 bytes (alias of 24LC32)
-    Helio_EEPROMType_Bytes_8192 = Helio_EEPROMType_AT24LC64,    // 8192 bytes (alias of 24LC64)
-    Helio_EEPROMType_Bytes_16384 = Helio_EEPROMType_AT24LC128,  // 16384 bytes (alias of 24LC128)
-    Helio_EEPROMType_Bytes_32768 = Helio_EEPROMType_AT24LC256,  // 32768 bytes (alias of 24LC256)
-    Helio_EEPROMType_Bytes_65536 = Helio_EEPROMType_AT24LC512   // 65536 bytes (alias of 24LC512)
+    Helio_EEPROMType_Bytes_128 = Helio_EEPROMType_AT24LC01,     // 128 bytes (alias of AT24LC01)
+    Helio_EEPROMType_Bytes_256 = Helio_EEPROMType_AT24LC02,     // 256 bytes (alias of AT24LC02)
+    Helio_EEPROMType_Bytes_512 = Helio_EEPROMType_AT24LC04,     // 512 bytes (alias of AT24LC04)
+    Helio_EEPROMType_Bytes_1024 = Helio_EEPROMType_AT24LC08,    // 1024 bytes (alias of AT24LC08)
+    Helio_EEPROMType_Bytes_2048 = Helio_EEPROMType_AT24LC16,    // 2048 bytes (alias of AT24LC16)
+    Helio_EEPROMType_Bytes_4096 = Helio_EEPROMType_AT24LC32,    // 4096 bytes (alias of AT24LC32)
+    Helio_EEPROMType_Bytes_8192 = Helio_EEPROMType_AT24LC64,    // 8192 bytes (alias of AT24LC64)
+    Helio_EEPROMType_Bytes_16384 = Helio_EEPROMType_AT24LC128,  // 16384 bytes (alias of AT24LC128)
+    Helio_EEPROMType_Bytes_32768 = Helio_EEPROMType_AT24LC256,  // 32768 bytes (alias of AT24LC256)
+    Helio_EEPROMType_Bytes_65536 = Helio_EEPROMType_AT24LC512   // 65536 bytes (alias of AT24LC512)
 };
 
 // RTC Device Type Enumeration
