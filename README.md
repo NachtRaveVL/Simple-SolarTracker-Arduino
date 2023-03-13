@@ -409,7 +409,7 @@ Included below is the default system setup defines of the DA Tracking example (o
 // GPS Settings                                         (note: define HELIO_ENABLE_GPS to enable GPS)
 #define SETUP_GPS_TYPE                  None            // Type of GPS (UART, I2C, SPI, None)
 #define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
-#define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address, if using i2c
+#define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address (A0-A2, bitwise or'ed with base address 0x10), if using i2c
 #define SETUP_GPS_SPI                   SPI             // GPS SPI class instance, if using spi
 #define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
 
