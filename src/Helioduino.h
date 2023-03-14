@@ -197,6 +197,7 @@ typedef Adafruit_GPS GPSClass;
 #endif
 
 #include "HelioDefines.h"
+#include "shared/HelioUIDefines.h"
 
 #if ARX_HAVE_LIBSTDCPLUSPLUS >= 201103L // Have libstdc++11
 #include "ArxSmartPtr/shared_ptr.h"     // Forced shared pointer library

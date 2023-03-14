@@ -4,7 +4,6 @@
 */
 
 #include "Helioduino.h"
-#include "shared/HelioUIDefines.h"
 
 #ifndef HELIO_DISABLE_BUILTIN_DATA
 String stringFromPGMAddr(const char *flashStr);
