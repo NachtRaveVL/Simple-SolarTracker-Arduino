@@ -25,7 +25,7 @@
 #define HELIO_UI_3X4MATRIX_KEYS         "123456789*0#"      // Default 3x4 matrix keyboard keys
 #define HELIO_UI_4X4MATRIX_KEYS         "123A456B789C*0#D"  // Default 4x4 matrix keyboard keys
 #define HELIO_UI_MATRIX_ACTIONS         "#*AB"              // Default enter char, delete/exit char, back char, and next on keyboard (also default 2x2 matrix keyboard keys)
-#define HELIO_UI_GFXTFT_USES_AN_SLIDER  true                // Default analog slider usage for AdafruitGFX/TFTe_SPI displays
+#define HELIO_UI_GFXTFT_USES_SLIDER     true                // Default analog slider usage for AdafruitGFX/TFTe_SPI displays
 #define HELIO_UI_TFTTOUCH_USES_RAW      false               // Default raw touch usage for TFTTouch
 
 // Default graphical display theme base (CoolBlue, DarkMode)
