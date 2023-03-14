@@ -54,10 +54,10 @@ enum Helio_ST7735Tab : signed char {
 
 // Display Rotation
 enum Helio_DisplayRotation : signed char {
-    Helio_DisplayRotation_R0,                               // 0 degree counter-clockwise rotation
-    Helio_DisplayRotation_R1,                               // 90 degree counter-clockwise rotation
-    Helio_DisplayRotation_R2,                               // 180 degree counter-clockwise rotation
-    Helio_DisplayRotation_R3,                               // 270 degree counter-clockwise rotation
+    Helio_DisplayRotation_R0,                               // 0 degree clockwise rotation
+    Helio_DisplayRotation_R1,                               // 90 degree clockwise rotation
+    Helio_DisplayRotation_R2,                               // 180 degree clockwise rotation
+    Helio_DisplayRotation_R3,                               // 270 degree clockwise rotation
     Helio_DisplayRotation_HorzMirror,                       // Horizontally mirrored (if supported)
     Helio_DisplayRotation_VertMirror,                       // Vertically mirrored (if supported)
 
