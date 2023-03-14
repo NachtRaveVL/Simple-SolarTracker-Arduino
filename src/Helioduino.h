@@ -175,6 +175,11 @@ typedef Adafruit_GPS GPSClass;
 #else
 #define HELIO_USE_SPI                   nullptr
 #endif
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_SPI1)) && (SPI_INTERFACES_COUNT > 1 || SPI_HOWMANY > 1)
+#define HELIO_USE_SPI1                  &SPI1
+#else
+#define HELIO_USE_SPI1                  nullptr
+#endif
 #if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_TWOWIRE)) && (WIRE_INTERFACES_COUNT > 0 || WIRE_HOWMANY > 0)
 #define HELIO_USE_WIRE                  &Wire
 #else

@@ -196,6 +196,7 @@ enum Helio_String : unsigned short {
     HStr_Enum_Average,
     HStr_Enum_Balancing,
     HStr_Enum_ContinuousServo,
+    HStr_Enum_CustomOLED,
     HStr_Enum_DC12V,
     HStr_Enum_DC24V,
     HStr_Enum_DC3V3,

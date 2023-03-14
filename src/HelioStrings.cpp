@@ -880,6 +880,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_ContinuousServo[] PROGMEM = {"ContinuousServo"};
             return flashStr_Enum_ContinuousServo;
         } break;
+        case HStr_Enum_CustomOLED: {
+            static const char flashStr_Enum_CustomOLED[] PROGMEM = {"CustomOLED"};
+            return flashStr_Enum_CustomOLED;
+        } break;
         case HStr_Enum_DC12V: {
             static const char flashStr_Enum_DC12V[] PROGMEM = {"DC12V"};
             return flashStr_Enum_DC12V;
