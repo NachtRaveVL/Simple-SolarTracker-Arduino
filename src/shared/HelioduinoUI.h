@@ -13,7 +13,7 @@ public:
     virtual void init() override;
     virtual bool begin() override;
 
-    virtual void setNeedsLayout() override;
+    virtual void setNeedsRedraw() override;
 
 protected:
 };

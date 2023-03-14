@@ -14,5 +14,5 @@ bool HelioduinoBaseUI::begin()
     return false;
 }
 
-void HelioduinoBaseUI::setNeedsLayout()
+void HelioduinoBaseUI::setNeedsRedraw()
 { ; }

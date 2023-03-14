@@ -688,7 +688,7 @@ void Helioduino::commonPostInit()
         setSyncProvider(rtcNow);
     }
 
-    scheduler.updateDayTracking(); // also calls setNeedsScheduling & setNeedsLayout
+    scheduler.updateDayTracking(); // also calls setNeedsScheduling & setNeedsRedraw
     logger.updateInitTracking();
     setNeedsTabulation();
 
@@ -962,7 +962,7 @@ void Helioduino::setSystemName(String systemName)
     if (_systemData && !systemName.equals(getSystemName())) {
         strncpy(_systemData->systemName, systemName.c_str(), HELIO_NAME_MAXSIZE);
 
-        setNeedsLayout();
+        setNeedsRedraw();
         _systemData->bumpRevisionIfNeeded();
     }
 }
@@ -974,7 +974,7 @@ void Helioduino::setTimeZoneOffset(int8_t hoursOffset, int8_t minsOffset)
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
         _systemData->timeZoneOffset = timeZoneOffset;
 
-        setNeedsLayout();
+        setNeedsRedraw();
         _systemData->bumpRevisionIfNeeded();
     }
 }
