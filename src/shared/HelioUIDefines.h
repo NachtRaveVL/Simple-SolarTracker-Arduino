@@ -21,16 +21,16 @@
 
 #define HELIO_UI_I2C_LCD_BASEADDR       0x20                // Base address of I2C LiquidCrystalIO LCDs (bitwise or'ed with passed address)
 #define HELIO_UI_I2C_OLED_BASEADDR      0x78                // Base address of I2C U8g2 OLEDs (bitwise or'ed with passed address, some devices may use 0x7e)
-#define HELIO_UI_CUSTOM_OLED_I2C        U8G2_SSD1309_128X64_NONAME0_F_HW_I2C    // Custom OLED for i2c setup (must be _HW_I2C variant /w 2 params: rotation, resetPin)
-#define HELIO_UI_CUSTOM_OLED_SPI        U8G2_SSD1309_128X64_NONAME0_F_4W_HW_SPI // Custom OLED for SPI setup (must be _4W_HW_SPI variant /w 4 params: rotation, csPin, dcPin, resetPin)
-#define HELIO_UI_GFXTFT_USES_SLIDER     true                // Default analog slider usage for AdafruitGFX/TFTe_SPI displays
+#define HELIO_UI_CUSTOM_OLED_I2C        U8G2_SSD1309_128X64_NONAME0_F_HW_I2C    // Custom OLED for i2c setup (must be _HW_I2C variant /w 2 init params: rotation, resetPin - Wire# not assertion checked since baked into define)
+#define HELIO_UI_CUSTOM_OLED_SPI        U8G2_SSD1309_128X64_NONAME0_F_4W_HW_SPI // Custom OLED for SPI setup (must be _4W_HW_SPI variant /w 4 init params: rotation, csPin, dcPin, resetPin - SPI# not assertion checked since baked into define)
+#define HELIO_UI_GFXTFT_USES_SLIDER     true                // Default analog slider usage for Gfx/TFT displays
 #define HELIO_UI_BACKLIGHT_TIMEOUT      5 * SECS_PER_MIN    // Backlight timeout, in secs
 
 #define HELIO_UI_KEYREPEAT_SPEED        20                  // Default key press repeat speed
 #define HELIO_UI_REMOTESERVER_PORT      3333                // Default remote control server's listening port
-#define HELIO_UI_3X4MATRIX_KEYS         "123456789*0#"      // 3x4 matrix keyboard keys
-#define HELIO_UI_4X4MATRIX_KEYS         "123A456B789C*0#D"  // 4x4 matrix keyboard keys
-#define HELIO_UI_MATRIX_ACTIONS         "#*AB"              // Enter char, delete/exit char, back char, and next on keyboard (also 2x2 matrix keyboard keys)
+#define HELIO_UI_3X4MATRIX_KEYS         "123456789*0#"      // 3x4 matrix keyboard keys (123,456,789,*0#)
+#define HELIO_UI_4X4MATRIX_KEYS         "123A456B789C*0#D"  // 4x4 matrix keyboard keys (123A,456B,789C,*0#D)
+#define HELIO_UI_MATRIX_ACTIONS         "#*AB"              // Assigned enter/select char, delete/exit char, back char, and next char on keyboard (also 2x2 matrix keyboard keys)
 #define HELIO_UI_TFTTOUCH_USES_RAW      false               // Raw touch usage for TFTTouch
 
 // Default graphical display theme base (CoolBlue, DarkMode)
@@ -39,33 +39,35 @@
 #define HELIO_UI_GFX_DISP_THEME_MEDLRG  ML
 
 
-// ST77XX Device Tab
-enum Helio_ST7735Tab : signed char {
-    Helio_ST7735Tab_Green               = 0x00,             // Green tag
-    Helio_ST7735Tab_Red                 = 0x01,             // Red tag
-    Helio_ST7735Tab_Black               = 0x02,             // Black tag
-    Helio_ST7735Tab_Green144            = 0x01,             // Green144 tag
-    Helio_ST7735Tab_Mini160x80          = 0x04,             // Mini160x80 tag
-    Helio_ST7735Tab_Hallowing           = 0x05,             // Hallowing tag
-    Helio_ST7735Tab_Mini160x80_Plugin   = 0x06,             // Mini160x80_Plugin tag
+// Remote Control
+// Type of remote control.
+enum Helio_RemoteControl : signed char {
+    Helio_RemoteControl_Disabled,                           // Disabled remote control
+    Helio_RemoteControl_Serial,                             // Remote control by Serial or Bluetooth AT, requires UART setup
+    Helio_RemoteControl_Simhub,                             // Remote control by Simhub serial connector, requires UART setup
+    Helio_RemoteControl_WiFi,                               // Remote control by WiFi, requires enabled WiFi
+    Helio_RemoteControl_Ethernet,                           // Remote control by Ethernet, requires enabled Ethernet
 
-    Helio_ST7735Tab_Undefined           = (int8_t)0xff      // Placeholder
+    Helio_RemoteControl_Count,                              // Placeholder
+    Helio_RemoteControl_Undefined = -1                      // Placeholder
 };
 
 // Display Rotation
+// Amount of display rotation, or in some cases mirror'ing.
 enum Helio_DisplayRotation : signed char {
-    Helio_DisplayRotation_R0,                               // 0 degree clockwise rotation
-    Helio_DisplayRotation_R1,                               // 90 degree clockwise rotation
-    Helio_DisplayRotation_R2,                               // 180 degree clockwise rotation
-    Helio_DisplayRotation_R3,                               // 270 degree clockwise rotation
-    Helio_DisplayRotation_HorzMirror,                       // Horizontally mirrored (if supported)
-    Helio_DisplayRotation_VertMirror,                       // Vertically mirrored (if supported)
+    Helio_DisplayRotation_R0,                               // 0 degree clockwise display rotation (counter-clockwise device mounting)
+    Helio_DisplayRotation_R1,                               // 90 degree clockwise display rotation (counter-clockwise device mounting)
+    Helio_DisplayRotation_R2,                               // 180 degree clockwise display rotation (counter-clockwise device mounting)
+    Helio_DisplayRotation_R3,                               // 270 degree clockwise display rotation  (counter-clockwise device mounting)
+    Helio_DisplayRotation_HorzMirror,                       // Horizontally mirrored (iff supported)
+    Helio_DisplayRotation_VertMirror,                       // Vertically mirrored (iff supported)
 
     Helio_DisplayRotation_Count,                            // Placeholder
     Helio_DisplayRotation_Undefined = -1                    // Placeholder
 };
 
 // Display Theme
+// General color theme and aesthetics.
 enum Helio_DisplayTheme : signed char {
     Helio_DisplayTheme_CoolBlue_ML,                         // Cool blue theme for medium to large color displays (larger fonts/more padding)
     Helio_DisplayTheme_CoolBlue_SM,                         // Cool blue theme for small to medium color displays (smaller fonts/less padding)
@@ -78,19 +80,35 @@ enum Helio_DisplayTheme : signed char {
     Helio_DisplayTheme_Undefined = -1                       // Placeholder
 };
 
-// Remote Control
-enum Helio_RemoteControl : signed char {
-    Helio_RemoteControl_Disabled,                           // Disabled remote control
-    Helio_RemoteControl_Serial,                             // Remote control by Serial or Bluetooth AT, requires UART setup
-    Helio_RemoteControl_Simhub,                             // Remote control by Simhub serial connector, requires UART setup
-    Helio_RemoteControl_WiFi,                               // Remote control by WiFi, requires enabled WiFi
-    Helio_RemoteControl_Ethernet,                           // Remote control by Ethernet, requires enabled Ethernet
+// ST7735 Device Tab
+// Special device tab identifier for ST7735 devices.
+enum Helio_ST7735Tab : signed char {
+    Helio_ST7735Tab_Green               = 0x00,             // Green tag
+    Helio_ST7735Tab_Green18             = 0x00,             // 18Green tag (alias of Green)
+    Helio_ST7735Tab_Red                 = 0x01,             // Red tag
+    Helio_ST7735Tab_Red18               = 0x01,             // 18Red tag (alias of Red)
+    Helio_ST7735Tab_Black               = 0x02,             // Black tag
+    Helio_ST7735Tab_Black18             = 0x02,             // 18Black tag (alias of Black)
+    Helio_ST7735Tab_Green144            = 0x01,             // 144Green tag (alias of Red)
+    Helio_ST7735Tab_Mini160x80          = 0x04,             // Mini160x80 tag
+    Helio_ST7735Tab_Hallowing           = 0x05,             // Hallowing tag
+    Helio_ST7735Tab_Mini160x80_Plugin   = 0x06,             // Mini160x80_Plugin tag
 
-    Helio_RemoteControl_Count,                              // Placeholder
-    Helio_RemoteControl_Undefined = -1                      // Placeholder
+    Helio_ST7735Tab_Undefined           = (int8_t)0xff      // Placeholder
+};
+
+// Backlight Operation Mode
+// How the backlight gets handled. Derived from LCD usage.
+enum Helio_BacklightMode : signed char {
+    Helio_BacklightMode_Normal,                             // The backlight is active HIGH, standard amongst most displays
+    Helio_BacklightMode_Inverted,                           // The backlight is active LOW, inverted ouput signal
+    Helio_BacklightMode_PWM,                                // The backlight uses analog PWM for variable intensity control
+
+    Helio_BacklightMode_Undefined = -1                      // Placeholder
 };
 
 // Rotary Encoder Speed
+// Essentially how fast the rotary encoder functions.
 enum Helio_EncoderSpeed : signed char {
     Helio_EncoderSpeed_FullCycle,                           // Detent after every full cycle of both signals, A and B
     Helio_EncoderSpeed_HalfCycle,                           // Detent on every position where A == B
@@ -100,6 +118,7 @@ enum Helio_EncoderSpeed : signed char {
 };
 
 // ESP32 Touch Key High Reference Voltage
+// High reference voltage for press detection.
 enum Helio_ESP32Touch_HighRef : signed char {
     Helio_ESP32Touch_HighRef_Keep,                          // No change
     Helio_ESP32Touch_HighRef_V_2V4,                         // 2.4v
@@ -112,6 +131,7 @@ enum Helio_ESP32Touch_HighRef : signed char {
 };
 
 // ESP32 Touch Key Low Reference Voltage
+// Low reference voltage for press detection.
 enum Helio_ESP32Touch_LowRef : signed char {
     Helio_ESP32Touch_LowRef_Keep,                           // No change
     Helio_ESP32Touch_LowRef_V_0V5,                          // 0.5v
@@ -124,6 +144,7 @@ enum Helio_ESP32Touch_LowRef : signed char {
 };
 
 // ESP32 Touch Key High Ref Volt Attenuation
+// High reference voltage attenuation for press detection.
 enum Helio_ESP32Touch_HighRefAtten : signed char {
     Helio_ESP32Touch_HighRefAtten_Keep,                     // No change
     Helio_ESP32Touch_HighRefAtten_V_1V5,                    // 1.5v
@@ -135,20 +156,12 @@ enum Helio_ESP32Touch_HighRefAtten : signed char {
     Helio_ESP32Touch_HighRefAtten_Undefined = -1            // Placeholder
 };
 
-// Backlight Operation Mode
-enum Helio_BacklightMode : signed char {
-    Helio_BacklightMode_Normal,                             // The backlight is active HIGH, standard amongst most displays
-    Helio_BacklightMode_Inverted,                           // The backlight is active LOW, inverted ouput signal
-    Helio_BacklightMode_PWM,                                // The backlight uses analog PWM for variable intensity control
-
-    Helio_BacklightMode_Undefined = -1                      // Placeholder
-};
-
 
 class HydruinoBaseUI;
 class HelioDisplayDriver;
 class HelioInputDriver;
 class HelioRemoteControl;
+class HelioOverview;
 struct HelioUIData;
 
 #endif // /ifndef HelioUIDefines_H
