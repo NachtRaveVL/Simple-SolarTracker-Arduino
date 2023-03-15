@@ -43,10 +43,10 @@
 // Type of remote control.
 enum Helio_RemoteControl : signed char {
     Helio_RemoteControl_Disabled,                           // Disabled remote control
-    Helio_RemoteControl_Serial,                             // Remote control by Serial or Bluetooth AT, requires UART setup
+    Helio_RemoteControl_Serial,                             // Remote control by Serial/Bluetooth AT, requires UART setup
     Helio_RemoteControl_Simhub,                             // Remote control by Simhub serial connector, requires UART setup
-    Helio_RemoteControl_WiFi,                               // Remote control by WiFi, requires enabled WiFi
-    Helio_RemoteControl_Ethernet,                           // Remote control by Ethernet, requires enabled Ethernet
+    Helio_RemoteControl_WiFi,                               // Remote control by WiFi device, requires enabled WiFi
+    Helio_RemoteControl_Ethernet,                           // Remote control by Ethernet device, requires enabled Ethernet
 
     Helio_RemoteControl_Count,                              // Placeholder
     Helio_RemoteControl_Undefined = -1                      // Placeholder
@@ -55,10 +55,10 @@ enum Helio_RemoteControl : signed char {
 // Display Rotation
 // Amount of display rotation, or in some cases mirror'ing.
 enum Helio_DisplayRotation : signed char {
-    Helio_DisplayRotation_R0,                               // 0 degree clockwise display rotation (counter-clockwise device mounting)
-    Helio_DisplayRotation_R1,                               // 90 degree clockwise display rotation (counter-clockwise device mounting)
-    Helio_DisplayRotation_R2,                               // 180 degree clockwise display rotation (counter-clockwise device mounting)
-    Helio_DisplayRotation_R3,                               // 270 degree clockwise display rotation  (counter-clockwise device mounting)
+    Helio_DisplayRotation_R0,                               // 0° clockwise display rotation (0° counter-clockwise device mounting)
+    Helio_DisplayRotation_R1,                               // 90° clockwise display rotation (90° counter-clockwise device mounting)
+    Helio_DisplayRotation_R2,                               // 180° clockwise display rotation (180° counter-clockwise device mounting)
+    Helio_DisplayRotation_R3,                               // 270° clockwise display rotation  (270° counter-clockwise device mounting)
     Helio_DisplayRotation_HorzMirror,                       // Horizontally mirrored (iff supported)
     Helio_DisplayRotation_VertMirror,                       // Vertically mirrored (iff supported)
 
@@ -104,16 +104,19 @@ enum Helio_BacklightMode : signed char {
     Helio_BacklightMode_Inverted,                           // The backlight is active LOW, inverted ouput signal
     Helio_BacklightMode_PWM,                                // The backlight uses analog PWM for variable intensity control
 
+    Helio_BacklightMode_Count,                              // Placeholder
     Helio_BacklightMode_Undefined = -1                      // Placeholder
 };
 
 // Rotary Encoder Speed
-// Essentially how fast the rotary encoder functions.
+// Essentially how far the rotary encoder must physically travel before the UI responds (selection change, scroll to prev/next, etc.).
+// Note: Smaller cycle length = faster item selection/scroll speed, but more physical precision required (accessibility concern).
 enum Helio_EncoderSpeed : signed char {
     Helio_EncoderSpeed_FullCycle,                           // Detent after every full cycle of both signals, A and B
     Helio_EncoderSpeed_HalfCycle,                           // Detent on every position where A == B
     Helio_EncoderSpeed_QuarterCycle,                        // Detent after every signal change, A or B
 
+    Helio_EncoderSpeed_Count,                               // Placeholder
     Helio_EncoderSpeed_Undefined = -1                       // Placeholder
 };
 
@@ -127,6 +130,7 @@ enum Helio_ESP32Touch_HighRef : signed char {
     Helio_ESP32Touch_HighRef_V_2V7,                         // 2.7v
     Helio_ESP32Touch_HighRef_Max,                           // Max voltage
 
+    Helio_ESP32Touch_HighRef_Count,                         // Placeholder
     Helio_ESP32Touch_HighRef_Undefined = -1                 // Placeholder
 };
 
@@ -140,6 +144,7 @@ enum Helio_ESP32Touch_LowRef : signed char {
     Helio_ESP32Touch_LowRef_V_0V8,                          // 0.8v
     Helio_ESP32Touch_LowRef_Max,                            // Max voltage
 
+    Helio_ESP32Touch_LowRef_Count,                          // Placeholder
     Helio_ESP32Touch_LowRef_Undefined = -1                  // Placeholder
 };
 
@@ -153,6 +158,7 @@ enum Helio_ESP32Touch_HighRefAtten : signed char {
     Helio_ESP32Touch_HighRefAtten_V_0V,                     // 0v
     Helio_ESP32Touch_HighRefAtten_Max,                      // Max voltage
 
+    Helio_ESP32Touch_HighRefAtten_Count,                    // Placeholder
     Helio_ESP32Touch_HighRefAtten_Undefined = -1            // Placeholder
 };
 

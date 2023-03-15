@@ -316,37 +316,29 @@ inline void setupUI()
                 case Helio_DisplayOutputMode_SSD1607:
                 case Helio_DisplayOutputMode_IL3820:
                 case Helio_DisplayOutputMode_IL3820_V2:
+                case Helio_DisplayOutputMode_ST7735:
                 case Helio_DisplayOutputMode_ST7789:
                 case Helio_DisplayOutputMode_ILI9341:
                 case Helio_DisplayOutputMode_PCD8544:
-                    uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION
+                    uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION,
 #ifdef ESP32
-                                                                   , SETUP_UI_GFX_BACKLIGHT_ESP_CHN
+                                                                   SETUP_UI_GFX_BACKLIGHT_ESP_CHN,
 #endif
 #ifdef ESP_PLATFORM
-                                                                   , SETUP_UI_GFX_BACKLIGHT_ESP_FRQ
+                                                                   SETUP_UI_GFX_BACKLIGHT_ESP_FRQ,
 #endif
-                                                ));
+                                                                   JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB)));
                     break;
-                case Helio_DisplayOutputMode_ST7735:
-                    uiDispSetup = UIDisplaySetup(ST7735DisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION
-#ifdef ESP32
-                                                                    , SETUP_UI_GFX_BACKLIGHT_ESP_CHN
-#endif
-#ifdef ESP_PLATFORM
-                                                                    , SETUP_UI_GFX_BACKLIGHT_ESP_FRQ
-#endif
-                                                ));
-                    break;
+
                 case Helio_DisplayOutputMode_TFT:
-                    uiDispSetup = UIDisplaySetup(TFTDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), SETUP_UI_TFT_SCREEN_WIDTH, SETUP_UI_TFT_SCREEN_HEIGHT, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION
+                    uiDispSetup = UIDisplaySetup(TFTDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), SETUP_UI_TFT_SCREEN_WIDTH, SETUP_UI_TFT_SCREEN_HEIGHT, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION,
 #ifdef ESP32
-                                                                   , SETUP_UI_GFX_BACKLIGHT_ESP_CHN
+                                                                 SETUP_UI_GFX_BACKLIGHT_ESP_CHN,
 #endif
 #ifdef ESP_PLATFORM
-                                                                   , SETUP_UI_GFX_BACKLIGHT_ESP_FRQ
+                                                                 SETUP_UI_GFX_BACKLIGHT_ESP_FRQ,
 #endif
-                                                ));
+                                                                 JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB)));
                     break;
                 default: break;
             }
