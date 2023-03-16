@@ -279,7 +279,7 @@ OneWire Devices Supported: DHT* 1W air temp/humidity sensors
 ### Sensors
 
 * Many different kinds of hobbyist sensors label their analog output `AO` (or `Ao`) - however, always check your specific sensor's datasheet.
-  * Again, make sure all analog sensors are calibrated to output the same 0v - `AREF` volts in range.
+  * Again, make sure all analog sensors are calibrated to output the same 0v - `AREF` (or `IOREF`) volts in range.
 * Sensor pins used for event triggering when measurements go above/below a pre-set tolerance - many of which are deceptively labeled `DO` (or `Do`), despite having nothing to do with being `D`ata lines of any kind - can be safely ignored, as the software implementation of such mechanism is more than sufficient.
   * Often these connections are used to drive other hardware-only based solutions that aren't a part of Helioduino's use case, but can still be connected up using a BinarySensor that triggers upon specific conditions, possibly using an ISR-capable pin if desired.
 
