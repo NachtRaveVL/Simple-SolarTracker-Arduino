@@ -13,23 +13,23 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and dual axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with multiple in-step linear actuators, engaging axis brakes to prevent large panels from moving/taking strain off motors that can then disengage, spray/wipe panels on routine to keep panels clean, deploy panels at sunrise and retract at sunset or when it's too windy out, remind when to realign panels, or even provide panel heating during cold temperatures or when ice is detected.
 
 * Can be used entirely off-line with RTC module and optional GPS module (or known static location) for accurate sun angle measurements and sunrise/sunset timings, or used on-line through enabled on-board WiFi/Ethernet or external ESP-AT WiFi module.
-  * Uses [SolarCalculator](https://github.com/jpb10/SolarCalculator), inspired upon the NOAA Solar Calculator, for fine off-line calculations of the sun's solar position (including transit, sunrise, and sunset times, accurate until 2100).
+  * Uses [SolarCalculator](https://github.com/jpb10/SolarCalculator), inspired by the NOAA Solar Calculator, for fine off-line calculations of the sun's solar position (including transit, sunrise, and sunset times, accurate until 2100).
 * Configured system setup can be saved/loaded to/from EEPROM, SD card, or WiFiStorage-like external storage device.
   * System setup can be saved in pretty-print JSON for human-readability (allowing easy text editing), or in raw Binary for ultra-compactness/speed.
   * Auto-save, backup-auto-save (for auto-recovery functionality), and low storage-space cleanup (TODO) functionality.
   * Import string decode functions are pre-optimized with minimum spanning trie for ultra-fast text parsing & system load-up time.
-* Supports interval-based sensor data publishing and system event logging to MQTT-based IoT broker or to external storage in .csv/.txt format (/w date in filename, segmented daily).
+* Supports interval-based sensor data publishing and system event logging to MQTT IoT broker (for further IoT-integrated processing) or to external storage in .csv/.txt format (/w date in filename, segmented daily).
   * Can be extended to work with other JSON-based Web APIs or Client-like derivatives (for DB storage or server-endpoint support).
   * Can add a piezo buzzer for audible system warning/failure alerting (TODO), or a display for current readings & recent logging messages.
-* Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by tcMenu).
+* Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by [tcMenu](https://github.com/davetcc/tcMenuLib)).
   * Contains at-a-glance system overview screen and GUI menu system for system configuration, sensor calibration, and more (TODO).
   * Critical system configuration menus can be pin-coded to prevent setup tampering, thus still allowing informational-screen/read-only access.
   * GUI I/O automatically sets itself up as interrupt driven (/w 5-25ms latency), polling based (/w 50-100ms latency), or partially interrupt driven (depending on primary input pins).
   * Includes remote GUI access through enabled Ethernet, WiFi, Serial, and/or Simhub connection.
-  * System examples can be built in Minimal mode, saving on compiled sketch size at the cost of having to re-compile and re-upload upon certain system setup changes, or Full mode, which uses large amounts of Flash space available on modern controllers to provide everything all at once, with only more major of system changes requiring a full rebuild.
+  * System examples can be built in Minimal mode, saving on compiled sketch size at the cost of having to modify/re-upload the sketch upon certain system setup changes, or Full mode, which uses large amounts of Flash space available on modern controllers to provide everything all at once, with only more major of system changes requiring a modify/re-upload of the sketch.
 * Actuator, Sensor, and I/O pins can be natively multiplexed or expanded through 8/16-bit i2c expanders (TODO) for pin-limited controllers.
-* Library data can be built into onboard Flash or exported onto external storage to save on compiled sketch size.
-  * Data export may allow enough compiled sketch size savings for certain 256kB Flash (possible less) device builds.
+* Library data can be built into onboard Flash or exported onto external storage to save on compiled build size.
+  * Data export may allow enough compiled sketch size savings for certain 256kB Flash device builds (albeit possibly having to disable other features).
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
