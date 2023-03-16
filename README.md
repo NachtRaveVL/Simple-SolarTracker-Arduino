@@ -13,29 +13,29 @@ Created by NachtRaveVL, Jan 3rd, 2023.
 This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and dual axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with multiple in-step linear actuators, engaging axis brakes to prevent large panels from moving/taking strain off motors that can then disengage, spray/wipe panels on routine to keep panels clean, deploy panels at sunrise and retract at sunset or when it's too windy out, remind when to realign panels, or even provide panel heating during cold temperatures or when ice is detected.
 
 * Can be used entirely off-line with RTC module and optional GPS module (or known static location) for accurate sun angle measurements and sunrise/sunset timings, or used on-line through enabled on-board WiFi/Ethernet or external ESP-AT WiFi module.
-  * Uses SolarCalculator Arduino library, based upon NOAA Solar Calculator, for fine offline calculations of the sun's solar position (accurate until 2100).
+  * Uses [SolarCalculator](https://github.com/jpb10/SolarCalculator), inspired upon the NOAA Solar Calculator, for fine off-line calculations of the sun's solar position (including transit, sunrise, and sunset times, accurate until 2100).
 * Configured system setup can be saved/loaded to/from EEPROM, SD card, or WiFiStorage-like external storage device.
   * System setup can be saved in pretty-print JSON for human-readability (allowing easy text editing), or in raw Binary for ultra-compactness/speed.
-  * Auto-save, backup-auto-save (for auto-recovery functionality), and low-disk cleanup/alerting (TODO) functionality.
+  * Auto-save, backup-auto-save (for auto-recovery functionality), and low storage-space cleanup (TODO) functionality.
   * Import string decode functions are pre-optimized with minimum spanning trie for ultra-fast text parsing & system load-up time.
-* Supports interval-based sensor data publishing & system event data logging to MQTT IoT broker (for IoT-based external data handling/logging) or to external storage in .csv/.txt format (/w date in filename, segmented daily).
+* Supports interval-based sensor data publishing and system event logging to MQTT-based IoT broker or to external storage in .csv/.txt format (/w date in filename, segmented daily).
   * Can be extended to work with other JSON-based Web APIs or Client-like derivatives (for DB storage or server-endpoint support).
   * Can add a piezo buzzer for audible system warning/failure alerting (TODO), or a display for current readings & recent logging messages.
 * Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by tcMenu).
   * Contains at-a-glance system overview screen and GUI menu system for system configuration, sensor calibration, and more (TODO).
   * Critical system configuration menus can be pin-coded to prevent setup tampering, thus still allowing informational-screen/read-only access.
-  * GUI I/O can be setup as interrupt driven (5-25ms), polling based (50-100ms), or partially interrupt driven (depending on pins used).
+  * GUI I/O automatically sets itself up as interrupt driven (/w 5-25ms latency), polling based (/w 50-100ms latency), or partially interrupt driven (depending on primary input pins).
   * Includes remote GUI access through enabled Ethernet, WiFi, Serial, and/or Simhub connection.
-  * System examples can be built in Minimal mode, saving on sketch size at the cost of having to re-compile and re-upload upon certain system setup changes, or Full mode, which uses large amounts of Flash space available on modern controllers to provide everything all at once, with only more major of system changes requiring a full rebuild.
+  * System examples can be built in Minimal mode, saving on compiled sketch size at the cost of having to re-compile and re-upload upon certain system setup changes, or Full mode, which uses large amounts of Flash space available on modern controllers to provide everything all at once, with only more major of system changes requiring a full rebuild.
 * Actuator, Sensor, and I/O pins can be natively multiplexed or expanded through 8/16-bit i2c expanders (TODO) for pin-limited controllers.
 * Library data can be built into onboard Flash or exported onto external storage to save on compiled sketch size.
-  * Data export may allow enough space savings for certain 256kB Flash device builds.
+  * Data export may allow enough compiled sketch size savings for certain 256kB Flash (possible less) device builds.
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
-Dependencies include: Adafruit BusIO (dep of RTClib/tcMenu), Adafruit GPS Library (ext NMEA, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer, ArxSmartPtr, DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManagerIO), LiquidCrystalIO (dep of tcMenu), OneWire, RTClib, SimpleCollections (dep of TaskManagerIO), a SD-like library, SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcUnicodeHelper (dep of tcMenu), tcMenu (disableable), TFT_eSPI (dep of tcMenu), Time, U8g2 (dep of tcMenu), a WiFi-like library (optional): WiFi101 (MKR1000), WiFiNINA_Generic, WiFiEspAT (ext serial AT), or Ethernet, and XPT2046_Touchscreen (optional, dep of tcMenu).
+Dependencies include: Adafruit BusIO (dep of RTClib/tcMenu), Adafruit GPS Library (ext NMEA-AT, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer (AVR/SAM STL), ArxSmartPtr (SharedPtr), DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManagerIO), MQTT, OneWire (-like|platform-specific), RTClib, SimpleCollections (dep of TaskManagerIO), SD (-like|platform-specific), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcUnicodeHelper (dep of tcMenu), tcMenu (disableable), TFT_eSPI (dep of tcMenu), Time, U8g2 (dep of tcMenu), and a WiFi-like networking library (optional): WiFi101 (MKR1000 only), WiFiNINA_Generic, WiFiEspAT (ext ESP-AT), or Ethernet (-like|platform-specific).
 
-GUI Dependencies (building with tcMenu) include: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit PCD8544 Nokia 5110 LCD library, Adafruit ST7735 and ST7789 Library, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional).
+Additional GUI (tcMenu) dependencies: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit ILI9341, Adafruit PCD8544 Nokia 5110 LCD library, Adafruit ST7735 and ST7789 Library, Adafruit TouchScreen, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional). (Note: There may be extra not included here)
 
 Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
@@ -233,7 +233,7 @@ Serial UART uses individual communication lines for each device, with the receiv
   * 5v devices interacting with 3.3v devices that are not 5v tolerant (such as [serial ESP WiFi modules](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/)) will require a bi-directional logic level converter/shifter to utilize.
     * Alternatively, hack a single 10kΩ resistor ([but preferably two of any 1:2 ratio](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/)) between the 5v module's TX pin and 3.3v module's RX pin.
 
-Serial UART Devices Supported: AT WiFi modules, NMEA GPS modules
+Serial UART Devices Supported: Bluetooth-AT modules, ESP-AT WiFi modules, NMEA-AT GPS modules
 
 ### SPI Bus
 
@@ -245,32 +245,35 @@ SPI devices can be chained together on the same shared data lines, which are typ
 * Many various graphical displays have an additional `DC` (or `RS`) pin, which is required to be connected to any digital pin in addition to its `CS` pin.
   * There is also an additional `Reset` pin for many of these, but is optional.
 
-SPI Devices Supported: SD card modules, NMEA GPS modules, 128x32 to 296x128 OLED displays, 320x240+ LCD/TFT gfx displays, XPT touchscreens
+SPI Devices Supported: SD card modules, NMEA GPS modules, 200x200+ OLED displays, 320x240+ LCD/TFT gfx displays, XPT2046 touchscreens
 
 ### I2C Bus
 
-I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same shared data lines (no flipping of wires), which are typically labeled `SCL` and `SDA`. Only different kinds of I2C devices can be used on the same data line together using factory default settings, otherwise manual addressing must be done. I2C runs at mid to high kHz speeds and is useful for advanced device control.
+I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same shared data lines (no flipping of wires), which are typically labeled `SCL` and `SDA`. Only different kinds of I2C devices can be used on the same data line together using factory default settings, otherwise manual addressing must be performed. I2C runs at mid to high kHz speeds and is useful for advanced device control.
 
 * When more than one I2C device of the same kind is to be used on the same data line, each device must be set to use a different address. This is accomplished via the A0-A2 (sometimes A0-A5) pins/pads on the physical device that must be set either open or closed (typically via a de-solderable resistor, or by shorting a pin/pad). Check your specific breakout's datasheet for details.
 * Note that not all the I2C libraries used support multi-addressable I2C devices at this time (read as: may only use one). Currently, this restriction applies to: RTC devices.
 
-I2C Devices Supported: DS*/PCF* RTC modules, AT24C* EEPROM modules, NMEA GPS modules, 16x2/20x4 LCD displays, 128x32 to 296x128 OLED displays, FT touchscreens
+I2C Devices Supported: DS*/PCF* RTC modules, AT24C* EEPROM modules, NMEA GPS modules, 16x2/20x4 LCD displays, 128x32/128x64 OLED displays, FT6206 touchscreens
 
 ### OneWire Bus
 
-OneWire devices can be chained together on the same shared data lines (no flipping of wires). Devices can be of the same or different types, require minimal setup (and no soldering), and most can even operate in "parasite" power mode where they use the power from the data line (and an internal capacitor) to function (thus saving a `Vcc` line, only requiring `Data` and `GND`). OneWire runs only in the low kb/s speeds and is useful for digital sensors.
+OneWire devices can be chained together on the same shared data lines (no flipping of wires). Devices can be of the same or different types, require minimal setup (and often no soldering), and most can even operate in "parasite" power mode where they use the power from the data line (and an internal capacitor) to function (thus saving a `Vcc` line, only requiring `Data` and return `GND`). OneWire runs only in the low kb/s speeds and is useful for light-weight digital sensors.
 
 * Typically, sensors are limited to 20 devices along a maximum 100m of wire.
 * When more than one OneWire device is on the same device line, each device registers itself an enumeration index (0 - N) along with its own 64-bit unique identifier (UUID, with last byte being CRC). The device can then be referenced via this UUID by the system in the future indefinitely, or enumeration index so long as the device doesn't change its line position.
 
-OneWire Devices Supported: DHT* air temp/humidity sensors
+OneWire Devices Supported: DHT* 1W air temp/humidity sensors
 
 ### Analog IO
 
-* All analog sensors will need to have the same operational voltage range. Many analog sensors are set to use 0v to 5v by default, but some can go -5v to +5v, some even up to 5.5v.
-* The `AREF` (or `IOREF`) pin, by default, is the same voltage as the MCU. Analog sensors must not exceed this voltage limit.
-  * 5v analog sensor signals **must** be [level converted](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/) in order to connect to 3.3v MCUs.
-* The SAM/SAMD family of MCUs (e.g. Due, Zero, MKR, etc.) as well as the RasPi Pico and others support different bit resolutions for analog/PWM pins. Refer to the datasheet of your MCU for details.
+* All analog sensors will need to have the same operational voltage range as the controller supports. Many analog sensors are set to use 0v to 5v by default, but some can go -5v to +5v, some even up to 5.5v.
+  * Note: Altering default factory calibration settings may require addition tools for setting up a new calibration, such as special calibration fluids/procedures/etc. Refer to the datasheet of your device for details.
+* The `AREF` (or `IOREF`) pin, which controls the upper-bound of this range, by default if left not-connected (NC) is the same voltage as the MCU. Analog sensors must not exceed this voltage limit.
+  * 5v analog sensor output signals connecting to 3.3v MCUs that are not 5v tolerant **must** either be: [level converted](https://randomnerdtutorials.com/how-to-level-shift-5v-to-3-3v/) in order to connect, or configured to output 0v to `AREF` (or `IOREF`) in voltage calibration output range (if able to calibrate - see note above).
+  * Warning: Too high of applied voltage to any pin incapable of receiving such high a voltage risks permanent damage to that device. _Always_ ensure that the applied voltage level coming out a device is supported when going back into another device! Some breakouts/IC's have 5v tolerance built-in, some do not. Refer to the datasheet of your MCU/device for details.
+  * Note: Typically a 3.3v output signal will not need level converted up to 5v for a 5v digital input to function.
+* The SAM/SAMD family of MCUs (e.g. Due, Zero, MKR, Nano 33, etc.) as well as many more modern MCUs support different bit resolutions for analog/PWM pins (tied to overridable `DAC_RESOLUTION` & `ADC_RESOLUTION` defines), with some (e.g. Pico, ESP32, etc.) supporting any pin being digital or analog w/o restriction. Refer to the datasheet of your MCU for details.
 
 ### Sensors
 
