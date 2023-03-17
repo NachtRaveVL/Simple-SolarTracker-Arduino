@@ -352,7 +352,7 @@ public:
     // Minimal/RO UI only allows the user to edit existing objects, not create nor delete them.
     // Full/RW UI allows the user to add/remove system objects, customize features, change settings, etc.
     // Note: Be sure to manually include the appropriate UI system header file (e.g. #include "min/HelioduinoUI.h") in Arduino sketch.
-    inline bool enableUI(HelioUIInterface *ui) { _activeUIInstance = ui; ui->init(); return ui->begin(); }
+    inline bool enableUI(HelioUIInterface *ui) { _activeUIInstance = ui; ui->init(_uiData); return ui->begin(); }
 #endif
 
     // Mutators.
@@ -500,6 +500,7 @@ protected:
     static Helioduino *_activeInstance;                     // Current active instance (set after init, weak)
 #ifdef HELIO_USE_GUI
     HelioUIInterface *_activeUIInstance;                    // Current active UI instance (owned)
+    HelioUIData *_uiData;                                   // UI data (owned)
 #endif
     HelioSystemData *_systemData;                           // System data (owned, saved to storage)
 
@@ -584,7 +585,6 @@ protected:
 #ifdef HELIO_USE_GUI
     friend HelioUIInterface *::getUI();
 #endif
-    friend class HelioCalibrations;
     friend class HelioScheduler;
     friend class HelioLogger;
     friend class HelioPublisher;

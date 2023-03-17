@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "shared/HelioUIData.h"
 
 static HelioRTCInterface *_rtcSyncProvider = nullptr;
 time_t rtcNow() {
@@ -47,7 +48,7 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
       _gpsSetup(gpsSetup), _gps(nullptr), _gpsBegan(false),
 #endif
 #ifdef HELIO_USE_GUI
-      _activeUIInstance(nullptr), _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
+      _activeUIInstance(nullptr), _uiData(nullptr), _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
 #endif
 #ifdef HELIO_USE_MULTITASKING
       _controlTaskId(TASKMGR_INVALIDID), _dataTaskId(TASKMGR_INVALIDID), _miscTaskId(TASKMGR_INVALIDID),
@@ -63,6 +64,7 @@ Helioduino::~Helioduino()
     suspend();
 #ifdef HELIO_USE_GUI
     if (_activeUIInstance) { delete _activeUIInstance; _activeUIInstance = nullptr; }
+    if (_uiData) { delete _uiData; _uiData = nullptr; }
 #endif
     deactivatePinMuxers();
     while (_objects.size()) { _objects.erase(_objects.begin()); }
@@ -382,8 +384,11 @@ bool Helioduino::initFromJSONStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
+                    } else if (data->isUIData()) {
+                        if (_uiData) { delete _uiData; }
+                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
-                    delete data; data = nullptr;
+                    if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
                     delete data; data = nullptr;
@@ -443,6 +448,18 @@ bool Helioduino::saveToJSONStream(Stream *streamOut, bool compact)
             }
         }
 
+        if (_uiData) {
+            StaticJsonDocument<HELIO_JSON_DOC_DEFSIZE> doc;
+
+            JsonObject uiDataObj = doc.to<JsonObject>();
+            _uiData->toJSONObject(uiDataObj);
+
+            if (!(compact ? serializeJson(doc, *streamOut) : serializeJsonPretty(doc, *streamOut))) {
+                HELIO_SOFT_ASSERT(false, SFP(HStr_Err_ExportFailure));
+                return false;
+            }
+        }
+
         if (_objects.size()) {
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
                 HelioData *data = iter->second->newSaveData();
@@ -499,8 +516,11 @@ bool Helioduino::initFromBinaryStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
+                    } else if (data->isUIData()) {
+                        if (_uiData) { delete _uiData; }
+                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
-                    delete data; data = nullptr;
+                    if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
                     delete data; data = nullptr;
@@ -547,6 +567,13 @@ bool Helioduino::saveToBinaryStream(Stream *streamOut)
             for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
                 bytesWritten += serializeDataToBinaryStream(iter->second, streamOut);
             }
+
+            HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
+            if (!bytesWritten) { return false; }
+        }
+
+        if (_uiData) {
+            size_t bytesWritten = serializeDataToBinaryStream(_uiData, streamOut);
 
             HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
             if (!bytesWritten) { return false; }
