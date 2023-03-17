@@ -1027,10 +1027,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Enum_PanelSprayer[] PROGMEM = {"PanelSprayer"};
             return flashStr_Enum_PanelSprayer;
         } break;
-        case HStr_Enum_PCD8544: {
-            static const char flashStr_Enum_PCD8544[] PROGMEM = {"PCD8544"};
-            return flashStr_Enum_PCD8544;
-        } break;
         case HStr_Enum_Percentile: {
             static const char flashStr_Enum_Percentile[] PROGMEM = {"Percentile"};
             return flashStr_Enum_Percentile;

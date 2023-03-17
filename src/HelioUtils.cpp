@@ -1100,8 +1100,6 @@ String displayOutputModeToString(Helio_DisplayOutputMode displayOutMode, bool ex
             return SFP(HStr_Enum_ST7789);
         case Helio_DisplayOutputMode_ILI9341:
             return SFP(HStr_Enum_ILI9341);
-        case Helio_DisplayOutputMode_PCD8544:
-            return SFP(HStr_Enum_PCD8544);
         case Helio_DisplayOutputMode_TFT: {
             String retVal; retVal.reserve(3);
             retVal.concat('T'); retVal.concat('F'); retVal.concat('T');
@@ -1560,7 +1558,7 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
         case 'C':
             switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\0') {
                 case 'o':
-                    return (Helio_DisplayOutputMode)19;
+                    return (Helio_DisplayOutputMode)18;
                 case 'u':
                     return (Helio_DisplayOutputMode)10;
             }
@@ -1601,8 +1599,6 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                     break;
             }
             break;
-        case 'P':
-            return (Helio_DisplayOutputMode)17;
         case 'S':
             switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\0') {
                 case 'H':
@@ -1644,7 +1640,7 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
             }
             break;
         case 'T':
-            return (Helio_DisplayOutputMode)18;
+            return (Helio_DisplayOutputMode)17;
         case 'U':
             return (Helio_DisplayOutputMode)-1;
     }

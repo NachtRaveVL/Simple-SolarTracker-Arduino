@@ -233,7 +233,6 @@ enum Helio_String : unsigned short {
     HStr_Enum_PanelCover,
     HStr_Enum_PanelHeater,
     HStr_Enum_PanelSprayer,
-    HStr_Enum_PCD8544,
     HStr_Enum_Percentile,
     HStr_Enum_PositionalServo,
     HStr_Enum_Power,
