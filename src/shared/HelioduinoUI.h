@@ -10,7 +10,7 @@
 
 class HelioduinoBaseUI : public HelioUIInterface {
 public:
-    virtual void init() override;
+    virtual void init(HelioUIData *data = nullptr) override;
     virtual bool begin() override;
 
     virtual void setNeedsRedraw() override;

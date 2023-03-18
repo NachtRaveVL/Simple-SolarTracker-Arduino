@@ -6,7 +6,7 @@
 #include "Helioduino.h"
 #include "HelioduinoUI.h"
 
-void HelioduinoBaseUI::init()
+void HelioduinoBaseUI::init(HelioUIData *data)
 { ; }
 
 bool HelioduinoBaseUI::begin()

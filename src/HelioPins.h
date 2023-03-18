@@ -12,7 +12,9 @@ struct HelioAnalogPin;
 struct HelioPinData;
 
 class HelioPinMuxer;
+class HelioPinExpander;
 struct HelioPinMuxerData;
+struct HelioPinExpanderData;
 
 #include "Helioduino.h"
 #include "HelioUtils.h"
@@ -29,12 +31,12 @@ struct HelioPin {
     inline bool isAnalogType() const { return type == Analog; }
     inline bool isUnknownType() const { return type <= Unknown; }
 
-    pintype_t pin;                                          // Pin number (else -1 if undefined)
+    pintype_t pin;                                          // Pin number (else -1 if undefined, -2 if virtual)
     Helio_PinMode mode;                                     // Pin mode setting
-    uint8_t channel;                                        // Muxing channel select (else -1 if unused)
+    int8_t channel;                                         // Muxing channel select (else -127 if unused)
 
     HelioPin();
-    HelioPin(int classType, pintype_t pinNumber = -1, Helio_PinMode pinMode = Helio_PinMode_Undefined, uint8_t muxChannel = -1);
+    HelioPin(int classType, pintype_t pinNumber = -1, Helio_PinMode pinMode = Helio_PinMode_Undefined, int8_t pinChannel = -127);
     HelioPin(const HelioPinData *dataIn);
 
     explicit operator HelioDigitalPin() const;
@@ -43,22 +45,27 @@ struct HelioPin {
     // Initializes pin to mode settings. Re-entrant.
     void init();
     // De-initializes pin to floating state. Re-entrant.
-    inline void deinit() { pinMode(pin, INPUT); }
+    void deinit();
 
     void saveToData(HelioPinData *dataOut) const;
 
+    static inline pintype_t pinNumberForExpander(int8_t pinChannel, hposi_t expanderIndex) { return isValidChannel(pinChannel) ? (pintype_t)(100 + (expanderIndex * 16) +  abs(pinChannel)) : (pintype_t)-1; }
+    static inline hposi_t expanderForPinNumber(pintype_t pinNumber) { return isValidPin(pinNumber) ? (pinNumber > 100 ? pinNumber - 100 : pinNumber) >> 4 : -1; }
+
     // Attempts to both select the pin muxer (set address/ready pin state) for the pin on its channel number and activate it (toggle chip enable).
     // Typically called pre-read. Returns success boolean. May return early.
-    inline bool selectAndActivateMuxer() { return enableMuxer(0); }
+    inline bool selectAndActivatePin() { return enablePin(0); }
     // Attempts to only select the pin muxer (set address/ready pin state) for the pin on its channel number.
     // Typically called pre-write. Returns success boolean. May return early.
-    inline bool selectMuxer() { return enableMuxer(1); }
+    inline bool selectPin() { return enablePin(1); }
     // Attempts to only activate the pin muxer (toggle chip enable).
     // Typically called post-write. Returns success boolean. May return early.
-    inline bool activateMuxer() { return enableMuxer(2); }
+    inline bool activatePin() { return enablePin(2); }
 
     inline bool isValid() const { return isValidPin(pin) && mode != Helio_PinMode_Undefined; }
-    inline bool isMuxed() const { return isValidChannel(channel); }
+    inline bool isVirtual() const { return isValidPin(pin) && pin >= 100; }
+    inline bool isMuxed() const { return isValidChannel(channel) && channel >= 0; }
+    inline bool isExpanded() const { return isValidChannel(channel) && channel < 0; }
     inline bool isInput() const { return mode == Helio_PinMode_Digital_Input ||
                                          mode == Helio_PinMode_Digital_Input_PullUp ||
                                          mode == Helio_PinMode_Digital_Input_PullDown ||
@@ -77,29 +84,28 @@ struct HelioPin {
                                           mode == Helio_PinMode_Analog_Output; }
 
 protected:
-    bool enableMuxer(int step);
+    bool enablePin(int step);
 };
 
 // Digital Pin
-struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, public HelioDigitalOutputPinInterface
-{
+struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, public HelioDigitalOutputPinInterface {
     bool activeLow;                                         // Active-low trigger state boolean
 
     HelioDigitalPin();
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
                     ard_pinmode_t pinMode,                  // Arduino pin mode (e.g. INPUT, OUTPUT, determines activeLow trigger state)
-                    uint8_t muxChannel = -1);               // Muxing channel select (else -1 if unused)
+                    int8_t pinChannel = -127);              // Muxer/expander channel select # (else -127 if unused)
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
-                    Helio_PinMode pinMode,                  // Helioduino pin mode (determines activeLow trigger state)
-                    uint8_t muxChannel = -1);               // Muxing channel select (else -1 if unused)
+                    Helio_PinMode pinMode,                  // Hydruino pin mode (determines activeLow trigger state)
+                    int8_t pinChannel = -127);              // Muxer/expander channel select # (else -127 if unused)
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
                     ard_pinmode_t pinMode,                  // Arduino pin mode (e.g. INPUT, OUTPUT)
                     bool isActiveLow,                       // Explicit pin active-low trigger state boolean
-                    uint8_t muxChannel = -1);               // Muxing channel select (else -1 if unused)
+                    int8_t pinChannel = -127);              // Muxer/expander channel select # (else -127 if unused)
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
-                    Helio_PinMode pinMode,                  // Helioduino pin mode
+                    Helio_PinMode pinMode,                  // Hydruino pin mode
                     bool isActiveLow,                       // Explicit pin active-low trigger state boolean
-                    uint8_t muxChannel = -1);               // Muxing channel select (else -1 if unused)
+                    int8_t pinChannel = -127);              // Muxer/expander channel select # (else -127 if unused)
     HelioDigitalPin(const HelioPinData *dataIn);
 
     void saveToData(HelioPinData *dataOut) const;
@@ -113,8 +119,7 @@ struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, 
 };
 
 // Analog Pin
-struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, public HelioAnalogOutputPinInterface
-{
+struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, public HelioAnalogOutputPinInterface {
     BitResolution bitRes;                                   // Bit resolution
 #ifdef ESP32
     uint8_t pwmChannel;                                     // PWM channel
@@ -133,9 +138,9 @@ struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, pu
 #ifdef ESP_PLATFORM
                    float pinPWMFrequency = 1000,            // PWM frequency
 #endif
-                   uint8_t muxChannel = -1);                // Muxing channel select (else -1 if unused)
+                   int8_t pinChannel = -127);               // Muxer/expander channel select # (else -127 if unused)
     HelioAnalogPin(pintype_t pinNumber,                     // Analog pin number (e.g. A0, A1)
-                   Helio_PinMode pinMode,                   // Helioduino pin mode
+                   Helio_PinMode pinMode,                   // Hydruino pin mode
                    uint8_t analogBitRes = 0,                // Bit resolution (0 for std DAC/ADC res by mode i/o)
 #ifdef ESP32
                    uint8_t pinPWMChannel = 1,               // PWM channel (0 reserved for buzzer)
@@ -143,7 +148,7 @@ struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, pu
 #ifdef ESP_PLATFORM
                    float pinPWMFrequency = 1000,            // PWM frequency
 #endif
-                   uint8_t muxChannel = -1);                // Muxing channel select (else -1 if unused)
+                   int8_t pinChannel = -127);               // Muxer/expander channel select # (else -127 if unused)
     HelioAnalogPin(const HelioPinData *dataIn);
 
     void init();
@@ -162,15 +167,12 @@ struct HelioPinData : public HelioSubData
 {
     pintype_t pin;                                          // Pin number
     Helio_PinMode mode;                                     // Pin mode
-    uint8_t channel;                                        // Muxing channel
-    union
-    {
-        struct
-        {
+    int8_t channel;                                         // Muxing/expander channel
+    union {
+        struct {
             bool activeLow;                                 // Active low trigger state
         } digitalPin;                                       // Digital pin
-        struct
-        {
+        struct {
             uint8_t bitRes;                                 // Bit resolution
 #ifdef ESP32
             uint8_t pwmChannel;                             // PWM channel
@@ -194,12 +196,11 @@ struct HelioPinData : public HelioSubData
 // are muxed will enable their associated pin muxer (which deactivates all other muxers)
 // prior to utilizing them. This muxer will set i/o pins to floating state as appropriate
 // during channel switches, with optional usage of chip enable.
-class HelioPinMuxer
-{
+class HelioPinMuxer {
 public:
     HelioPinMuxer();
     HelioPinMuxer(HelioPin signalPin,
-                  pintype_t *muxChannelPins, uint8_t muxChannelBits,
+                  pintype_t *muxChannelPins, int8_t muxChannelBits,
                   HelioDigitalPin chipEnablePin = HelioDigitalPin());
     HelioPinMuxer(const HelioPinMuxerData *dataIn);
 
@@ -237,6 +238,48 @@ struct HelioPinMuxerData : HelioSubData
     uint8_t channelBits;                                    // Channel select bits
 
     HelioPinMuxerData();
+    void toJSONObject(JsonObject &objectOut) const;
+    void fromJSONObject(JsonObjectConst &objectIn);
+};
+
+
+// Pin Expander
+// Much like a muxer, but instead communicates over i2c. Uses IoAbstraction
+// referenced objects for pin interaction. Can instead assume ref object is
+// an AnalogDevice instance in case of analog pins. Typically only one pin
+// out direction is supported, specified by passed signalPin.
+class HelioPinExpander {
+public:
+    HelioPinExpander();
+    HelioPinExpander(HelioPin signalPin, IoAbstractionRef ioRef, uint8_t channelBits);
+    HelioPinExpander(const HelioPinExpanderData *dataIn, IoAbstractionRef ioRef);
+
+    void saveToData(HelioPinExpanderData *dataOut) const;
+
+    void init();
+
+    inline const HelioPin &getSignalPin() { return _signal; }
+    inline IoAbstractionRef getIoAbstraction() { return _ioRef; }
+    inline uint8_t getChannelSelectBits() { return _channelBits; }
+
+protected:
+    HelioPin _signal;                                       // Expanded signal pin (only needs/saves pin/mode)
+    IoAbstractionRef _ioRef;                                // IoAbstraction instance
+    uint8_t _channelBits;                                   // Channel select bits (# of bus pins available)
+
+    bool syncChannel();
+
+    friend class HelioPinHandlers;
+    friend class HelioPin;
+};
+
+// Pin Expander Serialization Sub Data
+struct HelioPinExpanderData : HelioSubData
+{
+    HelioPinData signal;                                    // Signal pin data
+    uint8_t channelBits;                                    // Channel select bits
+
+    HelioPinExpanderData();
     void toJSONObject(JsonObject &objectOut) const;
     void fromJSONObject(JsonObjectConst &objectIn);
 };
