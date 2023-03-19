@@ -76,7 +76,7 @@ struct HelioData : public HelioJSONSerializableInterface {
 // entire data object hierarchy, useful for triggers, measurements, etc.
 // NOTE: NON-CONST VALUE TYPES ONLY, NO VIRTUALS. All data *MUST* be able to use default operator=.
 struct HelioSubData {
-    hid_t type;                                             // Sub data type (or hid_none/-1 if unused)
+    hid_t type;                                             // Sub data type, else -1/none
 
     HelioSubData();
     HelioSubData(hid_t dataType);
