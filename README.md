@@ -532,31 +532,48 @@ Included below is the default system setup defines of the DA Tracking example (o
 #define SETUP_WIND_SPEED_SENSOR_PIN     -1              // Wind speed sensor pin (analog), else -1
 
 // Device Multiplexing Setup
-#define SETUP_MUXING_CHANNEL_BITS       -1              // Number of channel bits for multiplexer, else -1
-#define SETUP_MUXING_ADDRESS_PINS       {hpin_none}     // Address channel pins, else {-1}
-#define SETUP_MUXING_ENABLE_PIN         -1              // Chip enable pin for multiplexer (optional), else -1
-#define SETUP_MUXING_ENABLE_TYPE        ACT_LOW         // Chip enable pin type/active level (ACT_HIGH, ACT_LOW)
-#define SETUP_AC_USAGE_SENSOR_MUXCHN    -1              // AC power usage meter sensor pin muxing channel #, else -1
-#define SETUP_DC_USAGE_SENSOR_MUXCHN    -1              // DC power usage meter sensor pin muxing channel #, else -1
-#define SETUP_DC_GEN_SENSOR_MUXCHN      -1              // DC power generation meter sensor pin muxing channel #, else -1
-#define SETUP_ICE_INDICATOR_MUXCHN      -1              // Ice indicator pin muxing channel #, else -1
-#define SETUP_LINACT1_AXIS1_MUXCHNA     -1              // Ele/dec axis linear actuator #1 pin A muxing channel #, else -1
-#define SETUP_LINACT1_AXIS1_MUXCHNB     -1              // Ele/dec axis linear actuator #1 pin B muxing channel #, else -1
-#define SETUP_LINACT1_POS_SENSOR_MUXCHN -1              // Ele/dec axis linear actuator #1 position sensor pin muxing channel #, else -1
-#define SETUP_LINACT1_MIN_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #1 min endstop pin muxing channel #, else -1
-#define SETUP_LINACT1_MAX_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #1 max endstop pin muxing channel #, else -1
-#define SETUP_LINACT2_AXIS1_MUXCHNA     -1              // Ele/dec axis linear actuator #2 pin A muxing channel #, else -1
-#define SETUP_LINACT2_AXIS1_MUXCHNB     -1              // Ele/dec axis linear actuator #2 pin B muxing channel #, else -1
-#define SETUP_LINACT2_POS_SENSOR_MUXCHN -1              // Ele/dec axis linear actuator #2 position sensor pin muxing channel #, else -1
-#define SETUP_LINACT2_MIN_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #2 min endstop pin muxing channel #, else -1
-#define SETUP_LINACT2_MAX_ENDSTOP_MUXCHN -1             // Ele/dec axis linear actuator #2 max endstop pin muxing channel #, else -1
-#define SETUP_PANEL_BRAKE_MUXCHN        -1              // Panel brake relay pin muxing channel #, else -1
-#define SETUP_PANEL_HEATER_MUXCHN       -1              // Panel heater relay pin muxing channel #, else -1
-#define SETUP_PANEL_SPRAYER_MUXCHN      -1              // Panel sprayer/wiper relay pin muxing channel #, else -1
-#define SETUP_PANEL_TILT_AXIS1_MUXCHN   -1              // Ele/dec axis panel tilt angle sensor pin muxing channel #, else -1
-#define SETUP_POS_SERVO_AXIS0_MUXCHN    -1              // Azi/RA axis positional servo pin muxing channel #, else -1
-#define SETUP_POS_SERVO_AXIS1_MUXCHN    -1              // Ele/dec axis positional servo pin muxing channel #, else -1
-#define SETUP_WIND_SPEED_SENSOR_MUXCHN  -1              // Wind speed sensor pin muxing channel #, else -1
+#define SETUP_MUXER_CHANNEL_BITS        -1              // Multiplexer channel bits (8 or 16), else -1
+#define SETUP_MUXER_ADDRESS_PINS        {hpin_none}     // Multiplexer addressing bus/channel pins, else {-1}
+#define SETUP_MUXER_ENABLE_PIN          -1              // Multiplexer chip enable pin (optional), else -1
+#define SETUP_MUXER_ENABLE_TYPE         ACT_LOW         // Multiplexer chip enable pin type/active level (ACT_HIGH, ACT_LOW)
+
+// Device Pin Expanders Setup
+#define SETUP_EXPANDER1_CHANNEL_BITS    -1              // Pin expander 1 channel bits (8 or 16), else -1
+#define SETUP_EXPANDER2_CHANNEL_BITS    -1              // Pin expander 2 channel bits (8 or 16), else -1
+#define SETUP_EXPANDER1_IOREF_PINMODE   Digital_Input   // Pin expander 1 pin mode (Digital_Input, Digital_Input_PullUp, Digital_Input_PullDown, Digital_Output, Analog_Input, Analog_Output, Undefined)
+#define SETUP_EXPANDER2_IOREF_PINMODE   Digital_Output  // Pin expander 2 pin mode (Digital_Input, Digital_Input_PullUp, Digital_Input_PullDown, Digital_Output, Analog_Input, Analog_Output, Undefined)
+#define SETUP_EXPANDER1_IOREF_I2C_ADDR  0x27            // Pin expander 1 full I2C device address (including device base offset)
+#define SETUP_EXPANDER2_IOREF_I2C_ADDR  0x28            // Pin expander 2 full I2C device address (including device base offset)
+#define SETUP_EXPANDER1_IOREF_ISR_PIN   -1              // Pin expander 1 interrupt pin, else -1
+#define SETUP_EXPANDER2_IOREF_ISR_PIN   -1              // Pin expander 2 interrupt pin, else -1
+#define SETUP_EXPANDER_IOREF_I2C_WIRE   Wire            // Pin expanders I2C wire class instance
+// IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 1
+#define SETUP_EXPANDER1_IOREF_ALLOC()   ioFrom8574((uint8_t)SETUP_EXPANDER1_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER1_IOREF_ISR_PIN, &SETUP_EXPANDER1_IOREF_I2C_WIRE)
+// IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 2
+#define SETUP_EXPANDER2_IOREF_ALLOC()   ioFrom8574((uint8_t)SETUP_EXPANDER2_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER2_IOREF_ISR_PIN, &SETUP_EXPANDER2_IOREF_I2C_WIRE)
+
+// Pin Muxer/Expander Channel Setup
+#define SETUP_AC_USAGE_SENSOR_PINCHNL   hpinchnl_none   // AC power usage meter sensor pin muxer/expander channel #, else -127/none
+#define SETUP_DC_USAGE_SENSOR_PINCHNL   hpinchnl_none   // DC power usage meter sensor pin muxer/expander channel #, else -127/none
+#define SETUP_DC_GEN_SENSOR_PINCHNL     hpinchnl_none   // DC power generation meter sensor pin muxer/expander channel #, else -127/none
+#define SETUP_ICE_INDICATOR_PINCHNL     hpinchnl_none   // Ice indicator pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT1_AXIS1_PINCHNLA     hpinchnl_none  // Ele/dec axis linear actuator #1 A pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT1_AXIS1_PINCHNLB     hpinchnl_none  // Ele/dec axis linear actuator #1 B pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT1_POS_SENSOR_PINCHNL hpinchnl_none  // Ele/dec axis linear actuator #1 position sensor pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT1_MIN_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #1 min endstop pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT1_MAX_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #1 max endstop pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT2_AXIS1_PINCHNLA     hpinchnl_none  // Ele/dec axis linear actuator #2 A pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT2_AXIS1_PINCHNLB     hpinchnl_none  // Ele/dec axis linear actuator #2 B pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT2_POS_SENSOR_PINCHNL hpinchnl_none  // Ele/dec axis linear actuator #2 position sensor pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT2_MIN_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #2 min endstop pin muxer/expander channel #, else -127/none
+#define SETUP_LINACT2_MAX_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #2 max endstop pin muxer/expander channel #, else -127/none
+#define SETUP_PANEL_BRAKE_PINCHNL       hpinchnl_none   // Panel brake relay pin muxer/expander channel #, else -127/none
+#define SETUP_PANEL_HEATER_PINCHNL      hpinchnl_none   // Panel heater relay pin muxer/expander channel #, else -127/none
+#define SETUP_PANEL_SPRAYER_PINCHNL     hpinchnl_none   // Panel sprayer/wiper relay pin muxer/expander channel #, else -127/none
+#define SETUP_PANEL_TILT_AXIS1_PINCHNL  hpinchnl_none   // Ele/dec axis panel tilt angle sensor pin muxer/expander channel #, else -127/none
+#define SETUP_POS_SERVO_AXIS0_PINCHNL   hpinchnl_none   // Azi/RA axis positional servo pin muxer/expander channel #, else -127/none
+#define SETUP_POS_SERVO_AXIS1_PINCHNL   hpinchnl_none   // Ele/dec axis positional servo pin muxer/expander channel #, else -127/none
+#define SETUP_WIND_SPEED_SENSOR_PINCHNL hpinchnl_none   // Wind speed sensor pin muxer/expander channel #, else -127/none
 
 // System Setup
 #define SETUP_AC_POWER_RAIL_TYPE        AC110V          // Rail power type used for actuator AC rail (AC110V, AC220V)
