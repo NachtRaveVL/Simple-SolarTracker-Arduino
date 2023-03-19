@@ -61,6 +61,8 @@ void HelioPin::init()
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid()) {
             if (!(isExpanded() || isVirtual())) {
+                HELIO_SOFT_ASSERT(!isMuxed() || channel == pinChannelForMuxerChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
+
                 switch (mode) {
                     case Helio_PinMode_Digital_Input:
                     case Helio_PinMode_Analog_Input:
@@ -89,12 +91,16 @@ void HelioPin::init()
                         break;
                 }
             } else {
-                HELIO_SOFT_ASSERT(pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
+                HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
                 HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
 
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
-                    expander->getIoAbstraction()->pinDirection(abs(channel), isOutput() ? OUTPUT : mode == Helio_PinMode_Digital_Input_PullUp ? INPUT_PULLUP : mode == Helio_PinMode_Digital_Input_PullDown ? INPUT_PULLDOWN : INPUT);
+                    #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_MBED) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY) || defined(INPUT_PULLDOWN)
+                        expander->getIoAbstraction()->pinDirection(abs(channel), isOutput() ? OUTPUT : mode == Helio_PinMode_Digital_Input_PullUp ? INPUT_PULLUP : mode == Helio_PinMode_Digital_Input_PullDown ? INPUT_PULLDOWN : INPUT);
+                    #else
+                        expander->getIoAbstraction()->pinDirection(abs(channel), isOutput() ? OUTPUT : mode == Helio_PinMode_Digital_Input_PullUp ? INPUT_PULLUP : INPUT);
+                    #endif
                 }
             }
         }
@@ -108,7 +114,7 @@ void HelioPin::deinit()
             if (!(isExpanded() || isVirtual())) {
                 pinMode(pin, INPUT);
             } else {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     expander->getIoAbstraction()->pinDirection(abs(channel), INPUT);
                 }
@@ -131,8 +137,8 @@ bool HelioPin::enablePin(int step)
                         default: return false;
                     }
                 }
-            } else if (isExpanded()) {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+            } else if (isExpanded() || isVirtual()) {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 return expander && expander->syncChannel();
             }
         }
@@ -191,7 +197,7 @@ ard_pinstatus_t HelioDigitalPin::digitalRead()
             if (!(isExpanded() || isVirtual())) {
                 return ::digitalRead(pin);
             } else {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     return (ard_pinstatus_t)(expander->getIoAbstraction()->readValue(abs(channel)));
                 }
@@ -209,7 +215,7 @@ void HelioDigitalPin::digitalWrite(ard_pinstatus_t status)
                 if (isMuxed()) { selectPin(); }
                 ::digitalWrite(pin, status);
             } else {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     expander->getIoAbstraction()->writeValue(abs(channel), (uint8_t)status);
                 }
@@ -288,10 +294,10 @@ void HelioAnalogPin::init()
                     ledcSetup(pwmChannel, pwmFrequency, bitRes.bits);
                 #endif
             } else {
-                HELIO_SOFT_ASSERT(pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
+                HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
                 HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
 
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     auto ioDir = isOutput() ? AnalogDirection::DIR_OUT : AnalogDirection::DIR_IN;
                     auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
@@ -336,7 +342,7 @@ int HelioAnalogPin::analogRead_raw()
                 #endif
                 return ::analogRead(pin);
             } else {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
                     analogIORef->getCurrentValue(abs(channel));
@@ -370,7 +376,7 @@ void HelioAnalogPin::analogWrite_raw(int amount)
                     ::analogWrite(pin, amount);
                 #endif
             } else {
-                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(expanderForPinChannel(channel)) : nullptr;
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
                 if (expander) {
                     auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
                     analogIORef->setCurrentValue(abs(channel), amount);
