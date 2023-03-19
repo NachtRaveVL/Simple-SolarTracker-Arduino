@@ -119,6 +119,7 @@ typedef int uartmode_t;
 
 #ifndef HELIO_DISABLE_MULTITASKING
 #include "TaskManagerIO.h"              // Task Manager library
+#include "IoAbstraction.h"              // IoAbstraction library
 #define HELIO_USE_MULTITASKING
 #else
 #ifndef HELIO_DISABLE_GUI

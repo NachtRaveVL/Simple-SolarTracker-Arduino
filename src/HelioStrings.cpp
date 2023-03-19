@@ -454,14 +454,6 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_Channel[] PROGMEM = {"channel"};
             return flashStr_Key_Channel;
         } break;
-        case HStr_Key_ChannelPins: {
-            static const char flashStr_Key_ChannelPins[] PROGMEM = {"channelPins"};
-            return flashStr_Key_ChannelPins;
-        } break;
-        case HStr_Key_ChipEnablePin: {
-            static const char flashStr_Key_ChipEnablePin[] PROGMEM = {"chipEnablePin"};
-            return flashStr_Key_ChipEnablePin;
-        } break;
         case HStr_Key_CleaningIntervalDays: {
             static const char flashStr_Key_CleaningIntervalDays[] PROGMEM = {"cleaningIntervalDays"};
             return flashStr_Key_CleaningIntervalDays;
@@ -729,10 +721,6 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_SensorName: {
             static const char flashStr_Key_SensorName[] PROGMEM = {"sensorName"};
             return flashStr_Key_SensorName;
-        } break;
-        case HStr_Key_SignalPin: {
-            static const char flashStr_Key_SignalPin[] PROGMEM = {"signalPin"};
-            return flashStr_Key_SignalPin;
         } break;
         case HStr_Key_SpeedSensor: {
             static const char flashStr_Key_SpeedSensor[] PROGMEM = {"speedSensor"};
