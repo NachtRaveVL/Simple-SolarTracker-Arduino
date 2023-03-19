@@ -378,272 +378,104 @@ inline void setupPinChannels()
         };
         #if SETUP_AC_USAGE_SENSOR_PINCHNL >= 0 || SETUP_AC_USAGE_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16, expanders[SETUP_AC_USAGE_SENSOR_PINCHNL/16]); }
-            #if SETUP_AC_USAGE_SENSOR_PIN < 100 || (SETUP_AC_USAGE_SENSOR_PIN - 100)/16 != (SETUP_AC_USAGE_SENSOR_PINCHNL)/16
-                #warning "SETUP_AC_USAGE_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_AC_USAGE_SENSOR_PIN == -1
-                #undef SETUP_AC_USAGE_SENSOR_PIN
-                #define SETUP_AC_USAGE_SENSOR_PIN (100 + SETUP_AC_USAGE_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_AC_USAGE_SENSOR_PINCHNL_ SETUP_AC_USAGE_SENSOR_PINCHNL
-            #undef SETUP_AC_USAGE_SENSOR_PINCHNL
-            #define SETUP_AC_USAGE_SENSOR_PINCHNL -SETUP_AC_USAGE_SENSOR_PINCHNL_
+            #undef SETUP_AC_USAGE_SENSOR_PIN
+            #define SETUP_AC_USAGE_SENSOR_PIN (100 + SETUP_AC_USAGE_SENSOR_PINCHNL)
         #endif
         #if SETUP_DC_USAGE_SENSOR_PINCHNL >= 0 || SETUP_DC_USAGE_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_DC_USAGE_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_DC_USAGE_SENSOR_PINCHNL/16, expanders[SETUP_DC_USAGE_SENSOR_PINCHNL/16]); }
-            #if SETUP_DC_USAGE_SENSOR_PIN < 100 || (SETUP_DC_USAGE_SENSOR_PIN - 100)/16 != (SETUP_DC_USAGE_SENSOR_PINCHNL)/16
-                #warning "SETUP_DC_USAGE_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_DC_USAGE_SENSOR_PIN == -1
-                #undef SETUP_DC_USAGE_SENSOR_PIN
-                #define SETUP_DC_USAGE_SENSOR_PIN (100 + SETUP_DC_USAGE_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_DC_USAGE_SENSOR_PINCHNL_ SETUP_DC_USAGE_SENSOR_PINCHNL
-            #undef SETUP_DC_USAGE_SENSOR_PINCHNL
-            #define SETUP_DC_USAGE_SENSOR_PINCHNL -SETUP_DC_USAGE_SENSOR_PINCHNL_
+            #undef SETUP_DC_USAGE_SENSOR_PIN
+            #define SETUP_DC_USAGE_SENSOR_PIN (100 + SETUP_DC_USAGE_SENSOR_PINCHNL)
         #endif
         #if SETUP_DC_GEN_SENSOR_PINCHNL >= 0 || SETUP_DC_GEN_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_DC_GEN_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_DC_GEN_SENSOR_PINCHNL/16, expanders[SETUP_DC_GEN_SENSOR_PINCHNL/16]); }
-            #if SETUP_DC_GEN_SENSOR_PIN < 100 || (SETUP_DC_GEN_SENSOR_PIN - 100)/16 != (SETUP_DC_GEN_SENSOR_PINCHNL)/16
-                #warning "SETUP_DC_GEN_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_DC_GEN_SENSOR_PIN == -1
-                #undef SETUP_DC_GEN_SENSOR_PIN
-                #define SETUP_DC_GEN_SENSOR_PIN (100 + SETUP_DC_GEN_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_DC_GEN_SENSOR_PINCHNL_ SETUP_DC_GEN_SENSOR_PINCHNL
-            #undef SETUP_DC_GEN_SENSOR_PINCHNL
-            #define SETUP_DC_GEN_SENSOR_PINCHNL -SETUP_DC_GEN_SENSOR_PINCHNL_
+            #undef SETUP_DC_GEN_SENSOR_PIN
+            #define SETUP_DC_GEN_SENSOR_PIN (100 + SETUP_DC_GEN_SENSOR_PINCHNL)
         #endif
         #if SETUP_ICE_INDICATOR_PINCHNL >= 0 || SETUP_ICE_INDICATOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_ICE_INDICATOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_ICE_INDICATOR_PINCHNL/16, expanders[SETUP_ICE_INDICATOR_PINCHNL/16]); }
-            #if SETUP_ICE_INDICATOR_PIN < 100 || (SETUP_ICE_INDICATOR_PIN - 100)/16 != (SETUP_ICE_INDICATOR_PINCHNL)/16
-                #warning "SETUP_ICE_INDICATOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_ICE_INDICATOR_PIN == -1
-                #undef SETUP_ICE_INDICATOR_PIN
-                #define SETUP_ICE_INDICATOR_PIN (100 + SETUP_ICE_INDICATOR_PINCHNL)
-            #endif
-            #define SETUP_ICE_INDICATOR_PINCHNL_ SETUP_ICE_INDICATOR_PINCHNL
-            #undef SETUP_ICE_INDICATOR_PINCHNL
-            #define SETUP_ICE_INDICATOR_PINCHNL -SETUP_ICE_INDICATOR_PINCHNL_
+            #undef SETUP_ICE_INDICATOR_PIN
+            #define SETUP_ICE_INDICATOR_PIN (100 + SETUP_ICE_INDICATOR_PINCHNL)
         #endif
         #if (SETUP_LINACT1_AXIS1_PINCHNLA >= 0 && SETUP_LINACT1_AXIS1_PINCHNLB >= 0) || (SETUP_LINACT1_AXIS1_PINA >= 100 && SETUP_LINACT1_AXIS1_PINB >= 100)
             if (!helioController.getPinExpander(SETUP_LINACT1_AXIS1_PINCHNLA/16)) { helioController.setPinExpander(SETUP_LINACT1_AXIS1_PINCHNLA/16, expanders[SETUP_LINACT1_AXIS1_PINCHNLA/16]); }
             if (!helioController.getPinExpander(SETUP_LINACT1_AXIS1_PINCHNLB/16)) { helioController.setPinExpander(SETUP_LINACT1_AXIS1_PINCHNLB/16, expanders[SETUP_LINACT1_AXIS1_PINCHNLB/16]); }
-            #if SETUP_LINACT1_AXIS1_PINA < 100 || (SETUP_LINACT1_AXIS1_PINA - 100)/16 != (SETUP_LINACT1_AXIS1_PINCHNLA)/16
-                #warning "SETUP_LINACT1_AXIS1_PINA: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT1_AXIS1_PINB < 100 || (SETUP_LINACT1_AXIS1_PINB - 100)/16 != (SETUP_LINACT1_AXIS1_PINCHNLB)/16
-                #warning "SETUP_LINACT1_AXIS1_PINB: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT1_AXIS1_PINA == -1
-                #undef SETUP_LINACT1_AXIS1_PINA
-                #define SETUP_LINACT1_AXIS1_PINA (100 + SETUP_LINACT1_AXIS1_PINCHNLA)
-            #endif
-            #if SETUP_LINACT1_AXIS1_PINB == -1
-                #undef SETUP_LINACT1_AXIS1_PINB
-                #define SETUP_LINACT1_AXIS1_PINB (100 + SETUP_LINACT1_AXIS1_PINCHNLB)
-            #endif
-            #define SETUP_LINACT1_AXIS1_PINCHNLA_ SETUP_LINACT1_AXIS1_PINCHNLA
-            #define SETUP_LINACT1_AXIS1_PINCHNLB_ SETUP_LINACT1_AXIS1_PINCHNLB
-            #undef SETUP_LINACT1_AXIS1_PINCHNLA
-            #undef SETUP_LINACT1_AXIS1_PINCHNLB
-            #define SETUP_LINACT1_AXIS1_PINCHNLA -SETUP_LINACT1_AXIS1_PINCHNLA_
-            #define SETUP_LINACT1_AXIS1_PINCHNLB -SETUP_LINACT1_AXIS1_PINCHNLB_
+            #undef SETUP_LINACT1_AXIS1_PINA
+            #define SETUP_LINACT1_AXIS1_PINA (100 + SETUP_LINACT1_AXIS1_PINCHNLA)
+            #undef SETUP_LINACT1_AXIS1_PINB
+            #define SETUP_LINACT1_AXIS1_PINB (100 + SETUP_LINACT1_AXIS1_PINCHNLB)
         #endif
         #if SETUP_LINACT1_POS_SENSOR_PINCHNL >= 0 || SETUP_LINACT1_POS_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT1_POS_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT1_POS_SENSOR_PINCHNL/16, expanders[SETUP_LINACT1_POS_SENSOR_PINCHNL/16]); }
-            #if SETUP_LINACT1_POS_SENSOR_PIN < 100 || (SETUP_LINACT1_POS_SENSOR_PIN - 100)/16 != (SETUP_LINACT1_POS_SENSOR_PINCHNL)/16
-                #warning "SETUP_LINACT1_POS_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT1_POS_SENSOR_PIN == -1
-                #undef SETUP_LINACT1_POS_SENSOR_PIN
-                #define SETUP_LINACT1_POS_SENSOR_PIN (100 + SETUP_LINACT1_POS_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_LINACT1_POS_SENSOR_PINCHNL_ SETUP_LINACT1_POS_SENSOR_PINCHNL
-            #undef SETUP_LINACT1_POS_SENSOR_PINCHNL
-            #define SETUP_LINACT1_POS_SENSOR_PINCHNL -SETUP_LINACT1_POS_SENSOR_PINCHNL_
+            #undef SETUP_LINACT1_POS_SENSOR_PIN
+            #define SETUP_LINACT1_POS_SENSOR_PIN (100 + SETUP_LINACT1_POS_SENSOR_PINCHNL)
         #endif
         #if SETUP_LINACT1_MIN_ENDSTOP_PINCHNL >= 0 || SETUP_LINACT1_MIN_ENDSTOP_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT1_MIN_ENDSTOP_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT1_MIN_ENDSTOP_PINCHNL/16, expanders[SETUP_LINACT1_MIN_ENDSTOP_PINCHNL/16]); }
-            #if SETUP_LINACT1_MIN_ENDSTOP_PIN < 100 || (SETUP_LINACT1_MIN_ENDSTOP_PIN - 100)/16 != (SETUP_LINACT1_MIN_ENDSTOP_PINCHNL)/16
-                #warning "SETUP_LINACT1_MIN_ENDSTOP_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT1_MIN_ENDSTOP_PIN == -1
-                #undef SETUP_LINACT1_MIN_ENDSTOP_PIN
-                #define SETUP_LINACT1_MIN_ENDSTOP_PIN (100 + SETUP_LINACT1_MIN_ENDSTOP_PINCHNL)
-            #endif
-            #define SETUP_LINACT1_MIN_ENDSTOP_PINCHNL_ SETUP_LINACT1_MIN_ENDSTOP_PINCHNL
-            #undef SETUP_LINACT1_MIN_ENDSTOP_PINCHNL
-            #define SETUP_LINACT1_MIN_ENDSTOP_PINCHNL -SETUP_LINACT1_MIN_ENDSTOP_PINCHNL_
+            #undef SETUP_LINACT1_MIN_ENDSTOP_PIN
+            #define SETUP_LINACT1_MIN_ENDSTOP_PIN (100 + SETUP_LINACT1_MIN_ENDSTOP_PINCHNL)
         #endif
         #if SETUP_LINACT1_MAX_ENDSTOP_PINCHNL >= 0 || SETUP_LINACT1_MAX_ENDSTOP_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT1_MAX_ENDSTOP_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT1_MAX_ENDSTOP_PINCHNL/16, expanders[SETUP_LINACT1_MAX_ENDSTOP_PINCHNL/16]); }
-            #if SETUP_LINACT1_MAX_ENDSTOP_PIN < 100 || (SETUP_LINACT1_MAX_ENDSTOP_PIN - 100)/16 != (SETUP_LINACT1_MAX_ENDSTOP_PINCHNL)/16
-                #warning "SETUP_LINACT1_MAX_ENDSTOP_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT1_MAX_ENDSTOP_PIN == -1
-                #undef SETUP_LINACT1_MAX_ENDSTOP_PIN
-                #define SETUP_LINACT1_MAX_ENDSTOP_PIN (100 + SETUP_LINACT1_MAX_ENDSTOP_PINCHNL)
-            #endif
-            #define SETUP_LINACT1_MAX_ENDSTOP_PINCHNL_ SETUP_LINACT1_MAX_ENDSTOP_PINCHNL
-            #undef SETUP_LINACT1_MAX_ENDSTOP_PINCHNL
-            #define SETUP_LINACT1_MAX_ENDSTOP_PINCHNL -SETUP_LINACT1_MAX_ENDSTOP_PINCHNL_
+            #undef SETUP_LINACT1_MAX_ENDSTOP_PIN
+            #define SETUP_LINACT1_MAX_ENDSTOP_PIN (100 + SETUP_LINACT1_MAX_ENDSTOP_PINCHNL)
         #endif
         #if (SETUP_LINACT2_AXIS1_PINCHNLA >= 0 && SETUP_LINACT2_AXIS1_PINCHNLB >= 0) || (SETUP_LINACT2_AXIS1_PINA >= 100 || SETUP_LINACT2_AXIS1_PINB >= 100)
             if (!helioController.getPinExpander(SETUP_LINACT2_AXIS1_PINCHNLA/16)) { helioController.setPinExpander(SETUP_LINACT2_AXIS1_PINCHNLA/16, expanders[SETUP_LINACT2_AXIS1_PINCHNLA/16]); }
             if (!helioController.getPinExpander(SETUP_LINACT2_AXIS1_PINCHNLB/16)) { helioController.setPinExpander(SETUP_LINACT2_AXIS1_PINCHNLB/16, expanders[SETUP_LINACT2_AXIS1_PINCHNLB/16]); }
-            #if SETUP_LINACT2_AXIS1_PINA < 100 || (SETUP_LINACT2_AXIS1_PINA - 100)/16 != (SETUP_LINACT2_AXIS1_PINCHNLA)/16
-                #warning "SETUP_LINACT2_AXIS1_PINA: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT2_AXIS1_PINB < 100 || (SETUP_LINACT2_AXIS1_PINB - 100)/16 != (SETUP_LINACT2_AXIS1_PINCHNLB)/16
-                #warning "SETUP_LINACT2_AXIS1_PINB: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT2_AXIS1_PINA == -1
-                #undef SETUP_LINACT2_AXIS1_PINA
-                #define SETUP_LINACT2_AXIS1_PINA (100 + SETUP_LINACT2_AXIS1_PINCHNLA)
-            #endif
-            #if SETUP_LINACT2_AXIS1_PINB == -1
-                #undef SETUP_LINACT2_AXIS1_PINB
-                #define SETUP_LINACT2_AXIS1_PINB (100 + SETUP_LINACT2_AXIS1_PINCHNLB)
-            #endif
-            #define SETUP_LINACT2_AXIS1_PINCHNLA_ SETUP_LINACT2_AXIS1_PINCHNLA
-            #define SETUP_LINACT2_AXIS1_PINCHNLB_ SETUP_LINACT2_AXIS1_PINCHNLB
-            #undef SETUP_LINACT2_AXIS1_PINCHNLA
-            #undef SETUP_LINACT2_AXIS1_PINCHNLB
-            #define SETUP_LINACT2_AXIS1_PINCHNLA -SETUP_LINACT2_AXIS1_PINCHNLA_
-            #define SETUP_LINACT2_AXIS1_PINCHNLB -SETUP_LINACT2_AXIS1_PINCHNLB_
+            #undef SETUP_LINACT2_AXIS1_PINA
+            #define SETUP_LINACT2_AXIS1_PINA (100 + SETUP_LINACT2_AXIS1_PINCHNLA)
+            #undef SETUP_LINACT2_AXIS1_PINB
+            #define SETUP_LINACT2_AXIS1_PINB (100 + SETUP_LINACT2_AXIS1_PINCHNLB)
         #endif
         #if SETUP_LINACT2_POS_SENSOR_PINCHNL >= 0 || SETUP_LINACT2_POS_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT2_POS_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT2_POS_SENSOR_PINCHNL/16, expanders[SETUP_LINACT2_POS_SENSOR_PINCHNL/16]); }
-            #if SETUP_LINACT2_POS_SENSOR_PIN < 100 || (SETUP_LINACT2_POS_SENSOR_PIN - 100)/16 != (SETUP_LINACT2_POS_SENSOR_PINCHNL)/16
-                #warning "SETUP_LINACT2_POS_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT2_POS_SENSOR_PIN == -1
-                #undef SETUP_LINACT2_POS_SENSOR_PIN
-                #define SETUP_LINACT2_POS_SENSOR_PIN (100 + SETUP_LINACT2_POS_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_LINACT2_POS_SENSOR_PINCHNL_ SETUP_LINACT2_POS_SENSOR_PINCHNL
-            #undef SETUP_LINACT2_POS_SENSOR_PINCHNL
-            #define SETUP_LINACT2_POS_SENSOR_PINCHNL -SETUP_LINACT2_POS_SENSOR_PINCHNL_
+            #undef SETUP_LINACT2_POS_SENSOR_PIN
+            #define SETUP_LINACT2_POS_SENSOR_PIN (100 + SETUP_LINACT2_POS_SENSOR_PINCHNL)
         #endif
         #if SETUP_LINACT2_MIN_ENDSTOP_PINCHNL >= 0 || SETUP_LINACT2_MIN_ENDSTOP_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT2_MIN_ENDSTOP_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT2_MIN_ENDSTOP_PINCHNL/16, expanders[SETUP_LINACT2_MIN_ENDSTOP_PINCHNL/16]); }
-            #if SETUP_LINACT2_MIN_ENDSTOP_PIN < 100 || (SETUP_LINACT2_MIN_ENDSTOP_PIN - 100)/16 != (SETUP_LINACT2_MIN_ENDSTOP_PINCHNL)/16
-                #warning "SETUP_LINACT2_MIN_ENDSTOP_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT2_MIN_ENDSTOP_PIN == -1
-                #undef SETUP_LINACT2_MIN_ENDSTOP_PIN
-                #define SETUP_LINACT2_MIN_ENDSTOP_PIN (100 + SETUP_LINACT2_MIN_ENDSTOP_PINCHNL)
-            #endif
-            #define SETUP_LINACT2_MIN_ENDSTOP_PINCHNL_ SETUP_LINACT2_MIN_ENDSTOP_PINCHNL
-            #undef SETUP_LINACT2_MIN_ENDSTOP_PINCHNL
-            #define SETUP_LINACT2_MIN_ENDSTOP_PINCHNL -SETUP_LINACT2_MIN_ENDSTOP_PINCHNL_
+            #undef SETUP_LINACT2_MIN_ENDSTOP_PIN
+            #define SETUP_LINACT2_MIN_ENDSTOP_PIN (100 + SETUP_LINACT2_MIN_ENDSTOP_PINCHNL)
         #endif
         #if SETUP_LINACT2_MAX_ENDSTOP_PINCHNL >= 0 || SETUP_LINACT2_MAX_ENDSTOP_PIN >= 100
             if (!helioController.getPinExpander(SETUP_LINACT2_MAX_ENDSTOP_PINCHNL/16)) { helioController.setPinExpander(SETUP_LINACT2_MAX_ENDSTOP_PINCHNL/16, expanders[SETUP_LINACT2_MAX_ENDSTOP_PINCHNL/16]); }
-            #if SETUP_LINACT2_MAX_ENDSTOP_PIN < 100 || (SETUP_LINACT2_MAX_ENDSTOP_PIN - 100)/16 != (SETUP_LINACT2_MAX_ENDSTOP_PINCHNL)/16
-                #warning "SETUP_LINACT2_MAX_ENDSTOP_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_LINACT2_MAX_ENDSTOP_PIN == -1
-                #undef SETUP_LINACT2_MAX_ENDSTOP_PIN
-                #define SETUP_LINACT2_MAX_ENDSTOP_PIN (100 + SETUP_LINACT2_MAX_ENDSTOP_PINCHNL)
-            #endif
-            #define SETUP_LINACT2_MAX_ENDSTOP_PINCHNL_ SETUP_LINACT2_MAX_ENDSTOP_PINCHNL
-            #undef SETUP_LINACT2_MAX_ENDSTOP_PINCHNL
-            #define SETUP_LINACT2_MAX_ENDSTOP_PINCHNL -SETUP_LINACT2_MAX_ENDSTOP_PINCHNL_
+            #undef SETUP_LINACT2_MAX_ENDSTOP_PIN
+            #define SETUP_LINACT2_MAX_ENDSTOP_PIN (100 + SETUP_LINACT2_MAX_ENDSTOP_PINCHNL)
         #endif
         #if SETUP_PANEL_BRAKE_PINCHNL >= 0 || SETUP_PANEL_BRAKE_PIN >= 100
             if (!helioController.getPinExpander(SETUP_PANEL_BRAKE_PINCHNL/16)) { helioController.setPinExpander(SETUP_PANEL_BRAKE_PINCHNL/16, expanders[SETUP_PANEL_BRAKE_PINCHNL/16]); }
-            #if SETUP_PANEL_BRAKE_PIN < 100 || (SETUP_PANEL_BRAKE_PIN - 100)/16 != (SETUP_PANEL_BRAKE_PINCHNL)/16
-                #warning "SETUP_PANEL_BRAKE_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_PANEL_BRAKE_PIN == -1
-                #undef SETUP_PANEL_BRAKE_PIN
-                #define SETUP_PANEL_BRAKE_PIN (100 + SETUP_PANEL_BRAKE_PINCHNL)
-            #endif
-            #define SETUP_PANEL_BRAKE_PINCHNL_ SETUP_PANEL_BRAKE_PINCHNL
-            #undef SETUP_PANEL_BRAKE_PINCHNL
-            #define SETUP_PANEL_BRAKE_PINCHNL -SETUP_PANEL_BRAKE_PINCHNL_
+            #undef SETUP_PANEL_BRAKE_PIN
+            #define SETUP_PANEL_BRAKE_PIN (100 + SETUP_PANEL_BRAKE_PINCHNL)
         #endif
         #if SETUP_PANEL_HEATER_PINCHNL >= 0 || SETUP_PANEL_HEATER_PIN >= 100
             if (!helioController.getPinExpander(SETUP_PANEL_HEATER_PINCHNL/16)) { helioController.setPinExpander(SETUP_PANEL_HEATER_PINCHNL/16, expanders[SETUP_PANEL_HEATER_PINCHNL/16]); }
-            #if SETUP_PANEL_HEATER_PIN < 100 || (SETUP_PANEL_HEATER_PIN - 100)/16 != (SETUP_PANEL_HEATER_PINCHNL)/16
-                #warning "SETUP_PANEL_HEATER_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_PANEL_HEATER_PIN == -1
-                #undef SETUP_PANEL_HEATER_PIN
-                #define SETUP_PANEL_HEATER_PIN (100 + SETUP_PANEL_HEATER_PINCHNL)
-            #endif
-            #define SETUP_PANEL_HEATER_PINCHNL_ SETUP_PANEL_HEATER_PINCHNL
-            #undef SETUP_PANEL_HEATER_PINCHNL
-            #define SETUP_PANEL_HEATER_PINCHNL -SETUP_PANEL_HEATER_PINCHNL_
+            #undef SETUP_PANEL_HEATER_PIN
+            #define SETUP_PANEL_HEATER_PIN (100 + SETUP_PANEL_HEATER_PINCHNL)
         #endif
         #if SETUP_PANEL_SPRAYER_PINCHNL >= 0 || SETUP_PANEL_SPRAYER_PIN >= 100
             if (!helioController.getPinExpander(SETUP_PANEL_SPRAYER_PINCHNL/16)) { helioController.setPinExpander(SETUP_PANEL_SPRAYER_PINCHNL/16, expanders[SETUP_PANEL_SPRAYER_PINCHNL/16]); }
-            #if SETUP_PANEL_SPRAYER_PIN < 100 || (SETUP_PANEL_SPRAYER_PIN - 100)/16 != (SETUP_PANEL_SPRAYER_PINCHNL)/16
-                #warning "SETUP_PANEL_SPRAYER_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_PANEL_SPRAYER_PIN == -1
-                #undef SETUP_PANEL_SPRAYER_PIN
-                #define SETUP_PANEL_SPRAYER_PIN (100 + SETUP_PANEL_SPRAYER_PINCHNL)
-            #endif
-            #define SETUP_PANEL_SPRAYER_PINCHNL_ SETUP_PANEL_SPRAYER_PINCHNL
-            #undef SETUP_PANEL_SPRAYER_PINCHNL
-            #define SETUP_PANEL_SPRAYER_PINCHNL -SETUP_PANEL_SPRAYER_PINCHNL_
+            #undef SETUP_PANEL_SPRAYER_PIN
+            #define SETUP_PANEL_SPRAYER_PIN (100 + SETUP_PANEL_SPRAYER_PINCHNL)
         #endif
         #if SETUP_PANEL_TILT_AXIS1_PINCHNL >= 0 || SETUP_PANEL_TILT_AXIS1_PIN >= 100
             if (!helioController.getPinExpander(SETUP_PANEL_TILT_AXIS1_PINCHNL/16)) { helioController.setPinExpander(SETUP_PANEL_TILT_AXIS1_PINCHNL/16, expanders[SETUP_PANEL_TILT_AXIS1_PINCHNL/16]); }
-            #if SETUP_PANEL_TILT_AXIS1_PIN < 100 || (SETUP_PANEL_TILT_AXIS1_PIN - 100)/16 != (SETUP_PANEL_TILT_AXIS1_PINCHNL)/16
-                #warning "SETUP_PANEL_TILT_AXIS1_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_PANEL_TILT_AXIS1_PIN == -1
-                #undef SETUP_PANEL_TILT_AXIS1_PIN
-                #define SETUP_PANEL_TILT_AXIS1_PIN (100 + SETUP_PANEL_TILT_AXIS1_PINCHNL)
-            #endif
-            #define SETUP_PANEL_TILT_AXIS1_PINCHNL_ SETUP_PANEL_TILT_AXIS1_PINCHNL
-            #undef SETUP_PANEL_TILT_AXIS1_PINCHNL
-            #define SETUP_PANEL_TILT_AXIS1_PINCHNL -SETUP_PANEL_TILT_AXIS1_PINCHNL_
+            #undef SETUP_PANEL_TILT_AXIS1_PIN
+            #define SETUP_PANEL_TILT_AXIS1_PIN (100 + SETUP_PANEL_TILT_AXIS1_PINCHNL)
         #endif
         #if SETUP_POS_SERVO_AXIS0_PINCHNL >= 0 || SETUP_POS_SERVO_AXIS0_PIN >= 100
             if (!helioController.getPinExpander(SETUP_POS_SERVO_AXIS0_PINCHNL/16)) { helioController.setPinExpander(SETUP_POS_SERVO_AXIS0_PINCHNL/16, expanders[SETUP_POS_SERVO_AXIS0_PINCHNL/16]); }
-            #if SETUP_POS_SERVO_AXIS0_PIN < 100 || (SETUP_POS_SERVO_AXIS0_PIN - 100)/16 != (SETUP_POS_SERVO_AXIS0_PINCHNL)/16
-                #warning "SETUP_POS_SERVO_AXIS0_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_POS_SERVO_AXIS0_PIN == -1
-                #undef SETUP_POS_SERVO_AXIS0_PIN
-                #define SETUP_POS_SERVO_AXIS0_PIN (100 + SETUP_POS_SERVO_AXIS0_PINCHNL)
-            #endif
-            #define SETUP_POS_SERVO_AXIS0_PINCHNL_ SETUP_POS_SERVO_AXIS0_PINCHNL
-            #undef SETUP_POS_SERVO_AXIS0_PINCHNL
-            #define SETUP_POS_SERVO_AXIS0_PINCHNL -SETUP_POS_SERVO_AXIS0_PINCHNL_
+            #undef SETUP_POS_SERVO_AXIS0_PIN
+            #define SETUP_POS_SERVO_AXIS0_PIN (100 + SETUP_POS_SERVO_AXIS0_PINCHNL)
         #endif
         #if SETUP_POS_SERVO_AXIS1_PINCHNL >= 0 || SETUP_POS_SERVO_AXIS1_PIN >= 100
             if (!helioController.getPinExpander(SETUP_POS_SERVO_AXIS1_PINCHNL/16)) { helioController.setPinExpander(SETUP_POS_SERVO_AXIS1_PINCHNL/16, expanders[SETUP_POS_SERVO_AXIS1_PINCHNL/16]); }
-            #if SETUP_POS_SERVO_AXIS1_PIN < 100 || (SETUP_POS_SERVO_AXIS1_PIN - 100)/16 != (SETUP_POS_SERVO_AXIS1_PINCHNL)/16
-                #warning "SETUP_POS_SERVO_AXIS1_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_POS_SERVO_AXIS1_PIN == -1
-                #undef SETUP_POS_SERVO_AXIS1_PIN
-                #define SETUP_POS_SERVO_AXIS1_PIN (100 + SETUP_POS_SERVO_AXIS1_PINCHNL)
-            #endif
-            #define SETUP_POS_SERVO_AXIS1_PINCHNL_ SETUP_POS_SERVO_AXIS1_PINCHNL
-            #undef SETUP_POS_SERVO_AXIS1_PINCHNL
-            #define SETUP_POS_SERVO_AXIS1_PINCHNL -SETUP_POS_SERVO_AXIS1_PINCHNL_
+            #undef SETUP_POS_SERVO_AXIS1_PIN
+            #define SETUP_POS_SERVO_AXIS1_PIN (100 + SETUP_POS_SERVO_AXIS1_PINCHNL)
         #endif
         #if SETUP_WIND_SPEED_SENSOR_PINCHNL >= 0 || SETUP_WIND_SPEED_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_WIND_SPEED_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_WIND_SPEED_SENSOR_PINCHNL/16, expanders[SETUP_WIND_SPEED_SENSOR_PINCHNL/16]); }
-            #if SETUP_WIND_SPEED_SENSOR_PIN < 100 || (SETUP_WIND_SPEED_SENSOR_PIN - 100)/16 != (SETUP_WIND_SPEED_SENSOR_PINCHNL)/16
-                #warning "SETUP_WIND_SPEED_SENSOR_PIN: Virtual pins attached to an expander should use a pin number of hpin_virtual (100) or higher, segmented into groups of 16 per expander."
-            #endif
-            #if SETUP_WIND_SPEED_SENSOR_PIN == -1
-                #undef SETUP_WIND_SPEED_SENSOR_PIN
-                #define SETUP_WIND_SPEED_SENSOR_PIN (100 + SETUP_WIND_SPEED_SENSOR_PINCHNL)
-            #endif
-            #define SETUP_WIND_SPEED_SENSOR_PINCHNL_ SETUP_WIND_SPEED_SENSOR_PINCHNL
-            #undef SETUP_WIND_SPEED_SENSOR_PINCHNL
-            #define SETUP_WIND_SPEED_SENSOR_PINCHNL -SETUP_WIND_SPEED_SENSOR_PINCHNL_
+            #undef SETUP_WIND_SPEED_SENSOR_PIN
+            #define SETUP_WIND_SPEED_SENSOR_PIN (100 + SETUP_WIND_SPEED_SENSOR_PINCHNL)
         #endif
     #endif
 }
