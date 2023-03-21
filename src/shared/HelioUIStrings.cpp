@@ -3,9 +3,8 @@
     Helioduino UI Strings/Prototypes
 */
 
-#include "Helioduino.h"
+#include "HelioduinoUI.h"
 #ifdef HELIO_USE_GUI
-#include "HelioUIStrings.h"
 
 static uint16_t _uiStrDataAddress((uint16_t)-1);
 void beginUIStringsFromEEPROM(uint16_t uiDataAddress)

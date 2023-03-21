@@ -4,7 +4,6 @@
 */
 
 #include "Helioduino.h"
-#include "shared/HelioUIData.h"
 
 HelioData *_allocateDataFromBaseDecode(const HelioData &baseDecode)
 {
