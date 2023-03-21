@@ -289,6 +289,9 @@ String stringFromPGMAddr(const char *flashStr);
 
 // Returns PROGMEM (Flash) address pointer given string number.
 const char *pgmAddrForStr(Helio_String strNum);
+#define CFP(strNum) pgmAddrForStr(strNum)
+#else
+#define CFP(strNum) SFP(strNum).c_str()
 #endif
 
 #endif // /ifndef HelioStrings_H
