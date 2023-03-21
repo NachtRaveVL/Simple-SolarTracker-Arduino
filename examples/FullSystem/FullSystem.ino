@@ -97,8 +97,9 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_EXTDATA_EEPROM_ENABLE     false           // If data should be read from an external EEPROM (searched first for strings data)
 
 // External EEPROM Settings
-#define SETUP_EEPROM_SYSDATA_ADDR       0x1111          // System data memory offset for EEPROM saves (from Data Writer output)
+#define SETUP_EEPROM_SYSDATA_ADDR       0x2222          // System data memory offset for EEPROM saves (from Data Writer output)
 #define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
+#define SETUP_EEPROM_UIDSTRS_ADDR       0x1111          // Start address for UI strings data (from Data Writer output, GUI not disabled)
 
 // UI Settings
 #define SETUP_UI_LOGIC_LEVEL            ACT_LOW         // I/O signaling logic active level (ACT_LOW, ACT_HIGH)
@@ -367,12 +368,20 @@ void setup() {
         SETUP_I2C_WIRE.begin(SETUP_ESP_I2C_SDA, SETUP_ESP_I2C_SCL); // Begin i2c Wire for ESP
     #endif
 
-    // Begin external data storage devices for panel, strings, and other data.
+    // Begin external data storage devices for various library data.
     #if SETUP_EXTDATA_EEPROM_ENABLE
         beginStringsFromEEPROM(SETUP_EEPROM_STRINGS_ADDR);
+        #ifdef HELIO_USE_GUI
+            beginUIStringsFromEEPROM(SETUP_EEPROM_UIDSTRS_ADDR);
+        #endif
     #endif
     #if SETUP_EXTDATA_SD_ENABLE
-        beginStringsFromSDCard(String(F(SETUP_EXTDATA_SD_LIB_PREFIX)));
+    {   String libPrefix(F(SETUP_EXTDATA_SD_LIB_PREFIX));
+        beginStringsFromSDCard(libPrefix);
+        #ifdef HELIO_USE_GUI
+            beginUIStringsFromSDCard(libPrefix);
+        #endif
+    }
     #endif
 
     // Sets system config name used in any of the following inits.

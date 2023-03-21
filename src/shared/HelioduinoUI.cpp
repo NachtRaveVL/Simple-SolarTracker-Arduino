@@ -3,16 +3,25 @@
     Helioduino Base UI
 */
 
-#include "Helioduino.h"
 #include "HelioduinoUI.h"
+#ifdef HELIO_USE_GUI
 
-void HelioduinoBaseUI::init(HelioUIData *data)
+HelioduinoBaseUI::HelioduinoBaseUI(UIControlSetup uiControlSetup, UIDisplaySetup uiDisplaySetup, bool isActiveLowIO, bool allowInterruptableIO, bool enableTcUnicodeFonts)
+{ ; }
+
+HelioduinoBaseUI::~HelioduinoBaseUI()
+{ ; }
+
+void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayTheme, bool analogSlider)
+{ ; }
+
+void HelioduinoBaseUI::init(HelioUIData *uiData)
 { ; }
 
 bool HelioduinoBaseUI::begin()
-{
-    return false;
-}
+{ ; }
 
 void HelioduinoBaseUI::setNeedsRedraw()
 { ; }
+
+#endif

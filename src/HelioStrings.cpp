@@ -5,10 +5,8 @@
 
 #include "Helioduino.h"
 
-#ifndef HELIO_DISABLE_BUILTIN_DATA
-String stringFromPGMAddr(const char *flashStr);
-const char *pgmAddrForStr(Helio_String strNum);
-#endif
+static char _blank = '\0';
+const char *HStr_Blank = &_blank;
 
 static uint16_t _strDataAddress((uint16_t)-1);
 void beginStringsFromEEPROM(uint16_t dataAddress)

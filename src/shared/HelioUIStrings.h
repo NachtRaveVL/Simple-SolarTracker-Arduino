@@ -10,10 +10,10 @@
 
 // UI Strings Enumeration Table
 enum HelioUI_String : unsigned short {
-    HUIStr_MatrixActions,
-    HUIStr_Matrix2x2Keys,
-    HUIStr_Matrix3x4Keys,
-    HUIStr_Matrix4x4Keys,
+    HUIStr_Keys_MatrixActions,
+    HUIStr_Keys_Matrix2x2Keys,
+    HUIStr_Keys_Matrix3x4Keys,
+    HUIStr_Keys_Matrix4x4Keys,
 
     HUIStr_Count
 };
@@ -26,6 +26,11 @@ extern void beginUIStringsFromEEPROM(uint16_t uiDataAddress);
 
 // Makes UI Strings lookup go through SD card strings file at file prefix.
 extern void beginUIStringsFromSDCard(String uiDataFilePrefix);
+
+#ifndef HELIO_DISABLE_BUILTIN_DATA
+// Returns PROGMEM (Flash) address pointer given UI string number.
+const char *pgmAddrForStr(HelioUI_String strNum);
+#endif
 
 #endif // /ifndef HelioUIStrings_H
 #endif

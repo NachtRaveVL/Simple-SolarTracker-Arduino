@@ -267,7 +267,10 @@ enum Helio_String : unsigned short {
     HStr_Count
 };
 
-// Returns memory resident string from PROGMEM (Flash) string enumeration.
+// Blank string (HStr_Blank)
+extern const char *HStr_Blank;
+
+// Returns memory resident string from PROGMEM (Flash) string number.
 extern String stringFromPGM(Helio_String strNum);
 #define SFP(strNum) stringFromPGM((strNum))
 
@@ -279,5 +282,13 @@ extern void beginStringsFromEEPROM(uint16_t dataAddress);
 
 // Makes Strings lookup go through SD card strings file at file prefix.
 extern void beginStringsFromSDCard(String dataFilePrefix);
+
+#ifndef HELIO_DISABLE_BUILTIN_DATA
+// Returns string from given PROGMEM (Flash) string address.
+String stringFromPGMAddr(const char *flashStr);
+
+// Returns PROGMEM (Flash) address pointer given string number.
+const char *pgmAddrForStr(Helio_String strNum);
+#endif
 
 #endif // /ifndef HelioStrings_H

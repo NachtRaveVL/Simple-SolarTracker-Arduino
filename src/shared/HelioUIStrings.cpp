@@ -7,11 +7,6 @@
 #ifdef HELIO_USE_GUI
 #include "HelioUIStrings.h"
 
-#ifndef HELIO_DISABLE_BUILTIN_DATA
-String stringFromPGMAddr(const char *flashUIStr); // implemented in base system
-const char *pgmAddrForUIStr(HelioUI_String strNum);
-#endif
-
 static uint16_t _uiStrDataAddress((uint16_t)-1);
 void beginUIStringsFromEEPROM(uint16_t uiDataAddress)
 {
@@ -123,7 +118,7 @@ String stringFromPGM(HelioUI_String strNum)
     }
 
     #ifndef HELIO_DISABLE_BUILTIN_DATA
-        return (_lookupCachedRes = stringFromPGMAddr(pgmAddrForUIStr(strNum)));
+        return (_lookupCachedRes = stringFromPGMAddr(pgmAddrForStr(strNum)));
     #else
         return (_lookupCachedRes = String());
     #endif
@@ -131,24 +126,24 @@ String stringFromPGM(HelioUI_String strNum)
 
 #ifndef HELIO_DISABLE_BUILTIN_DATA
 
-const char *pgmAddrForUIStr(HelioUI_String strNum)
+const char *pgmAddrForStr(HelioUI_String strNum)
 {
     switch(strNum) {
-        case HUIStr_MatrixActions: {
-            static const char flashUIStr_UI_MatrixActions[] PROGMEM = {HELIO_UI_MATRIX_ACTIONS};
-            return flashUIStr_UI_MatrixActions;
+        case HUIStr_Keys_MatrixActions: {
+            static const char flashUIStr_Keys_MatrixActions[] PROGMEM = {HELIO_UI_MATRIX_ACTIONS};
+            return flashUIStr_Keys_MatrixActions;
         } break;
-        case HUIStr_Matrix2x2Keys: {
-            static const char flashUIStr_UI_Matrix2x2Keys[] PROGMEM = {HELIO_UI_2X2MATRIX_KEYS};
-            return flashUIStr_UI_Matrix2x2Keys;
+        case HUIStr_Keys_Matrix2x2Keys: {
+            static const char flashUIStr_Keys_Matrix2x2Keys[] PROGMEM = {HELIO_UI_2X2MATRIX_KEYS};
+            return flashUIStr_Keys_Matrix2x2Keys;
         } break;
-        case HUIStr_Matrix3x4Keys: {
-            static const char flashUIStr_UI_Matrix3x4Keys[] PROGMEM = {HELIO_UI_3X4MATRIX_KEYS};
-            return flashUIStr_UI_Matrix3x4Keys;
+        case HUIStr_Keys_Matrix3x4Keys: {
+            static const char flashUIStr_Keys_Matrix3x4Keys[] PROGMEM = {HELIO_UI_3X4MATRIX_KEYS};
+            return flashUIStr_Keys_Matrix3x4Keys;
         } break;
-        case HUIStr_Matrix4x4Keys: {
-            static const char flashUIStr_UI_Matrix4x4Keys[] PROGMEM = {HELIO_UI_4X4MATRIX_KEYS};
-            return flashUIStr_UI_Matrix4x4Keys;
+        case HUIStr_Keys_Matrix4x4Keys: {
+            static const char flashUIStr_Keys_Matrix4x4Keys[] PROGMEM = {HELIO_UI_4X4MATRIX_KEYS};
+            return flashUIStr_Keys_Matrix4x4Keys;
         } break;
 
         case HUIStr_Count: break;

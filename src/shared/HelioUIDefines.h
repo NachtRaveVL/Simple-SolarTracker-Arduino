@@ -178,8 +178,8 @@ class HydruinoBaseUI;
 class HelioDisplayDriver;
 class HelioInputDriver;
 class HelioRemoteControl;
-class HelioMenuScreen;
-class HelioHomeScreen;
+class HelioMenu;
+class HelioHomeMenu;
 class HelioOverview;
 struct HelioUIData;
 
