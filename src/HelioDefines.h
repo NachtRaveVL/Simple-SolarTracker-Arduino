@@ -27,12 +27,7 @@
 #define PULL_UP                         true                // Pull up (convenience)
 #define RAW                             false               // Raw mode (convenience)
 #define JSON                            true                // JSON mode (convenience)
-#ifndef ENABLED
-#define ENABLED                         0x1                 // Enabled define (convenience)
-#endif
-#ifndef DISABLED
-#define DISABLED                        0x0                 // Disabled define (convenience)
-#endif
+
 #ifndef FLT_EPSILON
 #define FLT_EPSILON                     0.00001f            // Single-precision floating point error tolerance
 #endif
@@ -48,8 +43,8 @@
 #ifndef MIN_PER_DAY
 #define MIN_PER_DAY                     1440                // Minutes per day
 #endif
-#ifndef TWO_PI                                              // Two pi
-#define TWO_PI                          6.283185307179586476925286766559
+#ifndef TWO_PI
+#define TWO_PI                          6.283185307179586476925286766559 // Two pi
 #endif
 
 // Platform standardizations
@@ -224,9 +219,9 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 #define HELIO_SYS_ALTITUDE_DISTTOL      0.5                 // Difference in altitude coords that needs to occur for it to be considered significant enough for system update
 #define HELIO_SYS_DELAYFINE_SPINMILLIS  20                  // How many milliseconds away from stop time fine delays can use yield() up to before using a blocking spin-lock (used for fine timing)
 #define HELIO_SYS_YIELD_AFTERMILLIS     20                  // How many milliseconds must pass by before system run loops call a yield() mid-loop, in order to allow finely-timed tasks a chance to run
-#define HELIO_SYS_DEBUGOUT_FLUSH_YIELD  DISABLED            // If debug output statements should flush and yield afterwards to force send through to serial monitor (mainly used for debugging)
-#define HELIO_SYS_MEM_LOGGING_ENABLE    DISABLED            // If system will periodically log memory remaining messages (mainly used for debugging)
-#define HELIO_SYS_DRY_RUN_ENABLE        DISABLED            // Disables pins from actually enabling in order to simply simulate (mainly used for debugging)
+#define HELIO_SYS_DEBUGOUT_FLUSH_YIELD  false               // If debug output statements should flush and yield afterwards to force send through to serial monitor (mainly used for debugging)
+#define HELIO_SYS_MEM_LOGGING_ENABLE    false               // If system will periodically log memory remaining messages (mainly used for debugging)
+#define HELIO_SYS_DRY_RUN_ENABLE        false               // Disables pins from actually enabling in order to simply simulate (mainly used for debugging)
 
 #if defined(__APPLE__) || defined(__APPLE) || defined(__unix__) || defined(__unix)
 #define HELIO_BLDPATH_SEPARATOR         '/'                 // Path separator for nix-based build machines
