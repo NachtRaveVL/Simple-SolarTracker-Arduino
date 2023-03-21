@@ -24,7 +24,7 @@ struct UIControlSetup;
 #include "HelioduinoUI.h"
 
 // Returns the active base UI instance. Not guaranteed to be non-null.
-inline HydruinoBaseUI *getBaseUI() { return reinterpret_cast<HydruinoBaseUI *>(getUI()); }
+inline HelioduinoBaseUI *getBaseUI() { return reinterpret_cast<HelioduinoBaseUI *>(getUI()); }
 
 // Returns the first theme in parameter list that isn't undefined, allowing defaulting chains to be nicely defined.
 inline Helio_DisplayTheme definedThemeElse(Helio_DisplayTheme theme1, Helio_DisplayTheme theme2) {

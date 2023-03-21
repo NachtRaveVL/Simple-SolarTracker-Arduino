@@ -174,7 +174,7 @@ enum Helio_ESP32Touch_HighRefAtten : signed char {
 };
 
 
-class HydruinoBaseUI;
+class HelioduinoBaseUI;
 class HelioDisplayDriver;
 class HelioInputDriver;
 class HelioRemoteControl;
