@@ -32,5 +32,9 @@ extern void beginUIStringsFromSDCard(String uiDataFilePrefix);
 const char *pgmAddrForStr(HelioUI_String strNum);
 #endif
 
+// Returns the pitch byte size for entries in a compressed enum list by parsing the initial item.
+extern size_t enumListPitch(const char *enumData);
+inline size_t enumListPitch(HelioUI_String strNum) { return enumListPitch(CFP(strNum)); }
+
 #endif // /ifndef HelioUIStrings_H
 #endif

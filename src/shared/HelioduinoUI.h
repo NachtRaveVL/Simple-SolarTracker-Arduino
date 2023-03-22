@@ -50,12 +50,15 @@ public:
 
     void init(uint8_t updatesPerSec,                                        // Updates per second (1 to 10)
               Helio_DisplayTheme displayTheme = Helio_DisplayTheme_Undefined, // Display theme to apply
-              bool analogSlider = false);                                   // Slider usage for analog items
+              bool analogSlider = false,                                    // Slider usage for analog items
+              bool editingIcons = false);                                   // Editing icons usage
 
-    virtual void init(HelioUIData *uiData = nullptr) override;              // Standard initializer
+    virtual HelioUIData *init(HelioUIData *uiData = nullptr) override;      // Standard initializer
     virtual bool begin() override;                                          // Begins UI
 
     virtual void setNeedsRedraw() override;
+
+    inline HelioUIData *getUIData() { return nullptr; }
 };
 
 // #include "tcMenu_Display_AdaFruitGfx.hpp"

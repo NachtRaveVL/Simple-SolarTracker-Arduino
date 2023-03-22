@@ -221,7 +221,7 @@ String charsToString(const char *charsIn, size_t length)
 {
     if (!charsIn || !length) { return String(SFP(HStr_null)); }
     String retVal; retVal.reserve(length + 1);
-    for (size_t index = 0; index < length && charsIn[index] != '\0'; ++index) {
+    for (size_t index = 0; index < length && charsIn[index] != '\000'; ++index) {
         retVal.concat(charsIn[index]);
     }
     return retVal.length() ? retVal : String(SFP(HStr_null));
@@ -1522,7 +1522,7 @@ hposi_t positionIndexFromString(String positionIndexStr)
 
 Helio_SystemMode systemModeFromString(String systemModeStr)
 {
-    switch (systemModeStr.length() >= 1 ? systemModeStr[0] : '\0') {
+    switch (systemModeStr.length() >= 1 ? systemModeStr[0] : '\000') {
         case 'U':
             return (Helio_SystemMode)-1;
         case 'T':
@@ -1537,7 +1537,7 @@ Helio_SystemMode systemModeFromString(String systemModeStr)
 
 Helio_MeasurementMode measurementModeFromString(String measurementModeStr)
 {
-    switch (measurementModeStr.length() >= 1 ? measurementModeStr[0] : '\0') {
+    switch (measurementModeStr.length() >= 1 ? measurementModeStr[0] : '\000') {
         case 'C':
             return (Helio_MeasurementMode)3;
         case 'I':
@@ -1554,9 +1554,9 @@ Helio_MeasurementMode measurementModeFromString(String measurementModeStr)
 
 Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
 {
-    switch (displayOutModeStr.length() >= 1 ? displayOutModeStr[0] : '\0') {
+    switch (displayOutModeStr.length() >= 1 ? displayOutModeStr[0] : '\000') {
         case 'C':
-            switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\0') {
+            switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\000') {
                 case 'o':
                     return (Helio_DisplayOutputMode)18;
                 case 'u':
@@ -1566,10 +1566,10 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
         case 'D':
             return (Helio_DisplayOutputMode)0;
         case 'I':
-            switch (displayOutModeStr.length() >= 3 ? displayOutModeStr[2] : '\0') {
+            switch (displayOutModeStr.length() >= 3 ? displayOutModeStr[2] : '\000') {
                 case '3':
-                    switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\0') {
-                        case '\0':
+                    switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\000') {
+                        case '\000':
                             return (Helio_DisplayOutputMode)12;
                         case 'V':
                             return (Helio_DisplayOutputMode)13;
@@ -1580,9 +1580,9 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
             }
             break;
         case 'L':
-            switch (displayOutModeStr.length() >= 4 ? displayOutModeStr[3] : '\0') {
+            switch (displayOutModeStr.length() >= 4 ? displayOutModeStr[3] : '\000') {
                 case '1':
-                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\000') {
                         case 'E':
                             return (Helio_DisplayOutputMode)1;
                         case 'R':
@@ -1590,7 +1590,7 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                     }
                     break;
                 case '2':
-                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
+                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\000') {
                         case 'E':
                             return (Helio_DisplayOutputMode)3;
                         case 'R':
@@ -1600,19 +1600,19 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
             }
             break;
         case 'S':
-            switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\0') {
+            switch (displayOutModeStr.length() >= 2 ? displayOutModeStr[1] : '\000') {
                 case 'H':
                     return (Helio_DisplayOutputMode)9;
                 case 'S':
-                    switch (displayOutModeStr.length() >= 5 ? displayOutModeStr[4] : '\0') {
+                    switch (displayOutModeStr.length() >= 5 ? displayOutModeStr[4] : '\000') {
                         case '3':
-                            switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\0') {
+                            switch (displayOutModeStr.length() >= 7 ? displayOutModeStr[6] : '\000') {
                                 case '5':
-                                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\0') {
-                                        case '\0':
+                                    switch (displayOutModeStr.length() >= 8 ? displayOutModeStr[7] : '\000') {
+                                        case '\000':
                                             return (Helio_DisplayOutputMode)5;
                                         case 'x':
-                                            switch (displayOutModeStr.length() >= 9 ? displayOutModeStr[8] : '\0') {
+                                            switch (displayOutModeStr.length() >= 9 ? displayOutModeStr[8] : '\000') {
                                                 case '3':
                                                     return (Helio_DisplayOutputMode)6;
                                                 case '6':
@@ -1630,7 +1630,7 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
                     }
                     break;
                 case 'T':
-                    switch (displayOutModeStr.length() >= 5 ? displayOutModeStr[4] : '\0') {
+                    switch (displayOutModeStr.length() >= 5 ? displayOutModeStr[4] : '\000') {
                         case '3':
                             return (Helio_DisplayOutputMode)14;
                         case '8':
@@ -1649,7 +1649,7 @@ Helio_DisplayOutputMode displayOutputModeFromString(String displayOutModeStr)
 
 Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
 {
-    switch (controlInModeStr.length() >= 1 ? controlInModeStr[0] : '\0') {
+    switch (controlInModeStr.length() >= 1 ? controlInModeStr[0] : '\000') {
         case 'A':
             return (Helio_ControlInputMode)7;
         case 'C':
@@ -1657,20 +1657,20 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
         case 'D':
             return (Helio_ControlInputMode)0;
         case 'M':
-            switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\0') {
+            switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\000') {
                 case '2':
                     return (Helio_ControlInputMode)8;
                 case '3':
-                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
-                        case '\0':
+                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\000') {
+                        case '\000':
                             return (Helio_ControlInputMode)9;
                         case 'L':
                             return (Helio_ControlInputMode)10;
                     }
                     break;
                 case '4':
-                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\0') {
-                        case '\0':
+                    switch (controlInModeStr.length() >= 12 ? controlInModeStr[11] : '\000') {
+                        case '\000':
                             return (Helio_ControlInputMode)11;
                         case 'L':
                             return (Helio_ControlInputMode)12;
@@ -1679,9 +1679,9 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
             }
             break;
         case 'R':
-            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
+            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\000') {
                 case 'e':
-                    switch (controlInModeStr.length() >= 3 ? controlInModeStr[2] : '\0') {
+                    switch (controlInModeStr.length() >= 3 ? controlInModeStr[2] : '\000') {
                         case 'm':
                             return (Helio_ControlInputMode)16;
                         case 's':
@@ -1689,8 +1689,8 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
                     }
                     break;
                 case 'o':
-                    switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\0') {
-                        case '\0':
+                    switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\000') {
+                        case '\000':
                             return (Helio_ControlInputMode)1;
                         case 'L':
                             return (Helio_ControlInputMode)2;
@@ -1699,7 +1699,7 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
             }
             break;
         case 'T':
-            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
+            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\000') {
                 case 'F':
                     return (Helio_ControlInputMode)15;
                 case 'o':
@@ -1707,22 +1707,22 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
             }
             break;
         case 'U':
-            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\0') {
+            switch (controlInModeStr.length() >= 2 ? controlInModeStr[1] : '\000') {
                 case 'n':
                     return (Helio_ControlInputMode)-1;
                 case 'p':
-                    switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\0') {
+                    switch (controlInModeStr.length() >= 7 ? controlInModeStr[6] : '\000') {
                         case 'B':
-                            switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\0') {
-                                case '\0':
+                            switch (controlInModeStr.length() >= 16 ? controlInModeStr[15] : '\000') {
+                                case '\000':
                                     return (Helio_ControlInputMode)3;
                                 case 'L':
                                     return (Helio_ControlInputMode)4;
                             }
                             break;
                         case 'E':
-                            switch (controlInModeStr.length() >= 19 ? controlInModeStr[18] : '\0') {
-                                case '\0':
+                            switch (controlInModeStr.length() >= 19 ? controlInModeStr[18] : '\000') {
+                                case '\000':
                                     return (Helio_ControlInputMode)5;
                                 case 'L':
                                     return (Helio_ControlInputMode)6;
@@ -1738,9 +1738,9 @@ Helio_ControlInputMode controlInputModeFromString(String controlInModeStr)
 
 Helio_ActuatorType actuatorTypeFromString(String actuatorTypeStr)
 {
-    switch (actuatorTypeStr.length() >= 1 ? actuatorTypeStr[0] : '\0') {
+    switch (actuatorTypeStr.length() >= 1 ? actuatorTypeStr[0] : '\000') {
         case 'C':
-            switch (actuatorTypeStr.length() >= 3 ? actuatorTypeStr[2] : '\0') {
+            switch (actuatorTypeStr.length() >= 3 ? actuatorTypeStr[2] : '\000') {
                 case 'n':
                     return (Helio_ActuatorType)0;
                 case 'u':
@@ -1750,9 +1750,9 @@ Helio_ActuatorType actuatorTypeFromString(String actuatorTypeStr)
         case 'L':
             return (Helio_ActuatorType)1;
         case 'P':
-            switch (actuatorTypeStr.length() >= 2 ? actuatorTypeStr[1] : '\0') {
+            switch (actuatorTypeStr.length() >= 2 ? actuatorTypeStr[1] : '\000') {
                 case 'a':
-                    switch (actuatorTypeStr.length() >= 6 ? actuatorTypeStr[5] : '\0') {
+                    switch (actuatorTypeStr.length() >= 6 ? actuatorTypeStr[5] : '\000') {
                         case 'B':
                             return (Helio_ActuatorType)2;
                         case 'C':
@@ -1775,7 +1775,7 @@ Helio_ActuatorType actuatorTypeFromString(String actuatorTypeStr)
 
 Helio_SensorType sensorTypeFromString(String sensorTypeStr)
 {
-        switch (sensorTypeStr.length() >= 1 ? sensorTypeStr[0] : '\0') {
+        switch (sensorTypeStr.length() >= 1 ? sensorTypeStr[0] : '\000') {
         case 'C':
             return (Helio_SensorType)8;
         case 'I':
@@ -1783,7 +1783,7 @@ Helio_SensorType sensorTypeFromString(String sensorTypeStr)
         case 'L':
             return (Helio_SensorType)1;
         case 'P':
-            switch (sensorTypeStr.length() >= 6 ? sensorTypeStr[5] : '\0') {
+            switch (sensorTypeStr.length() >= 6 ? sensorTypeStr[5] : '\000') {
                 case 'P':
                     return (Helio_SensorType)2;
                 case 'U':
@@ -1791,7 +1791,7 @@ Helio_SensorType sensorTypeFromString(String sensorTypeStr)
             }
             break;
         case 'T':
-            switch (sensorTypeStr.length() >= 2 ? sensorTypeStr[1] : '\0') {
+            switch (sensorTypeStr.length() >= 2 ? sensorTypeStr[1] : '\000') {
                 case 'e':
                     return (Helio_SensorType)4;
                 case 'i':
@@ -1810,7 +1810,7 @@ Helio_SensorType sensorTypeFromString(String sensorTypeStr)
 
 Helio_PanelType panelTypeFromString(String panelTypeStr)
 {
-    switch (panelTypeStr.length() >= 1 ? panelTypeStr[0] : '\0') {
+    switch (panelTypeStr.length() >= 1 ? panelTypeStr[0] : '\000') {
         case 'C':
             return (Helio_PanelType)4;
         case 'E':
@@ -1828,9 +1828,9 @@ Helio_PanelType panelTypeFromString(String panelTypeStr)
 }
 
 Helio_RailType railTypeFromString(String railTypeStr) {
-        switch (railTypeStr.length() >= 1 ? railTypeStr[0] : '\0') {
+        switch (railTypeStr.length() >= 1 ? railTypeStr[0] : '\000') {
         case 'A':
-            switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\0') {
+            switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\000') {
                 case '1':
                     return (Helio_RailType)0;
                 case '2':
@@ -1840,7 +1840,7 @@ Helio_RailType railTypeFromString(String railTypeStr) {
         case 'C':
             return (Helio_RailType)7;
         case 'D':
-            switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\0') {
+            switch (railTypeStr.length() >= 3 ? railTypeStr[2] : '\000') {
                 case '1':
                     return (Helio_RailType)4;
                 case '2':
@@ -1861,9 +1861,9 @@ Helio_RailType railTypeFromString(String railTypeStr) {
 
 Helio_PinMode pinModeFromString(String pinModeStr)
 {
-        switch (pinModeStr.length() >= 1 ? pinModeStr[0] : '\0') {
+        switch (pinModeStr.length() >= 1 ? pinModeStr[0] : '\000') {
         case 'A':
-            switch (pinModeStr.length() >= 7 ? pinModeStr[6] : '\0') {
+            switch (pinModeStr.length() >= 7 ? pinModeStr[6] : '\000') {
                 case 'I':
                     return (Helio_PinMode)5;
                 case 'O':
@@ -1873,13 +1873,13 @@ Helio_PinMode pinModeFromString(String pinModeStr)
         case 'C':
             return (Helio_PinMode)7;
         case 'D':
-            switch (pinModeStr.length() >= 8 ? pinModeStr[7] : '\0') {
+            switch (pinModeStr.length() >= 8 ? pinModeStr[7] : '\000') {
                 case 'I':
-                    switch (pinModeStr.length() >= 13 ? pinModeStr[12] : '\0') {
-                        case '\0':
+                    switch (pinModeStr.length() >= 13 ? pinModeStr[12] : '\000') {
+                        case '\000':
                             return (Helio_PinMode)0;
                         case 'P':
-                            switch (pinModeStr.length() >= 17 ? pinModeStr[16] : '\0') {
+                            switch (pinModeStr.length() >= 17 ? pinModeStr[16] : '\000') {
                                 case 'D':
                                     return (Helio_PinMode)2;
                                 case 'U':
@@ -1889,8 +1889,8 @@ Helio_PinMode pinModeFromString(String pinModeStr)
                     }
                     break;
                 case 'O':
-                    switch (pinModeStr.length() >= 14 ? pinModeStr[13] : '\0') {
-                        case '\0':
+                    switch (pinModeStr.length() >= 14 ? pinModeStr[13] : '\000') {
+                        case '\000':
                             return (Helio_PinMode)3;
                         case 'P':
                             return (Helio_PinMode)4;
@@ -1906,9 +1906,9 @@ Helio_PinMode pinModeFromString(String pinModeStr)
 
 Helio_EnableMode enableModeFromString(String enableModeStr)
 {
-    switch (enableModeStr.length() >= 1 ? enableModeStr[0] : '\0') {
+    switch (enableModeStr.length() >= 1 ? enableModeStr[0] : '\000') {
         case 'A':
-            switch (enableModeStr.length() >= 2 ? enableModeStr[1] : '\0') {
+            switch (enableModeStr.length() >= 2 ? enableModeStr[1] : '\000') {
                 case 's':
                     return (Helio_EnableMode)7;
                 case 'v':
@@ -1937,7 +1937,7 @@ Helio_EnableMode enableModeFromString(String enableModeStr)
 
 Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)
 {
-    switch (unitsCategoryStr.length() >= 1 ? unitsCategoryStr[0] : '\0') {
+    switch (unitsCategoryStr.length() >= 1 ? unitsCategoryStr[0] : '\000') {
         case 'A':
             return (Helio_UnitsCategory)0;
         case 'C':
@@ -1945,7 +1945,7 @@ Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)
         case 'D':
             return (Helio_UnitsCategory)1;
         case 'P':
-            switch (unitsCategoryStr.length() >= 2 ? unitsCategoryStr[1] : '\0') {
+            switch (unitsCategoryStr.length() >= 2 ? unitsCategoryStr[1] : '\000') {
                 case 'e':
                     return (Helio_UnitsCategory)2;
                 case 'o':
@@ -1964,7 +1964,7 @@ Helio_UnitsCategory unitsCategoryFromString(String unitsCategoryStr)
 
 Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
 {
-    switch (unitsSymbolStr.length() >= 1 ? unitsSymbolStr[0] : '\0') {
+    switch (unitsSymbolStr.length() >= 1 ? unitsSymbolStr[0] : '\000') {
         case '%':
             return (Helio_UnitsType)1;
         case 'A':
@@ -1974,7 +1974,7 @@ Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
         case 'W':
             return (Helio_UnitsType)8;
         case '[':
-            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
+            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\000') {
                 case 'q':
                     return (Helio_UnitsType)14;
                 case 'u':
@@ -1982,16 +1982,16 @@ Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
             }
             break;
         case 'f':
-            switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\0') {
-                case '\0':
+            switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\000') {
+                case '\000':
                     return (Helio_UnitsType)5;
                 case '/':
                     return (Helio_UnitsType)9;
             }
             break;
         case 'm':
-            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\0') {
-                case '\0':
+            switch (unitsSymbolStr.length() >= 2 ? unitsSymbolStr[1] : '\000') {
+                case '\000':
                     return (Helio_UnitsType)6;
                 case '/':
                     return (Helio_UnitsType)10;
@@ -2002,8 +2002,8 @@ Helio_UnitsType unitsTypeFromSymbol(String unitsSymbolStr)
         case 'r':
             return (Helio_UnitsType)0;
         default:
-            switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\0') {
-                case '\0':
+            switch (unitsSymbolStr.length() >= 3 ? unitsSymbolStr[2] : '\000') {
+                case '\000':
                     return (Helio_UnitsType)2;
                 case 'C':
                     return (Helio_UnitsType)11;

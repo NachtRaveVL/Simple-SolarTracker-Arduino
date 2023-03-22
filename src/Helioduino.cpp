@@ -1060,7 +1060,7 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
             if (ssid.length()) {
                 strncpy(_systemData->wifiSSID, ssid.c_str(), HELIO_NAME_MAXSIZE);
             } else {
-                memset(_systemData->wifiSSID, '\0', HELIO_NAME_MAXSIZE);
+                memset(_systemData->wifiSSID, '\000', HELIO_NAME_MAXSIZE);
             }
 
             if (pass.length()) {
@@ -1069,11 +1069,11 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
 
                 randomSeed(_systemData->wifiPasswordSeed);
                 for (int charIndex = 0; charIndex < HELIO_NAME_MAXSIZE; ++charIndex) {
-                    _systemData->wifiPassword[charIndex] = (uint8_t)(charIndex < pass.length() ? pass[charIndex] : '\0') ^ (uint8_t)random(256);
+                    _systemData->wifiPassword[charIndex] = (uint8_t)(charIndex < pass.length() ? pass[charIndex] : '\000') ^ (uint8_t)random(256);
                 }
             } else {
                 _systemData->wifiPasswordSeed = 0;
-                memset(_systemData->wifiPassword, '\0', HELIO_NAME_MAXSIZE);
+                memset(_systemData->wifiPassword, '\000', HELIO_NAME_MAXSIZE);
             }
 
             _systemData->bumpRevisionIfNeeded();

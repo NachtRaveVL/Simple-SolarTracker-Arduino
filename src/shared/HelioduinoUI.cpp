@@ -12,14 +12,14 @@ HelioduinoBaseUI::HelioduinoBaseUI(UIControlSetup uiControlSetup, UIDisplaySetup
 HelioduinoBaseUI::~HelioduinoBaseUI()
 { ; }
 
-void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayTheme, bool analogSlider)
+void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayTheme, bool analogSlider, bool editingIcons)
 { ; }
 
-void HelioduinoBaseUI::init(HelioUIData *uiData)
-{ ; }
+HelioUIData *HelioduinoBaseUI::init(HelioUIData *uiData)
+{ return nullptr; }
 
 bool HelioduinoBaseUI::begin()
-{ ; }
+{ return false; }
 
 void HelioduinoBaseUI::setNeedsRedraw()
 { ; }

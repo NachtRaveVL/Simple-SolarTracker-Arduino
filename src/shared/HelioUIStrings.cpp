@@ -93,11 +93,11 @@ String stringFromPGM(HelioUI_String strNum)
 
                 {   char buffer[HELIO_STRING_BUFFER_SIZE];
                     file.seek(lookupOffset);
-                    auto bytesRead = file.readBytesUntil('\0', buffer, HELIO_STRING_BUFFER_SIZE);
+                    auto bytesRead = file.readBytesUntil('\000', buffer, HELIO_STRING_BUFFER_SIZE);
                     retVal.concat(charsToString(buffer, bytesRead));
 
                     while (strnlen(buffer, HELIO_STRING_BUFFER_SIZE) == HELIO_STRING_BUFFER_SIZE) {
-                        bytesRead = file.readBytesUntil('\0', buffer, HELIO_STRING_BUFFER_SIZE);
+                        bytesRead = file.readBytesUntil('\000', buffer, HELIO_STRING_BUFFER_SIZE);
                         if (bytesRead) { retVal.concat(charsToString(buffer, bytesRead)); }
                     }
                 }
@@ -150,5 +150,18 @@ const char *pgmAddrForStr(HelioUI_String strNum)
     return nullptr;
 }
 
-#endif
+#endif // /ifndef HELIO_DISABLE_BUILTIN_DATA
+
+size_t enumListPitch(const char *enumData)
+{
+    size_t size = 0;
+    while (get_info_char(enumData) != '\000' && size < 64) {
+        ++size; ++enumData;
+    }
+    while (get_info_char(enumData) == '\000' && size < 64) {
+        ++size; ++enumData;
+    }
+    return size;
+}
+
 #endif
