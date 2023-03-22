@@ -11,7 +11,7 @@
 class HelioduinoFullUI;
 typedef HelioduinoFullUI HelioduinoUI;
 
-#include "..\shared\HelioduinoUI.h"
+#include "../shared/HelioduinoUI.h"
 
 class HelioduinoFullUI : public HelioduinoBaseUI {
 public:
@@ -21,6 +21,14 @@ public:
                      bool allowInterruptableIO = true,                      // Allows interruptable pins to interrupt, else forces polling
                      bool enableTcUnicodeFonts = true);                     // Enables tcUnicode UTF8 fonts usage instead of library fonts
     virtual ~HelioduinoFullUI();
+
+    void addRemote(Helio_RemoteControl rcType,                              // Type of remote control
+                   UARTDeviceSetup rcSetup = UARTDeviceSetup(),             // Remote control serial setup (if serial based), else ignored
+                   uint16_t rcServerPort = HELIO_UI_REMOTESERVER_PORT);     // Remote control server listening port (if networking based), else ignored
+
+    virtual bool isFullUI() override;
+
+protected:
 };
 
 #endif // /ifndef HelioUI_H

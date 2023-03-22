@@ -104,14 +104,14 @@ struct HelioDigitalPin : public HelioPin, public HelioDigitalInputPinInterface, 
                     ard_pinmode_t pinMode,                  // Arduino pin mode (e.g. INPUT, OUTPUT, determines activeLow trigger state)
                     int8_t pinChannel = hpinchnl_none);     // Pin channel select, else -127/none
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
-                    Helio_PinMode pinMode,                  // Hydruino pin mode (determines activeLow trigger state)
+                    Helio_PinMode pinMode,                  // Helioduino pin mode (determines activeLow trigger state)
                     int8_t pinChannel = hpinchnl_none);     // Pin muxer/expander channel #, else -127/none
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
                     ard_pinmode_t pinMode,                  // Arduino pin mode (e.g. INPUT, OUTPUT)
                     bool isActiveLow,                       // Explicit pin active-low trigger state boolean
                     int8_t pinChannel = hpinchnl_none);     // Pin muxer/expander channel #, else -127/none
     HelioDigitalPin(pintype_t pinNumber,                    // Digital pin number (e.g. D0, D1)
-                    Helio_PinMode pinMode,                  // Hydruino pin mode
+                    Helio_PinMode pinMode,                  // Helioduino pin mode
                     bool isActiveLow,                       // Explicit pin active-low trigger state boolean
                     int8_t pinChannel = hpinchnl_none);     // Pin muxer/expander channel #, else -127/none
     HelioDigitalPin(const HelioPinData *dataIn);
@@ -148,7 +148,7 @@ struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, pu
 #endif
                    int8_t pinChannel = hpinchnl_none);      // Pin muxer/expander channel #, else -127/none
     HelioAnalogPin(pintype_t pinNumber,                     // Analog pin number (e.g. A0, A1)
-                   Helio_PinMode pinMode,                   // Hydruino pin mode
+                   Helio_PinMode pinMode,                   // Helioduino pin mode
                    uint8_t analogBitRes = 0,                // Bit resolution (0 for std DAC/ADC res by mode i/o)
 #ifdef ESP32
                    uint8_t pinPWMChannel = 1,               // PWM channel (0 reserved for buzzer)

@@ -16,6 +16,9 @@ struct HelioUIData;
 struct HelioUIData : public HelioData {
     uint8_t updatesPerSec;                                  // Updates per second (1-10, default: HELIO_UI_UPDATE_SPEED)
     Helio_DisplayTheme displayTheme;                        // Display theme (if supported)
+    uint8_t titleMode;                                      // Title mode
+    bool analogSlider;                                      // Use analog slider
+    bool editingIcons;                                      // Use editing icons
     float joystickCalib[3];                                 // Joystick calibration ({midX,midY,zeroTol}, default: {0.5,0.5,0.05})
 
     HelioUIData();

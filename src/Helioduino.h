@@ -454,7 +454,7 @@ public:
     Helio_ControlInputMode getControlInputMode() const;
     // System display name (default: "Helioduino")
     String getSystemName() const;
-    // System display name (default: "Hydruino"), as constant chars
+    // System display name (default: "Helioduino"), as constant chars
     inline const char *getSystemNameChars() const { return _systemData ? _systemData->systemName : nullptr; }
     // System time zone offset from UTC (default: +0/UTC), in total offset seconds
     time_t getTimeZoneOffset() const;

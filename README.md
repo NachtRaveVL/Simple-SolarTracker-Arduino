@@ -80,7 +80,7 @@ Storage constrained MCUs (< 512kB Flash, particularly <= 256kB) may need further
 
 #### Header Defines
 
-There are several defines inside of the controller's main Hydruino.h header file that allow for more fine-tuned control of the controller. You may edit and uncomment these lines directly, or supply them via custom build flags. While editing the main header file isn't ideal, it is often easiest. Note that editing the controller's main header file directly will affect all projects compiled on your system using those modified controller files.
+There are several defines inside of the controller's main Helioduino.h header file that allow for more fine-tuned control of the controller. You may edit and uncomment these lines directly, or supply them via custom build flags. While editing the main header file isn't ideal, it is often easiest. Note that editing the controller's main header file directly will affect all projects compiled on your system using those modified controller files.
 
 Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file, or with the Arduino CLI (preferred way going forward).
 
@@ -139,7 +139,7 @@ From shared/HelioduinoUI.h:
 
 #### External Libraries
 
-* **U8g2** (for monochrome OLED displays): When using the CustomOLED display output option, make sure to either edit directly or define custom build defines for `HYDRO_UI_CUSTOM_OLED_I2C` and/or `HYDRO_UI_CUSTOM_OLED_SPI`. These should resolve to an appropriate U8g2 based device string, such as `U8G2_SSD1309_128X64_NONAME0_F_HW_I2C`, defined en-masse inside of the U8g2 library header file. Under this custom option, this library has static linkage against a single custom i2c/SPI device at a time and will require sketch modify/re-upload upon needing any changes.
+* **U8g2** (for monochrome OLED displays): When using the CustomOLED display output option, make sure to either edit directly or define custom build defines for `HELIO_UI_CUSTOM_OLED_I2C` and/or `HELIO_UI_CUSTOM_OLED_SPI`. These should resolve to an appropriate U8g2 based device string, such as `U8G2_SSD1309_128X64_NONAME0_F_HW_I2C`, defined en-masse inside of the U8g2 library header file. Under this custom option, this library has static linkage against a single custom i2c/SPI device at a time and will require sketch modify/re-upload upon needing any changes.
 
 * **TFT_eSPI** (for advanced color TFT displays): If using this advanced graphical display library (in place of AdafruitGfx), user library setup via its TFT_eSPI\User_Setup.h library setup file is required. This library always has static linkage against a single SPI device at a time and will require sketch modify/re-upload upon needing any changes.
 
