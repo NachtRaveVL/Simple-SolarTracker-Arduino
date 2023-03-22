@@ -16,7 +16,7 @@ void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayThe
 { ; }
 
 HelioUIData *HelioduinoBaseUI::init(HelioUIData *uiData)
-{ return nullptr; }
+{ return uiData; }
 
 bool HelioduinoBaseUI::begin()
 { return false; }

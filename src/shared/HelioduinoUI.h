@@ -49,7 +49,7 @@ public:
     virtual ~HelioduinoBaseUI();
 
     void init(uint8_t updatesPerSec,                                        // Updates per second (1 to 10)
-              Helio_DisplayTheme displayTheme = Helio_DisplayTheme_Undefined, // Display theme to apply
+              Helio_DisplayTheme displayTheme,                              // Display theme to apply
               bool analogSlider = false,                                    // Slider usage for analog items
               bool editingIcons = false);                                   // Editing icons usage
 
