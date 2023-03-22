@@ -12,7 +12,7 @@ HelioduinoBaseUI::HelioduinoBaseUI(UIControlSetup uiControlSetup, UIDisplaySetup
 HelioduinoBaseUI::~HelioduinoBaseUI()
 { ; }
 
-void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayTheme, bool analogSlider, bool editingIcons)
+void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayTheme, uint8_t titleMode, bool analogSlider, bool editingIcons)
 { ; }
 
 HelioUIData *HelioduinoBaseUI::init(HelioUIData *uiData)

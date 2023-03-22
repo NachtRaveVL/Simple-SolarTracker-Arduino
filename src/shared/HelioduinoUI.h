@@ -50,6 +50,7 @@ public:
 
     void init(uint8_t updatesPerSec,                                        // Updates per second (1 to 10)
               Helio_DisplayTheme displayTheme,                              // Display theme to apply
+              uint8_t titleMode = 0,                                        // Title mode
               bool analogSlider = false,                                    // Slider usage for analog items
               bool editingIcons = false);                                   // Editing icons usage
 
