@@ -54,7 +54,7 @@ HelioData *newDataFromJSONObject(JsonObjectConst &objectIn)
 
 
 HelioData::HelioData()
-    : id{.chars={'\0','\0','\0','\0'}}, _version(1), _revision(-1)
+    : id{.chars={'\000','\000','\000','\000'}}, _version(1), _revision(-1)
 {
     _size = sizeof(*this);
 }

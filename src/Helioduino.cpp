@@ -35,7 +35,7 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
                        DeviceSetup netSetup,
                        DeviceSetup gpsSetup,
                        pintype_t *ctrlInputPins,
-                       DeviceSetup lcdSetup)
+                       DeviceSetup displaySetup)
     : _piezoBuzzerPin(piezoBuzzerPin),
       _eepromType(eepromType), _eepromSetup(eepromSetup), _eeprom(nullptr), _eepromBegan(false),
       _rtcType(rtcType), _rtcSetup(rtcSetup), _rtc(nullptr), _rtcBegan(false), _rtcBattFail(false),
@@ -47,7 +47,7 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
       _gpsSetup(gpsSetup), _gps(nullptr), _gpsBegan(false),
 #endif
 #ifdef HELIO_USE_GUI
-      _activeUIInstance(nullptr), _ctrlInputPins(ctrlInputPins), _lcdSetup(lcdSetup),
+      _activeUIInstance(nullptr), _uiData(nullptr), _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
 #endif
 #ifdef HELIO_USE_MULTITASKING
       _controlTaskId(TASKMGR_INVALIDID), _dataTaskId(TASKMGR_INVALIDID), _miscTaskId(TASKMGR_INVALIDID),
@@ -63,6 +63,7 @@ Helioduino::~Helioduino()
     suspend();
 #ifdef HELIO_USE_GUI
     if (_activeUIInstance) { delete _activeUIInstance; _activeUIInstance = nullptr; }
+    if (_uiData) { delete _uiData; _uiData = nullptr; }
 #endif
     deactivatePinMuxers();
     while (_objects.size()) { _objects.erase(_objects.begin()); }
@@ -81,7 +82,7 @@ Helioduino::~Helioduino()
 void Helioduino::allocateEEPROM()
 {
     if (!_eeprom && _eepromType != Helio_EEPROMType_None && _eepromSetup.cfgType == DeviceSetup::I2CSetup) {
-        _eeprom = new I2C_eeprom(_eepromSetup.cfgAs.i2c.address | HELIO_SYS_I2CEEPROM_BASEADDR,
+        _eeprom = new I2C_eeprom(HELIO_SYS_I2CEEPROM_BASEADDR | _eepromSetup.cfgAs.i2c.address,
                                  getEEPROMSize(), _eepromSetup.cfgAs.i2c.wire);
         _eepromBegan = false;
         HELIO_SOFT_ASSERT(_eeprom, SFP(HStr_Err_AllocationFailure));
@@ -382,8 +383,11 @@ bool Helioduino::initFromJSONStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
+                    } else if (data->isUIData()) {
+                        if (_uiData) { delete _uiData; }
+                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
-                    delete data; data = nullptr;
+                    if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
                     delete data; data = nullptr;
@@ -443,6 +447,18 @@ bool Helioduino::saveToJSONStream(Stream *streamOut, bool compact)
             }
         }
 
+        if (_uiData) {
+            StaticJsonDocument<HELIO_JSON_DOC_DEFSIZE> doc;
+
+            JsonObject uiDataObj = doc.to<JsonObject>();
+            _uiData->toJSONObject(uiDataObj);
+
+            if (!(compact ? serializeJson(doc, *streamOut) : serializeJsonPretty(doc, *streamOut))) {
+                HELIO_SOFT_ASSERT(false, SFP(HStr_Err_ExportFailure));
+                return false;
+            }
+        }
+
         if (_objects.size()) {
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
                 HelioData *data = iter->second->newSaveData();
@@ -499,8 +515,11 @@ bool Helioduino::initFromBinaryStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
+                    } else if (data->isUIData()) {
+                        if (_uiData) { delete _uiData; }
+                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
-                    delete data; data = nullptr;
+                    if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
                     delete data; data = nullptr;
@@ -547,6 +566,13 @@ bool Helioduino::saveToBinaryStream(Stream *streamOut)
             for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
                 bytesWritten += serializeDataToBinaryStream(iter->second, streamOut);
             }
+
+            HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
+            if (!bytesWritten) { return false; }
+        }
+
+        if (_uiData) {
+            size_t bytesWritten = serializeDataToBinaryStream(_uiData, streamOut);
 
             HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
             if (!bytesWritten) { return false; }
@@ -607,10 +633,10 @@ void Helioduino::commonPreInit()
         }
     }
     #ifdef HELIO_USE_GUI
-        if (getDisplayOutputMode() != Helio_DisplayOutputMode_Disabled && _lcdSetup.cfgType == DeviceSetup::I2CSetup) {
-            if (began.find((uintptr_t)_lcdSetup.cfgAs.i2c.wire) == began.end() || _lcdSetup.cfgAs.i2c.speed < began[(uintptr_t)_lcdSetup.cfgAs.i2c.wire]) {
-                _lcdSetup.cfgAs.i2c.wire->begin();
-                _lcdSetup.cfgAs.i2c.wire->setClock((began[(uintptr_t)_lcdSetup.cfgAs.i2c.wire] = _lcdSetup.cfgAs.i2c.speed));
+        if (getDisplayOutputMode() != Helio_DisplayOutputMode_Disabled && _displaySetup.cfgType == DeviceSetup::I2CSetup) {
+            if (began.find((uintptr_t)_displaySetup.cfgAs.i2c.wire) == began.end() || _displaySetup.cfgAs.i2c.speed < began[(uintptr_t)_displaySetup.cfgAs.i2c.wire]) {
+                _displaySetup.cfgAs.i2c.wire->begin();
+                _displaySetup.cfgAs.i2c.wire->setClock((began[(uintptr_t)_displaySetup.cfgAs.i2c.wire] = _displaySetup.cfgAs.i2c.speed));
             }
         }
     #endif
@@ -688,7 +714,7 @@ void Helioduino::commonPostInit()
         setSyncProvider(rtcNow);
     }
 
-    scheduler.updateDayTracking(); // also calls setNeedsScheduling & setNeedsLayout
+    scheduler.updateDayTracking(); // also calls setNeedsScheduling & setNeedsRedraw
     logger.updateInitTracking();
     setNeedsTabulation();
 
@@ -717,16 +743,16 @@ void Helioduino::commonPostInit()
             #endif
             #ifdef HELIO_USE_GUI
                 Serial.print(F(", controlInputPins: "));
-                if (getControlInputPins() && _ctrlInputPins && isValidPin(_ctrlInputPins[0])) {
+                if (getControlInputPins().first && _ctrlInputPins && isValidPin(_ctrlInputPins[0])) {
                     Serial.print('{');
-                    for (int i = 0; i < getControlInputPins(); ++i) {
+                    for (int i = 0; i < getControlInputPins().first; ++i) {
                         if (i) { Serial.print(','); }
                         Serial.print(_ctrlInputPins[i]);
                     }
                     Serial.print('}');
                 }
                 else { Serial.print(SFP(HStr_Disabled)); }
-                printDeviceSetup(F("lcd"), _lcdSetup);
+                printDeviceSetup(F("displaySetup"), _displaySetup);
             #endif
             Serial.print(F(", systemMode: "));
             Serial.print(systemModeToString(getSystemMode()));
@@ -762,18 +788,18 @@ void Helioduino::commonPostSave()
 
 // Runloops
 
-// Tight updates (buzzer/gps/etc) that need to be ran often
+// Tight updates (buzzer/etc) that need to be ran often
 inline void tightUpdates()
 {
     // TODO: put in link to buzzer update here. #5 in Hydruino.
+}
+
+// Loose updates (gps/etc) that need ran every so often
+inline void looseUpdates()
+{
     #ifdef HELIO_USE_GPS
         if (Helioduino::_activeInstance->_gps) { while(Helioduino::_activeInstance->_gps->available()) { Helioduino::_activeInstance->_gps->read(); } }
     #endif
-}
-
-// Loose updates (mqtt/etc) that need ran every so often
-inline void looseUpdates()
-{
     #ifdef HELIO_USE_MQTT
         if (publisher._mqttClient) { publisher._mqttClient->loop(); }
     #endif
@@ -962,7 +988,7 @@ void Helioduino::setSystemName(String systemName)
     if (_systemData && !systemName.equals(getSystemName())) {
         strncpy(_systemData->systemName, systemName.c_str(), HELIO_NAME_MAXSIZE);
 
-        setNeedsLayout();
+        setNeedsRedraw();
         _systemData->bumpRevisionIfNeeded();
     }
 }
@@ -974,7 +1000,7 @@ void Helioduino::setTimeZoneOffset(int8_t hoursOffset, int8_t minsOffset)
     if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
         _systemData->timeZoneOffset = timeZoneOffset;
 
-        setNeedsLayout();
+        setNeedsRedraw();
         _systemData->bumpRevisionIfNeeded();
     }
 }
@@ -1034,7 +1060,7 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
             if (ssid.length()) {
                 strncpy(_systemData->wifiSSID, ssid.c_str(), HELIO_NAME_MAXSIZE);
             } else {
-                memset(_systemData->wifiSSID, '\0', HELIO_NAME_MAXSIZE);
+                memset(_systemData->wifiSSID, '\000', HELIO_NAME_MAXSIZE);
             }
 
             if (pass.length()) {
@@ -1043,11 +1069,11 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
 
                 randomSeed(_systemData->wifiPasswordSeed);
                 for (int charIndex = 0; charIndex < HELIO_NAME_MAXSIZE; ++charIndex) {
-                    _systemData->wifiPassword[charIndex] = (uint8_t)(charIndex < pass.length() ? pass[charIndex] : '\0') ^ (uint8_t)random(256);
+                    _systemData->wifiPassword[charIndex] = (uint8_t)(charIndex < pass.length() ? pass[charIndex] : '\000') ^ (uint8_t)random(256);
                 }
             } else {
                 _systemData->wifiPasswordSeed = 0;
-                memset(_systemData->wifiPassword, '\0', HELIO_NAME_MAXSIZE);
+                memset(_systemData->wifiPassword, '\000', HELIO_NAME_MAXSIZE);
             }
 
             _systemData->bumpRevisionIfNeeded();
@@ -1077,59 +1103,55 @@ void Helioduino::setEthernetConnection(const uint8_t *macAddress)
 
 #endif
 
-void Helioduino::setSystemLocation(double latitude, double longitude, double altitude, bool forceUpdate)
+void Helioduino::setSystemLocation(double latitude, double longitude, double altitude, bool isSigChange)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData && (!isFPEqual(_systemData->latitude, latitude) || !isFPEqual(_systemData->longitude, longitude) || !isFPEqual(_systemData->altitude, altitude))) {
-        forceUpdate |= ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
-                       ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
-                       fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
+        isSigChange = isSigChange || ((latitude - _systemData->latitude) * (latitude - _systemData->latitude)) +
+                                     ((longitude - _systemData->longitude) * (longitude - _systemData->longitude)) >= HELIO_SYS_LATLONG_DISTSQRDTOL ||
+                                     fabs(altitude - _systemData->altitude) >= HELIO_SYS_ALTITUDE_DISTTOL;
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
-        if (forceUpdate) { _systemData->bumpRevisionIfNeeded(); }
+        if (isSigChange) { _systemData->bumpRevisionIfNeeded(); }
     }
 }
 
 #ifdef HELIO_USE_GUI
 
-int Helioduino::getControlInputPins() const
+Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
 {
-    switch (getControlInputMode()) {
-        case Helio_ControlInputMode_RotaryEncoder:
-            return 2;
-        case Helio_ControlInputMode_RotaryEncoder_Ok:
-            return 3;
-        case Helio_ControlInputMode_RotaryEncoder_OkLR:
-            return 5;
-        case Helio_ControlInputMode_2x2Matrix:
-            return 4;
-        case Helio_ControlInputMode_2x2Matrix_Ok:
-            return 5;
-        case Helio_ControlInputMode_Joystick:
-            return 2;
-        case Helio_ControlInputMode_Joystick_Ok:
-            return 3;
-        case Helio_ControlInputMode_3x4Matrix:
-            return 2;
-        case Helio_ControlInputMode_3x4Matrix_Ok:
-            return 3;
-        case Helio_ControlInputMode_3x4Matrix_OkLR:
-            return 5;
-        case Helio_ControlInputMode_ResistiveTouch:
-            return 4;
-        default:
-            return 0;
+    if (_ctrlInputPins) {
+        switch (getControlInputMode()) {
+            case Helio_ControlInputMode_RotaryEncoderOk:
+            case Helio_ControlInputMode_UpDownButtonsOk:
+            case Helio_ControlInputMode_UpDownESP32TouchOk:
+            case Helio_ControlInputMode_AnalogJoystickOk:
+                return make_pair((uint8_t)3, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_RotaryEncoderOkLR:
+            case Helio_ControlInputMode_UpDownButtonsOkLR:
+            case Helio_ControlInputMode_UpDownESP32TouchOkLR:
+                return make_pair((uint8_t)5, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk:  
+                return make_pair((uint8_t)10, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR:
+                return make_pair((uint8_t)12, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOk:
+                return make_pair((uint8_t)11, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
+                return make_pair((uint8_t)13, (const pintype_t *)_ctrlInputPins);
+            case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL:
+            case Helio_ControlInputMode_ResistiveTouch:
+                return make_pair((uint8_t)4, (const pintype_t *)_ctrlInputPins);
+            #ifdef HELIO_ENABLE_XPT2046TS
+                case Helio_ControlInputMode_TouchScreen:
+            #endif
+            case Helio_ControlInputMode_TFTTouch:
+                return make_pair((uint8_t)2, (const pintype_t *)_ctrlInputPins);
+            default: break;
+        }
     }
-}
-
-pintype_t Helioduino::getControlInputPin(int ribbonPinIndex) const
-{
-    int ctrlInPinCount = getControlInputPins();
-    HELIO_SOFT_ASSERT(ctrlInPinCount > 0, SFP(HStr_Err_UnsupportedOperation));
-    HELIO_SOFT_ASSERT(ctrlInPinCount <= 0 || (ribbonPinIndex >= 0 && ribbonPinIndex < ctrlInPinCount), SFP(HStr_Err_InvalidParameter));
-
-    return ctrlInPinCount && ribbonPinIndex >= 0 && ribbonPinIndex < ctrlInPinCount ? _ctrlInputPins[ribbonPinIndex] : -1;
+    return make_pair((uint8_t)0, (const pintype_t *)nullptr);
 }
 
 #endif
@@ -1259,10 +1281,13 @@ GPSClass *Helioduino::getGPS(bool begin)
         switch (_gpsSetup.cfgType) {
             case DeviceSetup::UARTSetup:
                 _gpsBegan = _gps->begin(_gpsSetup.cfgAs.uart.baud);
+                break;
             case DeviceSetup::I2CSetup:
-                _gpsBegan = _gps->begin(_gpsSetup.cfgAs.i2c.speed);
+                _gpsBegan = _gps->begin(GPS_DEFAULT_I2C_ADDR | _gpsSetup.cfgAs.i2c.address);
+                break;
             case DeviceSetup::SPISetup:
                 _gpsBegan = _gps->begin(_gpsSetup.cfgAs.spi.speed);
+                break;
             default: break;
         }
         if (!_gpsBegan) { deallocateGPS(); }

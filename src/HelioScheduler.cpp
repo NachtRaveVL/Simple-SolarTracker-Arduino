@@ -32,7 +32,7 @@ void HelioScheduler::update()
             if (_inDaytimeMode != daytimeMode) {
                 _inDaytimeMode = daytimeMode;
                 setNeedsScheduling();
-                Helioduino::_activeInstance->setNeedsLayout();
+                Helioduino::_activeInstance->setNeedsRedraw();
             }
 
             if (!(_lastDay[0] == currTime.year()-2000 &&
@@ -148,7 +148,7 @@ void HelioScheduler::updateDayTracking()
     _inDaytimeMode = _dailyTwilight.isDaytime(time);
 
     setNeedsScheduling();
-    Helioduino::_activeInstance->setNeedsLayout();
+    Helioduino::_activeInstance->setNeedsRedraw();
 }
 
 void HelioScheduler::performScheduling()

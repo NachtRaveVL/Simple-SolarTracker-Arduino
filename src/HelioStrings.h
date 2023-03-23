@@ -32,6 +32,7 @@ enum Helio_String : unsigned short {
     HStr_Err_MeasurementFailure,
     HStr_Err_MissingLinkage,
     HStr_Err_NoPositionsAvailable,
+    HStr_Err_NotConfiguredProperly,
     HStr_Err_NotYetInitialized,
     HStr_Err_OperationFailure,
     HStr_Err_UnsupportedOperation,
@@ -84,8 +85,6 @@ enum Helio_String : unsigned short {
     HStr_Key_BitRes,
     HStr_Key_CalibrationUnits,
     HStr_Key_Channel,
-    HStr_Key_ChannelPins,
-    HStr_Key_ChipEnablePin,
     HStr_Key_CleaningIntervalDays,
     HStr_Key_ComputeHeatIndex,
     HStr_Key_ContinuousPowerUsage,
@@ -96,6 +95,7 @@ enum Helio_String : unsigned short {
     HStr_Key_DetriggerDelay,
     HStr_Key_DetriggerTol,
     HStr_Key_DHTType,
+    HStr_Key_DisplayTheme,
     HStr_Key_DispOutMode,
     HStr_Key_DistanceUnits,
     HStr_Key_EnableMode,
@@ -105,6 +105,7 @@ enum Helio_String : unsigned short {
     HStr_Key_Id,
     HStr_Key_InputInversion,
     HStr_Key_InputPin,
+    HStr_Key_JoystickCalib,
     HStr_Key_LastAlignedTime,
     HStr_Key_LastCleanedTime,
     HStr_Key_LDRSensorHorzMin,
@@ -151,7 +152,6 @@ enum Helio_String : unsigned short {
     HStr_Key_Revision,
     HStr_Key_Scheduler,
     HStr_Key_SensorName,
-    HStr_Key_SignalPin,
     HStr_Key_SpeedSensor,
     HStr_Key_State,
     HStr_Key_StormingTrigger,
@@ -168,6 +168,7 @@ enum Helio_String : unsigned short {
     HStr_Key_TriggerOutside,
     HStr_Key_Type,
     HStr_Key_Units,
+    HStr_Key_UpdatesPerSec,
     HStr_Key_UsingISR,
     HStr_Key_Value,
     HStr_Key_Version,
@@ -178,19 +179,17 @@ enum Helio_String : unsigned short {
     HStr_Key_WireDevAddress,
     HStr_Key_WirePosIndex,
 
-    HStr_Enum_16x2LCD,
-    HStr_Enum_20x4LCD,
-    HStr_Enum_2x2Matrix,
-    HStr_Enum_3x4Matrix,
     HStr_Enum_AC110V,
     HStr_Enum_AC220V,
     HStr_Enum_AnalogInput,
+    HStr_Enum_AnalogJoystick,
     HStr_Enum_AnalogOutput,
     HStr_Enum_Angle,
     HStr_Enum_AscOrder,
     HStr_Enum_Average,
     HStr_Enum_Balancing,
     HStr_Enum_ContinuousServo,
+    HStr_Enum_CustomOLED,
     HStr_Enum_DC12V,
     HStr_Enum_DC24V,
     HStr_Enum_DC3V3,
@@ -213,23 +212,26 @@ enum Helio_String : unsigned short {
     HStr_Enum_ILI9341,
     HStr_Enum_Imperial,
     HStr_Enum_InOrder,
-    HStr_Enum_Joystick,
+    HStr_Enum_LCD16x2,
+    HStr_Enum_LCD20x4,
     HStr_Enum_LightIntensity,
     HStr_Enum_LinearActuator,
     HStr_Enum_Lowest,
+    HStr_Enum_Matrix2x2,
+    HStr_Enum_Matrix3x4,
+    HStr_Enum_Matrix4x4,
     HStr_Enum_Metric,
     HStr_Enum_Multiply,
-    HStr_Enum_Nokia5110,
     HStr_Enum_PanelBrake,
     HStr_Enum_PanelCover,
     HStr_Enum_PanelHeater,
     HStr_Enum_PanelSprayer,
-    HStr_Enum_PCD8544,
     HStr_Enum_Percentile,
     HStr_Enum_PositionalServo,
     HStr_Enum_Power,
     HStr_Enum_PowerProduction,
     HStr_Enum_PowerUsage,
+    HStr_Enum_RemoteControl,
     HStr_Enum_ResistiveTouch,
     HStr_Enum_RevOrder,
     HStr_Enum_RotaryEncoder,
@@ -238,17 +240,19 @@ enum Helio_String : unsigned short {
     HStr_Enum_Speed,
     HStr_Enum_SSD1305,
     HStr_Enum_SSD1305x32Ada,
-    HStr_Enum_SSD1305x64,
+    HStr_Enum_SSD1305x64Ada,
     HStr_Enum_SSD1306,
     HStr_Enum_SSD1607,
     HStr_Enum_ST7735,
     HStr_Enum_ST7789,
-    HStr_Enum_Swapped,
     HStr_Enum_Temperature,
+    HStr_Enum_TFTTouch,
     HStr_Enum_TiltAngle,
     HStr_Enum_TouchScreen,
     HStr_Enum_Tracking,
     HStr_Enum_TravelPosition,
+    HStr_Enum_UpDownButtons,
+    HStr_Enum_UpDownESP32Touch,
     HStr_Enum_Vertical,
     HStr_Enum_WindSpeed,
 
@@ -263,7 +267,10 @@ enum Helio_String : unsigned short {
     HStr_Count
 };
 
-// Returns memory resident string from PROGMEM (Flash) string enumeration.
+// Blank string (HStr_Blank)
+extern const char *HStr_Blank;
+
+// Returns memory resident string from PROGMEM (Flash) string number.
 extern String stringFromPGM(Helio_String strNum);
 #define SFP(strNum) stringFromPGM((strNum))
 
@@ -275,5 +282,16 @@ extern void beginStringsFromEEPROM(uint16_t dataAddress);
 
 // Makes Strings lookup go through SD card strings file at file prefix.
 extern void beginStringsFromSDCard(String dataFilePrefix);
+
+#ifndef HELIO_DISABLE_BUILTIN_DATA
+// Returns string from given PROGMEM (Flash) string address.
+String stringFromPGMAddr(const char *flashStr);
+
+// Returns PROGMEM (Flash) address pointer given string number.
+const char *pgmAddrForStr(Helio_String strNum);
+#define CFP(strNum) pgmAddrForStr(strNum)
+#else
+#define CFP(strNum) SFP(strNum).c_str()
+#endif
 
 #endif // /ifndef HelioStrings_H

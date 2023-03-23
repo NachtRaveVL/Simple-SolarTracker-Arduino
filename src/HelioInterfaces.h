@@ -85,9 +85,10 @@ public:
 // UI Interface
 class HelioUIInterface {
 public:
+    virtual HelioUIData *init(HelioUIData *data = nullptr) = 0;
     virtual bool begin() = 0;
 
-    virtual void setNeedsLayout() = 0;
+    virtual void setNeedsRedraw() = 0;
 };
 
 // RTC Module Interface

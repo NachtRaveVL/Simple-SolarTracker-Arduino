@@ -27,7 +27,7 @@ enum Helio_Autosave : signed char {
 };
 
 // User System Setup Data
-// id: HSYS. Helioduino user system setup data.
+// id: HSYS. User system setup data.
 struct HelioSystemData : public HelioData {
     Helio_SystemMode systemMode;                            // System type mode
     Helio_MeasurementMode measureMode;                      // System measurement mode
@@ -58,7 +58,7 @@ struct HelioSystemData : public HelioData {
 
 
 // Calibration Data
-// id: HCAL. Helioduino linear calibration data.
+// id: HCAL. User calibration data.
 // This class essentially controls a simple Ax+B linear transformation mapping, and is
 // used to 'convert' values from one coordinate system into another, or in our case used
 // for storing custom user curve/offset correction/mapping data.

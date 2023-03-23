@@ -14,6 +14,8 @@ HelioData *_allocateDataFromBaseDecode(const HelioData &baseDecode)
             retVal = new HelioSystemData();
         } else if (baseDecode.isCalibrationData()) {
             retVal = new HelioCalibrationData();
+        } else if (baseDecode.isUIData()) {
+            retVal = new HelioUIData();
         }
     } else if (baseDecode.isObjectData()) {
         retVal = _allocateDataForObjType(baseDecode.id.object.idType, baseDecode.id.object.classType);

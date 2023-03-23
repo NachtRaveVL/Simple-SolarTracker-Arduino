@@ -30,14 +30,15 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 
 HelioActuator::HelioActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, int classTypeIn)
     : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType((typeof(classType))classTypeIn),
-      _enabled(false), _enableMode(Helio_EnableMode_Undefined), _parentRail(this), _parentPanel(this), _needsUpdate(false)
+      _enabled(false), _needsUpdate(false), _enableMode(Helio_EnableMode_Undefined),
+      _parentRail(this), _parentPanel(this), _calibrationData(nullptr)
 { ; }
 
 HelioActuator::HelioActuator(const HelioActuatorData *dataIn)
     : HelioObject(dataIn), classType((typeof(classType))dataIn->id.object.classType),
-      _enabled(false), _enableMode(dataIn->enableMode),
+      _enabled(false), _needsUpdate(false), _enableMode(dataIn->enableMode),
       _contPowerUsage(&(dataIn->contPowerUsage)),
-      _parentRail(this), _parentPanel(this), _needsUpdate(false)
+      _parentRail(this), _parentPanel(this), _calibrationData(nullptr)
 {
     _parentRail.initObject(dataIn->railName);
     _parentPanel.initObject(dataIn->panelName);
@@ -65,7 +66,7 @@ void HelioActuator::update()
                 setNeedsUpdate();
                 continue;
             }
-            forced |= (*handleIter)->isForced();
+            forced = forced || (*handleIter)->isForced();
         }
     }
 

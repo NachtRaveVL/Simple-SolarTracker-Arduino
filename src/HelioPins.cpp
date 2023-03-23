@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "AnalogDeviceAbstraction.h"
 
 HelioPin *newPinObjectFromSubData(const HelioPinData *dataIn)
 {
@@ -23,13 +24,14 @@ HelioPin *newPinObjectFromSubData(const HelioPinData *dataIn)
     return nullptr;
 }
 
-
 HelioPin::HelioPin()
-    : type(Unknown), pin((pintype_t)-1), mode(Helio_PinMode_Undefined), channel(-1)
+    : type(Unknown), pin(hpin_none), mode(Helio_PinMode_Undefined), channel(hpinchnl_none)
 { ; }
 
-HelioPin::HelioPin(int classType, pintype_t pinNumber, Helio_PinMode pinMode, uint8_t muxChannel)
-    : type((typeof(type))classType), pin(pinNumber), mode(pinMode), channel(muxChannel)
+HelioPin::HelioPin(int classType, pintype_t pinNumber, Helio_PinMode pinMode, int8_t pinChannel)
+    : type((typeof(type))classType), pin(pinNumber), mode(pinMode),
+      channel(pinChannel == hpinchnl_none ? (pinNumber != hpin_none && pinNumber >= hpin_virtual ? pinChannelForExpanderChannel(abs(pinNumber - hpin_virtual)) : hpinchnl_none)
+                                          : (pinNumber != hpin_none && pinNumber >= hpin_virtual ? pinChannelForExpanderChannel(abs(pinChannel)) : pinChannelForMuxerChannel(abs(pinChannel))))
 { ; }
 
 HelioPin::HelioPin(const HelioPinData *dataIn)
@@ -58,84 +60,121 @@ void HelioPin::init()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid()) {
-            switch (mode) {
-                case Helio_PinMode_Digital_Input:
-                case Helio_PinMode_Analog_Input:
-                    pinMode(pin, INPUT);
-                    break;
+            if (!(isExpanded() || isVirtual())) {
+                HELIO_SOFT_ASSERT(!isMuxed() || channel == pinChannelForMuxerChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
 
-                case Helio_PinMode_Digital_Input_PullUp:
-                    pinMode(pin, INPUT_PULLUP);
-                    break;
-
-                case Helio_PinMode_Digital_Input_PullDown:
-                    #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_MBED) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY) || defined(INPUT_PULLDOWN)
-                        pinMode(pin, INPUT_PULLDOWN);
-                    #else
+                switch (mode) {
+                    case Helio_PinMode_Digital_Input:
+                    case Helio_PinMode_Analog_Input:
                         pinMode(pin, INPUT);
+                        break;
+
+                    case Helio_PinMode_Digital_Input_PullUp:
+                        pinMode(pin, INPUT_PULLUP);
+                        break;
+
+                    case Helio_PinMode_Digital_Input_PullDown:
+                        #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_MBED) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY) || defined(INPUT_PULLDOWN)
+                            pinMode(pin, INPUT_PULLDOWN);
+                        #else
+                            pinMode(pin, INPUT);
+                        #endif
+                        break;
+
+                    case Helio_PinMode_Digital_Output:
+                    case Helio_PinMode_Digital_Output_PushPull:
+                    case Helio_PinMode_Analog_Output:
+                        pinMode(pin, OUTPUT);
+                        break;
+
+                    default:
+                        break;
+                }
+            } else {
+                HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
+                HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
+
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    #if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_MBED) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY) || defined(INPUT_PULLDOWN)
+                        expander->getIoAbstraction()->pinDirection(abs(channel), isOutput() ? OUTPUT : mode == Helio_PinMode_Digital_Input_PullUp ? INPUT_PULLUP : mode == Helio_PinMode_Digital_Input_PullDown ? INPUT_PULLDOWN : INPUT);
+                    #else
+                        expander->getIoAbstraction()->pinDirection(abs(channel), isOutput() ? OUTPUT : mode == Helio_PinMode_Digital_Input_PullUp ? INPUT_PULLUP : INPUT);
                     #endif
-                    break;
-
-                case Helio_PinMode_Digital_Output:
-                case Helio_PinMode_Digital_Output_PushPull:
-                case Helio_PinMode_Analog_Output:
-                    pinMode(pin, OUTPUT);
-                    break;
-
-                default:
-                    break;
+                }
             }
         }
     #endif
 }
 
-bool HelioPin::enableMuxer(int step)
+void HelioPin::deinit()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && isMuxed()) {
-            SharedPtr<HelioPinMuxer> muxer = getController() ? getController()->getPinMuxer(pin) : nullptr;
-            if (muxer) {
-                switch (step) {
-                    case 0: muxer->selectChannel(channel); muxer->activate(); return true;
-                    case 1: muxer->selectChannel(channel); return true;
-                    case 2: muxer->activate(); return true;
-                    default: return false;
+        if (isValid()) {
+            if (!(isExpanded() || isVirtual())) {
+                pinMode(pin, INPUT);
+            } else {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    expander->getIoAbstraction()->pinDirection(abs(channel), INPUT);
                 }
+            }
+        }
+    #endif
+}
+
+bool HelioPin::enablePin(int step)
+{
+    #if !HELIO_SYS_DRY_RUN_ENABLE
+        if (isValid() && isValidChannel(channel)) {
+            if (isMuxed()) {
+                SharedPtr<HelioPinMuxer> muxer = getController() ? getController()->getPinMuxer(pin) : nullptr;
+                if (muxer) {
+                    switch (step) {
+                        case 0: muxer->selectChannel(channel); muxer->activate(); return true;
+                        case 1: muxer->selectChannel(channel); return true;
+                        case 2: muxer->activate(); return true;
+                        default: return false;
+                    }
+                }
+            } else if (isExpanded() || isVirtual()) {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                return expander && expander->syncChannel();
             }
         }
         return false;
     #else
-        return isValid() && isMuxed();
+        return isValid() && isValidChannel(channel);
     #endif
 }
 
 
 HelioDigitalPin::HelioDigitalPin()
-    : HelioPin(Digital)
+    : HelioPin(Digital), activeLow(false)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, uint8_t muxChannel)
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, int8_t pinChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (pinMode != INPUT ? (pinMode == INPUT_PULLUP ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
                                                                          : Helio_PinMode_Digital_Input)
-                                                     : (pinMode == OUTPUT ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), muxChannel),
+                                                     : (pinMode == OUTPUT ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), pinChannel),
       activeLow(pinMode == INPUT || pinMode == INPUT_PULLUP || pinMode == OUTPUT)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, uint8_t muxChannel)
-    : HelioPin(Digital, pinNumber, pinMode, muxChannel),
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, int8_t pinChannel)
+    : HelioPin(Digital, pinNumber, pinMode, pinChannel),
       activeLow(pinMode == Helio_PinMode_Digital_Input ||
                 pinMode == Helio_PinMode_Digital_Input_PullUp ||
                 pinMode == Helio_PinMode_Digital_Output)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, bool isActiveLow, uint8_t muxChannel)
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, bool isActiveLow, int8_t pinChannel)
     : HelioPin(Digital, pinNumber, pinMode != OUTPUT ? (isActiveLow ? Helio_PinMode_Digital_Input_PullUp : Helio_PinMode_Digital_Input_PullDown)
-                                                     : (isActiveLow ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), muxChannel),
+                                                     : (isActiveLow ? Helio_PinMode_Digital_Output : Helio_PinMode_Digital_Output_PushPull), pinChannel),
       activeLow(isActiveLow)
 { ; }
 
-HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, bool isActiveLow, uint8_t muxChannel)
-    : HelioPin(Digital, pinNumber, pinMode, muxChannel),
+HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, Helio_PinMode pinMode, bool isActiveLow, int8_t pinChannel)
+    : HelioPin(Digital, pinNumber, pinMode, pinChannel),
       activeLow(isActiveLow)
 { ; }
 
@@ -153,8 +192,16 @@ void HelioDigitalPin::saveToData(HelioPinData *dataOut) const
 ard_pinstatus_t HelioDigitalPin::digitalRead()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || selectAndActivateMuxer())) {
-            return ::digitalRead(pin);
+        if (isValid()) {
+            if (isValidChannel(channel)) { selectAndActivatePin(); }
+            if (!(isExpanded() || isVirtual())) {
+                return ::digitalRead(pin);
+            } else {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    return (ard_pinstatus_t)(expander->getIoAbstraction()->readValue(abs(channel)));
+                }
+            }
         }
     #endif
     return (ard_pinstatus_t)-1;
@@ -163,9 +210,17 @@ ard_pinstatus_t HelioDigitalPin::digitalRead()
 void HelioDigitalPin::digitalWrite(ard_pinstatus_t status)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || selectMuxer())) {
-            ::digitalWrite(pin, status);
-            if (isMuxed()) { activateMuxer(); }
+        if (isValid()) {
+            if (!(isExpanded() || isVirtual())) {
+                if (isMuxed()) { selectPin(); }
+                ::digitalWrite(pin, status);
+            } else {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    expander->getIoAbstraction()->writeValue(abs(channel), (uint8_t)status);
+                }
+            }
+            if (isValidChannel(channel)) { activatePin(); }
         }
     #endif
 }
@@ -188,8 +243,8 @@ HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, ard_pinmode_t pinMode, uint8
 #ifdef ESP_PLATFORM
                                float pinPWMFrequency,
 #endif
-                               uint8_t muxChannel)
-    : HelioPin(Analog, pinNumber, pinMode != OUTPUT ? Helio_PinMode_Analog_Input : Helio_PinMode_Analog_Output, muxChannel),
+                               int8_t pinChannel)
+    : HelioPin(Analog, pinNumber, pinMode != OUTPUT ? Helio_PinMode_Analog_Input : Helio_PinMode_Analog_Output, pinChannel),
       bitRes(analogBitRes ? analogBitRes : (pinMode == OUTPUT ? DAC_RESOLUTION : ADC_RESOLUTION))
 #ifdef ESP32
       , pwmChannel(pinPWMChannel)
@@ -206,8 +261,8 @@ HelioAnalogPin::HelioAnalogPin(pintype_t pinNumber, Helio_PinMode pinMode, uint8
 #ifdef ESP_PLATFORM
                                float pinPWMFrequency,
 #endif
-                               uint8_t muxChannel)
-    : HelioPin(Analog, pinNumber, pinMode, muxChannel),
+                               int8_t pinChannel)
+    : HelioPin(Analog, pinNumber, pinMode, pinChannel),
       bitRes(analogBitRes ? analogBitRes : (pinMode == Helio_PinMode_Analog_Output ? DAC_RESOLUTION : ADC_RESOLUTION))
 #ifdef ESP32
       , pwmChannel(pinPWMChannel)
@@ -231,11 +286,29 @@ void HelioAnalogPin::init()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
         if (isValid()) {
-            HelioPin::init();
-            #ifdef ESP32
-                ledcAttachPin(pin, pwmChannel);
-                ledcSetup(pwmChannel, pwmFrequency, bitRes.bits);
-            #endif
+            if (!(isExpanded() || isVirtual())) {
+                HelioPin::init();
+
+                #ifdef ESP32
+                    ledcAttachPin(pin, pwmChannel);
+                    ledcSetup(pwmChannel, pwmFrequency, bitRes.bits);
+                #endif
+            } else {
+                HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
+                HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(abs(channel)), SFP(HStr_Err_NotConfiguredProperly));
+
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    auto ioDir = isOutput() ? AnalogDirection::DIR_OUT : AnalogDirection::DIR_IN;
+                    auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
+                    analogIORef->initPin(abs(channel), ioDir);
+
+                    auto ioRefBits = analogIORef->getBitDepth(ioDir, abs(channel));
+                    if (bitRes.bits != ioRefBits) {
+                        bitRes = BitResolution(ioRefBits);
+                    }
+                }
+            }
         }
     #endif
 }
@@ -261,11 +334,20 @@ float HelioAnalogPin::analogRead()
 int HelioAnalogPin::analogRead_raw()
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || selectAndActivateMuxer())) {
-            #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
-                analogReadResolution(bitRes.bits);
-            #endif
-            return ::analogRead(pin);
+        if (isValid()) {
+            if (isValidChannel(channel)) { selectAndActivatePin(); }
+            if (!(isExpanded() || isVirtual())) {
+                #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
+                    analogReadResolution(bitRes.bits);
+                #endif
+                return ::analogRead(pin);
+            } else {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
+                    analogIORef->getCurrentValue(abs(channel));
+                }
+            }
         }
     #endif
     return 0;
@@ -279,26 +361,35 @@ void HelioAnalogPin::analogWrite(float amount)
 void HelioAnalogPin::analogWrite_raw(int amount)
 {
     #if !HELIO_SYS_DRY_RUN_ENABLE
-        if (isValid() && (!isMuxed() || selectMuxer())) {
-            #ifdef ESP32
-                ledcWrite(pwmChannel, amount);
-            #else
-                #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
-                    analogWriteResolution(bitRes.bits);
-                #elif defined(ESP8266)
-                    analogWriteRange(bitRes.maxVal);
-                    analogWriteFreq(pwmFrequency);
+        if (isValid()) {
+            if (!(isExpanded() || isVirtual())) {
+                if (isMuxed()) { selectPin(); }
+                #ifdef ESP32
+                    ledcWrite(pwmChannel, amount);
+                #else
+                    #if defined(ARDUINO_ARCH_SAM) || defined(ARDUINO_ARCH_SAMD)
+                        analogWriteResolution(bitRes.bits);
+                    #elif defined(ESP8266)
+                        analogWriteRange(bitRes.maxVal);
+                        analogWriteFreq(pwmFrequency);
+                    #endif
+                    ::analogWrite(pin, amount);
                 #endif
-                ::analogWrite(pin, amount);
-            #endif
-            if (isMuxed()) { activateMuxer(); }
+            } else {
+                SharedPtr<HelioPinExpander> expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderForPinChannel(channel) : expanderForPinNumber(pin)) : nullptr;
+                if (expander) {
+                    auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
+                    analogIORef->setCurrentValue(abs(channel), amount);
+                }
+            }
+            if (isValidChannel(channel)) { activatePin(); }
         }
     #endif
 }
 
 
 HelioPinData::HelioPinData()
-    : HelioSubData((int8_t)HelioPin::Unknown), pin((pintype_t)-1), mode(Helio_PinMode_Undefined), channel(-1), dataAs{0}
+    : HelioSubData((int8_t)HelioPin::Unknown), pin(hpin_none), mode(Helio_PinMode_Undefined), channel(hpinchnl_none), dataAs{0}
 { ; }
 
 void HelioPinData::toJSONObject(JsonObject &objectOut) const
@@ -353,45 +444,23 @@ void HelioPinData::fromJSONObject(JsonObjectConst &objectIn)
 
 
 HelioPinMuxer::HelioPinMuxer()
-    : _signal(), _chipEnable(), _channelPins{(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1}, _channelSelect(0)
-{ ; }
+    : _signal(), _chipEnable(), _channelPins{hpin_none},
+      _channelBits(0), _channelSelect(-1)
+{
+    _signal.channel = hpinchnl_none; // unused
+}
 
 HelioPinMuxer::HelioPinMuxer(HelioPin signalPin,
-                             pintype_t *muxChannelPins, uint8_t muxChannelBits,
+                             pintype_t *muxChannelPins, int8_t muxChannelBits,
                              HelioDigitalPin chipEnablePin)
     : _signal(signalPin), _chipEnable(chipEnablePin),
-      _channelPins{ muxChannelBits > 0 ? muxChannelPins[0] : (pintype_t)-1,
-                    muxChannelBits > 1 ? muxChannelPins[1] : (pintype_t)-1,
-                    muxChannelBits > 2 ? muxChannelPins[2] : (pintype_t)-1,
-                    muxChannelBits > 3 ? muxChannelPins[3] : (pintype_t)-1,
-                    muxChannelBits > 4 ? muxChannelPins[4] : (pintype_t)-1 },
-      _channelBits(muxChannelBits), _channelSelect(0)
+      _channelPins{ muxChannelBits > 0 ? muxChannelPins[0] : hpin_none,
+                    muxChannelBits > 1 ? muxChannelPins[1] : hpin_none,
+                    muxChannelBits > 2 ? muxChannelPins[2] : hpin_none,
+                    muxChannelBits > 3 ? muxChannelPins[3] : hpin_none },
+      _channelBits(muxChannelBits), _channelSelect(-1)
 {
-    _signal.channel = -1; // unused
-}
-
-HelioPinMuxer::HelioPinMuxer(const HelioPinMuxerData *dataIn)
-    : _signal(&dataIn->signal), _chipEnable(&dataIn->chipEnable),
-      _channelPins{ dataIn->channelPins[0],
-                    dataIn->channelPins[1],
-                    dataIn->channelPins[2],
-                    dataIn->channelPins[3],
-                    dataIn->channelPins[4] },
-      _channelBits(dataIn->channelBits), _channelSelect(0)
-{
-    _signal.channel = -1; // unused
-}
-
-void HelioPinMuxer::saveToData(HelioPinMuxerData *dataOut) const
-{
-    _signal.saveToData(&dataOut->signal);
-    _chipEnable.saveToData(&dataOut->chipEnable);
-    dataOut->channelPins[0] = _channelPins[0];
-    dataOut->channelPins[1] = _channelPins[1];
-    dataOut->channelPins[2] = _channelPins[2];
-    dataOut->channelPins[3] = _channelPins[3];
-    dataOut->channelPins[4] = _channelPins[4];
-    dataOut->channelBits = _channelBits;
+    _signal.channel = hpinchnl_none; // unused
 }
 
 void HelioPinMuxer::init()
@@ -415,11 +484,6 @@ void HelioPinMuxer::init()
                 if (isValidPin(_channelPins[3])) {
                     pinMode(_channelPins[3], OUTPUT);
                     ::digitalWrite(_channelPins[3], LOW);
-
-                    if (isValidPin(_channelPins[4])) {
-                        pinMode(_channelPins[4], OUTPUT);
-                        ::digitalWrite(_channelPins[4], LOW);
-                    }
                 }
             }
         }
@@ -446,10 +510,6 @@ void HelioPinMuxer::selectChannel(uint8_t channelNumber)
 
                     if (isValidPin(_channelPins[3])) {
                         ::digitalWrite(_channelPins[3], (channelNumber >> 3) & 1 ? HIGH : LOW);
-
-                        if (isValidPin(_channelPins[4])) {
-                            ::digitalWrite(_channelPins[4], (channelNumber >> 4) & 1 ? HIGH : LOW);
-                        }
                     }
                 }
             }
@@ -469,37 +529,19 @@ void HelioPinMuxer::setIsActive(bool isActive)
     }
 }
 
+#ifndef HELIO_DISABLE_MULTITASKING
 
-HelioPinMuxerData::HelioPinMuxerData()
-    : HelioSubData(0), signal(), chipEnable(), channelPins{(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1,(pintype_t)-1}, channelBits(0)
+HelioPinExpander::HelioPinExpander()
+    : _channelBits(0), _ioRef(nullptr)
 { ; }
 
-void HelioPinMuxerData::toJSONObject(JsonObject &objectOut) const
-{
-    //HelioSubData::toJSONObject(objectOut); // purposeful no call to base method (ignores type)
+HelioPinExpander::HelioPinExpander(uint8_t channelBits, IoAbstractionRef ioRef)
+    : _channelBits(channelBits), _ioRef(ioRef)
+{ ; }
 
-    if (isValidPin(signal.pin)) {
-        JsonObject signalPinObj = objectOut.createNestedObject(SFP(HStr_Key_SignalPin));
-        signal.toJSONObject(signalPinObj);
-    }
-    if (isValidPin(chipEnable.pin)) {
-        JsonObject chipEnablePinObj = objectOut.createNestedObject(SFP(HStr_Key_ChipEnablePin));
-        chipEnable.toJSONObject(chipEnablePinObj);
-    }
-    if (channelBits && isValidPin(channelPins[0])) {
-        objectOut[SFP(HStr_Key_ChannelPins)] = commaStringFromArray(channelPins, channelBits);
-    }
+bool HelioPinExpander::syncChannel()
+{
+    return _ioRef->sync();
 }
 
-void HelioPinMuxerData::fromJSONObject(JsonObjectConst &objectIn)
-{
-    //HelioSubData::fromJSONObject(objectIn); // purposeful no call to base method (ignores type)
-
-    JsonObjectConst signalPinObj = objectIn[SFP(HStr_Key_SignalPin)];
-    if (!signalPinObj.isNull()) { signal.fromJSONObject(signalPinObj); }
-    JsonObjectConst chipEnablePinObj = objectIn[SFP(HStr_Key_ChipEnablePin)];
-    if (!chipEnablePinObj.isNull()) { chipEnable.fromJSONObject(chipEnablePinObj); }
-    JsonVariantConst channelPinsVar = objectIn[SFP(HStr_Key_ChannelPins)];
-    commaStringToArray(channelPinsVar, channelPins, 5);
-    for (channelBits = 0; channelBits < 5 && isValidPin(channelPins[channelBits]); ++channelBits) { ; }
-}
+#endif // /ifndef HELIO_DISABLE_MULTITASKING

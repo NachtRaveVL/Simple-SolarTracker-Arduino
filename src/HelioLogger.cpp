@@ -10,8 +10,14 @@ HelioLogEvent::HelioLogEvent(Helio_LogLevel levelIn, const String &prefixIn, con
 { ; }
 
 
-HelioLogger::HelioLogger()
-    : _logFilename(), _initTime(0), _lastSpaceCheck(0)
+HelioLogger::HelioLogger() :
+#if HELIO_SYS_LEAVE_FILES_OPEN
+    _logFileSD(nullptr),
+#ifdef HELIO_USE_WIFI_STORAGE
+    _logFileWS(nullptr),
+#endif
+#endif
+    _logFilename(), _initTime(0), _lastSpaceCheck(0)
 { ; }
 
 HelioLogger::~HelioLogger()

@@ -141,7 +141,7 @@ size_t HelioPROGMEMStream::write(uint8_t data)
 #ifdef HELIO_USE_WIFI_STORAGE
 
 HelioWiFiStorageFileStream::HelioWiFiStorageFileStream(WiFiStorageFile file, uintptr_t seekPos)
-    : Stream(), _file(file), _bufferOffset(0), _bufferFileOffset(-1), _bufferDirection(None), _readOffset(0), _writeOffset(0), _endOffset(0)
+    : Stream(), _file(file), _buffer{0}, _bufferOffset(0), _bufferFileOffset(-1), _bufferDirection(None), _readOffset(0), _writeOffset(0), _endOffset(0)
 {
     if (_file) {
         _endOffset = _file.size();

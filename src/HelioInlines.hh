@@ -17,9 +17,9 @@ struct Twilight;
 // Only have defines included at this point, complex inline imps at top of Helioduino.hpp
 
 // Returns if pin is valid
-inline bool isValidPin(pintype_t pin) { return pin != (pintype_t)-1; }
-// Returns if channel is valid
-inline bool isValidChannel(uint8_t channel) { return channel != (uint8_t)-1; }
+inline bool isValidPin(pintype_t pin) { return pin != hpin_none; }
+// Returns if pin channel is valid
+inline bool isValidChannel(int8_t channel) { return channel != hpinchnl_none; }
 // Returns if measurement row is valid
 inline bool isValidRow(uint8_t row) { return row != (uint8_t)-1; }
 // Returns if taskId is valid
@@ -49,6 +49,9 @@ inline Helio_UnitsType definedUnitsElse(Helio_UnitsType units1, Helio_UnitsType 
 inline Helio_UnitsType definedUnitsElse(Helio_UnitsType units1, Helio_UnitsType units2, Helio_UnitsType units3) {
     return units1 != Helio_UnitsType_Undefined ? units1 : (units2 != Helio_UnitsType_Undefined ? units2 : units3);
 }
+
+// Returns proper signed -1 int value when pin # isn't valid, for type conversion situations.
+inline int intForPin(pintype_t pin) { return isValidPin(pin) ? (int)pin : -1; }
 
 // Rounds floating point value to the number of decimal places.
 inline float roundToDecimalPlaces(float value, int decimalPlaces) {
@@ -116,8 +119,8 @@ struct DeviceSetup {
 // Note: Off-by-one? No, b/c for e.g. 12-bit analogRead(): 0 => no-sig/bin-low,
 //       1 => min-sig/PWM-wf, 4095 => max-sig/PWM-wf, 4096=full-sig/bin-high
 struct BitResolution {
-    const uint8_t bits;                                     // Bit resolution (#-of-bits)
-    const int_least32_t maxVal;                             // Maximum value (2 ^ #-of-bits)
+    uint8_t bits;                       // Bit resolution (#-of-bits)
+    int_least32_t maxVal;               // Maximum value (2 ^ #-of-bits)
 
     // Bit resolution from # of bits
     inline BitResolution(uint8_t numBits = 8) : bits(numBits), maxVal(1 << numBits) { ; }

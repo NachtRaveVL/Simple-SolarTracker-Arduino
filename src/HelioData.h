@@ -43,6 +43,7 @@ struct HelioData : public HelioJSONSerializableInterface {
     inline bool isStandardData() const { return id.chars[0] == 'H'; }
     inline bool isSystemData() const { return isStandardData() && id.chars[1] == 'S' && id.chars[2] == 'Y' && id.chars[3] == 'S'; }
     inline bool isCalibrationData() const { return isStandardData() && id.chars[1] == 'C' && id.chars[2] == 'A' && id.chars[3] == 'L'; }
+    inline bool isUIData() const { return isStandardData() && id.chars[1] == 'U' && id.chars[2] == 'I' && id.chars[3] == 'D'; }
     inline bool isObjectData() const { return !isStandardData() && id.object.idType >= 0; }
 
     HelioData();                                            // Default constructor
@@ -75,7 +76,7 @@ struct HelioData : public HelioJSONSerializableInterface {
 // entire data object hierarchy, useful for triggers, measurements, etc.
 // NOTE: NON-CONST VALUE TYPES ONLY, NO VIRTUALS. All data *MUST* be able to use default operator=.
 struct HelioSubData {
-    hid_t type;                                             // Sub data type (or hid_none/-1 if unused)
+    hid_t type;                                             // Sub data type, else -1/none
 
     HelioSubData();
     HelioSubData(hid_t dataType);

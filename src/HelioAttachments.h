@@ -106,9 +106,9 @@ public:
     inline HelioObjInterface *getParent() { return _parent; }
     inline hposi_t getParentSubIndex() { return _subIndex; }
 
-    inline HelioIdentity getId() const { return _obj.getId(); }
-    inline hkey_t getKey() const { return _obj.getKey(); }
-    inline String getKeyString() const { return _obj.getKeyString(); }
+    virtual HelioIdentity getId() const override { return _obj.getId(); }
+    virtual hkey_t getKey() const override { return _obj.getKey(); }
+    virtual String getKeyString() const override { return _obj.getKeyString(); }
     inline bool isSet() const { return _obj.isSet(); }
     virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
 

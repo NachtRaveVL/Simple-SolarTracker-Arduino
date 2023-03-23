@@ -8,9 +8,8 @@
 
 // Pins & Class Instances
 #define SETUP_PIEZO_BUZZER_PIN          -1              // Piezo buzzer pin, else -1
-#define SETUP_EEPROM_DEVICE_TYPE        None            // EEPROM device type/size (24LC01, 24LC02, 24LC04, 24LC08, 24LC16, 24LC32, 24LC64, 24LC128, 24LC256, 24LC512, None)
-#define SETUP_EEPROM_I2C_ADDR           0b000           // EEPROM i2c address
-#define SETUP_RTC_I2C_ADDR              0b000           // RTC i2c address (only 0b000 can be used atm)
+#define SETUP_EEPROM_DEVICE_TYPE        None            // EEPROM device type/size (AT24LC01, AT24LC02, AT24LC04, AT24LC08, AT24LC16, AT24LC32, AT24LC64, AT24LC128, AT24LC256, AT24LC512, None)
+#define SETUP_EEPROM_I2C_ADDR           0b000           // EEPROM i2c address (A0-A2, bitwise or'ed with base address 0x50)
 #define SETUP_RTC_DEVICE_TYPE           None            // RTC device type (DS1307, DS3231, PCF8523, PCF8563, None)
 #define SETUP_SD_CARD_SPI               SPI             // SD card SPI class instance
 #define SETUP_SD_CARD_SPI_CS            -1              // SD card CS pin, else -1
@@ -24,7 +23,7 @@ Helioduino helioController((pintype_t)SETUP_PIEZO_BUZZER_PIN,
                            JOIN(Helio_EEPROMType,SETUP_EEPROM_DEVICE_TYPE),
                            I2CDeviceSetup((uint8_t)SETUP_EEPROM_I2C_ADDR, &SETUP_I2C_WIRE, SETUP_I2C_SPEED),
                            JOIN(Helio_RTCType,SETUP_RTC_DEVICE_TYPE),
-                           I2CDeviceSetup((uint8_t)SETUP_RTC_I2C_ADDR, &SETUP_I2C_WIRE, SETUP_I2C_SPEED),
+                           I2CDeviceSetup((uint8_t)0b000, &SETUP_I2C_WIRE, SETUP_I2C_SPEED),
                            SPIDeviceSetup((pintype_t)SETUP_SD_CARD_SPI_CS, &SETUP_SD_CARD_SPI, SETUP_SD_CARD_SPI_SPEED));
 
 struct TreeNode;
@@ -150,7 +149,7 @@ struct TreeNode {
 };
 
 void buildSystemModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_SystemMode_Count; ++typeIndex) {
         _root->insert(nullptr, systemModeToString((Helio_SystemMode)typeIndex), typeIndex);
     }
@@ -160,7 +159,7 @@ void buildSystemModeTree() {
 }
 
 void buildMeasurementModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_MeasurementMode_Count; ++typeIndex) {
         _root->insert(nullptr, measurementModeToString((Helio_MeasurementMode)typeIndex), typeIndex);
     }
@@ -170,7 +169,7 @@ void buildMeasurementModeTree() {
 }
 
 void buildDisplayOutputModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_DisplayOutputMode_Count; ++typeIndex) {
         _root->insert(nullptr, displayOutputModeToString((Helio_DisplayOutputMode)typeIndex), typeIndex);
     }
@@ -180,7 +179,7 @@ void buildDisplayOutputModeTree() {
 }
 
 void buildControlInputModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_ControlInputMode_Count; ++typeIndex) {
         _root->insert(nullptr, controlInputModeToString((Helio_ControlInputMode)typeIndex), typeIndex);
     }
@@ -190,7 +189,7 @@ void buildControlInputModeTree() {
 }
 
 void buildActuatorTypeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_ActuatorType_Count; ++typeIndex) {
         _root->insert(nullptr, actuatorTypeToString((Helio_ActuatorType)typeIndex), typeIndex);
     }
@@ -200,7 +199,7 @@ void buildActuatorTypeTree() {
 }
 
 void buildSensorTypeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_SensorType_Count; ++typeIndex) {
         _root->insert(nullptr, sensorTypeToString((Helio_SensorType)typeIndex), typeIndex);
     }
@@ -210,7 +209,7 @@ void buildSensorTypeTree() {
 }
 
 void buildPanelTypeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_PanelType_Count; ++typeIndex) {
         _root->insert(nullptr, panelTypeToString((Helio_PanelType)typeIndex), typeIndex);
     }
@@ -220,7 +219,7 @@ void buildPanelTypeTree() {
 }
 
 void buildRailTypeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_RailType_Count; ++typeIndex) {
         _root->insert(nullptr, railTypeToString((Helio_RailType)typeIndex), typeIndex);
     }
@@ -230,7 +229,7 @@ void buildRailTypeTree() {
 }
 
 void buildPinModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_PinMode_Count; ++typeIndex) {
         _root->insert(nullptr, pinModeToString((Helio_PinMode)typeIndex), typeIndex);
     }
@@ -240,7 +239,7 @@ void buildPinModeTree() {
 }
 
 void buildEnableModeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_EnableMode_Count; ++typeIndex) {
         _root->insert(nullptr, enableModeToString((Helio_EnableMode)typeIndex), typeIndex);
     }
@@ -250,7 +249,7 @@ void buildEnableModeTree() {
 }
 
 void buildUnitsCategoryTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
     for (int typeIndex = -1; typeIndex <= Helio_UnitsCategory_Count; ++typeIndex) {
         _root->insert(nullptr, unitsCategoryToString((Helio_UnitsCategory)typeIndex), typeIndex);
     }
@@ -263,11 +262,11 @@ void printUnitsTypeTree() {
     String typeCast(F("(Helio_UnitsType)"));
     String varName(F("unitsSymbolStr"));
     _root->printCode(1, varName, typeCast);
-    delete _root; _root = new TreeNode("");
+    delete _root; _root = new TreeNode(HStr_Blank);
 }
 
 void buildUnitsTypeTree() {
-    if (_root) { delete _root; } _root = new TreeNode("");
+    if (_root) { delete _root; } _root = new TreeNode(HStr_Blank);
 
     for (char charIndex = 'A'; charIndex <= 'Z'; ++charIndex) {
         if (freeMemory() < 2000 && _root->map.size()) { printUnitsTypeTree(); }

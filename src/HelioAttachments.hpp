@@ -172,9 +172,7 @@ void HelioSignalAttachment<ParameterType,Slots>::setHandleSlot(const Slot<Parame
 
 inline Helio_UnitsType HelioActuatorAttachment::getActivationUnits()
 {
-    if (resolve()) {
-        return get()->getUserCalibrationData() ? get()->getUserCalibrationData()->calibrationUnits : Helio_UnitsType_Raw_1;
-    }
+    return resolve() && get()->getUserCalibrationData() ? get()->getUserCalibrationData()->calibrationUnits : Helio_UnitsType_Raw_1;
 }
 
 inline float HelioActuatorAttachment::getActiveDriveIntensity()
