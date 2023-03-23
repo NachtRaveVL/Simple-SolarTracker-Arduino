@@ -150,7 +150,7 @@ bool HelioPin::enablePin(int step)
 
 
 HelioDigitalPin::HelioDigitalPin()
-    : HelioPin(Digital)
+    : HelioPin(Digital), activeLow(false)
 { ; }
 
 HelioDigitalPin::HelioDigitalPin(pintype_t pinNumber, ard_pinmode_t pinMode, int8_t pinChannel)

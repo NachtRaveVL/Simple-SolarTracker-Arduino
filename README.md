@@ -20,7 +20,7 @@ This controller allows one to set up a system of panels, servos, LDRs, relays, a
   * Import string decode functions are pre-optimized with minimum spanning trie for ultra-fast text parsing & reduced loading times.
 * Supports interval-based sensor data publishing and system event logging to MQTT IoT broker (for further IoT-integrated processing) or to external storage in .csv/.txt format (/w date in filename, segmented daily).
   * Can be extended to work with other JSON-based Web APIs or Client-like derivatives (for DB storage or server-endpoint support).
-  * Can add a piezo buzzer for audible system warning/failure alerting (TODO), or a display for current readings & recent logging messages.
+  * Can add a piezo buzzer for audible system warning/failure alerting (TODO), or a display for current readings & recent logging messages (TODO).
 * Enabled GUI works with a large variety of common Arduino-compatible LCD/OLED/TFT displays, touchscreens, matrix keypads, analog joysticks, rotary encoders, and momentary buttons (support by [tcMenu](https://github.com/davetcc/tcMenuLib)).
   * Contains at-a-glance system overview screen and interactive menu system for system configuration, sensor calibration, and more (TODO).
   * Critical system configuration menus can be pin-coded to prevent setup tampering, thus still allowing informational-screen/read-only access.
@@ -29,13 +29,13 @@ This controller allows one to set up a system of panels, servos, LDRs, relays, a
   * System examples can be built in Minimal mode, saving on compiled sketch size at the cost of having to modify/re-upload the sketch upon system setup changes, or Full mode, which uses large amounts of Flash space available on modern controllers to provide everything all at once, with only more major of system changes requiring a modify/re-upload of the sketch.
 * Actuator, Sensor, and I/O pins can be multiplexed or expanded through 8/16-bit i2c expanders for pin-limited controllers.
 * Library data can be built into onboard Flash or exported onto external storage to save on compiled sketch size.
-  * Data export may allow enough size savings for certain 256kB Flash (or less) device builds (albeit possibly having to disable other features).
+  * Data export may possibly free up just enough to be able to run on devices with only 256kB Flash.
 
 Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
 
-Dependencies include: Adafruit BusIO (dep of RTClib/tcMenu), Adafruit GPS Library (ext NMEA-AT, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer (AVR/SAM STL), ArxSmartPtr (SharedPtr), DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManagerIO), MQTT, OneWire (-like|platform-specific), RTClib, SimpleCollections (dep of TaskManagerIO), SD (-like|platform-specific), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like networking library (optional): WiFi101 (MKR1000 only), WiFiNINA_Generic, WiFiEspAT (ext ESP-AT), or Ethernet (-like|platform-specific).
+Dependencies include: Adafruit BusIO (dep of RTClib/tcMenu), Adafruit GPS Library (ext NMEA-AT, optional), Adafruit Unified Sensor (dep of DHT), ArduinoJson, ArxContainer (AVR/SAM STL), ArxSmartPtr (SharedPtr), DHT sensor library, I2C_EEPROM, IoAbstraction (dep of TaskManagerIO), MQTT, OneWire (platform|like), RTClib, SimpleCollections (dep of TaskManagerIO), SD (platform|like), SolarCalculator, TaskManagerIO (disableable, dep of tcMenu), tcMenu (disableable), Time, and a WiFi-like networking library (optional): WiFi101 (MKR1000 only), WiFiNINA_Generic, WiFiEspAT (ext ESP-AT), or Ethernet (platform|like).
 
-Additional GUI (tcMenu) dependencies: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit ILI9341, Adafruit ST7735 and ST7789 Library, Adafruit TouchScreen, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional). (Note: There may be extra not included here)
+Additional GUI (tcMenu) dependencies: Adafruit FT6206 Library (disableable), Adafruit GFX Library, Adafruit ILI9341, Adafruit ST7735 and ST7789 Library, Adafruit TouchScreen, LiquidCrystalIO, tcUnicodeHelper, TFT_eSPI, U8g2, and XPT2046_Touchscreen (optional). (Note: There may be additional sub-dependencies not listed here).
 
 Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
@@ -56,11 +56,11 @@ Helioduino is a MCU-based solution primarily written for Arduino and Arduino-lik
 Minimum MCU: 256-512kB Flash, 16-24kB SRAM, 16MHz  
 Recommended: 512kB-1MB+ Flash, 24-32kB+ SRAM, 32-48MHz+
 
-* Definitely _will_ work: GIGA, Portenta, ESP32/8266, Teensy 3.5+, STM32 (>256kB), Pico/Nano RP2040 Connect
+* Definitely ___will___ work: GIGA, Portenta (any), ESP32/8266, Teensy 3.5+, STM32 (>256kB), Pico/Nano RP2040 Connect
 
-* _Can_ work, possibly /w ext. data/min. UI: Nano 33 (any), MKR (any), Due/Zero, Teensy 3.2, STM32 (256kB)
+* _Can_ work /w ext. data/less GUI/fewer features: Nano 33 (any), MKR (any), Due/Zero, Teensy 3.2, STM32 (256kB)
 
-* Definitely will ___not___ work: Uno (any), Nano (classic & Every), Leonardo/Duemilanove, Micro, Pro, Esplora, Teensy 2/LC, STM8/32 (<256kB), ATtiny (any)
+* Definitely ___will not___ work: Uno (any), Nano (classic & Every), Leonardo/Duemilanove, Micro, Pro, Esplora, Teensy 2/LC, STM8 (|32<256kB), ATtiny (any)
 
 * _May_ work, but only with heavy tweaking/very limited build: ATMega2560, Genuino 101
 
@@ -139,9 +139,15 @@ From shared/HelioduinoUI.h:
 
 #### External Libraries
 
-* **U8g2** (for monochrome OLED displays): When using the CustomOLED display output option, make sure to either edit directly or define custom build defines for `HELIO_UI_CUSTOM_OLED_I2C` and/or `HELIO_UI_CUSTOM_OLED_SPI`. These should resolve to an appropriate U8g2 based device string, such as `U8G2_SSD1309_128X64_NONAME0_F_HW_I2C`, defined en-masse inside of the U8g2 library header file. Under this custom option, this library has static linkage against a single custom i2c/SPI device at a time and will require sketch modify/re-upload upon needing any changes.
+Certain setups may require additional, and in some cases specialized, library dependency setup in order to function. This is mainly seen around certain display and input options. Ones to highlight include:
 
-* **TFT_eSPI** (for advanced color TFT displays): If using this advanced graphical display library (in place of AdafruitGfx), user library setup via its TFT_eSPI\User_Setup.h library setup file is required. This library always has static linkage against a single SPI device at a time and will require sketch modify/re-upload upon needing any changes.
+* **U8g2** (monochrome OLED displays): When specifically using the CustomOLED display output option, make sure to either edit directly or define custom build defines for `HELIO_UI_CUSTOM_OLED_I2C` and/or `HELIO_UI_CUSTOM_OLED_SPI`. These should resolve to an appropriate U8g2 based device string, such as `U8G2_SSD1309_128X64_NONAME0_F_HW_I2C`, defined en-masse inside of the U8g2 library header file (note: the `_F_` part of the name implies a frame buffer exists for the device to provide non-flickering animations, and is recommended). Under this custom option, this library has static linkage against a single custom i2c/SPI device at a time and will require sketch modify/re-upload upon needing any changes.
+
+* **TFT_eSPI** (advanced color TFT displays /w full frame buffer & advanced sprite features): When specifically using the TFT display output option (in lieu of the default AdafruitGFX driven TFT options), user library setup is required via its `TFT_eSPI\User_Setup.h` library setup file. This library always has static linkage and will require sketch modify/re-upload upon needing any changes. Use of this library is only recommended for advanced users.
+
+* **BSP_LCD** & **BSP Touch** (STM32746G-Discovery on STM32/mbed only): This particular setup can utilize a STChromaArt-based drawable (in place of U8g2Drawable) with STM32 LDTC frame buffer, and requires advanced user setup via the included `shared\tcMenu_Extra_BspUserSettings.h` library setup file. This library always has static linkage and will require sketch modify/re-upload upon needing any changes. Use of this library is only recommended for advanced users.
+
+* **Adafruit ST7789**, **XPT2046 Touchscreen**, **TFT_eSPI**, & **BSP Touch**: These options utilize the `TFT_GFX_WIDTH` and `TFT_GFX_HEIGHT` defines for the screen width/height (defaulting to TFT_eSPI's `TFT_WIDTH` and `TFT_HEIGHT` values if defined, else assuming standard 240x320), and should be either edited directly or defined through custom build defines. These values are statically linked and will require sketch modify/re-upload upon needing any changes.
 
 ### Initialization
 
@@ -301,21 +307,25 @@ OneWire Devices Supported: DHT* 1W air temp/humidity sensors
 
 We also ask that our users report any broken sensors (outside of bad calibration data) for us to consider adding support to (also consider sponsoring our work on [Patreon](www.patreon.com/nachtrave)).
 
-### Networking
+### Networking & Wireless
 
-* Devices with built-in WiFi or Ethernet port can enable such through header/build defines while other devices can utilize an external [serial ESP WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/) on any open Serial line.
+* Networking of any kind is 100% optional, with all base functionality being able to be performed on a fully remote basis utilizing a single RTC and optional GPS (or known static location).
+  * Networking does however make things much simpler and is highly recommended.
+* Devices with built-in WiFi or Ethernet can enable such through header/build defines while other devices can utilize an external [serial ESP WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/) on any open Serial line.
   * Warning: While WiFi password is encrypted into system settings data, it should not be considered secure.
-* Bluetooth module can be used on any open Serial line to provide remote device control.
+* Serial Bluetooth-AT modules can be used on any open Serial port to provide remote device control (only).
 * MQTT requires remotely accessible broker daemon in order to publish sensor data (setup separately).
-* Note that WiFi-based geo-location APIs require external 3rd party monthly subscription fees, thus are currently not included as a feature.
+* UDP time server requires remotely accessible time & date API service in order to sync time (TODO).
+  * RTC not required / used in reserve when UDP service enabled.
+* Note: Geo-location APIs require external 3rd party monthly subscription fees, thus isn't included as a feature.
 
 ## Memory Callouts
 
-* The total number of objects and different kinds of objects (panels, servos, LDRs, relays, etc.) that the controller can support at once depends on how much free Flash storage and SRAM your MCU has available. Helioduino C++0x11 objects range in memory usage size from 150 to 750 bytes or more depending on settings and object type, with the compiled Flash binary ranging in size from 100kB to 500kB+ depending on platform and settings.
-  * For our supported microcontroller range, on the low end we have devices with 256kB of Flash and at least 16kB of SRAM, while on the upper end we have more modern devices with 1MB+ of Flash and 32kB+ of SRAM. Devices with < 24kB of SRAM may struggle with system builds and may be limited to minimal system setups (such as no WiFi, no data publishing, no built-in library data, only minimal UI, etc.), while other newer devices with more capacity build with everything enabled.
-* For AVR, SAM, and other build architectures that do not have C++0x11 STL (standard container library) support, there are a series of *`_MAXSIZE` defines nearer to the top of `HelioDefines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller instead uses.
+* The total number of objects and different kinds of objects (panels, servos, LDRs, relays, etc.) that the controller can support at once depends on how much free Flash storage and SRAM your MCU has available. Helioduino C++0x11 objects range in memory usage size from 150 to 750 bytes or more depending on settings and object type, with the compiled Flash binary ranging in size from 200kB to 750kB+ depending on platform and settings.
+  * For our supported microcontroller range, on the low end we have devices with 256kB of Flash and at least 16kB of SRAM, while on the upper end we have more modern devices with 1MB+ of Flash and 32kB+ of SRAM. Devices with < 24kB of SRAM may struggle with system builds and may be limited to minimal system setups (such as no WiFi, no data publishing, no built-in library data, only minimal-to-no GUI, etc.), while other newer devices with more capacity build with everything enabled.
+* For AVR, SAM, and other build architectures that do not have C++0x11 STL (standard container library) support, there are a series of *`_MAXSIZE` defines nearer to the top of `Helio[UI]Defines.h` that can be modified to adjust how much memory space is allocated for the various static array structures the controller instead uses.
 * To save on the cost of code size for constrained devices, focus on not enabling that which you won't need, which has the benefit of being able to utilize code stripping to remove sections of code that don't get used.
-  * There are also header defines that can strip out certain libraries and functionality, such as ones that disable the UI, multi-tasking subsystems, etc.
+  * There are also header defines that can strip out certain libraries and functionality, such as ones that disable the GUI, multi-tasking subsystems, etc.
 * To further save on code size cost, see the Data Writer Example on how to externalize library data onto an SD Card or EEPROM.
   * Note: Upgrading between versions or changing custom/program data may require you to re-build and re-deploy to such external device.
 
@@ -494,8 +504,6 @@ Included below is the default system setup defines of the DA Tracking example (o
 #define SETUP_UI_GFX_BACKLIGHT_PIN      -1              // Optional display interface backlight/LED/BL pin, if using SPI display (Note: Unused backlight pin can optionally be tied typically to HIGH for always-on)
 #define SETUP_UI_GFX_BACKLIGHT_MODE     Normal          // Display backlight mode (Normal, Inverted, PWM), if using LCD or display /w backlight pin
 #define SETUP_UI_GFX_ST7735_TAB         Undefined       // ST7735 tab color (BModel, Green, Green18, Red, Red18, Black, Black18, Green144, Mini, Hallowing, Mini_Plugin, Undefined), if using ST7735 display
-#define SETUP_UI_TFT_SCREEN_WIDTH       TFT_GFX_WIDTH   // Custom screen width, if using TFT_eSPI
-#define SETUP_UI_TFT_SCREEN_HEIGHT      TFT_GFX_HEIGHT  // Custom screen height, if using TFT_eSPI
 #define SETUP_UI_GFX_BACKLIGHT_ESP_CHN  1               // Backlight PWM channel, if on ESP/using PWM backlight
 #define SETUP_UI_GFX_BACKLIGHT_ESP_FRQ  1000            // Backlight PWM frequency, if on ESP/using PWM backlight
 

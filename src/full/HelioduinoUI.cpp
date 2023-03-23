@@ -234,7 +234,7 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
                 #else
                     HELIO_HARD_ASSERT(false, SFP(HStr_Err_NotConfiguredProperly));
                 #endif
-                _display = new HelioDisplayTFTeSPI(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.tft.rotation, _uiDispSetup.dispCfgAs.tft.screenWidth, _uiDispSetup.dispCfgAs.tft.screenHeight, _uiDispSetup.dispCfgAs.tft.tabColor);
+                _display = new HelioDisplayTFTeSPI(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.tft.rotation, TFT_GFX_WIDTH, TFT_GFX_HEIGHT, _uiDispSetup.dispCfgAs.tft.tabColor);
             } break;
 
             default: break;

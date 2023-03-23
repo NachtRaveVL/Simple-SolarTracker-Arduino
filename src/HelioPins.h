@@ -163,11 +163,11 @@ struct HelioAnalogPin : public HelioPin, public HelioAnalogInputPinInterface, pu
 
     void saveToData(HelioPinData *dataOut) const;
 
-    float analogRead();
-    int analogRead_raw();
+    virtual float analogRead() override;
+    virtual int analogRead_raw() override;
 
-    void analogWrite(float val);
-    void analogWrite_raw(int val);
+    virtual void analogWrite(float amount) override;
+    virtual void analogWrite_raw(int amount) override;
 };
 
 // Combined Pin Serialization Sub Data
