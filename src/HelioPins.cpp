@@ -529,6 +529,7 @@ void HelioPinMuxer::setIsActive(bool isActive)
     }
 }
 
+#ifndef HELIO_DISABLE_MULTITASKING
 
 HelioPinExpander::HelioPinExpander()
     : _channelBits(0), _ioRef(nullptr)
@@ -542,3 +543,5 @@ bool HelioPinExpander::syncChannel()
 {
     return _ioRef->sync();
 }
+
+#endif // /ifndef HELIO_DISABLE_MULTITASKING

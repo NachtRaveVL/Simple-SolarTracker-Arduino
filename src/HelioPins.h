@@ -12,7 +12,9 @@ struct HelioAnalogPin;
 struct HelioPinData;
 
 class HelioPinMuxer;
+#ifndef HELIO_DISABLE_MULTITASKING
 class HelioPinExpander;
+#endif
 
 #include "Helioduino.h"
 #include "HelioUtils.h"
@@ -234,6 +236,8 @@ protected:
     friend class HelioPin;
 };
 
+#ifndef HELIO_DISABLE_MULTITASKING
+
 // Pin Expander
 // Instead of having an address bus, a pin expander expands the pins available
 // by providing a set of virtualized pins that can be accessed over i2c. This
@@ -256,5 +260,7 @@ protected:
     friend class HelioPinHandlers;
     friend class HelioPin;
 };
+
+#endif // /ifndef HELIO_DISABLE_MULTITASKING
 
 #endif // /ifndef HelioPin_H
