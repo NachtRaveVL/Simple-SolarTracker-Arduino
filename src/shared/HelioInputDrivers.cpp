@@ -173,7 +173,6 @@ HelioInputMatrix2x2::HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> contro
       _keyboardLayout(2,2,SFP(HUIStr_Keys_Matrix2x2Keys).c_str()),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3])
 {
-    // todo expander setup
     _keyboardLayout.setRowPin(0, controlPins.second[0]);
     _keyboardLayout.setRowPin(1, controlPins.second[1]);
     _keyboardLayout.setColPin(0, controlPins.second[2]);
@@ -194,7 +193,6 @@ HelioInputMatrix3x4::HelioInputMatrix3x4(Pair<uint8_t, const pintype_t *> contro
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
-    // todo expander setup
     _keyboardLayout.setRowPin(0, controlPins.second[0]);
     _keyboardLayout.setRowPin(1, controlPins.second[1]);
     _keyboardLayout.setRowPin(2, controlPins.second[2]);
@@ -228,7 +226,6 @@ HelioInputMatrix4x4::HelioInputMatrix4x4(Pair<uint8_t, const pintype_t *> contro
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
-    // todo expander setup
     _keyboardLayout.setRowPin(0, controlPins.second[0]);
     _keyboardLayout.setRowPin(1, controlPins.second[1]);
     _keyboardLayout.setRowPin(2, controlPins.second[2]);

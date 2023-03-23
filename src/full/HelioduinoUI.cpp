@@ -11,7 +11,6 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
 {
     auto controller = getController();
     HELIO_HARD_ASSERT(controller, SFP(HStr_Err_InitializationFailure));
-    const HelioUIData *uiData = nullptr; // todo
 
     if (controller) {
         // Input driver setup
@@ -43,9 +42,9 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
 
             case Helio_ControlInputMode_AnalogJoystickOk: {
                 HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Joystick, SFP(HStr_Err_InvalidParameter));
-                if (uiData) {
+                if (_uiData) {
                     _input = new HelioInputJoystick(ctrlInPins, _uiCtrlSetup.ctrlCfgAs.joystick.repeatDelay, _uiCtrlSetup.ctrlCfgAs.joystick.decreaseDivisor,
-                                                    uiData->joystickCalib[0], uiData->joystickCalib[1], uiData->joystickCalib[2]);
+                                                    _uiData->joystickCalib[0], _uiData->joystickCalib[1], _uiData->joystickCalib[2]);
                 } else {
                     _input = new HelioInputJoystick(ctrlInPins, _uiCtrlSetup.ctrlCfgAs.joystick.repeatDelay, _uiCtrlSetup.ctrlCfgAs.joystick.decreaseDivisor);
                 }
