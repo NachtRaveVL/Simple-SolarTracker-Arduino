@@ -90,8 +90,8 @@ void HelioduinoMinUI::allocateESP32TouchControl()
             case Helio_ControlInputMode_UpDownESP32TouchOk:
             case Helio_ControlInputMode_UpDownESP32TouchOkLR:
                 HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::ESP32Touch, SFP(HStr_Err_InvalidParameter));
-                _input = new HelioInputESP32TouchKeys(ctrlInPins, _uiCtrlSetup.ctrlCfgAs.touch.repeatSpeed, _uiCtrlSetup.ctrlCfgAs.touch.switchThreshold,
-                                                      _uiCtrlSetup.ctrlCfgAs.touch.highVoltage, _uiCtrlSetup.ctrlCfgAs.touch.lowVoltage, _uiCtrlSetup.ctrlCfgAs.touch.attenuation);
+                _input = new HelioInputESP32TouchKeys(ctrlInPins, _uiCtrlSetup.ctrlCfgAs.espTouch.repeatSpeed, _uiCtrlSetup.ctrlCfgAs.espTouch.switchThreshold,
+                                                      _uiCtrlSetup.ctrlCfgAs.espTouch.highVoltage, _uiCtrlSetup.ctrlCfgAs.espTouch.lowVoltage, _uiCtrlSetup.ctrlCfgAs.espTouch.attenuation);
                 break;
             default: break;
         }
@@ -111,7 +111,8 @@ void HelioduinoMinUI::allocateResistiveTouchControl()
         switch (ctrlInMode) {
             case Helio_ControlInputMode_ResistiveTouch:
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_NotYetInitialized));
-                _input = new HelioInputResistiveTouch(ctrlInPins, _display);
+                HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
+                _input = new HelioInputResistiveTouch(ctrlInPins, _display, _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
                 break;
             default: break;
         }
@@ -130,10 +131,11 @@ void HelioduinoMinUI::allocateTouchscreenControl()
         auto ctrlInPins = controller->getControlInputPins();
         switch (ctrlInMode) {
             case Helio_ControlInputMode_TouchScreen:
+                HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
                 #ifdef HELIO_UI_ENABLE_XPT2046TS
                     HELIO_SOFT_ASSERT(ctrlInPins.first && ctrlInPins.second && isValidPin(ctrlInPins.second[0]), SFP(HStr_Err_InvalidPinOrType));
                 #endif
-                _input = new HelioInputTouchscreen(ctrlInPins, _uiDispSetup.getDisplayRotation());
+                _input = new HelioInputTouchscreen(ctrlInPins, _uiDispSetup.getDisplayRotation(), _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
                 break;
             default: break;
         }
@@ -154,13 +156,14 @@ void HelioduinoMinUI::allocateTFTTouchControl()
             case Helio_ControlInputMode_TFTTouch:
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_NotYetInitialized));
                 HELIO_SOFT_ASSERT(controller->getDisplayOutputMode() == Helio_DisplayOutputMode_TFT, SFP(HStr_Err_InvalidParameter));
+                HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
                 HELIO_SOFT_ASSERT(ctrlInPins.first && ctrlInPins.second && isValidPin(ctrlInPins.second[0]), SFP(HStr_Err_InvalidPinOrType));
                 #ifdef TOUCH_CS
                     HELIO_SOFT_ASSERT(ctrlInPins.first && ctrlInPins.second && ctrlInPins.second[0] == TOUCH_CS, SFP(HStr_Err_NotConfiguredProperly));
                 #else
                     HELIO_HARD_ASSERT(false, SFP(HStr_Err_NotConfiguredProperly));
                 #endif
-                _input = new HelioInputTFTTouch(ctrlInPins, (HelioDisplayTFTeSPI *)_display, HELIO_UI_TFTTOUCH_USES_RAW);
+                _input = new HelioInputTFTTouch(ctrlInPins, (HelioDisplayTFTeSPI *)_display, _uiCtrlSetup.ctrlCfgAs.touchscreen.orient, HELIO_UI_TFTTOUCH_USES_RAW);
                 break;
             default: break;
         }
@@ -473,7 +476,7 @@ void HelioduinoMinUI::allocateST7735Display()
             case Helio_DisplayOutputMode_ST7735: {
                 HELIO_SOFT_ASSERT(displaySetup.cfgType == DeviceSetup::SPISetup, SFP(HStr_Err_InvalidParameter));
                 HELIO_SOFT_ASSERT(_uiDispSetup.dispCfgType == UIDisplaySetup::Pixel, SFP(HStr_Err_InvalidParameter));
-                _display = new HelioDisplayAdafruitGFX<Adafruit_ST7735>(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.gfx.rotation, _uiDispSetup.dispCfgAs.gfx.tabColor, _uiDispSetup.dispCfgAs.gfx.dcPin, _uiDispSetup.dispCfgAs.gfx.resetPin);
+                _display = new HelioDisplayAdafruitGFX<Adafruit_ST7735>(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.gfx.rotation, _uiDispSetup.dispCfgAs.gfx.st77Kind, _uiDispSetup.dispCfgAs.gfx.dcPin, _uiDispSetup.dispCfgAs.gfx.resetPin);
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_AllocationFailure));
             } break;
             default: break;
@@ -496,7 +499,7 @@ void HelioduinoMinUI::allocateST7789Display()
             case Helio_DisplayOutputMode_ST7789: {
                 HELIO_SOFT_ASSERT(displaySetup.cfgType == DeviceSetup::SPISetup, SFP(HStr_Err_InvalidParameter));
                 HELIO_SOFT_ASSERT(_uiDispSetup.dispCfgType == UIDisplaySetup::Pixel, SFP(HStr_Err_InvalidParameter));
-                _display = new HelioDisplayAdafruitGFX<Adafruit_ST7789>(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.gfx.rotation, _uiDispSetup.dispCfgAs.gfx.dcPin, _uiDispSetup.dispCfgAs.gfx.resetPin);
+                _display = new HelioDisplayAdafruitGFX<Adafruit_ST7789>(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.gfx.rotation, _uiDispSetup.dispCfgAs.gfx.st77Kind, _uiDispSetup.dispCfgAs.gfx.dcPin, _uiDispSetup.dispCfgAs.gfx.resetPin);
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_AllocationFailure));
             } break;
             default: break;
@@ -546,7 +549,7 @@ void HelioduinoMinUI::allocateTFTDisplay()
                 #else
                     HELIO_HARD_ASSERT(false, SFP(HStr_Err_NotConfiguredProperly));
                 #endif
-                _display = new HelioDisplayTFTeSPI(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.tft.rotation, TFT_GFX_WIDTH, TFT_GFX_HEIGHT, _uiDispSetup.dispCfgAs.tft.tabColor);
+                _display = new HelioDisplayTFTeSPI(displaySetup.cfgAs.spi, _uiDispSetup.dispCfgAs.tft.rotation, _uiDispSetup.dispCfgAs.tft.st77Kind);
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_AllocationFailure));
             } break;
             default: break;

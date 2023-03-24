@@ -216,7 +216,7 @@ protected:
 // A style of touch screen that uses resistive measurements for touch detection.
 class HelioInputResistiveTouch : public HelioInputDriver {
 public:
-    HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver);
+    HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_TouchscreenOrientation touchOrient);
     virtual ~HelioInputResistiveTouch() = default;
 
     virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
@@ -239,7 +239,7 @@ protected:
 // BSP touch interrogator uses TFT_GFX_WIDTH/HEIGHT for screen device width/height.
 class HelioInputTouchscreen : public HelioInputDriver {
 public:
-    HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation);
+    HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient);
     virtual ~HelioInputTouchscreen() = default;
 
     virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
@@ -272,7 +272,7 @@ protected:
 // Standard XPT2046 touch screen, but using TFT_eSPI library. Must be paired with TFTeSPI display driver.
 class HelioInputTFTTouch : public HelioInputDriver {
 public:
-    HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, bool useRawTouch = false);
+    HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_TouchscreenOrientation touchOrient, bool useRawTouch = false);
     virtual ~HelioInputTFTTouch() = default;
 
     virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;

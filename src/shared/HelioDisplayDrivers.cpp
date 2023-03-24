@@ -140,8 +140,8 @@ HelioOverview *HelioDisplayU8g2OLED::allocateOverview(const void *clockFont, con
 }
 
 
-HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST7735Tab tabColor, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation), _tab(tabColor),
+HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin)
+    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
       #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
@@ -150,7 +150,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 {
-    HELIO_SOFT_ASSERT(_tab != Helio_ST7735Tab_Undefined, SFP(HStr_Err_InvalidParameter));
+    HELIO_SOFT_ASSERT(_kind != Helio_ST77XXKind_Undefined, SFP(HStr_Err_InvalidParameter));
     #ifdef ESP8266
         HELIO_SOFT_ASSERT(!(bool)HELIO_USE_SPI || displaySetup.spi == HELIO_USE_SPI, SFP(HStr_Err_InvalidParameter));
     #endif
@@ -163,10 +163,10 @@ void HelioDisplayAdafruitGFX<Adafruit_ST7735>::initBaseUIFromDefaults()
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::begin()
 {
-    if (_tab == Helio_ST7735Tab_BModel) {
+    if (_kind == Helio_ST7735Tag_B) {
         _gfx.initB();
     } else {
-        _gfx.initR((uint8_t)_tab);
+        _gfx.initR((uint8_t)_kind);
     }
     _gfx.setRotation((uint8_t)_rotation);
 }
@@ -177,8 +177,8 @@ HelioOverview *HelioDisplayAdafruitGFX<Adafruit_ST7735>::allocateOverview(const 
 }
 
 
-HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation),
+HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin)
+    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
       #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
@@ -199,7 +199,32 @@ void HelioDisplayAdafruitGFX<Adafruit_ST7789>::initBaseUIFromDefaults()
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::begin()
 {
-    _gfx.init(TFT_GFX_WIDTH, TFT_GFX_HEIGHT);
+    switch (_kind) {
+        case Helio_ST7789Res_128x128:
+            _gfx.init(128, 128);
+            break;
+        case Helio_ST7789Res_135x240:
+            _gfx.init(135, 240);
+            break;
+        case Helio_ST7789Res_170x320:
+            _gfx.init(170, 320);
+            break;
+        case Helio_ST7789Res_172x320:
+            _gfx.init(172, 320);
+            break;
+        case Helio_ST7789Res_240x240:
+            _gfx.init(240, 240);
+            break;
+        case Helio_ST7789Res_240x280:
+            _gfx.init(240, 280);
+            break;
+        case Helio_ST7789Res_240x320:
+            _gfx.init(240, 320);
+            break;
+        default:
+            _gfx.init(TFT_GFX_WIDTH, TFT_GFX_HEIGHT);
+            break;
+    }
     _gfx.setRotation((uint8_t)_rotation);
 }
 
@@ -241,10 +266,9 @@ HelioOverview *HelioDisplayAdafruitGFX<Adafruit_ILI9341>::allocateOverview(const
 }
 
 
-HelioDisplayTFTeSPI::HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, uint16_t screenWidth, uint16_t screenHeight, Helio_ST7735Tab tabColor)
-    : HelioDisplayDriver(displayRotation),
-      _screenSize{screenWidth, screenHeight}, _tabColor(tabColor),
-      _gfx(screenWidth, screenHeight),
+HelioDisplayTFTeSPI::HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind)
+    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
+      _gfx(TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 { ; }
@@ -256,10 +280,10 @@ void HelioDisplayTFTeSPI::initBaseUIFromDefaults()
 
 void HelioDisplayTFTeSPI::begin()
 {
-    if (_tabColor == Helio_ST7735Tab_BModel) {
+    if (_kind == Helio_ST7735Tag_B || _kind >= Helio_ST7789Res_Start) {
         _gfx.begin();
     } else {
-        _gfx.begin((uint8_t)_tabColor);
+        _gfx.begin((uint8_t)_kind);
     }
     _gfx.setRotation((uint8_t)_rotation);
     _renderer.setDisplayDimensions(getScreenSize().first, getScreenSize().second);

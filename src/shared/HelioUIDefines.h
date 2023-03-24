@@ -77,6 +77,23 @@ enum Helio_DisplayRotation : signed char {
     Helio_DisplayRotation_Undefined = -1                    // Placeholder
 };
 
+// Touchscreen Orientation
+// Touchscreens can be glued on differently than displays, so these allow finer touchscreen setup.
+enum Helio_TouchscreenOrientation : signed char {
+    Helio_TouchscreenOrientation_Same,                      // Keep same orientation as display rotation (converts display rotation to swapXY/invX/invY values)
+    Helio_TouchscreenOrientation_None,                      // No applied orientation (no invX, invY, or swapXY)
+    Helio_TouchscreenOrientation_InvertX,                   // Only invert X axis (no invY or swapXY)
+    Helio_TouchscreenOrientation_InvertY,                   // Only invert Y axis (no invX or swapXY)
+    Helio_TouchscreenOrientation_InvertXY,                  // Invert X & Y axis (no swapXY)
+    Helio_TouchscreenOrientation_SwapXY,                    // Only swap X/Y coordinates (aka transpose, no invX or invY)
+    Helio_TouchscreenOrientation_InvertX_SwapXY,            // Invert X axis, then swap X/Y coordinates (no invY)
+    Helio_TouchscreenOrientation_InvertY_SwapXY,            // Invert Y axis, then swap X/Y coordinates (no invX)
+    Helio_TouchscreenOrientation_InvertXY_SwapXY,           // Invert X & Y axis, then swap X/Y coordinates
+
+    Helio_TouchscreenOrientation_Count,                     // Placeholder
+    Helio_TouchscreenOrientation_Undefined = -1             // Placeholder
+};
+
 // Display Theme
 // General color theme and aesthetics.
 enum Helio_DisplayTheme : signed char {
@@ -91,22 +108,34 @@ enum Helio_DisplayTheme : signed char {
     Helio_DisplayTheme_Undefined = -1                       // Placeholder
 };
 
-// ST7735 Device Tab
-// Special device tab identifier for ST7735 (B & R) devices.
-enum Helio_ST7735Tab : signed char {
-    Helio_ST7735Tab_BModel              = (int8_t)0xff,     // ST7735B model (no color tag)
-    Helio_ST7735Tab_Green               = 0x00,             // ST7735R Green tag
-    Helio_ST7735Tab_Green18             = 0x00,             // ST7735R 18Green tag (alias of Green)
-    Helio_ST7735Tab_Red                 = 0x01,             // ST7735R Red tag
-    Helio_ST7735Tab_Red18               = 0x01,             // ST7735R 18Red tag (alias of Red)
-    Helio_ST7735Tab_Black               = 0x02,             // ST7735R Black tag
-    Helio_ST7735Tab_Black18             = 0x02,             // ST7735R 18Black tag (alias of Black)
-    Helio_ST7735Tab_Green144            = 0x01,             // ST7735R 144Green tag (alias of Red)
-    Helio_ST7735Tab_Mini                = 0x04,             // ST7735R Mini160x80 tag
-    Helio_ST7735Tab_Hallowing           = 0x05,             // ST7735R Hallowing tag
-    Helio_ST7735Tab_Mini_Plugin         = 0x06,             // ST7735R Mini160x80_Plugin tag
+// ST77XX Device Kind
+// Special device kind identifier for common ST7735 B/S/R color tags and common ST7789 screen resolutions.
+enum Helio_ST77XXKind : signed char {
+    Helio_ST7735Tag_B                   = (int8_t)0xff,     // ST7735B B model
+    Helio_ST7735Tag_Green               = (int8_t)0x00,     // ST7735S Green tag (1.8" TFT, /w offset such as WaveShare)
+    Helio_ST7735Tag_Green18             = (int8_t)0x00,     // ST7735S 18Green tag (alias of Green)
+    Helio_ST7735Tag_Red                 = (int8_t)0x01,     // ST7735R Red tag
+    Helio_ST7735Tag_Red18               = (int8_t)0x01,     // ST7735R 18Red tag (alias of Red)
+    Helio_ST7735Tag_Black               = (int8_t)0x02,     // ST7735S Black tag (1.8" TFT)
+    Helio_ST7735Tag_Black18             = (int8_t)0x02,     // ST7735S 18Black tag (alias of Black)
+    Helio_ST7735Tag_Green144            = (int8_t)0x01,     // ST7735R 144Green tag (1.44" TFT)
+    Helio_ST7735Tag_Mini                = (int8_t)0x04,     // ST7735S Mini160x80 tag (0.96" TFT, 160x80, 12800 pixels - if inverted try Mini_Plugin)
+    Helio_ST7735Tag_Mini_Plugin         = (int8_t)0x06,     // ST7735S Mini160x80_Plugin tag (0.96" TFT /w plug-in FPC, 160x80, 12800 pixels)
+    Helio_ST7735Tag_Hallowing           = (int8_t)0x05,     // ST7735R Hallowing tag (various)
 
-    Helio_ST7735Tab_Undefined           = (int8_t)0xff      // Placeholder
+    Helio_ST7789Res_128x128             = (int8_t)0x10,     // ST7789 128x128 (0.85", 1.44" & 1.5" TFTs, 16384 pixels)
+    Helio_ST7789Res_135x240,                                // ST7789 135x240 (1.14" TFT, 32400 pixels)
+    Helio_ST7789Res_170x320,                                // ST7789 170x320 (1.9" TFT, 54400 pixels)
+    Helio_ST7789Res_172x320,                                // ST7789 172x320 (1.47" TFT, 55040 pixels)
+    Helio_ST7789Res_240x240,                                // ST7789 240x240 (1.3" & 1.54" TFT, 57600 pixels)
+    Helio_ST7789Res_240x280,                                // ST7789 240x280 (1.69" TFTs, 67200 pixels)
+    Helio_ST7789Res_240x320,                                // ST7789 240x320 (2", 2.4", & 2.8" TFTs, 76800 pixels)
+    Helio_ST7789Res_CustomTFT,                              // Custom ST7789 TFT resolution (defined statically by TFT_GFX_WIDTH & TFT_GFX_HEIGHT - override via build defines, or edit directly)
+
+    Helio_ST77XXKind_Undefined          = (int8_t)0xff,     // Placeholder
+    Helio_ST7735Tag_Undefined           = (int8_t)0xff,     // Placeholder
+    Helio_ST7789Res_Undefined           = (int8_t)0xff,     // Placeholder
+    Helio_ST7789Res_Start               = Helio_ST7789Res_128x128 // ST7789 enum start (alias of 128x128)
 };
 
 // Backlight Operation Mode

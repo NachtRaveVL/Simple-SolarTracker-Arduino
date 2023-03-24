@@ -253,13 +253,16 @@ void HelioInputMatrix4x4::begin(MenuRenderer *renderer, MenuItem *initialItem)
 }
 
 
-HelioInputResistiveTouch::HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver)
+HelioInputResistiveTouch::HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_TouchscreenOrientation touchOrient)
     : HelioInputDriver(controlPins),
       _touchInterrogator(controlPins.second[0], controlPins.second[1], controlPins.second[2], controlPins.second[3]),
       _touchOrientation(
-         /*swap*/ displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3,
-         /*invX*/ displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror,
-         /*invY*/ displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror
+         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY || touchOrient == Helio_TouchscreenOrientation_SwapXY),
+         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX || touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY),
+         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY)
       ),
       _touchScreen(&_touchInterrogator, displayDriver->getGraphicsRenderer(), _touchOrientation)
 { ; }
@@ -271,7 +274,7 @@ void HelioInputResistiveTouch::begin(MenuRenderer *renderer, MenuItem *initialIt
 }
 
 
-HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation)
+HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient)
     : HelioInputDriver(controlPins),
       #ifdef HELIO_UI_ENABLE_XPT2046TS
           _touchScreen(controlPins.second[0], controlPins.second[1]),
@@ -284,9 +287,12 @@ HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> co
           _touchInterrogator(_touchScreen),
       #endif
       _touchOrientation(
-         /*swap*/ displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R3,
-         /*invX*/ displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_HorzMirror,
-         /*invY*/ displayRotation == Helio_DisplayRotation_R3 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_VertMirror
+         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R3))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY || touchOrient == Helio_TouchscreenOrientation_SwapXY),
+         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_HorzMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX || touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY),
+         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R3 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_VertMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY)
       )
 { ; }
 
@@ -300,13 +306,16 @@ void HelioInputTouchscreen::begin(MenuRenderer *renderer, MenuItem *initialItem)
 }
 
 
-HelioInputTFTTouch::HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, bool useRawTouch)
+HelioInputTFTTouch::HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_TouchscreenOrientation touchOrient, bool useRawTouch)
     : HelioInputDriver(controlPins),
       _touchInterrogator(&displayDriver->getGfx(), displayDriver->getScreenSize().first, displayDriver->getScreenSize().second, useRawTouch),
       _touchOrientation(
-         /*swap*/ displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3,
-         /*invX*/ displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror,
-         /*invY*/ displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror
+         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY || touchOrient == Helio_TouchscreenOrientation_SwapXY),
+         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertX || touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY),
+         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror))
+                  || (touchOrient == Helio_TouchscreenOrientation_InvertY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY)
       ),
       _touchScreen(&_touchInterrogator, displayDriver->getGraphicsRenderer(), _touchOrientation)
 { ; }

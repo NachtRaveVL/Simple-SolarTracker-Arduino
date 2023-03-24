@@ -113,18 +113,20 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_UI_GFX_ROTATION           R0              // Display rotation (R0, R1, R2, R3, HorzMirror, VertMirror), if using graphical display or touchscreen
 #define SETUP_UI_GFX_DC_PIN             -1              // Display interface DC/RS pin, if using SPI display
 #define SETUP_UI_GFX_RESET_PIN          -1              // Optional display interface reset/RST pin, if using SPI display, else -1 (Note: Unused reset pin typically needs tied to HIGH for display to function)
+#define SETUP_UI_GFX_ST7735_TAG         Undefined       // ST7735 tag color (B, Green, Green18, Red, Red18, Black, Black18, Green144, Mini, Mini_Plugin, Hallowing), if using ST7735 display
+#define SETUP_UI_GFX_ST7789_RES         Undefined       // ST7789 screen resolution (128x128, 135x240, 170x320, 172x320, 240x240, 240x280, 240x320, CustomTFT), if using ST7789 display
 #define SETUP_UI_GFX_BACKLIGHT_PIN      -1              // Optional display interface backlight/LED/BL pin, if using SPI display (Note: Unused backlight pin can optionally be tied typically to HIGH for always-on)
 #define SETUP_UI_GFX_BACKLIGHT_MODE     Normal          // Display backlight mode (Normal, Inverted, PWM), if using LCD or display /w backlight pin
-#define SETUP_UI_GFX_ST7735_TAB         Undefined       // ST7735 tab color (BModel, Green, Green18, Red, Red18, Black, Black18, Green144, Mini, Hallowing, Mini_Plugin, Undefined), if using ST7735 display
 #define SETUP_UI_GFX_BACKLIGHT_ESP_CHN  1               // Backlight PWM channel, if on ESP/using PWM backlight
 #define SETUP_UI_GFX_BACKLIGHT_ESP_FRQ  1000            // Backlight PWM frequency, if on ESP/using PWM backlight
 
 // UI Control Input Settings
 #define SETUP_UI_ENC_ROTARY_SPEED       HalfCycle       // Rotary encoder cycling speed (FullCycle, HalfCycle, QuarterCycle)
 #define SETUP_UI_KEY_REPEAT_SPEED       20              // Key repeat speed, in ticks
-#define SETUP_UI_KEY_REPEAT_DELAY       750             // Key repeat delay, in milliseconds
+#define SETUP_UI_KEY_REPEAT_DELAY       850             // Key repeat delay, in milliseconds
 #define SETUP_UI_KEY_REPEAT_INTERVAL    350             // Key repeat interval, in milliseconds
-#define SETUP_UI_JS_ACCELERATION        3.0f            // Joystick acceleration (decrease divisor)
+#define SETUP_UI_JS_ACCELERATION        3.0f            // Joystick acceleration (decrease divisor), if using analog joystick
+#define SETUP_UI_TOUCHSCREEN_ORIENT     Same            // Touchscreen orientation tuning (Same, None, InvertX, InvertY, InvertXY, SwapXY, InvertX_SwapXY, InvertY_SwapXY, InvertXY_SwapXY), if using touchscreen
 #define SETUP_UI_ESP32TOUCH_SWITCH      800             // ESP32 Touch key switch threshold, if on ESP32/using ESP32Touch
 #define SETUP_UI_ESP32TOUCH_HVOLTS      V_2V7           // ESP32 Touch key high reference voltage (Keep, V_2V4, V_2V5, V_2V6, V_2V7, Max), if on ESP32/using ESP32Touch
 #define SETUP_UI_ESP32TOUCH_LVOLTS      V_0V5           // ESP32 Touch key low reference voltage (Keep, V_0V5, V_0V6, V_0V7, V_0V8, Max), if on ESP32/using ESP32Touch
@@ -146,7 +148,6 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
 #define SETUP_ICE_INDICATOR_TYPE        ACT_HIGH        // Ice indicator type/active level (ACT_HIGH, ACT_LOW)
 #define SETUP_MINMAX_INDICATOR_TYPE     ACT_HIGH        // Linear actuator min/max endstop indicator type/active level (ACT_HIGH, ACT_LOW)
-#define SETUP_LINACT_AXIS1_STROKE       1               // Stroke length of linear actuators on axis 1, in meters
 #define SETUP_LINACT1_AXIS1_PINA        -1              // Ele/dec axis linear actuator #1 pin A (digital), else -1
 #define SETUP_LINACT1_AXIS1_PINB        -1              // Ele/dec axis linear actuator #1 pin B (digital), else -1
 #define SETUP_LINACT1_POS_SENSOR_PIN    -1              // Ele/dec axis linear actuator #1 position sensor pin (analog), else -1
@@ -217,6 +218,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel axis alignment offset (azi,ele or RA,dec)
 #define SETUP_PANEL_HEATER_TEMP         0               // Temperature at which panel heaters are engaged (if using temp sensor), in Celsius
 #define SETUP_PANEL_STORMING_SPEED      500             // Wind speed at which storming mode is engaged (if using wind sensor), in m/min
+#define SETUP_LINACT_AXIS1_STROKE       1               // Stroke length of linear actuators on axis 1, in meters
 #define SETUP_LINACT_TRAVEL_SPEED       1.0/0.5         // The base continuous linear actuator travel speed, in m/min.
 #define SETUP_PANEL_TILT_AXIS1_SCALE    0,0 , 1,90      // Ele/dec axis panel tilt angle sensor scaling parameters used for angle calibration (passed to setFromTwoPoints), from raw into degrees
 #define SETUP_POS_SERVO_MINMAX_ANGLE    -90, 90         // Axial positional servo min,max angle range used for angle calibration (passed to setFromServo), in degrees
@@ -777,6 +779,11 @@ inline void setupUI()
                 case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
                     uiCtrlSetup = UIControlSetup(MatrixControlSetup(SETUP_UI_KEY_REPEAT_DELAY, SETUP_UI_KEY_REPEAT_INTERVAL, JOIN(Helio_EncoderSpeed,SETUP_UI_ENC_ROTARY_SPEED)));
                     break;
+                case Helio_ControlInputMode_ResistiveTouch:
+                case Helio_ControlInputMode_TouchScreen:
+                case Helio_ControlInputMode_TFTTouch:
+                    uiCtrlSetup = UIControlSetup(TouchscreenSetup(JOIN(Helio_TouchscreenOrientation,SETUP_UI_TOUCHSCREEN_ORIENT)));
+                    break;
                 default: break;
             }
             switch (helioController.getDisplayOutputMode()) {
@@ -805,7 +812,14 @@ inline void setupUI()
 #ifdef ESP_PLATFORM
                                                                    SETUP_UI_GFX_BACKLIGHT_ESP_FRQ,
 #endif
-                                                                   JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB)));
+  #if IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7735)
+                                                                   JOIN(Helio_ST7735Tag,SETUP_UI_GFX_ST7735_TAG)
+#elif IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7789)
+                                                                   JOIN(Helio_ST7789Res,SETUP_UI_GFX_ST7789_RES)
+#else
+                                                                   Helio_ST77XXKind_Undefined
+#endif
+                    ));
                     break;
 
                 case Helio_DisplayOutputMode_TFT:
@@ -816,7 +830,12 @@ inline void setupUI()
 #ifdef ESP_PLATFORM
                                                                  SETUP_UI_GFX_BACKLIGHT_ESP_FRQ,
 #endif
-                                                                 JOIN(Helio_ST7735Tab,SETUP_UI_GFX_ST7735_TAB)));
+#if IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7735)
+                                                                 JOIN(Helio_ST7735Tag,SETUP_UI_GFX_ST7735_TAG)
+#else
+                                                                 Helio_ST77XXKind_Undefined
+#endif
+                    ));
                     break;
                 default: break;
             }

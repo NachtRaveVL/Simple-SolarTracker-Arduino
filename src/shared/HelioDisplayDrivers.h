@@ -187,11 +187,11 @@ protected:
 
 // ST7735 AdafruitSPITFT Display Driver
 // Advanced color display.
-// Note: Class requires proper ST7735 tab color.
+// Note: Class requires proper ST7735 tag color.
 template <>
 class HelioDisplayAdafruitGFX<Adafruit_ST7735> : public HelioDisplayDriver {
 public:
-    HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST7735Tab tabColor, pintype_t dcPin, pintype_t resetPin);
+    HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin);
     virtual ~HelioDisplayAdafruitGFX() = default;
 
     virtual void initBaseUIFromDefaults() override;
@@ -210,7 +210,7 @@ public:
     inline AdafruitDrawable<Adafruit_ST7735> &getDrawable() { return _drawable; }
 
 protected:
-    const Helio_ST7735Tab _tab;
+    const Helio_ST77XXKind _kind;
     Adafruit_ST7735 _gfx;
     AdafruitDrawable<Adafruit_ST7735> _drawable;
     GraphicsDeviceRenderer _renderer;
@@ -218,11 +218,11 @@ protected:
 
 
 // ST7789 AdafruitSPITFT Display Driver
-// Advanced color display. Uses TFT_GFX_WIDTH/HEIGHT for screen device width/height.
+// Advanced color display. Uses TFT_GFX_WIDTH/HEIGHT for CustomTFT screen device width/height.
 template <>
 class HelioDisplayAdafruitGFX<Adafruit_ST7789> : public HelioDisplayDriver {
 public:
-    HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, pintype_t dcPin, pintype_t resetPin);
+    HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin);
     virtual ~HelioDisplayAdafruitGFX() = default;
 
     virtual void initBaseUIFromDefaults() override;
@@ -241,6 +241,7 @@ public:
     inline AdafruitDrawable<Adafruit_ST7789> &getDrawable() { return _drawable; }
 
 protected:
+    const Helio_ST77XXKind _kind;
     Adafruit_ST7789 _gfx;
     AdafruitDrawable<Adafruit_ST7789> _drawable;
     GraphicsDeviceRenderer _renderer;
@@ -282,7 +283,7 @@ protected:
 // Note: Usage of TFT_eSPI requires library setup via its TFT_eSPI\User_Setup.h.
 class HelioDisplayTFTeSPI : public HelioDisplayDriver {
 public:
-    HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, uint16_t screenWidth, uint16_t screenHeight, Helio_ST7735Tab tabColor = Helio_ST7735Tab_Undefined);
+    HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind = Helio_ST77XXKind_Undefined);
     virtual ~HelioDisplayTFTeSPI() = default;
 
     virtual void initBaseUIFromDefaults() override;
@@ -290,9 +291,9 @@ public:
 
     virtual HelioOverview *allocateOverview(const void *clockFont = nullptr, const void *detailFont = nullptr) override;
 
-    virtual Pair<uint16_t,uint16_t> getScreenSize() const override { return isLandscape() ? make_pair(max(_screenSize[0],_screenSize[1]), min(_screenSize[0],_screenSize[1]))
-                                                                                          : make_pair(min(_screenSize[0],_screenSize[1]), max(_screenSize[0],_screenSize[1])); }
-    virtual bool isLandscape() const override { return _screenSize[0] >= _screenSize[1] ? !(_rotation == Helio_DisplayRotation_R1 || _rotation == Helio_DisplayRotation_R3)
+    virtual Pair<uint16_t,uint16_t> getScreenSize() const override { return isLandscape() ? make_pair(max(TFT_GFX_WIDTH,TFT_GFX_HEIGHT), min(TFT_GFX_WIDTH,TFT_GFX_HEIGHT))
+                                                                                          : make_pair(min(TFT_GFX_WIDTH,TFT_GFX_HEIGHT), max(TFT_GFX_WIDTH,TFT_GFX_HEIGHT)); }
+    virtual bool isLandscape() const override { return TFT_GFX_WIDTH >= TFT_GFX_HEIGHT ? !(_rotation == Helio_DisplayRotation_R1 || _rotation == Helio_DisplayRotation_R3)
                                                                                         : (_rotation == Helio_DisplayRotation_R1 || _rotation == Helio_DisplayRotation_R3); }
     virtual uint8_t getScreenBits() const override { return 24; }
 
@@ -303,8 +304,7 @@ public:
     inline TfteSpiDrawable &getDrawable() { return _drawable; }
 
 protected:
-    const uint16_t _screenSize[2];
-    const Helio_ST7735Tab _tabColor;
+    const Helio_ST77XXKind _kind;
     TFT_eSPI _gfx;
     TfteSpiDrawable _drawable;
     GraphicsDeviceRenderer _renderer;
