@@ -377,7 +377,7 @@ inline void setupPinChannels()
             if (!helioController.getPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
         #endif
     #elif SETUP_EXPANDER1_CHANNEL_BITS > 0 || SETUP_EXPANDER2_CHANNEL_BITS > 0
-        SharedPtr<HelioPinExpander> expanders[] = {
+        auto expanders[] = {
             #if SETUP_EXPANDER1_CHANNEL_BITS > 0
                 SharedPtr<HelioPinExpander>(new HelioPinExpander(SETUP_EXPANDER1_CHANNEL_BITS, SETUP_EXPANDER1_IOREF_ALLOC())),
             #else
@@ -389,6 +389,9 @@ inline void setupPinChannels()
                 SharedPtr<HelioPinExpander>(nullptr)
             #endif
         };
+        if (isValidPin(SETUP_CTRL_INPUT_PINS_[0]) && SETUP_CTRL_INPUT_PINS_[0] >= hpin_virtual && !helioController.getPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]))) {
+            helioController.setPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]), expanders[expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0])]);
+        }
         #if SETUP_AC_USAGE_SENSOR_PINCHNL >= 0 || SETUP_AC_USAGE_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16, expanders[SETUP_AC_USAGE_SENSOR_PINCHNL/16]); }
             #undef SETUP_AC_USAGE_SENSOR_PIN
@@ -812,7 +815,7 @@ inline void setupUI()
 #ifdef ESP_PLATFORM
                                                                    SETUP_UI_GFX_BACKLIGHT_ESP_FRQ,
 #endif
-  #if IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7735)
+#if IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7735)
                                                                    JOIN(Helio_ST7735Tag,SETUP_UI_GFX_ST7735_TAG)
 #elif IS_SETUP_AS(SETUP_DISPLAY_OUT_MODE, ST7789)
                                                                    JOIN(Helio_ST7789Res,SETUP_UI_GFX_ST7789_RES)
