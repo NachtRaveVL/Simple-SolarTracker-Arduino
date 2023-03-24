@@ -153,10 +153,6 @@ const char *pgmAddrForStr(HelioUI_String strNum)
             static const char flashUIStr_Item_AddNew[] PROGMEM = {"Add New"};
             return flashUIStr_Item_AddNew;
         } break;
-        case HUIStr_Item_Additives: {
-            static const PROGMEM AnyMenuInfo flashUIStr_Item_Additives = { "Additives", 41, NO_ADDRESS, 0, gotoScreen };
-            return (const char *)&flashUIStr_Item_Additives;
-        } break;
         case HUIStr_Item_Alerts: {
             static const PROGMEM AnyMenuInfo flashUIStr_Item_Alerts = { "Alerts", 1, NO_ADDRESS, 0, gotoScreen };
             return (const char *)&flashUIStr_Item_Alerts;
@@ -220,14 +216,6 @@ const char *pgmAddrForStr(HelioUI_String strNum)
         case HUIStr_Item_Controls: {
             static const char flashUIStr_Item_Controls[] PROGMEM = {"Controls"};
             return flashUIStr_Item_Controls;
-        } break;
-        case HUIStr_Item_Crops: {
-            static const PROGMEM AnyMenuInfo flashUIStr_Item_Crops = { "Crops", 22, NO_ADDRESS, 0, gotoScreen };
-            return (const char *)&flashUIStr_Item_Crops;
-        } break;
-        case HUIStr_Item_CropsLib: {
-            static const PROGMEM AnyMenuInfo flashUIStr_Item_CropsLib = { "Crops", 40, NO_ADDRESS, 0, gotoScreen };
-            return (const char *)&flashUIStr_Item_CropsLib;
         } break;
         case HUIStr_Item_DSTAddHour: {
             static const char flashUIStr_Item_DSTAddHour[] PROGMEM = {"DST Add Hour"};
@@ -329,6 +317,10 @@ const char *pgmAddrForStr(HelioUI_String strNum)
             static const char flashUIStr_Item_Networking[] PROGMEM = {"Networking"};
             return flashUIStr_Item_Networking;
         } break;
+        case HUIStr_Item_Panels: {
+            static const PROGMEM AnyMenuInfo flashUIStr_Item_Panels = { "Panels", 22, NO_ADDRESS, 0, gotoScreen };
+            return (const char *)&flashUIStr_Item_Panels;
+        } break;
         case HUIStr_Item_PowerRails: {
             static const PROGMEM AnyMenuInfo flashUIStr_Item_PowerRails = { "Power Rails", 24, NO_ADDRESS, 0, gotoScreen };
             return (const char *)&flashUIStr_Item_PowerRails;
@@ -340,10 +332,6 @@ const char *pgmAddrForStr(HelioUI_String strNum)
         case HUIStr_Item_RemoteCtrlPort: {
             static const char flashUIStr_Item_RemoteCtrlPort[] PROGMEM = {"Remote Ctrl Port"};
             return flashUIStr_Item_RemoteCtrlPort;
-        } break;
-        case HUIStr_Item_Reservoirs: {
-            static const PROGMEM AnyMenuInfo flashUIStr_Item_Reservoirs = { "Reservoirs", 23, NO_ADDRESS, 0, gotoScreen };
-            return (const char *)&flashUIStr_Item_Reservoirs;
         } break;
         case HUIStr_Item_SDCard: {
             static const char flashUIStr_Item_SDCard[] PROGMEM = {"SD Card"};

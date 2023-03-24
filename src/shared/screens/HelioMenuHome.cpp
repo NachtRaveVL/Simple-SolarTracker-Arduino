@@ -20,12 +20,6 @@ void CALLBACK_FUNCTION gotoScreen(int id)
         case 42: // Calibrations
             // todo
             break;
-        case 41: // Additives
-            // todo
-            break;
-        case 40: // CropsLib
-            // todo
-            break;
         case 3: // Settings
             // todo
             break;
@@ -35,10 +29,7 @@ void CALLBACK_FUNCTION gotoScreen(int id)
         case 24: // PowerRails
             // todo
             break;
-        case 23: // Reservoirs
-            // todo
-            break;
-        case 22: // Crops
+        case 22: // Panels
             // todo
             break;
         case 21: // Sensors
@@ -126,14 +117,11 @@ HelioHomeMenuInfo::HelioHomeMenuInfo()
     #endif
     InitAnyMenuInfo(minfoInformation, HUIStr_Item_Information, 5, NO_ADDRESS, 0, gotoScreen);
     InitAnyMenuInfo(minfoCalibrations, HUIStr_Item_Calibrations, 42, NO_ADDRESS, 0, gotoScreen);
-    InitAnyMenuInfo(minfoAdditives, HUIStr_Item_Additives, 41, NO_ADDRESS, 0, gotoScreen);
-    InitAnyMenuInfo(minfoCropsLib, HUIStr_Item_CropsLib, 40, NO_ADDRESS, 0, gotoScreen);
     InitSubMenuInfo(minfoLibrary, HUIStr_Item_Library, 4, NO_ADDRESS, 0, NO_CALLBACK);
     InitAnyMenuInfo(minfoSettings, HUIStr_Item_Settings, 3, NO_ADDRESS, 0, gotoScreen);
     InitAnyMenuInfo(minfoScheduling, HUIStr_Item_Scheduling, 25, NO_ADDRESS, 0, gotoScreen);
     InitAnyMenuInfo(minfoPowerRails, HUIStr_Item_PowerRails, 24, NO_ADDRESS, 0, gotoScreen);
-    InitAnyMenuInfo(minfoReservoirs, HUIStr_Item_Reservoirs, 23, NO_ADDRESS, 0, gotoScreen);
-    InitAnyMenuInfo(minfoCrops, HUIStr_Item_Crops, 22, NO_ADDRESS, 0, gotoScreen);
+    InitAnyMenuInfo(minfoPanels, HUIStr_Item_Panels, 22, NO_ADDRESS, 0, gotoScreen);
     InitAnyMenuInfo(minfoSensors, HUIStr_Item_Sensors, 21, NO_ADDRESS, 0, gotoScreen);
     InitAnyMenuInfo(minfoActuators, HUIStr_Item_Actuators, 20, NO_ADDRESS, 0, gotoScreen);
     InitSubMenuInfo(minfoSystem, HUIStr_Item_System, 2, NO_ADDRESS, 0, NO_CALLBACK);
@@ -161,16 +149,13 @@ HelioHomeMenuItems::HelioHomeMenuItems() :
         menuInformation(InfoPtrForItem(Information, AnyMenuInfo), &menuBackToOverview, InfoLocation),
     #endif
     menuCalibrations(InfoPtrForItem(Calibrations, AnyMenuInfo), nullptr, InfoLocation),
-    menuAdditives(InfoPtrForItem(Additives, AnyMenuInfo), &menuCalibrations, InfoLocation),
-    menuCropsLib(InfoPtrForItem(CropsLib, AnyMenuInfo), &menuAdditives, InfoLocation),
-    menuBackLibrary(InfoPtrForItem(Library, SubMenuInfo), &menuCropsLib, InfoLocation),
+    menuBackLibrary(InfoPtrForItem(Library, SubMenuInfo), &menuCalibrations, InfoLocation),
     menuLibrary(InfoPtrForItem(Library, SubMenuInfo), &menuBackLibrary, &menuInformation, InfoLocation),
     menuSettings(InfoPtrForItem(Settings, AnyMenuInfo), &menuLibrary, InfoLocation),
     menuScheduling(InfoPtrForItem(Scheduling, AnyMenuInfo), nullptr, InfoLocation),
     menuPowerRails(InfoPtrForItem(PowerRails, AnyMenuInfo), &menuScheduling, InfoLocation),
-    menuReservoirs(InfoPtrForItem(Reservoirs, AnyMenuInfo), &menuPowerRails, InfoLocation),
-    menuCrops(InfoPtrForItem(Crops, AnyMenuInfo), &menuReservoirs, InfoLocation),
-    menuSensors(InfoPtrForItem(Sensors, AnyMenuInfo), &menuCrops, InfoLocation),
+    menuPanels(InfoPtrForItem(Panels, AnyMenuInfo), &menuPowerRails, InfoLocation),
+    menuSensors(InfoPtrForItem(Sensors, AnyMenuInfo), &menuPanels, InfoLocation),
     menuActuators(InfoPtrForItem(Actuators, AnyMenuInfo), &menuSensors, InfoLocation),
     menuBackSystem(InfoPtrForItem(System, SubMenuInfo), &menuActuators, InfoLocation),
     menuSystem(InfoPtrForItem(System, SubMenuInfo), &menuBackSystem, &menuSettings, InfoLocation),
@@ -187,13 +172,10 @@ HelioHomeMenuItems::HelioHomeMenuItems() :
     #endif
     menuInformation.setReadOnly(true);
     menuCalibrations.setReadOnly(true);
-    menuAdditives.setReadOnly(true);
-    menuCropsLib.setReadOnly(true);
     menuSettings.setReadOnly(true);
     menuScheduling.setReadOnly(true);
     menuPowerRails.setReadOnly(true);
-    menuReservoirs.setReadOnly(true);
-    menuCrops.setReadOnly(true);
+    menuPanels.setReadOnly(true);
     menuSensors.setReadOnly(true);
     menuActuators.setReadOnly(true);
     menuAlerts.setReadOnly(true);

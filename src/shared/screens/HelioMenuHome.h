@@ -47,14 +47,11 @@ struct HelioHomeMenuInfo {
 #endif // /ifdef HELIO_UI_ENABLE_DEBUG_MENU
     AnyMenuInfo minfoInformation;
     AnyMenuInfo minfoCalibrations;
-    AnyMenuInfo minfoAdditives;
-    AnyMenuInfo minfoCropsLib;
     SubMenuInfo minfoLibrary;
     AnyMenuInfo minfoSettings;
     AnyMenuInfo minfoScheduling;
     AnyMenuInfo minfoPowerRails;
-    AnyMenuInfo minfoReservoirs;
-    AnyMenuInfo minfoCrops;
+    AnyMenuInfo minfoPanels;
     AnyMenuInfo minfoSensors;
     AnyMenuInfo minfoActuators;
     SubMenuInfo minfoSystem;
@@ -82,15 +79,12 @@ struct HelioHomeMenuItems {
 #endif // /ifdef HELIO_UI_ENABLE_DEBUG_MENU
     ActionMenuItem menuInformation;
     ActionMenuItem menuCalibrations;
-    ActionMenuItem menuAdditives;
-    ActionMenuItem menuCropsLib;
     BackMenuItem menuBackLibrary;
     SubMenuItem menuLibrary;
     ActionMenuItem menuSettings;
     ActionMenuItem menuScheduling;
     ActionMenuItem menuPowerRails;
-    ActionMenuItem menuReservoirs;
-    ActionMenuItem menuCrops;
+    ActionMenuItem menuPanels;
     ActionMenuItem menuSensors;
     ActionMenuItem menuActuators;
     BackMenuItem menuBackSystem;
