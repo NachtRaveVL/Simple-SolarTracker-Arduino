@@ -7,6 +7,11 @@
 #ifdef HELIO_USE_GUI
 #include <DfRobotInputAbstraction.h>
 
+static const char _matrix2x2Keys[] PROGMEM = {HELIO_UI_2X2MATRIX_KEYS};
+static const char _matrix3x4Keys[] PROGMEM = {HELIO_UI_3X4MATRIX_KEYS};
+static const char _matrix4x4Keys[] PROGMEM = {HELIO_UI_4X4MATRIX_KEYS};
+
+
 HelioInputDriver::HelioInputDriver(Pair<uint8_t, const pintype_t *> controlPins)
     : _pins(controlPins)
 { ; }
@@ -219,7 +224,7 @@ bool HelioInputJoystick::areMainPinsInterruptable() const
 HelioInputMatrix2x2::HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(2,2,CFP(HUIStr_Keys_Matrix2x2Keys)),
+      _keyboardLayout(2, 2, _matrix2x2Keys),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3])
 {
     _keyboardLayout.setRowPin(0, controlPins.second[0]);
@@ -259,7 +264,7 @@ bool HelioInputMatrix2x2::areMainPinsInterruptable() const
 HelioInputMatrix3x4::HelioInputMatrix3x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(4,3,CFP(HUIStr_Keys_Matrix3x4Keys)),
+      _keyboardLayout(4, 3, _matrix3x4Keys),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
@@ -316,7 +321,7 @@ bool HelioInputMatrix3x4::areMainPinsInterruptable() const
 HelioInputMatrix4x4::HelioInputMatrix4x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(4,4,CFP(HUIStr_Keys_Matrix4x4Keys)),
+      _keyboardLayout(4, 4, _matrix4x4Keys),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
