@@ -32,7 +32,7 @@ class HelioInputDriver {
 public:
     HelioInputDriver(Pair<uint8_t, const pintype_t *> controlPins);
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) = 0;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) = 0;
 
     bool areAllPinsInterruptable() const;
     virtual bool areMainPinsInterruptable() const = 0;
@@ -48,12 +48,14 @@ protected:
 
 // Rotary Encoder Input Driver
 // Rotary encoder that uses a twisting motion, along with momentary push-down.
+// Pins:   RotaryEncoderOk: {eA,eB,Ok},
+//       RotaryEncoderOkLR: {eA,eB,Ok,Bk,Nx}
 class HelioInputRotary : public HelioInputDriver {
 public:
     HelioInputRotary(Pair<uint8_t, const pintype_t *> controlPins, Helio_EncoderSpeed encoderSpeed);
     virtual ~HelioInputRotary() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override;
 
@@ -68,6 +70,8 @@ protected:
 
 // Up/Down Buttons Input Driver
 // Standard momentary buttons input.
+// Pins:   UpDownButtonsOk: {Up,Dw,Ok}
+//       UpDownButtonsOkLR: {Up,Dw,Ok,Bk,Nx}
 class HelioInputUpDownButtons : public HelioInputDriver {
 public:
     HelioInputUpDownButtons(Pair<uint8_t, const pintype_t *> controlPins, uint16_t keyRepeatSpeed);
@@ -75,7 +79,7 @@ public:
     HelioInputUpDownButtons(bool isDFRobotShield_unused, uint16_t keyRepeatSpeed);
     virtual ~HelioInputUpDownButtons();
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override;
 
@@ -91,12 +95,14 @@ protected:
 
 // ESP32 ESPTouch Keys Input Driver
 // For ESP32 only, uses integrated touch keys library.
+// Pins:   UpDownESP32TouchOk: {Up,Dw,Ok}
+//       UpDownESP32TouchOkLR: {Up,Dw,Ok,Bk,Nx}
 class HelioInputESP32TouchKeys : public HelioInputDriver {
 public:
     HelioInputESP32TouchKeys(Pair<uint8_t, const pintype_t *> controlPins, uint16_t keyRepeatSpeed, uint16_t switchThreshold, Helio_ESP32Touch_HighRef highVoltage, Helio_ESP32Touch_LowRef lowVoltage, Helio_ESP32Touch_HighRefAtten attenuation);
     virtual ~HelioInputESP32TouchKeys() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override;
 
@@ -118,12 +124,13 @@ protected:
 
 // Analog Joystick Input Driver
 // Analog joystick control with momentary press button.
+// Pins: AnalogJoystickOk: {aX,aY,Ok}
 class HelioInputJoystick : public HelioInputDriver {
 public:
     HelioInputJoystick(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, float decreaseDivisor, float jsCenterX = 0.5f, float jsCenterY = 0.5f, float jsZeroTol = 0.05f);
     virtual ~HelioInputJoystick() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override;
 
@@ -144,12 +151,13 @@ protected:
 
 // 2x2 Button Matrix Input Driver
 // For matrix-style input with 2 rows and 2 columns of cross-tied momentary buttons.
+// Pins: Matrix2x2UpDownButtonsOkL: {r0,r1,c0,c1}
 class HelioInputMatrix2x2 : public HelioInputDriver {
 public:
     HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval);
     virtual ~HelioInputMatrix2x2();
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     bool areRowPinsInterruptable() const;
     virtual bool areMainPinsInterruptable() const override;
@@ -167,12 +175,14 @@ protected:
 
 // 3x4 Button Matrix Input Driver
 // For matrix-style numeric input with 4 rows and 3 columns of cross-tied momentary buttons.
+// Pins:   Matrix3x4Keyboard_OptRotEncOk: {r0,r1,r2,r3,c0,c1,c2,eA,eB,Ok}
+//       Matrix3x4Keyboard_OptRotEncOkLR: {r0,r1,r2,r3,c0,c1,c2,eA,eB,Ok,Bk,Nx}
 class HelioInputMatrix3x4 : public HelioInputDriver {
 public:
     HelioInputMatrix3x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed);
     virtual ~HelioInputMatrix3x4();
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     bool areRowPinsInterruptable() const;
     virtual bool areMainPinsInterruptable() const override;
@@ -192,12 +202,14 @@ protected:
 
 // 4x4 Button Matrix Input Driver
 // For matrix-style alpha-numeric input with 4 rows and 4 columns of cross-tied momentary buttons.
+// Pins:   Matrix4x4Keyboard_OptRotEncOk: {r0,r1,r2,r3,c0,c1,c2,c3,eA,eB,Ok}
+//       Matrix4x4Keyboard_OptRotEncOkLR: {r0,r1,r2,r3,c0,c1,c2,c3,eA,eB,Ok,Bk,Nx}
 class HelioInputMatrix4x4 : public HelioInputDriver {
 public:
     HelioInputMatrix4x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed = Helio_EncoderSpeed_HalfCycle);
     virtual ~HelioInputMatrix4x4();
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     bool areRowPinsInterruptable() const;
     virtual bool areMainPinsInterruptable() const override;
@@ -217,12 +229,13 @@ protected:
 
 // Resistive Touch Screen Input Driver
 // A style of touch screen that uses resistive measurements for touch detection.
+// Pins: ResistiveTouch: {X+,X-,Y+,Y-}
 class HelioInputResistiveTouch : public HelioInputDriver {
 public:
-    HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_TouchscreenOrientation touchOrient);
+    HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient);
     virtual ~HelioInputResistiveTouch() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override { return false; }
 
@@ -239,13 +252,16 @@ protected:
 
 // Touch Screen Input Driver
 // Standard touch screen driver using FT6206 (i2c based) or XPT2046 (SPI based).
-// BSP touch interrogator uses TFT_GFX_WIDTH/HEIGHT for screen device width/height.
+// Pins:  TouchScreen (FT6206): {}
+//       TouchScreen (XPT2046): {tCS,tIRQ}
+// Note: FT6206 driver hardcoded to Wire - can be changed only by direct edit.
+// Note: BSP Touch interrogator uses TFT_GFX_WIDTH & TFT_GFX_HEIGHT for screen size.
 class HelioInputTouchscreen : public HelioInputDriver {
 public:
-    HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient);
+    HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient);
     virtual ~HelioInputTouchscreen() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override { return false; }
 
@@ -273,12 +289,13 @@ protected:
 
 // TFT Touch Screen Input Driver
 // Standard XPT2046 touch screen, but using TFT_eSPI library. Must be paired with TFTeSPI display driver.
+// Pins: TFTTouch (XPT2046): {tCS,tIRQ}
 class HelioInputTFTTouch : public HelioInputDriver {
 public:
-    HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_TouchscreenOrientation touchOrient, bool useRawTouch = false);
+    HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient, bool useRawTouch = false);
     virtual ~HelioInputTFTTouch() = default;
 
-    virtual void begin(MenuRenderer *renderer, MenuItem *initialItem) override;
+    virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
     virtual bool areMainPinsInterruptable() const override { return false; }
 

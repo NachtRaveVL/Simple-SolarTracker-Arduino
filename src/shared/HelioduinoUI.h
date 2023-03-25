@@ -11,7 +11,7 @@
 //#define HELIO_UI_ENABLE_XPT2046TS               // https://github.com/PaulStoffregen/XPT2046_Touchscreen
 
 // Uncomment or -D this define to enable usage of the StChromaArt LDTC framebuffer capable canvas in place of default U8g2Drawable canvas (STM32/mbed only, note: requires advanced setup)
-//#define HELIO_UI_ENABLE_STM32_LDTC
+//#define HELIO_UI_ENABLE_STCHROMA_LDTC
 
 // Uncomment or -D this define to enable usage of the StChromaArt BSP touch screen interrogator in place of the default AdaLibTouchInterrogator (STM32/mbed only, note: requires advanced setup, see tcMenu_Extra_BspUserSettings.h)
 //#define HELIO_UI_ENABLE_BSP_TOUCH
@@ -98,6 +98,8 @@ public:
     inline bool isUnicodeFonts() const { return _isUnicodeFonts; }
 
     inline HelioUIData *getUIData() { return _uiData; }
+    inline HelioInputDriver *getInput() { return _input; }
+    inline HelioDisplayDriver *getDisplay() { return _display; }
     inline TcMenuRemoteServer *getRemoteServer() { return _remoteServer; }
     inline HelioOverview *getOverview() { return _overview; }
     inline HelioHomeMenu *getHomeMenu() { return _homeMenu; }

@@ -195,6 +195,7 @@ HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup,
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
+      _screenSize{_gfx.width(),_gfx.height()}, // incorrect until after begin
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 {
@@ -213,6 +214,8 @@ template <class T>
 void HelioDisplayAdafruitGFX<T>::begin()
 {
     _gfx.begin();
+    _screenSize[0] = _gfx.width();
+    _screenSize[1] = _gfx.height();
     _gfx.setRotation((uint8_t)_rotation);
 }
 

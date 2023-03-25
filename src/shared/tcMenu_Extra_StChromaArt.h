@@ -5,7 +5,7 @@
 
 #include <Helioduino.h>
 #include "HelioUIDefines.h"
-#if defined(HELIO_USE_GUI) && (defined(ARDUINO_ARCH_MBED) || defined(ARDUINO_ARCH_STM32)) && (defined(HELIO_UI_ENABLE_STM32_LDTC) || defined(HELIO_UI_ENABLE_BSP_TOUCH))
+#if defined(HELIO_USE_GUI) && (defined(ARDUINO_ARCH_MBED) || defined(ARDUINO_ARCH_STM32)) && (defined(HELIO_UI_ENABLE_STCHROMA_LDTC) || defined(HELIO_UI_ENABLE_BSP_TOUCH))
 
 /*
  * Copyright (c) 2018 https://www.thecoderscorner.com (Dave Cherry).
@@ -13,6 +13,7 @@
  */
 
 /* Changelist:
+ * - Refactored to have screen size given in init
  * - Enclosed inside of #ifdef & reorg'ed for general inclusion
  */
 
@@ -79,7 +80,9 @@ class StBspTouchInterrogator : public iotouch::TouchInterrogator {
 private:
     int width, height;
 public:
-    StBspTouchInterrogator(int wid, int hei);
+    StBspTouchInterrogator();
+
+    void init(int wid, int hei);
     iotouch::TouchState internalProcessTouch(float *ptrX, float *ptrY, const iotouch::TouchOrientationSettings& rotation,
                                              const iotouch::CalibrationHandler& calib) override;
 };

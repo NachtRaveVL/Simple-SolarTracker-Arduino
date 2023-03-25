@@ -1,6 +1,6 @@
 {
     "name": "Simple-SolarTracker-Arduino",
-    "version": "0.6.5.0",
+    "version": "0.6.7.0",
     "keywords": "solar,solar-tracking,solartracking,solarpanel,solar-panel,panel,sun,sun-tracking,suntracking,scheduler,tracking,diy,automation,controller,monitor,system",
     "description": "Helioduino: Simple automation controller for solar tracking systems.",
     "license": "MIT",

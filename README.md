@@ -1,7 +1,7 @@
 # Helioduino
 Helioduino: Simple Solar Tracker Automation Controller.
 
-**Simple-SolarTracker-Arduino v0.6.5.0**
+**Simple-SolarTracker-Arduino v0.6.7.0**
 
 Simple automation controller for solar tracking systems.  
 Licensed under the non-restrictive MIT license.
@@ -130,7 +130,7 @@ From shared/HelioduinoUI.h:
 //#define HELIO_UI_ENABLE_XPT2046TS               // https://github.com/PaulStoffregen/XPT2046_Touchscreen
 
 // Uncomment or -D this define to enable usage of the StChromaArt LDTC framebuffer capable canvas in place of default U8g2Drawable canvas (STM32/mbed only, note: requires advanced setup)
-//#define HELIO_UI_ENABLE_STM32_LDTC
+//#define HELIO_UI_ENABLE_STCHROMA_LDTC
 
 // Uncomment or -D this define to enable usage of the StChromaArt BSP touch screen interrogator in place of the default AdaLibTouchInterrogator (STM32/mbed only, note: requires advanced setup, see tcMenu_Extra_BspUserSettings.h)
 //#define HELIO_UI_ENABLE_BSP_TOUCH
@@ -151,7 +151,7 @@ Certain setups may require additional, and in some cases specialized, library de
 
 * **BSP_LCD** & **BSP Touch** (STM32746G-Discovery on STM32/mbed only): This particular setup can utilize a ChromaArt-based drawable (in place of U8g2Drawable) with STM32 LDTC frame buffer, and requires advanced user setup via the included `shared\tcMenu_Extra_BspUserSettings.h` library setup file. This library always has static linkage and will require sketch modify/re-upload upon needing any changes. Use of this library is only recommended for advanced users.
 
-* **XPT2046 Touchscreen**, **Adafruit ST7789 - CustomTFT**, **TFT_eSPI**, & **BSP Touch**: These options utilize the `TFT_GFX_WIDTH` and `TFT_GFX_HEIGHT` defines for the screen width/height (defaulting to TFT_eSPI's `TFT_WIDTH` and `TFT_HEIGHT` values if defined, else assuming standard 240x320), and should be either edited directly or defined through custom build defines. These values are statically linked and will require sketch modify/re-upload upon needing any changes.
+* **Adafruit ST7789 /w CustomTFT**, **TFT_eSPI**: These options utilize the `TFT_GFX_WIDTH` and `TFT_GFX_HEIGHT` defines for the screen width/height (defaulting to TFT_eSPI's `TFT_WIDTH` and `TFT_HEIGHT` values if defined, else assuming standard 240x320), and should be either edited directly or defined through custom build defines. These values are statically linked and will require sketch modify/re-upload upon needing any changes.
 
 ### Initialization
 

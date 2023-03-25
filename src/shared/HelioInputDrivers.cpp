@@ -26,18 +26,23 @@ HelioInputRotary::HelioInputRotary(Pair<uint8_t, const pintype_t *> controlPins,
     : HelioInputDriver(controlPins), _encoderSpeed(encoderSpeed)
 { ; }
 
-void HelioInputRotary::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputRotary::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     #ifndef HELIO_DISABLE_MULTITASKING
         auto expander = getController() && _pins.first > 0 && isValidPin(_pins.second[0]) && _pins.second[0] >= hpin_virtual ? getController()->getPinExpander(expanderForPinNumber(_pins.second[0])) : nullptr;
-        switches.init(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+        switches.init(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()),
+                      getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                      getBaseUI() && getBaseUI()->isActiveLow());
     #else
-        switches.init(getIoAbstraction() ?: internalDigitalIo(), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+        switches.init(getIoAbstraction() ?: internalDigitalIo(),
+                      getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                      getBaseUI() && getBaseUI()->isActiveLow());
     #endif
 
-    menuMgr.initForEncoder(renderer, initialItem, _pins.second[0], _pins.second[1], _pins.second[2], _encoderSpeed == Helio_EncoderSpeed_FullCycle ? FULL_CYCLE : _encoderSpeed == Helio_EncoderSpeed_HalfCycle ? HALF_CYCLE : QUARTER_CYCLE);
-    if (_pins.first > 3 && isValidPin(_pins.second[3])) menuMgr.setBackButton(_pins.second[3]);
-    if (_pins.first > 4 && isValidPin(_pins.second[4])) menuMgr.setNextButton(_pins.second[4]);    
+    menuMgr.initForEncoder(displayDriver->getBaseRenderer(), initialItem, _pins.second[0], _pins.second[1], _pins.second[2],
+                           _encoderSpeed == Helio_EncoderSpeed_FullCycle ? FULL_CYCLE : _encoderSpeed == Helio_EncoderSpeed_HalfCycle ? HALF_CYCLE : QUARTER_CYCLE);
+    if (_pins.first > 3 && isValidPin(_pins.second[3])) { menuMgr.setBackButton(_pins.second[3]); }
+    if (_pins.first > 4 && isValidPin(_pins.second[4])) { menuMgr.setNextButton(_pins.second[4]); }
 }
 
 bool HelioInputRotary::areMainPinsInterruptable() const
@@ -79,20 +84,24 @@ HelioInputUpDownButtons::~HelioInputUpDownButtons()
     }
 }
 
-void HelioInputUpDownButtons::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputUpDownButtons::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     if (_dfRobotIORef) {
-        switches.initialise(_dfRobotIORef, getBaseUI()->isActiveLow());
+        switches.initialise(_dfRobotIORef, getBaseUI() && getBaseUI()->isActiveLow());
     } else {
         #ifndef HELIO_DISABLE_MULTITASKING
             auto expander = getController() && _pins.first > 0 && isValidPin(_pins.second[0]) && _pins.second[0] >= hpin_virtual ? getController()->getPinExpander(expanderForPinNumber(_pins.second[0])) : nullptr;
-            switches.init(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+            switches.init(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()),
+                          getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                          getBaseUI() && getBaseUI()->isActiveLow());
         #else
-            switches.init(getIoAbstraction() ?: internalDigitalIo(), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+            switches.init(getIoAbstraction() ?: internalDigitalIo(),
+                          getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                          getBaseUI() && getBaseUI()->isActiveLow());
         #endif
     }
 
-    menuMgr.initForUpDownOk(renderer, initialItem, _pins.second[1], _pins.second[0], _pins.second[2], _keySpeed);
+    menuMgr.initForUpDownOk(displayDriver->getBaseRenderer(), initialItem, _pins.second[1], _pins.second[0], _pins.second[2], _keySpeed);
     if (_pins.first > 3 && isValidPin(_pins.second[3])) menuMgr.setBackButton(_pins.second[3]);
     if (_pins.first > 4 && isValidPin(_pins.second[4])) menuMgr.setNextButton(_pins.second[4]);
 }
@@ -122,11 +131,13 @@ HelioInputESP32TouchKeys::HelioInputESP32TouchKeys(Pair<uint8_t, const pintype_t
 #endif
 { ; }
 
-void HelioInputESP32TouchKeys::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputESP32TouchKeys::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
-    switches.init(getIoAbstraction() ?: internalDigitalIo(), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+    switches.init(getIoAbstraction() ?: internalDigitalIo(),
+                  getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                  getBaseUI() && getBaseUI()->isActiveLow());
 
-    menuMgr.initForUpDownOk(renderer, initialItem, _pins.second[1], _pins.second[0], _pins.second[2], _keySpeed);
+    menuMgr.initForUpDownOk(displayDriver->getBaseRenderer(), initialItem, _pins.second[1], _pins.second[0], _pins.second[2], _keySpeed);
     if (_pins.first > 3 && isValidPin(_pins.second[3])) menuMgr.setBackButton(_pins.second[3]);
     if (_pins.first > 4 && isValidPin(_pins.second[4])) menuMgr.setNextButton(_pins.second[4]);
     #ifdef ESP32
@@ -172,9 +183,11 @@ static void menuMgrValueChanged(int val)
     menuMgr.valueChanged(val);
 }
 
-void HelioInputJoystick::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputJoystick::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
-    switches.init(getIoAbstraction() ?: internalDigitalIo(), getBaseUI()->getISRMode(), getBaseUI()->isActiveLow());
+    switches.init(getIoAbstraction() ?: internalDigitalIo(),
+                  getBaseUI() ? getBaseUI()->getISRMode() : SWITCHES_POLL_EVERYTHING,
+                  getBaseUI() && getBaseUI()->isActiveLow());
 
     if (isValidPin(_pins.second[2])) {
         switches.addSwitch(_pins.second[2], NULL);
@@ -192,7 +205,7 @@ void HelioInputJoystick::begin(MenuRenderer *renderer, MenuItem *initialItem)
         reinterpret_cast<JoystickSwitchInput*>(switches.getEncoder())->setAccelerationParameters(_repeatDelay, _decreaseDivisor);
     }
 
-    menuMgr.initWithoutInput(renderer, initialItem);
+    menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem);
 }
 
 bool HelioInputJoystick::areMainPinsInterruptable() const
@@ -206,7 +219,7 @@ bool HelioInputJoystick::areMainPinsInterruptable() const
 HelioInputMatrix2x2::HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(2,2,SFP(HUIStr_Keys_Matrix2x2Keys).c_str()),
+      _keyboardLayout(2,2,CFP(HUIStr_Keys_Matrix2x2Keys)),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3])
 {
     _keyboardLayout.setRowPin(0, controlPins.second[0]);
@@ -216,13 +229,17 @@ HelioInputMatrix2x2::HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> contro
     _keyboard.setRepeatKeyMillis(repeatDelay, repeatInterval);
 }
 
-void HelioInputMatrix2x2::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputMatrix2x2::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     #ifndef HELIO_DISABLE_MULTITASKING
         auto expander = getController() && _pins.first > 0 && isValidPin(_pins.second[0]) && _pins.second[0] >= hpin_virtual ? getController()->getPinExpander(expanderForPinNumber(_pins.second[0])) : nullptr;
-        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #else
-        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #endif
 }
 
@@ -242,7 +259,7 @@ bool HelioInputMatrix2x2::areMainPinsInterruptable() const
 HelioInputMatrix3x4::HelioInputMatrix3x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(4,3,SFP(HUIStr_Keys_Matrix3x4Keys).c_str()),
+      _keyboardLayout(4,3,CFP(HUIStr_Keys_Matrix3x4Keys)),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
@@ -265,16 +282,20 @@ HelioInputMatrix3x4::~HelioInputMatrix3x4()
     if (_rotaryEncoder) { delete _rotaryEncoder; }
 }
 
-void HelioInputMatrix3x4::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputMatrix3x4::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     #ifndef HELIO_DISABLE_MULTITASKING
         auto expander = getController() && _pins.first > 0 && isValidPin(_pins.second[0]) && _pins.second[0] >= hpin_virtual ? getController()->getPinExpander(expanderForPinNumber(_pins.second[0])) : nullptr;
-        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #else
-        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #endif
 
-    if (_rotaryEncoder) { _rotaryEncoder->begin(renderer, initialItem); }
+    if (_rotaryEncoder) { _rotaryEncoder->begin(displayDriver, initialItem); }
 }
 
 bool HelioInputMatrix3x4::areRowPinsInterruptable() const
@@ -295,7 +316,7 @@ bool HelioInputMatrix3x4::areMainPinsInterruptable() const
 HelioInputMatrix4x4::HelioInputMatrix4x4(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval, Helio_EncoderSpeed encoderSpeed)
     : HelioInputDriver(controlPins),
       _keyboard(),
-      _keyboardLayout(4,4,SFP(HUIStr_Keys_Matrix4x4Keys).c_str()),
+      _keyboardLayout(4,4,CFP(HUIStr_Keys_Matrix4x4Keys)),
       _tcMenuKeyListener(SFP(HUIStr_Keys_MatrixActions)[0], SFP(HUIStr_Keys_MatrixActions)[1], SFP(HUIStr_Keys_MatrixActions)[2], SFP(HUIStr_Keys_MatrixActions)[3]),
       _rotaryEncoder(nullptr)
 {
@@ -319,16 +340,20 @@ HelioInputMatrix4x4::~HelioInputMatrix4x4()
     if (_rotaryEncoder) { delete _rotaryEncoder; }
 }
 
-void HelioInputMatrix4x4::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputMatrix4x4::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     #ifndef HELIO_DISABLE_MULTITASKING
         auto expander = getController() && _pins.first > 0 && isValidPin(_pins.second[0]) && _pins.second[0] >= hpin_virtual ? getController()->getPinExpander(expanderForPinNumber(_pins.second[0])) : nullptr;
-        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(expander && expander->getIoAbstraction() ? expander->getIoAbstraction() : (getIoAbstraction() ?: internalDigitalIo()),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #else
-        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(), &_keyboardLayout, &_tcMenuKeyListener, getBaseUI()->allowingISR() && areRowPinsInterruptable());
+        _keyboard.initialise(getIoAbstraction() ?: internalDigitalIo(),
+                             &_keyboardLayout, &_tcMenuKeyListener,
+                             (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #endif
 
-    if (_rotaryEncoder) { _rotaryEncoder->begin(renderer, initialItem); }
+    if (_rotaryEncoder) { _rotaryEncoder->begin(displayDriver, initialItem); }
 }
 
 bool HelioInputMatrix4x4::areRowPinsInterruptable() const
@@ -346,36 +371,36 @@ bool HelioInputMatrix4x4::areMainPinsInterruptable() const
 }
 
 
-HelioInputResistiveTouch::HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_TouchscreenOrientation touchOrient)
+HelioInputResistiveTouch::HelioInputResistiveTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient)
     : HelioInputDriver(controlPins),
       _touchInterrogator(controlPins.second[0], controlPins.second[1], controlPins.second[2], controlPins.second[3]),
       _touchOrientation(
-         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3))
+         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R3))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY || touchOrient == Helio_TouchscreenOrientation_SwapXY),
-         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror))
+         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_HorzMirror))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertX || touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY),
-         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror))
+         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R3 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_VertMirror))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY)
       ),
       _touchScreen(&_touchInterrogator, displayDriver->getGraphicsRenderer(), _touchOrientation)
 { ; }
 
-void HelioInputResistiveTouch::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputResistiveTouch::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
     _touchScreen.start();
-    menuMgr.initWithoutInput(renderer, initialItem);
+    menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem);
 }
 
 
-HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient)
+HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayDriver *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient)
     : HelioInputDriver(controlPins),
       #ifdef HELIO_UI_ENABLE_XPT2046TS
-          _touchScreen(controlPins.second[0], controlPins.second[1]),
+          _touchScreen(controlPins.second[0], getBaseUI() && getBaseUI()->allowingISR() ? controlPins.second[1] : (uint8_t)0xff),
       #else
           _touchScreen(),
       #endif
       #ifdef HELIO_UI_ENABLE_BSP_TOUCH
-          _touchInterrogator(TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
+          _touchInterrogator(),
       #else
           _touchInterrogator(_touchScreen),
       #endif
@@ -389,34 +414,35 @@ HelioInputTouchscreen::HelioInputTouchscreen(Pair<uint8_t, const pintype_t *> co
       )
 { ; }
 
-void HelioInputTouchscreen::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputTouchscreen::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
-    _touchInterrogator.init(); // begins touch device
-    menuMgr.initWithoutInput(renderer, initialItem);
+    _touchInterrogator.init(displayDriver->getScreenSize(false).first, displayDriver->getScreenSize(false).second);
+    menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem);
     #ifdef HELIO_UI_ENABLE_XPT2046TS
-        _touchScreen.setRotation(getBaseUI() ? (uint8_t)getBaseUI()->getDisplaySetup().getDisplayRotation() : 0);
+        _touchScreen.setRotation(getBaseUI()  ? (uint8_t)getBaseUI()->getDisplaySetup().getDisplayRotation() : 0);
     #endif
 }
 
 
-HelioInputTFTTouch::HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_TouchscreenOrientation touchOrient, bool useRawTouch)
+HelioInputTFTTouch::HelioInputTFTTouch(Pair<uint8_t, const pintype_t *> controlPins, HelioDisplayTFTeSPI *displayDriver, Helio_DisplayRotation displayRotation, Helio_TouchscreenOrientation touchOrient, bool useRawTouch)
     : HelioInputDriver(controlPins),
-      _touchInterrogator(&displayDriver->getGfx(), displayDriver->getScreenSize().first, displayDriver->getScreenSize().second, useRawTouch),
+      _touchInterrogator(&displayDriver->getGfx(), useRawTouch),
       _touchOrientation(
-         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R3))
+         /*swap*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R3))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY || touchOrient == Helio_TouchscreenOrientation_SwapXY),
-         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R1 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_HorzMirror))
+         /*invX*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R1 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_HorzMirror))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertX || touchOrient == Helio_TouchscreenOrientation_InvertX_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY),
-         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayDriver->getRotation() == Helio_DisplayRotation_R3 || displayDriver->getRotation() == Helio_DisplayRotation_R2 || displayDriver->getRotation() == Helio_DisplayRotation_VertMirror))
+         /*invY*/ (touchOrient == Helio_TouchscreenOrientation_Same && (displayRotation == Helio_DisplayRotation_R3 || displayRotation == Helio_DisplayRotation_R2 || displayRotation == Helio_DisplayRotation_VertMirror))
                   || (touchOrient == Helio_TouchscreenOrientation_InvertY || touchOrient == Helio_TouchscreenOrientation_InvertY_SwapXY || touchOrient == Helio_TouchscreenOrientation_InvertXY || touchOrient == Helio_TouchscreenOrientation_InvertXY_SwapXY)
       ),
       _touchScreen(&_touchInterrogator, displayDriver->getGraphicsRenderer(), _touchOrientation)
 { ; }
 
-void HelioInputTFTTouch::begin(MenuRenderer *renderer, MenuItem *initialItem)
+void HelioInputTFTTouch::begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem)
 {
+    _touchInterrogator.init(displayDriver->getScreenSize(false).first, displayDriver->getScreenSize(false).second);
     _touchScreen.start();
-    menuMgr.initWithoutInput(renderer, initialItem);
+    menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem);
 }
 
 #endif

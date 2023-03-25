@@ -23,7 +23,7 @@ public:
 
 protected:
     U8G2 &_gfx;                                             // Graphics (strong)
-    #ifdef HELIO_UI_ENABLE_STM32_LDTC
+    #ifdef HELIO_UI_ENABLE_STCHROMA_LDTC
         StChromaArtDrawable &_drawable;                     // Drawable (strong)
     #else
         U8g2Drawable &_drawable;                            // Drawable (strong)

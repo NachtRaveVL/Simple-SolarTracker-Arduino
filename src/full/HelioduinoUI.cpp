@@ -69,14 +69,6 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
                                                  _uiCtrlSetup.ctrlCfgAs.matrix.encoderSpeed);
             } break;
 
-            case Helio_ControlInputMode_TouchScreen: {
-                HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
-                #ifdef HELIO_UI_ENABLE_XPT2046TS
-                    HELIO_SOFT_ASSERT(ctrlInPins.first && ctrlInPins.second && isValidPin(ctrlInPins.second[0]), SFP(HStr_Err_InvalidPinOrType));
-                #endif
-                _input = new HelioInputTouchscreen(ctrlInPins, _uiDispSetup.getDisplayRotation(), _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
-            } break;
-
             default: break;
         }
         HELIO_SOFT_ASSERT(!(ctrlInMode >= Helio_ControlInputMode_RotaryEncoderOk && ctrlInMode != Helio_ControlInputMode_ResistiveTouch && ctrlInMode <= Helio_ControlInputMode_TouchScreen) || _input, SFP(HStr_Err_AllocationFailure));
@@ -246,7 +238,16 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
             case Helio_ControlInputMode_ResistiveTouch: {
                 HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_NotYetInitialized));
                 HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
-                _input = new HelioInputResistiveTouch(ctrlInPins, _display, _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
+                _input = new HelioInputResistiveTouch(ctrlInPins, _display, _uiDispSetup.getDisplayRotation(), _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
+            } break;
+
+            case Helio_ControlInputMode_TouchScreen: {
+                HELIO_SOFT_ASSERT(_display, SFP(HStr_Err_NotYetInitialized));
+                HELIO_SOFT_ASSERT(_uiCtrlSetup.ctrlCfgType == UIControlSetup::Touchscreen, SFP(HStr_Err_InvalidParameter));
+                #ifdef HELIO_UI_ENABLE_XPT2046TS
+                    HELIO_SOFT_ASSERT(ctrlInPins.first && ctrlInPins.second && isValidPin(ctrlInPins.second[0]), SFP(HStr_Err_InvalidPinOrType));
+                #endif
+                _input = new HelioInputTouchscreen(ctrlInPins, _display, _uiDispSetup.getDisplayRotation(), _uiCtrlSetup.ctrlCfgAs.touchscreen.orient);
             } break;
 
             // TFT_eSPI
@@ -260,7 +261,7 @@ HelioduinoFullUI::HelioduinoFullUI(UIControlSetup uiControlSetup, UIDisplaySetup
                 #else
                     HELIO_HARD_ASSERT(false, SFP(HStr_Err_NotConfiguredProperly));
                 #endif
-                _input = new HelioInputTFTTouch(ctrlInPins, (HelioDisplayTFTeSPI *)_display, _uiCtrlSetup.ctrlCfgAs.touchscreen.orient, HELIO_UI_TFTTOUCH_USES_RAW);
+                _input = new HelioInputTFTTouch(ctrlInPins, (HelioDisplayTFTeSPI *)_display, _uiDispSetup.getDisplayRotation(), _uiCtrlSetup.ctrlCfgAs.touchscreen.orient, HELIO_UI_TFTTOUCH_USES_RAW);
             } break;
 
             default: break;
