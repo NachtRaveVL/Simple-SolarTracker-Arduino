@@ -6,4 +6,7 @@
 #include "../HelioduinoUI.h"
 #ifdef HELIO_USE_GUI
 
+extern float skyEaseInOut(float x);
+extern void randomStarColor(uint8_t* r, uint8_t* g, uint8_t* b);
+
 #endif
