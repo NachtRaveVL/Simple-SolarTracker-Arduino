@@ -189,8 +189,15 @@ struct MatrixControlSetup {
 // Touchscreen Input Setup
 struct TouchscreenSetup {
     Helio_TouchscreenOrientation orient; // Touchscreen orientation tuning (default: Same)
+    #ifdef HELIO_UI_ENABLE_XPT2046TS
+        SPIClass *spiClass;
+    #endif
 
-    inline TouchscreenSetup(Helio_TouchscreenOrientation orientIn = Helio_TouchscreenOrientation_Same) : orient(orientIn) { ; }
+    #ifndef HELIO_UI_ENABLE_XPT2046TS
+        inline TouchscreenSetup(Helio_TouchscreenOrientation orientIn = Helio_TouchscreenOrientation_Same) : orient(orientIn) { ; }
+    #else
+        inline TouchscreenSetup(Helio_TouchscreenOrientation orientIn = Helio_TouchscreenOrientation_Same, SPIClass *spiClassIn = HELIO_USE_SPI) : orient(orientIn), spiClass(spiClassIn) { ; }
+    #endif
 };
 
 // Combined UI Control Setup
