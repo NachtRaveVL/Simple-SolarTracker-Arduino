@@ -18,8 +18,8 @@ class HelioMenu;
 class HelioMenu
 {
 public:
-    HelioMenu();
-    virtual ~HelioMenu();
+    inline HelioMenu() : _loaded(false) { ; }
+    virtual ~HelioMenu() = default;
 
     virtual void loadMenu(MenuItem *addFrom = nullptr) = 0; // should call menuMgr.addMenuAfter()
     virtual MenuItem *getRootItem() = 0;

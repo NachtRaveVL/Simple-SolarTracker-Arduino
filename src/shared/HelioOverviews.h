@@ -21,8 +21,8 @@ class HelioOverviewTFT;
 // Meant to be able to be deleted on a moments notice to transition back into menu.
 class HelioOverview {
 public:
-    HelioOverview(HelioDisplayDriver *display);
-    virtual ~HelioOverview();
+    inline HelioOverview(HelioDisplayDriver *display) : _display(display), _needsFullRedraw(true) { ; }
+    virtual ~HelioOverview() = default;
 
     virtual void renderOverview(bool isLandscape, Pair<uint16_t, uint16_t> screenSize) = 0;
 

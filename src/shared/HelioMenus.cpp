@@ -6,11 +6,4 @@
 #include "HelioduinoUI.h"
 #ifdef HELIO_USE_GUI
 
-HelioMenu::HelioMenu()
-    : _loaded(false)
-{ ; }
-
-HelioMenu::~HelioMenu()
-{ ; }
-
 #endif

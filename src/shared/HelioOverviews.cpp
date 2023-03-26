@@ -6,11 +6,4 @@
 #include "HelioduinoUI.h"
 #ifdef HELIO_USE_GUI
 
-HelioOverview::HelioOverview(HelioDisplayDriver *display)
-    : _display(display), _needsFullRedraw(true)
-{ ; }
-
-HelioOverview::~HelioOverview()
-{ ; }
-
 #endif

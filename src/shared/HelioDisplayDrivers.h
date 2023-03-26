@@ -20,8 +20,7 @@ class HelioDisplayTFTeSPI;
 // Base display driver class that manages display output mode selection.
 class HelioDisplayDriver {
 public:
-    inline HelioDisplayDriver(Helio_DisplayRotation displayRotation = Helio_DisplayRotation_Undefined, uint16_t screenWidth = 0, uint16_t screenHeight = 0)
-        : _rotation(displayRotation), _displayTheme(Helio_DisplayTheme_Undefined), _screenSize{screenWidth, screenHeight} { ; }
+    inline HelioDisplayDriver(Helio_DisplayRotation displayRotation = Helio_DisplayRotation_Undefined, uint16_t screenWidth = 0, uint16_t screenHeight = 0) : _rotation(displayRotation), _displayTheme(Helio_DisplayTheme_Undefined), _screenSize{screenWidth, screenHeight} { ; }
     virtual ~HelioDisplayDriver() = default;
 
     virtual void initBaseUIFromDefaults() = 0;

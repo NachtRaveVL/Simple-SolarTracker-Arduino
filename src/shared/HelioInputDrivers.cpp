@@ -12,10 +12,6 @@ static const char _matrix3x4Keys[] PROGMEM = {HELIO_UI_3X4MATRIX_KEYS};
 static const char _matrix4x4Keys[] PROGMEM = {HELIO_UI_4X4MATRIX_KEYS};
 
 
-HelioInputDriver::HelioInputDriver(Pair<uint8_t, const pintype_t *> controlPins)
-    : _pins(controlPins)
-{ ; }
-
 bool HelioInputDriver::areAllPinsInterruptable() const
 {
     for (int i = 0; i < _pins.first; ++i) {

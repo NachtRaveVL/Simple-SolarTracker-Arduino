@@ -30,7 +30,8 @@ class HelioInputTFTTouch;
 // Base input driver class that manages control input mode selection.
 class HelioInputDriver {
 public:
-    HelioInputDriver(Pair<uint8_t, const pintype_t *> controlPins);
+    inline HelioInputDriver(Pair<uint8_t, const pintype_t *> controlPins) : _pins(controlPins) { ; }
+    virtual ~HelioInputDriver() = default;
 
     virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) = 0;
 
