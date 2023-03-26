@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "shared/HelioduinoUI.h"
 
 static HelioRTCInterface *_rtcSyncProvider = nullptr;
 time_t rtcNow() {
