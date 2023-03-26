@@ -4,6 +4,7 @@
 */
 #include <Helioduino.h>
 #if defined(HELIO_USE_WIFI) && defined(HELIO_USE_GUI)
+#include "HelioduinoUI.h"
 
 /*
  * Copyright (c) 2018 https://www.thecoderscorner.com (Dave Cherry).

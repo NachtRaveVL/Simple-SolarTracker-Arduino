@@ -5,6 +5,7 @@
 
 #include <Helioduino.h>
 #if defined(HELIO_USE_GUI) && defined(ESP32)
+#include "HelioduinoUI.h"
 
 /*
  * Copyright (c) 2018 https://www.thecoderscorner.com (Dave Cherry).

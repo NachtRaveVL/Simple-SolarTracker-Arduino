@@ -4,8 +4,9 @@
 */
 
 #include <Helioduino.h>
-#include "HelioUIDefines.h"
-#if defined(HELIO_USE_GUI) && (defined(ARDUINO_ARCH_MBED) || defined(ARDUINO_ARCH_STM32)) && (defined(HELIO_UI_ENABLE_STCHROMA_LDTC) || defined(HELIO_UI_ENABLE_BSP_TOUCH))
+#if defined(HELIO_USE_GUI) && (defined(ARDUINO_ARCH_MBED) || defined(ARDUINO_ARCH_STM32))
+#include "HelioduinoUI.h"
+#if (defined(HELIO_UI_ENABLE_STCHROMA_LDTC) || defined(HELIO_UI_ENABLE_BSP_TOUCH))
 
 /*
  * Copyright (c) 2018 https://www.thecoderscorner.com (Dave Cherry).
@@ -126,4 +127,5 @@ iotouch::TouchState StBspTouchInterrogator::internalProcessTouch(float *ptrX, fl
     return iotouch::TOUCHED;
 }
 
+#endif
 #endif

@@ -106,9 +106,9 @@ HelioDisplayU8g2OLED::HelioDisplayU8g2OLED(DeviceSetup displaySetup, Helio_Displ
             _drawable = new StChromaArtDrawable();
         #else
             if (displaySetup.cfgType == DeviceSetup::I2CSetup) {
-                _drawable = new U8g2Drawable(_gfx, displaySetup.cfgAs.i2c.wire);
+                _drawable = new U8g2Drawable(_gfx, displaySetup.cfgAs.i2c.wire, getBaseUI() && getBaseUI()->isUnicodeFonts());
             } else {
-                _drawable = new U8g2Drawable(_gfx);
+                _drawable = new U8g2Drawable(_gfx, nullptr, getBaseUI() && getBaseUI()->isUnicodeFonts());
             }
         #endif
         HELIO_SOFT_ASSERT(_drawable, SFP(HStr_Err_AllocationFailure));
