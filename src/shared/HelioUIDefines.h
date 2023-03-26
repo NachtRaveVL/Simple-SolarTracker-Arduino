@@ -31,7 +31,7 @@
 #endif
 
 #define HELIO_UI_I2C_LCD_BASEADDR       0x20                // Base address of I2C LiquidCrystalIO LCDs (bitwise or'ed with passed address - technically base address of i2c expander in use)
-#define HELIO_UI_I2C_OLED_BASEADDR      0x78                // Base address of I2C U8g2 OLEDs (bitwise or'ed with passed address, some devices may use 0x7e)
+#define HELIO_UI_I2C_OLED_BASEADDR      0x78                // Base address of I2C U8g2 OLEDs (bitwise or'ed with passed address, some devices may need 0x7e)
 #define HELIO_UI_BACKLIGHT_TIMEOUT      5 * SECS_PER_MIN    // Backlight timeout, in seconds
 #define HELIO_UI_START_AT_OVERVIEW      true                // Starts at overview screen (true), else menu screen (false)
 #define HELIO_UI_DEALLOC_AFTER_USE      defined(__AVR__)    // If screen data should be unloaded after use (true = lower memory usage, increased screens transition time), or stay memory-resident (false = higher memory usage, more instant screen transitions)
@@ -116,17 +116,17 @@ enum Helio_DisplayTheme : signed char {
 // ST77XX Device Kind
 // Special device kind identifier for common ST7735 B/S/R color tags and common ST7789 screen resolutions.
 enum Helio_ST77XXKind : signed char {
-    Helio_ST7735Tag_B                   = (int8_t)0xff,     // ST7735B B model
-    Helio_ST7735Tag_Green               = (int8_t)0x00,     // ST7735S Green tag (1.8" TFT, /w offset such as WaveShare)
-    Helio_ST7735Tag_Green18             = (int8_t)0x00,     // ST7735S 18Green tag (alias of Green)
-    Helio_ST7735Tag_Red                 = (int8_t)0x01,     // ST7735R Red tag
-    Helio_ST7735Tag_Red18               = (int8_t)0x01,     // ST7735R 18Red tag (alias of Red)
-    Helio_ST7735Tag_Black               = (int8_t)0x02,     // ST7735S Black tag (1.8" TFT)
-    Helio_ST7735Tag_Black18             = (int8_t)0x02,     // ST7735S 18Black tag (alias of Black)
-    Helio_ST7735Tag_Green144            = (int8_t)0x01,     // ST7735R 144Green tag (1.44" TFT)
-    Helio_ST7735Tag_Mini                = (int8_t)0x04,     // ST7735S Mini160x80 tag (0.96" TFT, 160x80, 12800 pixels - if inverted try Mini_Plugin)
-    Helio_ST7735Tag_Mini_Plugin         = (int8_t)0x06,     // ST7735S Mini160x80_Plugin tag (0.96" TFT /w plug-in FPC, 160x80, 12800 pixels)
-    Helio_ST7735Tag_Hallowing           = (int8_t)0x05,     // ST7735R Hallowing tag (various)
+    Helio_ST7735Tag_B                   = (int8_t)0xff,     // ST7735B B model (128x160, 20480 pixels)
+    Helio_ST7735Tag_Green               = (int8_t)0x00,     // ST7735S Green tag (1.8" TFT /w offset such as WaveShare, 128x160, 20480 pixels)
+    Helio_ST7735Tag_Green18             = (int8_t)0x00,     // ST7735S 18Green tag (alias of Green, 128x160, 20480 pixels)
+    Helio_ST7735Tag_Red                 = (int8_t)0x01,     // ST7735R Red tag (128x160, 20480 pixels)
+    Helio_ST7735Tag_Red18               = (int8_t)0x01,     // ST7735R 18Red tag (alias of Red, 128x160, 20480 pixels)
+    Helio_ST7735Tag_Black               = (int8_t)0x02,     // ST7735S Black tag (1.8" TFT, 128x160, 20480 pixels)
+    Helio_ST7735Tag_Black18             = (int8_t)0x02,     // ST7735S 18Black tag (alias of Black, 128x160, 20480 pixels)
+    Helio_ST7735Tag_Green144            = (int8_t)0x01,     // ST7735R 144Green tag (1.44" TFT, 128x128, 16384 pixels)
+    Helio_ST7735Tag_Mini                = (int8_t)0x04,     // ST7735S Mini160x80 tag (0.96" TFT, 80x160, 12800 pixels - if inverted try Mini_Plugin)
+    Helio_ST7735Tag_Mini_Plugin         = (int8_t)0x06,     // ST7735S Mini160x80_Plugin tag (0.96" TFT /w plug-in FPC, 80x160, 12800 pixels)
+    Helio_ST7735Tag_Hallo_Wing          = (int8_t)0x05,     // ST7735R HalloWing tag (upside-down 144Green, 128x128, 16384 pixels)
 
     Helio_ST7789Res_128x128             = (int8_t)0x10,     // ST7789 128x128 (0.85", 1.44" & 1.5" TFTs, 16384 pixels)
     Helio_ST7789Res_135x240,                                // ST7789 135x240 (1.14" TFT, 32400 pixels)

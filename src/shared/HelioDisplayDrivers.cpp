@@ -10,10 +10,6 @@
 #include "IoAbstractionWire.h"
 #include "DfRobotInputAbstraction.h"
 
-HelioDisplayDriver::HelioDisplayDriver(Helio_DisplayRotation displayRotation)
-    : _rotation(displayRotation), _displayTheme(Helio_DisplayTheme_Undefined)
-{ ; }
-
 void HelioDisplayDriver::setupRendering(uint8_t titleMode, Helio_DisplayTheme displayTheme, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool utf8Fonts)
 {
     auto graphicsRenderer = getGraphicsRenderer();
@@ -53,7 +49,7 @@ void HelioDisplayDriver::setupRendering(uint8_t titleMode, Helio_DisplayTheme di
 
 
 HelioDisplayLiquidCrystal::HelioDisplayLiquidCrystal(Helio_DisplayOutputMode displayMode, I2CDeviceSetup displaySetup, Helio_BacklightMode ledMode)
-    : _screenSize{displayMode < Helio_DisplayOutputMode_LCD20x4_EN ? 16 : 20, displayMode < Helio_DisplayOutputMode_LCD20x4_EN ? 2 : 4},
+    : HelioDisplayDriver(Helio_DisplayRotation_Undefined, displayMode < Helio_DisplayOutputMode_LCD20x4_EN ? 16 : 20, displayMode < Helio_DisplayOutputMode_LCD20x4_EN ? 2 : 4),
       _lcd(displayMode == Helio_DisplayOutputMode_LCD16x2_EN || displayMode == Helio_DisplayOutputMode_LCD20x4_EN ? 2 : 0, 1,
            displayMode == Helio_DisplayOutputMode_LCD16x2_EN || displayMode == Helio_DisplayOutputMode_LCD20x4_EN ? 0 : 2, 4, 5, 6, 7,
            ledMode == Helio_BacklightMode_Normal ? LiquidCrystal::BACKLIGHT_NORMAL : ledMode == Helio_BacklightMode_Inverted ? LiquidCrystal::BACKLIGHT_INVERTED : LiquidCrystal::BACKLIGHT_PWM,
@@ -61,16 +57,18 @@ HelioDisplayLiquidCrystal::HelioDisplayLiquidCrystal(Helio_DisplayOutputMode dis
       _renderer(_lcd, _screenSize[0], _screenSize[1], getController()->getSystemNameChars())
 {
     _lcd.configureBacklightPin(3);
+    _renderer.setTitleRequired(false);
 }
 
-HelioDisplayLiquidCrystal::HelioDisplayLiquidCrystal(bool isDFRobotShield_unused, I2CDeviceSetup displaySetup, Helio_BacklightMode ledMode)
-    : _screenSize{16, 2},
+HelioDisplayLiquidCrystal::HelioDisplayLiquidCrystal(bool, I2CDeviceSetup displaySetup, Helio_BacklightMode ledMode)
+    : HelioDisplayDriver(Helio_DisplayRotation_Undefined, 16, 2),
       _lcd(8, 9, 4, 5, 6, 7,
            ledMode == Helio_BacklightMode_Normal ? LiquidCrystal::BACKLIGHT_NORMAL : ledMode == Helio_BacklightMode_Inverted ? LiquidCrystal::BACKLIGHT_INVERTED : LiquidCrystal::BACKLIGHT_PWM,
            ioFrom8574(HELIO_UI_I2C_LCD_BASEADDR | displaySetup.address, 0xff, displaySetup.wire, false)),
       _renderer(_lcd, _screenSize[0], _screenSize[1], getController()->getSystemNameChars())
 {
     _lcd.configureBacklightPin(10);
+    _renderer.setTitleRequired(false);
 }
 
 void HelioDisplayLiquidCrystal::initBaseUIFromDefaults()
@@ -81,18 +79,23 @@ void HelioDisplayLiquidCrystal::initBaseUIFromDefaults()
 void HelioDisplayLiquidCrystal::begin()
 {
     _lcd.begin(_screenSize[0], _screenSize[1]);
-    _renderer.setTitleRequired(false);
+}
+
+void HelioDisplayLiquidCrystal::setupRendering(uint8_t titleMode, Helio_DisplayTheme displayTheme, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool utf8Fonts)
+{
+    // HelioDisplayDriver::setupRendering(titleMode, displayTheme, itemFont, titleFont, analogSlider, editingIcons, utf8Fonts); // simply returns
+    _renderer.setTitleRequired(titleMode == BaseGraphicalRenderer::TITLE_ALWAYS);
 }
 
 HelioOverview *HelioDisplayLiquidCrystal::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewLCD(this); // todo: font handling (# based)
+    return new HelioOverviewLCD(this); // todo: font handling
 }
 
 
 HelioDisplayU8g2OLED::HelioDisplayU8g2OLED(DeviceSetup displaySetup, Helio_DisplayRotation displayRotation, U8G2 *gfx)
-    : HelioDisplayDriver(displayRotation),
-      _screenSize{gfx->getDisplayWidth(), gfx->getDisplayHeight()}, _gfx(gfx), _drawable(nullptr), _renderer(nullptr)
+    : HelioDisplayDriver(displayRotation, gfx->getDisplayWidth(), gfx->getDisplayHeight()), // already rotated due to constructor, possibly incorrect until after begin
+      _gfx(gfx), _drawable(nullptr), _renderer(nullptr)
 {
     HELIO_SOFT_ASSERT(_gfx, SFP(HStr_Err_AllocationFailure));
     if (_gfx) {
@@ -131,23 +134,26 @@ void HelioDisplayU8g2OLED::initBaseUIFromDefaults()
 
 void HelioDisplayU8g2OLED::begin()
 {
-    if (_gfx) { _gfx->begin(); }
+    if (_gfx) {
+        _gfx->begin();
+        _screenSize[0] = _gfx->getDisplayWidth();
+        _screenSize[1] = _gfx->getDisplayHeight();
+    }
 }
 
 HelioOverview *HelioDisplayU8g2OLED::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewOLED(this); // todo: font handling (# based)
+    return new HelioOverviewOLED(this); // todo: font handling
 }
 
 
 HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
+    : HelioDisplayDriver(displayRotation, _gfx.width(),_gfx.height()), _kind(st77Kind),
       #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _screenSize{_gfx.width(),_gfx.height()}, // incorrect until after begin
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 {
@@ -155,6 +161,23 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
     #ifdef ESP8266
         HELIO_SOFT_ASSERT(!(bool)HELIO_USE_SPI || displaySetup.spi == HELIO_USE_SPI, SFP(HStr_Err_InvalidParameter));
     #endif
+
+    switch (_kind) {
+        case Helio_ST7735Tag_Green144:
+        case Helio_ST7735Tag_Hallo_Wing:
+            _screenSize[0] = 128;
+            _screenSize[1] = 128;
+            break;
+        case Helio_ST7735Tag_Mini:
+        case Helio_ST7735Tag_Mini_Plugin:
+            _screenSize[0] = 80;
+            _screenSize[1] = 160;
+            break;
+        default:
+            _screenSize[0] = 128;
+            _screenSize[1] = 160;
+            break;
+    }
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::initBaseUIFromDefaults()
@@ -181,13 +204,12 @@ HelioOverview *HelioDisplayAdafruitGFX<Adafruit_ST7735>::allocateOverview(const 
 
 
 HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
+    : HelioDisplayDriver(displayRotation, _gfx.width(),_gfx.height()), _kind(st77Kind),
       #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _screenSize{_gfx.width(),_gfx.height()}, // incorrect until after begin
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 {
@@ -195,6 +217,41 @@ HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup
     #ifdef ESP8266
         HELIO_SOFT_ASSERT(!(bool)HELIO_USE_SPI || displaySetup.spi == HELIO_USE_SPI, SFP(HStr_Err_InvalidParameter));
     #endif
+
+    switch (_kind) {
+        case Helio_ST7789Res_128x128:
+            _screenSize[0] = 128;
+            _screenSize[1] = 128;
+            break;
+        case Helio_ST7789Res_135x240:
+            _screenSize[0] = 135;
+            _screenSize[1] = 240;
+            break;
+        case Helio_ST7789Res_170x320:
+            _screenSize[0] = 170;
+            _screenSize[1] = 320;
+            break;
+        case Helio_ST7789Res_172x320:
+            _screenSize[0] = 172;
+            _screenSize[1] = 320;
+            break;
+        case Helio_ST7789Res_240x240:
+            _screenSize[0] = 240;
+            _screenSize[1] = 240;
+            break;
+        case Helio_ST7789Res_240x280:
+            _screenSize[0] = 240;
+            _screenSize[1] = 280;
+            break;
+        case Helio_ST7789Res_240x320:
+            _screenSize[0] = 240;
+            _screenSize[1] = 320;
+            break;
+        default:
+            _screenSize[0] = TFT_GFX_WIDTH;
+            _screenSize[1] = TFT_GFX_HEIGHT;
+            break;
+    }
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::initBaseUIFromDefaults()
@@ -204,32 +261,7 @@ void HelioDisplayAdafruitGFX<Adafruit_ST7789>::initBaseUIFromDefaults()
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::begin()
 {
-    switch (_kind) {
-        case Helio_ST7789Res_128x128:
-            _gfx.init(128, 128);
-            break;
-        case Helio_ST7789Res_135x240:
-            _gfx.init(135, 240);
-            break;
-        case Helio_ST7789Res_170x320:
-            _gfx.init(170, 320);
-            break;
-        case Helio_ST7789Res_172x320:
-            _gfx.init(172, 320);
-            break;
-        case Helio_ST7789Res_240x240:
-            _gfx.init(240, 240);
-            break;
-        case Helio_ST7789Res_240x280:
-            _gfx.init(240, 280);
-            break;
-        case Helio_ST7789Res_240x320:
-            _gfx.init(240, 320);
-            break;
-        default:
-            _gfx.init(TFT_GFX_WIDTH, TFT_GFX_HEIGHT);
-            break;
-    }
+    _gfx.init(_screenSize[0], _screenSize[1]);
     _screenSize[0] = _gfx.width();
     _screenSize[1] = _gfx.height();
     _gfx.setRotation((uint8_t)_rotation);
@@ -242,13 +274,12 @@ HelioOverview *HelioDisplayAdafruitGFX<Adafruit_ST7789>::allocateOverview(const 
 
 
 HelioDisplayAdafruitGFX<Adafruit_ILI9341>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation),
+    : HelioDisplayDriver(displayRotation, _gfx.width(),_gfx.height()), // possibly incorrect until after begin
       #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _screenSize{_gfx.width(),_gfx.height()}, // incorrect until after begin
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
 {
@@ -277,7 +308,8 @@ HelioOverview *HelioDisplayAdafruitGFX<Adafruit_ILI9341>::allocateOverview(const
 
 
 HelioDisplayTFTeSPI::HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, Helio_ST77XXKind st77Kind)
-    : HelioDisplayDriver(displayRotation), _kind(st77Kind),
+    : HelioDisplayDriver(displayRotation, TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
+      _kind(st77Kind),
       _gfx(TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
       _drawable(&_gfx, 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
@@ -301,7 +333,7 @@ void HelioDisplayTFTeSPI::begin()
 
 HelioOverview *HelioDisplayTFTeSPI::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewTFT(this); // todo: font handling (# based)
+    return new HelioOverviewTFT(this); // todo: font handling
 }
 
 #endif
