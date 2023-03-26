@@ -68,12 +68,7 @@ void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayThe
         _uiData->editingIcons = editingIcons;
     }
 
-    #if HELIO_UI_START_AT_OVERVIEW
-        if (!_overview && _display) {
-            _overview = _display->allocateOverview(_clockFont, _detailFont);
-            HELIO_SOFT_ASSERT(_overview, SFP(HStr_Err_AllocationFailure));
-        }
-    #else
+    #if !HELIO_UI_START_AT_OVERVIEW
         if (!_homeMenu) {
             _homeMenu = new HelioHomeMenu();
             HELIO_SOFT_ASSERT(_homeMenu, SFP(HStr_Err_AllocationFailure));
