@@ -156,7 +156,7 @@ protected:
 class HelioInputMatrix2x2 : public HelioInputDriver {
 public:
     HelioInputMatrix2x2(Pair<uint8_t, const pintype_t *> controlPins, millis_t repeatDelay, millis_t repeatInterval);
-    virtual ~HelioInputMatrix2x2();
+    virtual ~HelioInputMatrix2x2() = default;
 
     virtual void begin(HelioDisplayDriver *displayDriver, MenuItem *initialItem) override;
 
