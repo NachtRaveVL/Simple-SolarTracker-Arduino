@@ -34,7 +34,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_DISP_SPI                  SPI             // Display SPI class instance
 #define SETUP_DISP_SPI_CS               -1              // Display SPI CS pin, else -1
 #define SETUP_DISP_SPI_SPEED            F_SPD           // Display SPI speed, in Hz
-#define SETUP_CTRL_INPUT_PINS           {hpin_none}     // Control input pins, else {-1}
+#define SETUP_CTRL_INPUT_PINS           {hpin_none}     // Control input pins array, else {-1} (should be same sized array as control input mode enum specifies)
 #define SETUP_I2C_WIRE                  Wire            // I2C wire class instance
 #define SETUP_I2C_SPEED                 400000U         // I2C speed, in Hz
 #define SETUP_ESP_I2C_SDA               SDA             // I2C SDA pin, if on ESP
@@ -390,6 +390,7 @@ inline void setupPinChannels()
                 SharedPtr<HelioPinExpander>(nullptr)
             #endif
         };
+        // To setup control input pins as part of an expander, use pin #'s 100+, which are treated as virtual pins representing an expander index ((#-100) /16) and offset ((#-100) %16).
         if (isValidPin(SETUP_CTRL_INPUT_PINS_[0]) && SETUP_CTRL_INPUT_PINS_[0] >= hpin_virtual && !helioController.getPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]))) {
             helioController.setPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]), expanders[expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0])]);
         }
