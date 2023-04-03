@@ -242,6 +242,8 @@ void HelioInputMatrix2x2::begin(HelioDisplayDriver *displayDriver, MenuItem *ini
                              &_keyboardLayout, &_tcMenuKeyListener,
                              (!getBaseUI() || getBaseUI()->allowingISR()) && areRowPinsInterruptable());
     #endif
+
+    menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem);
 }
 
 bool HelioInputMatrix2x2::areRowPinsInterruptable() const
@@ -297,6 +299,7 @@ void HelioInputMatrix3x4::begin(HelioDisplayDriver *displayDriver, MenuItem *ini
     #endif
 
     if (_rotaryEncoder) { _rotaryEncoder->begin(displayDriver, initialItem); }
+    else { menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem); }
 }
 
 bool HelioInputMatrix3x4::areRowPinsInterruptable() const
@@ -355,6 +358,7 @@ void HelioInputMatrix4x4::begin(HelioDisplayDriver *displayDriver, MenuItem *ini
     #endif
 
     if (_rotaryEncoder) { _rotaryEncoder->begin(displayDriver, initialItem); }
+    else { menuMgr.initWithoutInput(displayDriver->getBaseRenderer(), initialItem); }
 }
 
 bool HelioInputMatrix4x4::areRowPinsInterruptable() const
