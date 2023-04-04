@@ -246,6 +246,10 @@ From Helioduino.h, in class Helioduino:
 
 ## Hookup Callouts
 
+Many of the various electronic components and systems this controller is designed to work with may have specific setup procedures and/or wiring requirements. While advanced users may find this section a refresher at best, the below callouts are highlighted in order to help prevent device damage and ensure proper controller operation.
+
+### General
+
 * The recommended Vcc power supply and logic level is 5v, with most newer MCUs restricted to 3.3v.
   * There are many devices that are 3.3v only and not 5v tolerant. Check your IC's datasheet for details.
 * 5v device output pins that interface with any 3.3v device input pins that are not 5v tolerant (such as a 5v AVR interfacing with a 3.3v-only [serial ESP-AT WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/), or a 3.3v MCU interfacing with a 5v analog sensor), will require a bi-directional logic level converter/shifter to use, especially for any high-speed digital data transfer lines.
@@ -256,7 +260,7 @@ From Helioduino.h, in class Helioduino:
 Serial UART uses individual communication lines for each device, with the receive `RX` pin of one being the transmit `TX` pin of the other - thus having to "flip wires" when connecting. However, devices can always be active and never have to share their access. UART runs at low to mid kHz speeds and is useful for simple device control, albeit somewhat clumsy at times.
 
 * When wiring up modules that use Serial UART, make sure to flip `RX`/`TX` pins.
-* Always ensure that the data output pins and data input pins have compatible voltages.
+* Always ensure that any data output pins and data input pins have compatible voltages.
 
 Serial UART Devices Supported: Bluetooth-AT modules, ESP-AT WiFi modules, NMEA-AT GPS modules
 
@@ -270,7 +274,7 @@ SPI devices can be chained together on the same shared data lines, which are typ
 * Many various graphical displays may have an additional `DC` (or `RS`) pin, which is required to be connected to any open digital pin in addition to its `CS` pin.
   * There is often an additional `Reset` (or `RST`) pin that needs either wired to an open digital pin for MCU control, otherwise typically will need hard-tied to a HIGH signal (such as that from `Vcc`) in order for the display to function/turn-on.
   * There is also often an additional `LED` (or `BL`) pin that controls the backlight that can be either optionally wired to an open digital or analog pin for MCU control, otherwise can be hard-tied typically to a HIGH signal (such as that from `Vcc`) in order to stay always-on, or simply left disconnected for device default.
-* Always ensure that the data output pins and data input pins have compatible voltages.
+* Always ensure that any data output pins and data input pins have compatible voltages.
 
 SPI Devices Supported: SD card modules, NMEA GPS modules, 128x128+ LCD/OLED/TFT graphical displays, XPT2046 touchscreens
 
@@ -280,7 +284,7 @@ I2C (aka I²C, IIC, TwoWire, TWI) devices can be chained together on the same sh
 
 * When more than one I2C device of the same kind is to be used on the same data line, each device must be set to use a different address. This is accomplished via the A0-A2 (sometimes A0-A5) pins/pads on the physical device that must be set either open or closed (typically via a de-solderable resistor, or by shorting a pin/pad). Check your specific breakout's datasheet for details.
 * Note that not all the I2C libraries used support multi-addressable I2C devices at this time (read as: may only use one). Currently, this restriction applies to: RTC devices.
-* Always ensure that the data output pins and data input pins have compatible voltages.
+* Always ensure that any data output pins and data input pins have compatible voltages.
 
 I2C Devices Supported: DS*/PCF* RTC modules, AT24C* EEPROM modules, NMEA GPS modules, 16x2/20x4 LCD displays, 128x32/128x64 OLED displays, FT6206 touchscreens, 8/16-bit pin expanders
 
@@ -290,7 +294,7 @@ OneWire devices can be chained together on the same shared data lines (no flippi
 
 * Typically, sensors are limited to 20 devices along a maximum 100m of wire.
 * When more than one OneWire device is on the same device line, each device registers itself an enumeration index (0 - N) along with its own 64-bit unique identifier (UUID, with last byte being CRC). The device can then be referenced via this UUID by the system in the future indefinitely, or enumeration index so long as the device doesn't change its line position.
-* Always ensure that the data output pins and data input pins have compatible voltages.
+* Always ensure that any data output pins and data input pins have compatible voltages.
 
 OneWire Devices Supported: DHT* 1W air temp/humidity sensors
 
@@ -306,7 +310,7 @@ OneWire Devices Supported: DHT* 1W air temp/humidity sensors
 
 ### Sensors
 
-* Many different kinds of hobbyist sensors label their analog output `AO` (or `Ao`) - however, always check your specific sensor's datasheet.
+* Many different kinds of hobbyist sensors label their analog output `AO` (or `Ao`) - however, always check your specific sensor's datasheet, as some may have non-standard pin designations.
   * Again, make sure all analog sensors are calibrated to output the same 0v - `AREF` (or `IOREF`) volts in range.
 * Sensor pins used for event triggering when measurements go above/below a pre-set tolerance - many of which are deceptively labeled `DO` (or `Do`), despite having nothing to do with being `D`ata lines of any kind - can be safely ignored, as the software implementation of such mechanism is more than sufficient.
   * Often these connections are used to drive other hardware-only based solutions that aren't a part of Helioduino's use case, but can still be connected up using a BinarySensor that triggers upon specific conditions, possibly using an ISR-capable pin if desired.
