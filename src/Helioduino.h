@@ -56,7 +56,7 @@
 // Uncomment or -D this define to enable external data storage (SD card or EEPROM) to save on sketch size. Required for constrained devices.
 //#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, see DataWriter example for exporting details
 
-// Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
+// Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor, waiting on start for connection).
 //#define HELIO_ENABLE_DEBUG_OUTPUT
 
 // Uncomment or -D this define to enable verbose debug output (note: adds considerable size to compiled sketch).
@@ -74,6 +74,18 @@
 #include <SD.h>
 #include <SPI.h>
 #include <Wire.h>
+
+#ifdef NDEBUG
+#ifdef HELIO_ENABLE_DEBUG_OUTPUT
+#undef HELIO_ENABLE_DEBUG_OUTPUT
+#endif
+#ifdef HELIO_ENABLE_VERBOSE_DEBUG
+#undef HELIO_ENABLE_VERBOSE_DEBUG
+#endif
+#ifdef HELIO_ENABLE_DEBUG_ASSERTIONS
+#undef HELIO_ENABLE_DEBUG_ASSERTIONS
+#endif
+#endif // /ifdef NDEBUG
 
 #if !defined(USE_SW_SERIAL)
 typedef HardwareSerial SerialClass;
@@ -100,19 +112,17 @@ typedef int uartmode_t;
 #define HELIO_USE_WIFI_STORAGE
 #endif
 #define HELIO_USE_WIFI
-#endif
-#ifdef HELIO_ENABLE_AT_WIFI
+#define HELIO_USE_NET
+#elif defined(HELIO_ENABLE_AT_WIFI)
 #include "WiFiEspAT.h"                  // WiFi ESP AT library
 #define HELIO_USE_AT_WIFI
 #define HELIO_USE_WIFI
-#endif
-#ifdef HELIO_ENABLE_ETHERNET
+#define HELIO_USE_NET
+#elif defined(HELIO_ENABLE_ETHERNET)
 #include <Ethernet.h>                   // https://github.com/arduino-libraries/Ethernet
 #define HELIO_USE_ETHERNET
-#endif
-#if defined(HELIO_USE_WIFI) || defined(HELIO_USE_ETHERNET)
 #define HELIO_USE_NET
-#endif
+#endif // /ifdef HELIO_ENABLE_WIFI
 
 #ifndef HELIO_DISABLE_MULTITASKING
 #include "TaskManagerIO.h"              // Task Manager library
@@ -130,9 +140,6 @@ typedef uint8_t pintype_t;
 #endif
 #endif
 
-#if defined(NDEBUG) && defined(HELIO_ENABLE_DEBUG_OUTPUT)
-#undef HELIO_ENABLE_DEBUG_OUTPUT
-#endif
 #if defined(HELIO_ENABLE_DEBUG_OUTPUT) && defined(HELIO_ENABLE_VERBOSE_DEBUG)
 #define HELIO_USE_VERBOSE_OUTPUT
 #endif

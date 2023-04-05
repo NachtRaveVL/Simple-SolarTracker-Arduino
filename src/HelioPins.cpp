@@ -90,7 +90,7 @@ void HelioPin::init()
                         break;
                 }
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
                     HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
 
@@ -117,7 +117,7 @@ void HelioPin::deinit()
             if (!(isExpanded() || isVirtual())) {
                 pinMode(pin, INPUT);
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     if (expander) {
                         expander->getIoAbstraction()->pinDirection(channel % 16, INPUT);
@@ -145,7 +145,7 @@ bool HelioPin::enablePin(int step)
                     }
                 }
             } else if (isExpanded() || isVirtual()) {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     return expander && expander->trySyncChannel();
                 #else
@@ -208,7 +208,7 @@ ard_pinstatus_t HelioDigitalPin::digitalRead()
             if (!(isExpanded() || isVirtual())) {
                 return ::digitalRead(pin);
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     if (expander) {
                         return (ard_pinstatus_t)(expander->getIoAbstraction()->readValue(channel % 16));
@@ -230,7 +230,7 @@ void HelioDigitalPin::digitalWrite(ard_pinstatus_t status)
                 if (isMuxed()) { selectPin(); }
                 ::digitalWrite(pin, status);
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     if (expander) {
                         expander->getIoAbstraction()->writeValue(channel % 16, (uint8_t)status);
@@ -313,7 +313,7 @@ void HelioAnalogPin::init()
                     ledcSetup(pwmChannel, pwmFrequency, bitRes.bits);
                 #endif
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     HELIO_SOFT_ASSERT(isVirtual() && pin == pinNumberForPinChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
                     HELIO_SOFT_ASSERT(channel == pinChannelForExpanderChannel(channel), SFP(HStr_Err_NotConfiguredProperly));
 
@@ -365,7 +365,7 @@ int HelioAnalogPin::analogRead_raw()
                 #endif
                 return ::analogRead(pin);
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     if (expander) {
                         auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
@@ -403,7 +403,7 @@ void HelioAnalogPin::analogWrite_raw(int amount)
                     ::analogWrite(pin, amount);
                 #endif
             } else {
-                #ifndef HELIO_DISABLE_MULTITASKING
+                #ifdef HELIO_USE_MULTITASKING
                     auto expander = getController() ? getController()->getPinExpander(isValidChannel(channel) ? expanderPosForPinChannel(channel) : expanderPosForPinNumber(pin)) : nullptr;
                     if (expander) {
                         auto analogIORef = (AnalogDevice *)(expander->getIoAbstraction());
@@ -570,7 +570,7 @@ void HelioPinMuxer::setIsActive(bool isActive)
     }
 }
 
-#ifndef HELIO_DISABLE_MULTITASKING
+#ifdef HELIO_USE_MULTITASKING
 
 HelioPinExpander::HelioPinExpander()
     : _expander(0), _channelBits(0), _ioRef(nullptr), _interrupt(), _usingISR(false)
@@ -596,4 +596,4 @@ bool HelioPinExpander::trySyncChannel()
     return _ioRef->sync();
 }
 
-#endif // /ifndef HELIO_DISABLE_MULTITASKING
+#endif // /ifdef HELIO_USE_MULTITASKING

@@ -30,7 +30,7 @@
 // // Uncomment or -D this define to enable external data storage (SD card or EEPROM) to save on sketch size. Required for constrained devices.
 // //#define HELIO_DISABLE_BUILTIN_DATA              // Disables library data existing in Flash, see DataWriter example for exporting details
 // 
-// // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor).
+// // Uncomment or -D this define to enable debug output (treats Serial output as attached to serial monitor, waiting on start for connection).
 // #define HELIO_ENABLE_DEBUG_OUTPUT
 //
 // Alternatively, in platform[.local].txt:
@@ -152,7 +152,7 @@ void setup() {
                 yield();
             }
 
-            #ifndef HELIO_DISABLE_GUI
+            #ifdef HELIO_USE_GUI
             {   getLogger()->logMessage(F("=== Writing UI data to SD card ==="));
 
                 uint16_t lookupTable[HUIStr_Count];
@@ -201,7 +201,7 @@ void setup() {
 
                 yield();
             }
-            #endif // /ifndef HELIO_DISABLE_GUI
+            #endif // /ifdef HELIO_USE_GUI
 
             getController()->endSDCard(sd);
         } else {
@@ -256,7 +256,7 @@ void setup() {
                 }
             }
 
-            #ifndef HELIO_DISABLE_GUI
+            #ifdef HELIO_USE_GUI
             {   getLogger()->logMessage(F("=== Writing UI strings data to EEPROM ==="));
 
                 // Similar to above, same deal with a lookup table.
@@ -292,7 +292,7 @@ void setup() {
                     }
                 }
             }
-            #endif // /ifndef HELIO_DISABLE_GUI
+            #endif // /ifdef HELIO_USE_GUI
 
             getLogger()->logMessage(F("Total EEPROM usage: "), String(sysDataBegAddr), F(" bytes"));
             getLogger()->logMessage(F("EEPROM capacity used: "), String(((float)sysDataBegAddr / eeprom->getDeviceSize()) * 100.0f) + String(F("% of ")), String(eeprom->getDeviceSize()) + String(F(" bytes")));
@@ -301,7 +301,7 @@ void setup() {
             Serial.println(addressToString(sysDataBegAddr));
             Serial.print(F("#define SETUP_EEPROM_STRINGS_ADDR       "));
             Serial.println(addressToString(stringsBegAddr));
-            #ifndef HELIO_DISABLE_GUI
+            #ifdef HELIO_USE_GUI
             Serial.print(F("#define SETUP_EEPROM_UIDSTRS_ADDR       "));
             Serial.println(addressToString(uidStrsBegAddr));
             #endif

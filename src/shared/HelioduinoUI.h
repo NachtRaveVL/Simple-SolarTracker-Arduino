@@ -20,6 +20,12 @@
 //#define HELIO_UI_ENABLE_DEBUG_MENU
 
 
+#ifdef NDEBUG
+#ifdef HELIO_UI_ENABLE_DEBUG_MENU
+#undef HELIO_UI_ENABLE_DEBUG_MENU
+#endif
+#endif // /ifdef NDEBUG
+
 #include <Helioduino.h>
 #ifdef HELIO_USE_GUI
 #ifndef HelioBaseUI_H

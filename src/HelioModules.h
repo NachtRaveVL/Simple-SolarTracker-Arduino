@@ -83,14 +83,14 @@ public:
     // to have a shared address bus (based on HELIO_MUXERS_SHARED_ADDR_BUS setting).
     void deactivatePinMuxers();
 
-#ifndef HELIO_DISABLE_MULTITASKING
+#ifdef HELIO_USE_MULTITASKING
 
     // Sets pin expander for index.
     inline void setPinExpander(hposi_t index, SharedPtr<HelioPinExpander> pinExpander) { _pinExpanders[index] = pinExpander; }
     // Returns expander for index.
     inline SharedPtr<HelioPinExpander> getPinExpander(hposi_t index) { return _pinExpanders[index]; }
 
-#endif // /ifndef HELIO_DISABLE_MULTITASKING
+#endif // /ifdef HELIO_USE_MULTITASKING
 
     // OneWire instance for given pin (lazily instantiated)
     OneWire *getOneWireForPin(pintype_t pin);
@@ -101,7 +101,7 @@ protected:
     Map<pintype_t, OneWire *, HELIO_SYS_ONEWIRES_MAXSIZE> _pinOneWire; // Pin OneWire mapping
     Map<pintype_t, pintype_t, HELIO_SYS_PINLOCKS_MAXSIZE> _pinLocks; // Pin locks mapping (existence = locked)
     Map<pintype_t, SharedPtr<HelioPinMuxer>, HELIO_SYS_PINMUXERS_MAXSIZE> _pinMuxers; // Pin muxers mapping
-#ifndef HELIO_DISABLE_MULTITASKING
+#ifdef HELIO_USE_MULTITASKING
     Map<hposi_t, SharedPtr<HelioPinExpander>, HELIO_SYS_PINEXPANDERS_MAXSIZE> _pinExpanders; // Pin expanders mapping
 #endif
 };

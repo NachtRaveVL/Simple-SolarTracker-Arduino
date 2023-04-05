@@ -406,7 +406,7 @@ inline bool checkPinIsPWMOutput(pintype_t pin)
 inline bool checkPinCanInterrupt(pintype_t pin)
 {
     if (pin >= hpin_virtual) {
-        #ifndef HELIO_DISABLE_MULTITASKING
+        #ifdef HELIO_USE_MULTITASKING
             return getController() && getController()->getPinExpander(expanderPosForPinNumber(pin)) &&
                    getController()->getPinExpander(expanderPosForPinNumber(pin))->getInterruptPin().isValid() &&
                    isValidPin(digitalPinToInterrupt(getController()->getPinExpander(expanderPosForPinNumber(pin))->getInterruptPin().pin));

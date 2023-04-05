@@ -12,7 +12,7 @@ struct HelioAnalogPin;
 struct HelioPinData;
 
 class HelioPinMuxer;
-#ifndef HELIO_DISABLE_MULTITASKING
+#ifdef HELIO_USE_MULTITASKING
 class HelioPinExpander;
 #endif
 
@@ -258,7 +258,7 @@ public: // consider protected
     inline void deactivate() { setIsActive(false); }        // Deactivates channel
 };
 
-#ifndef HELIO_DISABLE_MULTITASKING
+#ifdef HELIO_USE_MULTITASKING
 
 // Pin Expander
 // Ditching the address bus, a pin expander instead expands the pin #'s available by
@@ -304,6 +304,6 @@ protected:
     bool _usingISR;                                         // Using ISR flag
 };
 
-#endif // /ifndef HELIO_DISABLE_MULTITASKING
+#endif // /ifdef HELIO_USE_MULTITASKING
 
 #endif // /ifndef HelioPin_H
