@@ -79,7 +79,8 @@ public:
     inline void setPinMuxer(pintype_t pin, SharedPtr<HelioPinMuxer> pinMuxer) { _pinMuxers[pin] = pinMuxer; }
     // Returns pin muxer for pin #.
     inline SharedPtr<HelioPinMuxer> getPinMuxer(pintype_t pin) { return _pinMuxers[pin]; }
-    // Disables/deactivates all pin muxers. All pin muxers are assumed to have a shared address bus.
+    // Deactivates all pin muxers. Called before selecting another channel if pin muxers are assumed
+    // to have a shared address bus (based on HELIO_MUXERS_SHARED_ADDR_BUS setting).
     void deactivatePinMuxers();
 
 #ifndef HELIO_DISABLE_MULTITASKING

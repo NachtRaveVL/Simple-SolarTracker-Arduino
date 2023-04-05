@@ -181,6 +181,8 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 
 #define HELIO_DRV_FINETRAVEL_RATEMULT   0.5f                // Fine travel movement rate multiplier used on activations when actuator is within fine alignment distance with target.
 
+#define HELIO_MUXERS_SHARED_ADDR_BUS    false               // Pin muxer channel selects should disable all pin muxers due to using same address bus (true), or not (false)
+
 #define HELIO_NIGHT_START_HR            20                  // Hour of the day night starts (for resting panels, used if not able to calculate from location & time)
 #define HELIO_NIGHT_FINISH_HR           6                   // Hour of the day night finishes (for resting panels, used if not able to calculate from location & time)
 

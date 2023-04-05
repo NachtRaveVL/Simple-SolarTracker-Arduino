@@ -171,7 +171,7 @@ HelioBinarySensor::HelioBinarySensor(const HelioBinarySensorData *dataIn)
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _inputPin.init();
 
-    if (dataIn->usingISR) { tryRegisterAsISR(); }
+    if (dataIn->usingISR) { tryRegisterISR(); }
 }
 
 HelioBinarySensor::~HelioBinarySensor()
@@ -236,11 +236,11 @@ Helio_UnitsType HelioBinarySensor::getMeasurementUnits(uint8_t) const
     return _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Raw_1;
 }
 
-bool HelioBinarySensor::tryRegisterAsISR()
+bool HelioBinarySensor::tryRegisterISR(bool anyChange)
 {
     #ifdef HELIO_USE_MULTITASKING
-        if (!_usingISR && checkPinCanInterrupt(_inputPin.pin)) {
-            taskManager.addInterrupt(&interruptImpl, _inputPin.pin, _inputPin.activeLow ? FALLING : RISING);
+        if (!_usingISR && _inputPin.isValid() && checkPinCanInterrupt(_inputPin.pin)) {
+            taskManager.addInterrupt(&interruptImpl, _inputPin.pin, !anyChange ? (_inputPin.activeLow ? FALLING : RISING) : CHANGE);
             _usingISR = true;
         }
     #endif

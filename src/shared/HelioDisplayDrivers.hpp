@@ -189,14 +189,14 @@ inline HelioDisplayU8g2OLED *HelioDisplayU8g2OLED::allocateIL3820V2SPI1(DeviceSe
 
 template <class T>
 HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup, Helio_DisplayRotation displayRotation, pintype_t dcPin, pintype_t resetPin)
-    : HelioDisplayDriver(displayRotation, _gfx.width(),_gfx.height()), // possibly incorrect until after begin
+    : HelioDisplayDriver(displayRotation, _gfx.width(), _gfx.height()), // possibly incorrect until after begin
     #ifndef ESP8266
           _gfx(displaySetup.spi, intForPin(dcPin), intForPin(displaySetup.cs), intForPin(resetPin)),
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
       _drawable(&_gfx, 0),
-      _renderer(HELIO_UI_RENDERER_BUFFERSIZE, getController()->getSystemNameChars(), &_drawable)
+      _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     #ifdef ESP8266
         HELIO_SOFT_ASSERT(!(bool)HELIO_USE_SPI || displaySetup.spi == HELIO_USE_SPI, SFP(HStr_Err_InvalidParameter));

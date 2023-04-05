@@ -122,11 +122,11 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 
 // UI Control Input Settings
 #define SETUP_UI_ENC_ROTARY_SPEED       HalfCycle       // Rotary encoder cycling speed (FullCycle, HalfCycle, QuarterCycle)
-#define SETUP_UI_KEY_REPEAT_SPEED       20              // Key repeat speed, in ticks
+#define SETUP_UI_KEY_REPEAT_SPEED       20              // Key repeat speed, in ticks (lower = faster)
 #define SETUP_UI_KEY_REPEAT_DELAY       850             // Key repeat delay, in milliseconds
 #define SETUP_UI_KEY_REPEAT_INTERVAL    350             // Key repeat interval, in milliseconds
 #define SETUP_UI_JS_ACCELERATION        3.0f            // Joystick acceleration (decrease divisor), if using analog joystick
-#define SETUP_UI_TOUCHSCREEN_ORIENT     Same            // Touchscreen orientation tuning (Same, None, InvertX, InvertY, InvertXY, SwapXY, InvertX_SwapXY, InvertY_SwapXY, InvertXY_SwapXY), if using touchscreen
+#define SETUP_UI_TOUCHSCREEN_ORIENT     Same            // Touchscreen orientation tuning (Same, Plus1, Plus2, Plus3, None, InvertX, InvertY, InvertXY, SwapXY, InvertX_SwapXY, InvertY_SwapXY, InvertXY_SwapXY), if using touchscreen
 #define SETUP_UI_TOUCHSCREEN_SPI        SPI             // SPI class for XPT2046 touchscreen, if using XTP2046
 #define SETUP_UI_ESP32TOUCH_SWITCH      800             // ESP32 Touch key switch threshold, if on ESP32/using ESP32Touch
 #define SETUP_UI_ESP32TOUCH_HVOLTS      V_2V7           // ESP32 Touch key high reference voltage (Keep, V_2V4, V_2V5, V_2V6, V_2V7, Max), if on ESP32/using ESP32Touch
@@ -172,19 +172,22 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 #define SETUP_MUXER_ADDRESS_PINS        {hpin_none}     // Multiplexer addressing bus/channel pins, else {-1}
 #define SETUP_MUXER_ENABLE_PIN          -1              // Multiplexer chip enable pin (optional), else -1
 #define SETUP_MUXER_ENABLE_TYPE         ACT_LOW         // Multiplexer chip enable pin type/active level (ACT_HIGH, ACT_LOW)
+#define SETUP_MUXER_ISR_PIN             -1              // Multiplexer interrupt pin, else -1
+#define SETUP_MUXER_ISR_TYPE            ACT_LOW         // Multiplexer interrupt pin type/active level (ACT_HIGH, ACT_LOW)
 
 // Device Pin Expanders Setup                           // (Note: Will redefine any used pins from channel setup below to a virtual pin = 100+chnl#)
 #define SETUP_EXPANDER1_CHANNEL_BITS    -1              // Pin expander 1 channel bits (3 = 8-bit, 4 = 16-bit), else -1
 #define SETUP_EXPANDER2_CHANNEL_BITS    -1              // Pin expander 2 channel bits (3 = 8-bit, 4 = 16-bit), else -1
 #define SETUP_EXPANDER1_IOREF_I2C_ADDR  0x27            // Pin expander 1 full I2C device address (including device base offset)
 #define SETUP_EXPANDER2_IOREF_I2C_ADDR  0x28            // Pin expander 2 full I2C device address (including device base offset)
+#define SETUP_EXPANDER_IOREF_I2C_WIRE   Wire            // Pin expanders I2C wire class instance
 #define SETUP_EXPANDER1_IOREF_ISR_PIN   -1              // Pin expander 1 interrupt pin, else -1
 #define SETUP_EXPANDER2_IOREF_ISR_PIN   -1              // Pin expander 2 interrupt pin, else -1
-#define SETUP_EXPANDER_IOREF_I2C_WIRE   Wire            // Pin expanders I2C wire class instance
+#define SETUP_EXPANDER_IOREF_ISR_TYPE   ACT_LOW         // Pin expanders interrupt pin type/active level (ACT_HIGH, ACT_LOW)
 // IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 1
-#define SETUP_EXPANDER1_IOREF_ALLOC()   ioFrom8574((uint8_t)SETUP_EXPANDER1_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER1_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
+#define SETUP_EXPANDER1_IOREF_ALLOC()   ioFrom8575((uint8_t)SETUP_EXPANDER1_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER1_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
 // IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 2
-#define SETUP_EXPANDER2_IOREF_ALLOC()   ioFrom8574((uint8_t)SETUP_EXPANDER2_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER2_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
+#define SETUP_EXPANDER2_IOREF_ALLOC()   ioFrom8575((uint8_t)SETUP_EXPANDER2_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER2_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
 
 // Pin Muxer/Expander Channel Setup                     // (Note: Only multiplexing or expanding may be done at the same time)
 #define SETUP_AC_USAGE_SENSOR_PINCHNL   hpinchnl_none   // AC power usage meter sensor pin muxer/expander channel #, else -127/none
@@ -318,81 +321,82 @@ inline void setupPinChannels()
     #if SETUP_MUXER_CHANNEL_BITS > 0
         pintype_t _SETUP_MUXER_ADDRESS_PINS[] = SETUP_MUXER_ADDRESS_PINS;
         HelioDigitalPin chipEnable(SETUP_MUXER_ENABLE_PIN, OUTPUT, SETUP_MUXER_ENABLE_TYPE);
+        HydroDigitalPin interrupt(SETUP_MUXER_ISR_PIN, INPUT, SETUP_MUXER_ISR_TYPE);
         #if SETUP_AC_USAGE_SENSOR_PINCHNL >= 0 && SETUP_AC_USAGE_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_AC_USAGE_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_AC_USAGE_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_AC_USAGE_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_AC_USAGE_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_AC_USAGE_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_AC_USAGE_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_DC_USAGE_SENSOR_PINCHNL >= 0 && SETUP_DC_USAGE_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_DC_USAGE_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_DC_USAGE_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_DC_USAGE_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_DC_USAGE_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_DC_USAGE_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_DC_USAGE_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_DC_GEN_SENSOR_PINCHNL >= 0 && SETUP_DC_GEN_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_DC_GEN_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_DC_GEN_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_DC_GEN_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_DC_GEN_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_DC_GEN_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_DC_GEN_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_ICE_INDICATOR_PINCHNL >= 0 && SETUP_ICE_INDICATOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_ICE_INDICATOR_PIN)) { helioController.setPinMuxer(SETUP_ICE_INDICATOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_ICE_INDICATOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_ICE_INDICATOR_PIN)) { helioController.setPinMuxer(SETUP_ICE_INDICATOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_ICE_INDICATOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT1_AXIS1_PINCHNLA >= 0 && SETUP_LINACT1_AXIS1_PINCHNLB >= 0 && SETUP_LINACT1_AXIS1_PINA >= 0 && SETUP_LINACT1_AXIS1_PINB >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT1_AXIS1_PINA)) { helioController.setPinMuxer(SETUP_LINACT1_AXIS1_PINA, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_AXIS1_PINA, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
-            if (!helioController.getPinMuxer(SETUP_LINACT1_AXIS1_PINB)) { helioController.setPinMuxer(SETUP_LINACT1_AXIS1_PINB, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_AXIS1_PINB, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT1_AXIS1_PINA)) { helioController.setPinMuxer(SETUP_LINACT1_AXIS1_PINA, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_AXIS1_PINA, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT1_AXIS1_PINB)) { helioController.setPinMuxer(SETUP_LINACT1_AXIS1_PINB, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_AXIS1_PINB, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT1_POS_SENSOR_PINCHNL >= 0 && SETUP_LINACT1_POS_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_POS_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT1_MIN_ENDSTOP_PINCHNL >= 0 && SETUP_LINACT1_MIN_ENDSTOP_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_MIN_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT1_MAX_ENDSTOP_PINCHNL >= 0 && SETUP_LINACT1_MAX_ENDSTOP_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT1_MAX_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT2_AXIS1_PINCHNLA >= 0 && SETUP_LINACT2_AXIS1_PINCHNLB >= 0 && SETUP_LINACT2_AXIS1_PINA >= 0 && SETUP_LINACT2_AXIS1_PINB >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT2_AXIS1_PINA)) { helioController.setPinMuxer(SETUP_LINACT2_AXIS1_PINA, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_AXIS1_PINA, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
-            if (!helioController.getPinMuxer(SETUP_LINACT2_AXIS1_PINB)) { helioController.setPinMuxer(SETUP_LINACT2_AXIS1_PINB, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_AXIS1_PINB, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT2_AXIS1_PINA)) { helioController.setPinMuxer(SETUP_LINACT2_AXIS1_PINA, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_AXIS1_PINA, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT2_AXIS1_PINB)) { helioController.setPinMuxer(SETUP_LINACT2_AXIS1_PINB, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_AXIS1_PINB, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT2_POS_SENSOR_PINCHNL >= 0 && SETUP_LINACT2_POS_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_POS_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT2_MIN_ENDSTOP_PINCHNL >= 0 && SETUP_LINACT2_MIN_ENDSTOP_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_MIN_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_LINACT2_MAX_ENDSTOP_PINCHNL >= 0 && SETUP_LINACT2_MAX_ENDSTOP_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN)) { helioController.setPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_LINACT2_MAX_ENDSTOP_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_PANEL_BRAKE_PINCHNL >= 0 && SETUP_PANEL_BRAKE_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_PANEL_BRAKE_PIN)) { helioController.setPinMuxer(SETUP_PANEL_BRAKE_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_BRAKE_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_PANEL_BRAKE_PIN)) { helioController.setPinMuxer(SETUP_PANEL_BRAKE_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_BRAKE_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_PANEL_HEATER_PINCHNL >= 0 && SETUP_PANEL_HEATER_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_PANEL_HEATER_PIN)) { helioController.setPinMuxer(SETUP_PANEL_HEATER_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_HEATER_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_PANEL_HEATER_PIN)) { helioController.setPinMuxer(SETUP_PANEL_HEATER_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_HEATER_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_PANEL_SPRAYER_PINCHNL >= 0 && SETUP_PANEL_SPRAYER_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_PANEL_SPRAYER_PIN)) { helioController.setPinMuxer(SETUP_PANEL_SPRAYER_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_SPRAYER_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_PANEL_SPRAYER_PIN)) { helioController.setPinMuxer(SETUP_PANEL_SPRAYER_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_SPRAYER_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_PANEL_TILT_AXIS1_PINCHNL >= 0 && SETUP_PANEL_TILT_AXIS1_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN)) { helioController.setPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN)) { helioController.setPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_PANEL_TILT_AXIS1_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_POS_SERVO_AXIS0_PINCHNL >= 0 && SETUP_POS_SERVO_AXIS0_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_POS_SERVO_AXIS0_PIN)) { helioController.setPinMuxer(SETUP_POS_SERVO_AXIS0_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_POS_SERVO_AXIS0_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_POS_SERVO_AXIS0_PIN)) { helioController.setPinMuxer(SETUP_POS_SERVO_AXIS0_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_POS_SERVO_AXIS0_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_POS_SERVO_AXIS1_PINCHNL >= 0 && SETUP_POS_SERVO_AXIS1_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_POS_SERVO_AXIS1_PIN)) { helioController.setPinMuxer(SETUP_POS_SERVO_AXIS1_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_POS_SERVO_AXIS1_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_POS_SERVO_AXIS1_PIN)) { helioController.setPinMuxer(SETUP_POS_SERVO_AXIS1_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_POS_SERVO_AXIS1_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
         #if SETUP_WIND_SPEED_SENSOR_PINCHNL >= 0 && SETUP_WIND_SPEED_SENSOR_PIN >= 0
-            if (!helioController.getPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable))); }
+            if (!helioController.getPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN)) { helioController.setPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, SharedPtr<HelioPinMuxer>(new HelioPinMuxer(SETUP_WIND_SPEED_SENSOR_PIN, _SETUP_MUXER_ADDRESS_PINS, SETUP_MUXER_CHANNEL_BITS, chipEnable, interrupt))); }
         #endif
     #elif SETUP_EXPANDER1_CHANNEL_BITS > 0 || SETUP_EXPANDER2_CHANNEL_BITS > 0
         auto expanders[] = {
             #if SETUP_EXPANDER1_CHANNEL_BITS > 0
-                SharedPtr<HelioPinExpander>(new HelioPinExpander(SETUP_EXPANDER1_CHANNEL_BITS, SETUP_EXPANDER1_IOREF_ALLOC())),
+                SharedPtr<HelioPinExpander>(new HelioPinExpander(0, SETUP_EXPANDER1_CHANNEL_BITS, SETUP_EXPANDER1_IOREF_ALLOC(), HelioDigitalPin(SETUP_EXPANDER1_IOREF_ISR_PIN, INPUT, SETUP_EXPANDER_IOREF_ISR_TYPE))),
             #else
                 SharedPtr<HelioPinExpander>(nullptr),
             #endif
             #if SETUP_EXPANDER2_CHANNEL_BITS > 0
-                SharedPtr<HelioPinExpander>(new HelioPinExpander(SETUP_EXPANDER2_CHANNEL_BITS, SETUP_EXPANDER2_IOREF_ALLOC()))
+                SharedPtr<HelioPinExpander>(new HelioPinExpander(1, SETUP_EXPANDER2_CHANNEL_BITS, SETUP_EXPANDER2_IOREF_ALLOC(), HelioDigitalPin(SETUP_EXPANDER2_IOREF_ISR_PIN, INPUT, SETUP_EXPANDER_IOREF_ISR_TYPE)))
             #else
                 SharedPtr<HelioPinExpander>(nullptr)
             #endif
         };
         // To setup control input pins as part of an expander, use pin #'s 100+, which are treated as virtual pins representing an expander index ((#-100) /16) and offset ((#-100) %16).
-        if (isValidPin(SETUP_CTRL_INPUT_PINS_[0]) && SETUP_CTRL_INPUT_PINS_[0] >= hpin_virtual && !helioController.getPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]))) {
-            helioController.setPinExpander(expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0]), expanders[expanderForPinNumber(SETUP_CTRL_INPUT_PINS_[0])]);
+        if (isValidPin(SETUP_CTRL_INPUT_PINS_[0]) && SETUP_CTRL_INPUT_PINS_[0] >= hpin_virtual && !helioController.getPinExpander(expanderPosForPinNumber(SETUP_CTRL_INPUT_PINS_[0]))) {
+            helioController.setPinExpander(expanderPosForPinNumber(SETUP_CTRL_INPUT_PINS_[0]), expanders[expanderPosForPinNumber(SETUP_CTRL_INPUT_PINS_[0])]);
         }
         #if SETUP_AC_USAGE_SENSOR_PINCHNL >= 0 || SETUP_AC_USAGE_SENSOR_PIN >= 100
             if (!helioController.getPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16)) { helioController.setPinExpander(SETUP_AC_USAGE_SENSOR_PINCHNL/16, expanders[SETUP_AC_USAGE_SENSOR_PINCHNL/16]); }

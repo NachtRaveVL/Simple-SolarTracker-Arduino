@@ -80,7 +80,7 @@ public:
               bool analogSlider = false,                                    // Slider usage for analog items
               bool editingIcons = false);                                   // Editing icons usage
 
-    virtual HelioUIData *init(HelioUIData *uiData = nullptr) override;      // Standard initializer
+    virtual HelioUIData *init(HelioUIData *uiData = nullptr) override;      // UIData instance
     virtual bool begin() override;                                          // Begins UI
 
     virtual void setNeedsRedraw() override;

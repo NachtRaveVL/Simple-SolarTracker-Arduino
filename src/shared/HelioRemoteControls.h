@@ -26,6 +26,7 @@ class HelioRemoteControl {
 public:
     virtual ~HelioRemoteControl() = default;
 
+    // Connection accessor
     virtual BaseRemoteServerConnection *getConnection() = 0;
 };
 
