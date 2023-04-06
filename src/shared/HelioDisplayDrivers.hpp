@@ -9,13 +9,12 @@
 static inline const u8g2_cb_t *dispRotToU8g2Rot(Helio_DisplayRotation displayRotation)
 {
     switch (displayRotation) {
-        case Helio_DisplayRotation_R0: return U8G2_R0;
         case Helio_DisplayRotation_R1: return U8G2_R1;
         case Helio_DisplayRotation_R2: return U8G2_R2;
         case Helio_DisplayRotation_R3: return U8G2_R3;
         case Helio_DisplayRotation_HorzMirror: return U8G2_MIRROR;
         case Helio_DisplayRotation_VertMirror: return U8G2_MIRROR_VERTICAL;
-        default: return U8G2_R0;
+        case Helio_DisplayRotation_R0: default: return U8G2_R0;
     }
 }
 
@@ -195,7 +194,7 @@ HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup,
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     #ifdef ESP8266
@@ -206,7 +205,7 @@ HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup,
 template <class T>
 void HelioDisplayAdafruitGFX<T>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), HELIO_UI_GFX_VARS_USES_SLIDER);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 template <class T>

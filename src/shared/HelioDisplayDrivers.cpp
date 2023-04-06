@@ -10,7 +10,7 @@
 #include "IoAbstractionWire.h"
 #include "DfRobotInputAbstraction.h"
 
-void HelioDisplayDriver::setupRendering(uint8_t titleMode, Helio_DisplayTheme displayTheme, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool utf8Fonts)
+void HelioDisplayDriver::setupRendering(Helio_DisplayTheme displayTheme, Helio_TitleMode titleMode, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool tcUnicodeFonts)
 {
     auto graphicsRenderer = getGraphicsRenderer();
     if (graphicsRenderer) {
@@ -20,7 +20,7 @@ void HelioDisplayDriver::setupRendering(uint8_t titleMode, Helio_DisplayTheme di
         }
         graphicsRenderer->setTitleMode((BaseGraphicalRenderer::TitleMode)titleMode);
         graphicsRenderer->setUseSliderForAnalog(analogSlider);
-        if (utf8Fonts) { graphicsRenderer->enableTcUnicode(); }
+        if (tcUnicodeFonts) { graphicsRenderer->enableTcUnicode(); }
 
         if (_displayTheme != displayTheme) {
             switch ((_displayTheme = displayTheme)) {
@@ -73,7 +73,7 @@ HelioDisplayLiquidCrystal::HelioDisplayLiquidCrystal(bool, I2CDeviceSetup displa
 
 void HelioDisplayLiquidCrystal::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, Helio_DisplayTheme_Undefined);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, Helio_DisplayTheme_Undefined, _screenSize[1] >= 4 ? Helio_TitleMode_Always : Helio_TitleMode_None);
 }
 
 void HelioDisplayLiquidCrystal::begin()
@@ -81,15 +81,15 @@ void HelioDisplayLiquidCrystal::begin()
     _lcd.begin(_screenSize[0], _screenSize[1]);
 }
 
-void HelioDisplayLiquidCrystal::setupRendering(uint8_t titleMode, Helio_DisplayTheme displayTheme, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool utf8Fonts)
+void HelioDisplayLiquidCrystal::setupRendering(Helio_DisplayTheme displayTheme, Helio_TitleMode titleMode, const void *itemFont, const void *titleFont, bool analogSlider, bool editingIcons, bool tcUnicodeFonts)
 {
-    // HelioDisplayDriver::setupRendering(titleMode, displayTheme, itemFont, titleFont, analogSlider, editingIcons, utf8Fonts); // simply returns
-    _renderer.setTitleRequired(titleMode == BaseGraphicalRenderer::TITLE_ALWAYS);
+    // HelioDisplayDriver::setupRendering(displayTheme, titleMode, itemFont, titleFont, analogSlider, editingIcons, tcUnicodeFonts); // simply returns
+    _renderer.setTitleRequired(titleMode == Helio_TitleMode_Always);
 }
 
 HelioOverview *HelioDisplayLiquidCrystal::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewLCD(this); // todo: font handling
+    return new HelioOverviewLCD(this);
 }
 
 
@@ -106,9 +106,9 @@ HelioDisplayU8g2OLED::HelioDisplayU8g2OLED(DeviceSetup displaySetup, Helio_Displ
             _drawable = new StChromaArtDrawable();
         #else
             if (displaySetup.cfgType == DeviceSetup::I2CSetup) {
-                _drawable = new U8g2Drawable(_gfx, displaySetup.cfgAs.i2c.wire, getBaseUI() && getBaseUI()->isUnicodeFonts());
+                _drawable = new U8g2Drawable(_gfx, displaySetup.cfgAs.i2c.wire, getBaseUI() && getBaseUI()->isTcUnicodeFonts());
             } else {
-                _drawable = new U8g2Drawable(_gfx, nullptr, getBaseUI() && getBaseUI()->isUnicodeFonts());
+                _drawable = new U8g2Drawable(_gfx, nullptr, getBaseUI() && getBaseUI()->isTcUnicodeFonts());
             }
         #endif
         HELIO_SOFT_ASSERT(_drawable, SFP(HStr_Err_AllocationFailure));
@@ -129,7 +129,7 @@ HelioDisplayU8g2OLED::~HelioDisplayU8g2OLED()
 
 void HelioDisplayU8g2OLED::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), Helio_DisplayTheme_MonoOLED), BaseGraphicalRenderer::TITLE_FIRST_ROW);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), Helio_DisplayTheme_MonoOLED), Helio_TitleMode_Always);
 }
 
 void HelioDisplayU8g2OLED::begin()
@@ -143,7 +143,7 @@ void HelioDisplayU8g2OLED::begin()
 
 HelioOverview *HelioDisplayU8g2OLED::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewOLED(this); // todo: font handling
+    return new HelioOverviewOLED(this, clockFont, detailFont);
 }
 
 
@@ -154,7 +154,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     HELIO_SOFT_ASSERT(_kind != Helio_ST77XXKind_Undefined, SFP(HStr_Err_InvalidParameter));
@@ -164,25 +164,22 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
 
     switch (_kind) {
         case Helio_ST7735Tag_Green144:
-        case Helio_ST7735Tag_Hallo_Wing:
-            _screenSize[0] = 128;
-            _screenSize[1] = 128;
+        case Helio_ST7735Tag_HalloWing:
+            _screenSize[0] = 128; _screenSize[1] = 128;
             break;
         case Helio_ST7735Tag_Mini:
-        case Helio_ST7735Tag_Mini_Plugin:
-            _screenSize[0] = 80;
-            _screenSize[1] = 160;
+        case Helio_ST7735Tag_MiniPlugin:
+            _screenSize[0] = 80; _screenSize[1] = 160;
             break;
         default:
-            _screenSize[0] = 128;
-            _screenSize[1] = 160;
+            _screenSize[0] = 128; _screenSize[1] = 160;
             break;
     }
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), BaseGraphicalRenderer::TITLE_ALWAYS, HELIO_UI_GFX_VARS_USES_SLIDER);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::begin()
@@ -210,7 +207,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     HELIO_SOFT_ASSERT(_kind != Helio_ST77XXKind_Undefined, SFP(HStr_Err_InvalidParameter));
@@ -220,43 +217,35 @@ HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup
 
     switch (_kind) {
         case Helio_ST7789Res_128x128:
-            _screenSize[0] = 128;
-            _screenSize[1] = 128;
+            _screenSize[0] = 128; _screenSize[1] = 128;
             break;
         case Helio_ST7789Res_135x240:
-            _screenSize[0] = 135;
-            _screenSize[1] = 240;
+            _screenSize[0] = 135; _screenSize[1] = 240;
             break;
         case Helio_ST7789Res_170x320:
-            _screenSize[0] = 170;
-            _screenSize[1] = 320;
+            _screenSize[0] = 170; _screenSize[1] = 320;
             break;
         case Helio_ST7789Res_172x320:
-            _screenSize[0] = 172;
-            _screenSize[1] = 320;
+            _screenSize[0] = 172; _screenSize[1] = 320;
             break;
         case Helio_ST7789Res_240x240:
-            _screenSize[0] = 240;
-            _screenSize[1] = 240;
+            _screenSize[0] = 240; _screenSize[1] = 240;
             break;
         case Helio_ST7789Res_240x280:
-            _screenSize[0] = 240;
-            _screenSize[1] = 280;
+            _screenSize[0] = 240; _screenSize[1] = 280;
             break;
         case Helio_ST7789Res_240x320:
-            _screenSize[0] = 240;
-            _screenSize[1] = 320;
+            _screenSize[0] = 240; _screenSize[1] = 320;
             break;
         default:
-            _screenSize[0] = TFT_GFX_WIDTH;
-            _screenSize[1] = TFT_GFX_HEIGHT;
+            _screenSize[0] = TFT_GFX_WIDTH; _screenSize[1] = TFT_GFX_HEIGHT;
             break;
     }
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), BaseGraphicalRenderer::TITLE_ALWAYS, HELIO_UI_GFX_VARS_USES_SLIDER);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::begin()
@@ -280,7 +269,7 @@ HelioDisplayAdafruitGFX<Adafruit_ILI9341>::HelioDisplayAdafruitGFX(SPIDeviceSetu
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     #ifdef ESP8266
@@ -290,7 +279,7 @@ HelioDisplayAdafruitGFX<Adafruit_ILI9341>::HelioDisplayAdafruitGFX(SPIDeviceSetu
 
 void HelioDisplayAdafruitGFX<Adafruit_ILI9341>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), BaseGraphicalRenderer::TITLE_ALWAYS, HELIO_UI_GFX_VARS_USES_SLIDER);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ILI9341>::begin()
@@ -311,13 +300,13 @@ HelioDisplayTFTeSPI::HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_Disp
     : HelioDisplayDriver(displayRotation, TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
       _kind(st77Kind),
       _gfx(TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
-      _drawable(&_gfx, 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 { ; }
 
 void HelioDisplayTFTeSPI::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_MEDLRG)), BaseGraphicalRenderer::TITLE_ALWAYS, HELIO_UI_GFX_VARS_USES_SLIDER);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_MEDLRG)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayTFTeSPI::begin()
@@ -333,7 +322,7 @@ void HelioDisplayTFTeSPI::begin()
 
 HelioOverview *HelioDisplayTFTeSPI::allocateOverview(const void *clockFont, const void *detailFont)
 {
-    return new HelioOverviewTFT(this); // todo: font handling
+    return new HelioOverviewTFT(this, clockFont, detailFont);
 }
 
 #endif

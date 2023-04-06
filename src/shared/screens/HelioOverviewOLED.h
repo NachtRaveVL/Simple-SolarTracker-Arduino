@@ -16,7 +16,7 @@ class HelioOverviewOLED;
 // Overview screen built for OLED displays.
 class HelioOverviewOLED : public HelioOverview {
 public:
-    HelioOverviewOLED(HelioDisplayU8g2OLED *display);
+    HelioOverviewOLED(HelioDisplayU8g2OLED *display, const void *clockFont, const void *detailFont);
     virtual ~HelioOverviewOLED();
 
     virtual void renderOverview(bool isLandscape, Pair<uint16_t, uint16_t> screenSize) override;

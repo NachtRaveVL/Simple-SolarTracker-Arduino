@@ -9,4 +9,16 @@
 extern float skyEaseInOut(float x);
 extern void randomStarColor(uint8_t* r, uint8_t* g, uint8_t* b);
 
+HelioOverviewTFT::HelioOverviewTFT(HelioDisplayTFTeSPI *display, const void *clockFont, const void *detailFont)
+    : HelioOverview(display), _gfx(display->getGfx()), _drawable(display->getDrawable())
+{ ; }
+
+HelioOverviewTFT::~HelioOverviewTFT()
+{ ; }
+
+void HelioOverviewTFT::renderOverview(bool isLandscape, Pair<uint16_t, uint16_t> screenSize)
+{
+    // todo
+}
+
 #endif

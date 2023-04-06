@@ -8,9 +8,11 @@
 
 HelioUIData::HelioUIData()
     : HelioData('H','U','I','D', 1),
-      updatesPerSec(HELIO_UI_UPDATE_SPEED), displayTheme(Helio_DisplayTheme_Undefined),
-      analogSlider(false), editingIcons(false), titleMode(0),
-      joystickCalib{0.5f,0.5f,0.05f}
+      updatesPerSec(HELIO_UI_UPDATE_SPEED),
+      displayTheme(Helio_DisplayTheme_Undefined),
+      titleMode(Helio_TitleMode_Undefined),
+      analogSlider(false), editingIcons(false),
+      joystickCalib{0.5f,0.5f,0.05f}, touchscreenCalib{0}
 {
     _size = sizeof(*this);
 }

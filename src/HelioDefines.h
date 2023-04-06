@@ -63,6 +63,7 @@
 #endif
 #endif
 
+// MCU capabilities
 #ifndef ADC_RESOLUTION                                      // Resolving ADC resolution, or define manually by build define (see BOARD for example)
 #if defined(IOA_ANALOGIN_RES)                               // From IOAbstraction
 #define ADC_RESOLUTION                  IOA_ANALOGIN_RES
@@ -106,8 +107,22 @@
 #define BOARD                           "OTHER"
 #endif
 #endif
+#ifndef HAS_INPUT_PULLDOWN                                  // Resolve for INPUT_PULLDOWN usage
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_MBED) || defined(ARDUINO_ARCH_RP2040) || defined(ESP32) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY)
+#define HAS_INPUT_PULLDOWN              true                // INPUT_PULLDOWN likely available
+#else
+#define HAS_INPUT_PULLDOWN              false               // INPUT_PULLDOWN not likely available
+#endif
+#endif
+#ifndef HAS_LARGE_SRAM                                      // Resolve for larger SRAM usage
+#if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_MBED)  || defined(ARDUINO_ARCH_RP2040) || defined(ESP_PLATFORM) || defined(ARDUINO_ARCH_STM32) || defined(CORE_TEENSY)
+#define HAS_LARGE_SRAM                  true                // Likely larger SRAM size
+#else
+#define HAS_LARGE_SRAM                  false               // Not likely large SRAM size
+#endif
+#endif
 
-// Standardized TFT WxH
+// Standardized gfx WxH
 #ifdef HELIO_USE_GUI
 #include <User_Setup.h>
 #endif
@@ -288,10 +303,11 @@ enum Helio_RTCType : signed char {
 
 // DHT Device Type Enumeration
 enum Helio_DHTType : signed char {
-    Helio_DHTType_DHT11 = DHT11,                            // DHT11
-    Helio_DHTType_DHT12 = DHT12,                            // DHT12
-    Helio_DHTType_DHT21 = DHT21,                            // DHT21
-    Helio_DHTType_DHT22 = DHT22,                            // DHT22
+    Helio_DHTType_DHT11 = DHT11,                            // DHT11 (using DHT library)
+    Helio_DHTType_DHT12 = DHT12,                            // DHT12 (using DHT library)
+    Helio_DHTType_DHT21 = DHT21,                            // DHT21 (using DHT library)
+    Helio_DHTType_DHT22 = DHT22,                            // DHT22 (using DHT library)
+    //Helio_DHTType_BME280 = 28,                              // BME280 (using BME280 library, TODO)
     Helio_DHTType_None = -1,                                // No DHT
 
     Helio_DHTType_AM2301 = AM2301,                          // AM2301 (alias of DHT21)

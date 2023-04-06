@@ -16,7 +16,7 @@ class HelioOverviewTFT;
 // Overview screen built for TFT_eSPI displays.
 class HelioOverviewTFT : public HelioOverview {
 public:
-    HelioOverviewTFT(HelioDisplayTFTeSPI *display);
+    HelioOverviewTFT(HelioDisplayTFTeSPI *display, const void *clockFont, const void *detailFont);
     virtual ~HelioOverviewTFT();
 
     virtual void renderOverview(bool isLandscape, Pair<uint16_t, uint16_t> screenSize) override;
