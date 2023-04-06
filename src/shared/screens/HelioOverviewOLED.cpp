@@ -7,7 +7,7 @@
 #ifdef HELIO_USE_GUI
 
 HelioOverviewOLED::HelioOverviewOLED(HelioDisplayU8g2OLED *display, const void *clockFont, const void *detailFont)
-    : HelioOverview(display), _gfx(display->getGfx()), _drawable(display->getDrawable())
+    : HelioOverview(display), _gfx(display->getGfx()), _drawable(display->getDrawable()), _clockFont(clockFont), _detailFont(detailFont)
 { ; }
 
 HelioOverviewOLED::~HelioOverviewOLED()
