@@ -22,7 +22,7 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
     OTHER DEALINGS IN THE SOFTWARE.
 
-    Simple-SolarTracker-Arduino - Version 0.6.7.0
+    Simple-SolarTracker-Arduino - Version 0.6.8.0
 */
 
 #ifndef Helioduino_H
