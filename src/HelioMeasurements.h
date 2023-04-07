@@ -41,7 +41,7 @@ struct HelioMeasurement {
     time_t timestamp;                                       // Time event recorded (UTC)
     hframe_t frame;                                         // Polling frame # measurement taken on, or 0 if not-set else 1 if user-set
 
-    inline HelioMeasurement() : type(Unknown), frame(0), timestamp(unixNow()) { ; }
+    inline HelioMeasurement() : type(Unknown), timestamp(unixNow()), frame(0) { ; }
     inline HelioMeasurement(int classType, time_t timestampIn, hframe_t frameIn) : type((typeof(type))classType), timestamp(timestampIn), frame(frameIn) { ; }
     HelioMeasurement(int classType, time_t timestamp = 0);
     HelioMeasurement(const HelioMeasurementData *dataIn);

@@ -3,7 +3,7 @@
     Helioduino Display Drivers
 */
 
-#include "HelioduinoUI.h"
+#include <Helioduino.h>
 #ifdef HELIO_USE_GUI
 
 static inline const u8g2_cb_t *dispRotToU8g2Rot(Helio_DisplayRotation displayRotation)
