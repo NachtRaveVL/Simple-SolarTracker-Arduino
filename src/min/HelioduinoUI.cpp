@@ -574,8 +574,7 @@ void HelioduinoMinUI::addSerialRemote(UARTDeviceSetup rcSetup)
 
 void HelioduinoMinUI::addSimhubRemote(UARTDeviceSetup rcSetup)
 {
-    menuid_t statusMenuId = -1; // todo
-    HelioRemoteControl *remoteControl = new HelioRemoteSimhubControl(rcSetup, statusMenuId);
+    HelioRemoteControl *remoteControl = new HelioRemoteSimhubControl(rcSetup, HELIO_UI_SIMHUB_STATUS_MENU_ID);
     HELIO_SOFT_ASSERT(remoteControl, SFP(HStr_Err_AllocationFailure));
 
     if (remoteControl && remoteControl->getConnection()) {

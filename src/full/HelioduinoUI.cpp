@@ -276,7 +276,6 @@ HelioduinoFullUI::~HelioduinoFullUI()
 void HelioduinoFullUI::addRemote(Helio_RemoteControl rcType, UARTDeviceSetup rcSetup, uint16_t rcServerPort)
 {
     HelioRemoteControl *remoteControl = nullptr;
-    menuid_t statusMenuId = -1; // todo
 
     switch (rcType) {
         case Helio_RemoteControl_Serial: {
@@ -285,7 +284,7 @@ void HelioduinoFullUI::addRemote(Helio_RemoteControl rcType, UARTDeviceSetup rcS
         } break;
 
         case Helio_RemoteControl_Simhub: {
-            remoteControl = new HelioRemoteSimhubControl(rcSetup, statusMenuId);
+            remoteControl = new HelioRemoteSimhubControl(rcSetup, HELIO_UI_SIMHUB_STATUS_MENU_ID);
             HELIO_SOFT_ASSERT(remoteControl, SFP(HStr_Err_AllocationFailure));
         } break;
 
