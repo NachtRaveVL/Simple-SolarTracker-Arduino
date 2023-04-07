@@ -481,9 +481,9 @@ void setup() {
         setupOnce();
     }
 
-    setupAlways();
-
     setupUI();
+
+    setupAlways();
 
     // Launches controller into main operation.
     helioController.launch();
