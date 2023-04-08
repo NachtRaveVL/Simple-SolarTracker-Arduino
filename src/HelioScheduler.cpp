@@ -42,7 +42,7 @@ void HelioScheduler::update()
                 if (getLogger()->getSystemUptime() >= SECS_PER_DAY) {
                     getLogger()->logSystemUptime();
                 }
-                broadcastDayChange();
+                broadcastDateChange();
             }
         }
 
@@ -190,7 +190,7 @@ void HelioScheduler::performScheduling()
     _needsScheduling = false;
 }
 
-void HelioScheduler::broadcastDayChange()
+void HelioScheduler::broadcastDateChange()
 {
     updateDayTracking();
 
@@ -198,27 +198,27 @@ void HelioScheduler::broadcastDayChange()
         // these can take a while to complete
         taskManager.scheduleOnce(0, []{
             if (getController()) {
-                getController()->notifyDayChanged();
+                getController()->broadcastDateChanged();
             }
             yield();
             if (getLogger()) {
-                getLogger()->notifyDayChanged();
+                getLogger()->notifyDateChanged();
             }
             yield();
             if (getPublisher()) {
-                getPublisher()->notifyDayChanged();
+                getPublisher()->notifyDateChanged();
             }
             yield();
         });
     #else
         if (getController()) {
-            getController()->notifyDayChanged();
+            getController()->broadcastDateChanged();
         }
         if (getLogger()) {
-            getLogger()->notifyDayChanged();
+            getLogger()->notifyDateChanged();
         }
         if (getPublisher()) {
-            getPublisher()->notifyDayChanged();
+            getPublisher()->notifyDateChanged();
         }
     #endif
 }

@@ -50,6 +50,78 @@ inline EthernetClass *Helioduino::getEthernet(bool begin)
 
 #endif
 
+inline void Helioduino::broadcastLowMemory()
+{
+    for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
+        iter->second->handleLowMemory();
+    }
+}
+
+inline void Helioduino::performAutosave()
+{
+    for (int autosave = 0; autosave < 2; ++autosave) {
+        switch (autosave == 0 ? _systemData->autosaveEnabled : _systemData->autosaveFallback) {
+            case Helio_Autosave_EnabledToSDCardJson:
+                saveToSDCard(JSON);
+                break;
+            case Helio_Autosave_EnabledToSDCardRaw:
+                saveToSDCard(RAW);
+                break;
+            case Helio_Autosave_EnabledToEEPROMJson:
+                saveToEEPROM(JSON);
+                break;
+            case Helio_Autosave_EnabledToEEPROMRaw:
+                saveToEEPROM(RAW);
+                break;
+            case Helio_Autosave_EnabledToWiFiStorageJson:
+                #ifdef HELIO_USE_WIFI_STORAGE
+                    saveToWiFiStorage(JSON);
+                #endif
+                break;
+            case Helio_Autosave_EnabledToWiFiStorageRaw:
+                #ifdef HELIO_USE_WIFI_STORAGE
+                    saveToWiFiStorage(RAW);
+                #endif
+            case Helio_Autosave_Disabled:
+                break;
+        }
+    }
+
+    _lastAutosave = unixNow();
+}
+
+inline void Helioduino::notifyRTCTimeUpdated()
+{
+    _rtcBattFail = false;
+}
+
+inline void Helioduino::broadcastDateChanged()
+{
+    if (getSystemMode() == Helio_SystemMode_Tracking) {
+        for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
+            if (iter->second->isPanelType()) {
+                auto panel = static_pointer_cast<HelioPanel>(iter->second);
+
+                if (panel && panel->isAnyTrackingClass()) {
+                    auto trackingPanel = static_pointer_cast<HelioTrackingPanel>(iter->second);
+                    trackingPanel->notifyDateChanged();
+                }
+            }
+        }
+    }
+}
+
+inline void Helioduino::notifySignificantTime(time_t time)
+{
+    logger.updateInitTracking(time);
+    _lastAutosave = isAutosaveEnabled() ? time : 0;
+}
+
+inline void Helioduino::notifySignificantLocation(Location loc)
+{
+    if (_systemData) { _systemData->bumpRevisionIfNeeded(); }
+}
+
 
 inline HelioLoggerSubData *HelioLogger::loggerData() const
 {

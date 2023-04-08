@@ -193,7 +193,7 @@ public:
     inline DateTime getLastPanelCleaningTime() const { return localTime(_lastCleanedTime); }
     inline void notifyPanelCleaned() { _lastCleanedTime = unixTime(localDayStart()); }
 
-    inline void notifyDayChanged() { recalcSunPosition(); recalcFacingPosition(); }
+    inline void notifyDateChanged() { recalcSunPosition(); recalcFacingPosition(); }
 
 protected:
     time_t _lastAlignedTime;                                // Last panel alignment/maintenance date (UTC)

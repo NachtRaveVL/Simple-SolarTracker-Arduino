@@ -66,8 +66,8 @@ void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayThe
         _uiData->analogSlider = analogSlider;
         _uiData->editingIcons = editingIcons;
     }
-
-    if (!_homeMenu) {
+    
+    if (!_homeMenu) { // must stay allocated while menuMgr active
         _homeMenu = new HelioHomeMenu();
         HELIO_SOFT_ASSERT(_homeMenu, SFP(HStr_Err_AllocationFailure));
     }
@@ -75,45 +75,51 @@ void HelioduinoBaseUI::init(uint8_t updatesPerSec, Helio_DisplayTheme displayThe
 
 HelioUIData *HelioduinoBaseUI::init(HelioUIData *uiData)
 {
-    if (uiData && (_uiData = uiData)) {
-        init(_uiData->updatesPerSec, _uiData->displayTheme, _uiData->titleMode, _uiData->analogSlider, _uiData->editingIcons);
-    } else if (_display) {
+    if (uiData && (_uiData = uiData)) { // Customized data
+        init(_uiData->updatesPerSec,
+             _uiData->displayTheme, _uiData->titleMode,
+             _uiData->analogSlider, _uiData->editingIcons);
+    } else if (_display) { // Display driver default
         _display->initBaseUIFromDefaults(); // calls back into above init with default settings for display
-    } else {
-        init(HELIO_UI_UPDATE_SPEED, Helio_DisplayTheme_Undefined, Helio_TitleMode_None);
+    } else { // Remote control default
+        init(2, Helio_DisplayTheme_Undefined, Helio_TitleMode_Always);
     }
     return _uiData;
 }
 
-bool HelioduinoBaseUI::begin()
+void HelioduinoBaseUI::begin()
 {
-    auto baseRenderer = _display ? _display->getBaseRenderer() : nullptr;
+    BaseMenuRenderer *baseRenderer = nullptr;
 
     if (_display) {
         _display->begin();
 
+        // Base rendering setup for all displays
+        baseRenderer = _display->getBaseRenderer();
         if (baseRenderer) {
             baseRenderer->setCustomDrawingHandler(this);
             baseRenderer->setUpdatesPerSecond(_uiData->updatesPerSec);
         }
+
+        setBacklightEnable(true);
     }
 
-    if (_input) {
+    if (_input) { // Driver responsible for call to menuMgr.init[-like]()
         _input->begin(_display, _homeMenu ? _homeMenu->getRootItem() : nullptr);
-    } else { // Default init
+    } else { // Default/remote init
         menuMgr.initWithoutInput(baseRenderer, _homeMenu ? _homeMenu->getRootItem() : nullptr);
     }
 
-    if (_display) {
-        _display->setupRendering(_uiData->displayTheme, _uiData->titleMode, _itemFont, _titleFont, _uiData->analogSlider, _uiData->editingIcons, _isTcUnicodeFonts);
+    if (_display) { // setupRendering() typically results in display driver refresh/reorient
+        _display->setupRendering(_uiData->displayTheme, _uiData->titleMode,
+                                 _itemFont, _titleFont,
+                                 _uiData->analogSlider, _uiData->editingIcons,
+                                 _isTcUnicodeFonts);
     }
 
     #if HELIO_UI_START_AT_OVERVIEW
-        gotoScreen(7);
+        gotoScreen(HELIO_UI_OVERVIEW_ACT_MENU_ID);
     #endif
-    setBacklightEnable(true);
-
-    return (_display && (_input || _remotes.size())) || _remotes.size();
 }
 
 void HelioduinoBaseUI::setNeedsRedraw()
@@ -183,8 +189,9 @@ void HelioduinoBaseUI::reset()
     // menu interaction timeout
     if (_display) {
         #if HELIO_UI_DEALLOC_AFTER_USE
-            if (_homeMenu) { delete _homeMenu; _homeMenu = nullptr; }
+            if (_homeMenu) { _homeMenu->unloadSubMenus(); }
         #endif
+
         if (!_overview) {
             _overview = _display->allocateOverview(_clockFont, _detailFont);
             HELIO_SOFT_ASSERT(_overview, SFP(HStr_Err_AllocationFailure));
@@ -203,26 +210,14 @@ void HelioduinoBaseUI::renderLoop(unsigned int currentValue, RenderPressMode use
 
             if (_blTimeout && unixNow() >= _blTimeout) { setBacklightEnable(false); }
         } else {
-            #if HELIO_UI_DEALLOC_AFTER_USE
-                if (_overview) { delete _overview; _overview = nullptr; }
-            #endif
-
-            if (!_homeMenu) {
-                _homeMenu = new HelioHomeMenu();
-                HELIO_SOFT_ASSERT(_homeMenu, SFP(HStr_Err_AllocationFailure));
-
-                if (_homeMenu) {
-                    menuMgr.setRootMenu(_homeMenu->getRootItem());
-                    taskManager.scheduleOnce(0, []{
-                        menuMgr.resetMenu(true);
-                    });
-                }
-            }
-
             _display->getBaseRenderer()->giveBackDisplay();
 
             setBacklightEnable(true);
             _blTimeout = 0;
+
+            #if HELIO_UI_DEALLOC_AFTER_USE
+                if (_overview) { delete _overview; _overview = nullptr; }
+            #endif
         }
     }
 }

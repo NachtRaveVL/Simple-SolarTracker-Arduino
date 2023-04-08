@@ -154,7 +154,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getVRAMBufferRows() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     HELIO_SOFT_ASSERT(_kind != Helio_ST77XXKind_Undefined, SFP(HStr_Err_InvalidParameter));
@@ -179,7 +179,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7735>::HelioDisplayAdafruitGFX(SPIDeviceSetup
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_USE_ANALOG_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7735>::begin()
@@ -207,7 +207,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getVRAMBufferRows() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     HELIO_SOFT_ASSERT(_kind != Helio_ST77XXKind_Undefined, SFP(HStr_Err_InvalidParameter));
@@ -245,7 +245,7 @@ HelioDisplayAdafruitGFX<Adafruit_ST7789>::HelioDisplayAdafruitGFX(SPIDeviceSetup
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_USE_ANALOG_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ST7789>::begin()
@@ -269,7 +269,7 @@ HelioDisplayAdafruitGFX<Adafruit_ILI9341>::HelioDisplayAdafruitGFX(SPIDeviceSetu
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getVRAMBufferRows() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     #ifdef ESP8266
@@ -279,7 +279,7 @@ HelioDisplayAdafruitGFX<Adafruit_ILI9341>::HelioDisplayAdafruitGFX(SPIDeviceSetu
 
 void HelioDisplayAdafruitGFX<Adafruit_ILI9341>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_USE_ANALOG_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayAdafruitGFX<Adafruit_ILI9341>::begin()
@@ -300,13 +300,13 @@ HelioDisplayTFTeSPI::HelioDisplayTFTeSPI(SPIDeviceSetup displaySetup, Helio_Disp
     : HelioDisplayDriver(displayRotation, TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
       _kind(st77Kind),
       _gfx(TFT_GFX_WIDTH, TFT_GFX_HEIGHT),
-      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getVRAMBufferRows() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 { ; }
 
 void HelioDisplayTFTeSPI::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_MEDLRG)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_MEDLRG)), Helio_TitleMode_Always, HELIO_UI_GFX_USE_ANALOG_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 void HelioDisplayTFTeSPI::begin()

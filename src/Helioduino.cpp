@@ -1147,7 +1147,7 @@ void Helioduino::setSystemLocation(double latitude, double longitude, double alt
         _systemData->latitude = latitude;
         _systemData->longitude = longitude;
         _systemData->altitude = altitude;
-        if (isSigChange) { _systemData->bumpRevisionIfNeeded(); }
+        if (isSigChange) { notifySignificantLocation(*((Location *)&_systemData->latitude)); }
     }
 }
 
@@ -1432,41 +1432,11 @@ Location Helioduino::getSystemLocation() const
     return _systemData ? Location(_systemData->latitude, _systemData->longitude, _systemData->altitude) : Location();
 }
 
-void Helioduino::notifyRTCTimeUpdated()
-{
-    _rtcBattFail = false;
-    _lastAutosave = 0;
-    logger.updateInitTracking();
-}
-
-void Helioduino::notifyDayChanged()
-{
-    if (getSystemMode() == Helio_SystemMode_Tracking) {
-        for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
-            if (iter->second->isPanelType()) {
-                auto panel = static_pointer_cast<HelioPanel>(iter->second);
-
-                if (panel && panel->isAnyTrackingClass()) {
-                    auto trackingPanel = static_pointer_cast<HelioTrackingPanel>(iter->second);
-                    trackingPanel->notifyDayChanged();
-                }
-            }
-        }
-    }
-}
-
 void Helioduino::checkFreeMemory()
 {
     auto memLeft = freeMemory();
     if (memLeft != -1 && memLeft < HELIO_SYS_FREERAM_LOWBYTES) {
         broadcastLowMemory();
-    }
-}
-
-void Helioduino::broadcastLowMemory()
-{
-    for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
-        iter->second->handleLowMemory();
     }
 }
 
@@ -1488,7 +1458,7 @@ void Helioduino::checkFreeSpace()
     if ((logger.isLoggingEnabled() || publisher.isPublishingEnabled()) &&
         (!_lastSpaceCheck || unixNow() >= _lastSpaceCheck + (HELIO_SYS_FREESPACE_INTERVAL * SECS_PER_MIN))) {
         if (logger.isLoggingToSDCard() || publisher.isPublishingToSDCard()) {
-            uint32_t freeKB = getSDCardFreeSpace() >> 10;
+            uint32_t freeKB = getSDCardFreeSpace();
             while (freeKB < HELIO_SYS_FREESPACE_LOWSPACE) {
                 logger.cleanupOldestLogs(true);
                 publisher.cleanupOldestData(true);
@@ -1503,33 +1473,6 @@ void Helioduino::checkFreeSpace()
 void Helioduino::checkAutosave()
 {
     if (isAutosaveEnabled() && unixNow() >= _lastAutosave + (_systemData->autosaveInterval * SECS_PER_MIN)) {
-        for (int index = 0; index < 2; ++index) {
-            switch (index == 0 ? _systemData->autosaveEnabled : _systemData->autosaveFallback) {
-                case Helio_Autosave_EnabledToSDCardJson:
-                    saveToSDCard(JSON);
-                    break;
-                case Helio_Autosave_EnabledToSDCardRaw:
-                    saveToSDCard(RAW);
-                    break;
-                case Helio_Autosave_EnabledToEEPROMJson:
-                    saveToEEPROM(JSON);
-                    break;
-                case Helio_Autosave_EnabledToEEPROMRaw:
-                    saveToEEPROM(RAW);
-                    break;
-                case Helio_Autosave_EnabledToWiFiStorageJson:
-                    #ifdef HELIO_USE_WIFI_STORAGE
-                        saveToWiFiStorage(JSON);
-                    #endif
-                    break;
-                case Helio_Autosave_EnabledToWiFiStorageRaw:
-                    #ifdef HELIO_USE_WIFI_STORAGE
-                        saveToWiFiStorage(RAW);
-                    #endif
-                case Helio_Autosave_Disabled:
-                    break;
-            }
-        }
-        _lastAutosave = unixNow();
+        performAutosave();
     }
 }

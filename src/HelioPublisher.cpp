@@ -176,7 +176,7 @@ Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &Heli
     return _publishSignal;
 }
 
-void HelioPublisher::notifyDayChanged()
+void HelioPublisher::notifyDateChanged()
 {
     if (isPublishingEnabled()) {
         _dataFilename = getYYMMDDFilename(charsToString(publisherData()->dataFilePrefix, 16), SFP(HStr_csv));

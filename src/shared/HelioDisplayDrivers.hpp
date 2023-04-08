@@ -194,7 +194,7 @@ HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup,
       #else
           _gfx(intForPin(displaySetup.cs), intForPin(dcPin), intForPin(resetPin)),
       #endif
-      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getSpriteHeight() : 0),
+      _drawable(&_gfx, getBaseUI() ? getBaseUI()->getVRAMBufferRows() : 0),
       _renderer(HELIO_UI_RENDERER_BUFFERSIZE, HelioDisplayDriver::getSystemName(), &_drawable)
 {
     #ifdef ESP8266
@@ -205,7 +205,7 @@ HelioDisplayAdafruitGFX<T>::HelioDisplayAdafruitGFX(SPIDeviceSetup displaySetup,
 template <class T>
 void HelioDisplayAdafruitGFX<T>::initBaseUIFromDefaults()
 {
-    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_VARS_USES_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
+    getBaseUI()->init(HELIO_UI_UPDATE_SPEED, definedThemeElse(getDisplayTheme(), JOIN3(Helio_DisplayTheme, HELIO_UI_GFX_DISP_THEME_BASE, HELIO_UI_GFX_DISP_THEME_SMLMED)), Helio_TitleMode_Always, HELIO_UI_GFX_USE_ANALOG_SLIDER, HELIO_UI_GFX_USE_EDITING_ICONS);
 }
 
 template <class T>

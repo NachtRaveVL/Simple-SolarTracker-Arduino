@@ -86,7 +86,7 @@ public:
 class HelioUIInterface {
 public:
     virtual HelioUIData *init(HelioUIData *data = nullptr) = 0;
-    virtual bool begin() = 0;
+    virtual void begin() = 0;
 
     virtual void setNeedsRedraw() = 0;
 };

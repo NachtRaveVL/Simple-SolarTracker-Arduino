@@ -60,7 +60,7 @@ protected:
 
     void updateDayTracking();
     void performScheduling();
-    void broadcastDayChange();
+    void broadcastDateChange();
 };
 
 // Scheduler Process Base

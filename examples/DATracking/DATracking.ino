@@ -106,7 +106,7 @@ SoftwareSerial SWSerial(RX, TX);                        // Replace with Rx/Tx pi
 // UI Settings
 #define SETUP_UI_LOGIC_LEVEL            ACT_LOW         // I/O signaling logic active level (ACT_LOW, ACT_HIGH)
 #define SETUP_UI_ALLOW_INTERRUPTS       true            // Allow interrupt driven I/O if able, else force polling
-#define SETUP_UI_USE_TCUNICODE_FONTS    false           // Use tcUnicode fonts instead of gfx-lib specific fonts, if using graphical display
+#define SETUP_UI_USE_TCUNICODE_FONTS    false           // Use tcUnicode fonts over GFXfont (Adafruit) fonts, if using graphical color display
 #define SETUP_UI_USE_BUFFERED_VRAM      HAS_LARGE_SRAM  // Use sprite-sized buffered video RAM for smooth animations, if large SRAM
 #define SETUP_UI_IS_DFROBOTSHIELD       false           // Using DFRobotShield as preset (SETUP_CTRL_INPUT_PINS may be left {-1})
 
@@ -774,31 +774,24 @@ inline void setupUI()
             uiDispSetup = UIDisplaySetup::usingDFRobotShield();
         #else
             switch (helioController.getControlInputMode()) {
-                case Helio_ControlInputMode_RotaryEncoderOk:
-                case Helio_ControlInputMode_RotaryEncoderOkLR:
+                case Helio_ControlInputMode_RotaryEncoderOk: case Helio_ControlInputMode_RotaryEncoderOkLR:
                     uiCtrlSetup = UIControlSetup(RotaryControlSetup(JOIN(Helio_EncoderSpeed,SETUP_UI_ENC_ROTARY_SPEED)));
                     break;
-                case Helio_ControlInputMode_UpDownButtonsOk:
-                case Helio_ControlInputMode_UpDownButtonsOkLR:
+                case Helio_ControlInputMode_UpDownButtonsOk: case Helio_ControlInputMode_UpDownButtonsOkLR:
                     uiCtrlSetup = UIControlSetup(ButtonsControlSetup(SETUP_UI_KEY_REPEAT_SPEED));
                     break;
-                case Helio_ControlInputMode_UpDownESP32TouchOk:
-                case Helio_ControlInputMode_UpDownESP32TouchOkLR:
+                case Helio_ControlInputMode_UpDownESP32TouchOk: case Helio_ControlInputMode_UpDownESP32TouchOkLR:
                     uiCtrlSetup = UIControlSetup(ESP32TouchControlSetup(SETUP_UI_KEY_REPEAT_SPEED, SETUP_UI_ESP32TOUCH_SWITCH, JOIN(Helio_ESP32Touch_HighRef,SETUP_UI_ESP32TOUCH_HVOLTS), JOIN(Helio_ESP32Touch_LowRef,SETUP_UI_ESP32TOUCH_LVOLTS), JOIN(Helio_ESP32Touch_HighRefAtten,SETUP_UI_ESP32TOUCH_HVATTEN)));
                     break;
                 case Helio_ControlInputMode_AnalogJoystickOk:
                     uiCtrlSetup = UIControlSetup(JoystickControlSetup(SETUP_UI_KEY_REPEAT_DELAY, SETUP_UI_JS_ACCELERATION));
                     break;
                 case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL:
-                case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk:
-                case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR:
-                case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOk:
-                case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
+                case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOk: case Helio_ControlInputMode_Matrix3x4Keyboard_OptRotEncOkLR:
+                case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOk: case Helio_ControlInputMode_Matrix4x4Keyboard_OptRotEncOkLR:
                     uiCtrlSetup = UIControlSetup(MatrixControlSetup(SETUP_UI_KEY_REPEAT_DELAY, SETUP_UI_KEY_REPEAT_INTERVAL, JOIN(Helio_EncoderSpeed,SETUP_UI_ENC_ROTARY_SPEED)));
                     break;
-                case Helio_ControlInputMode_ResistiveTouch:
-                case Helio_ControlInputMode_TouchScreen:
-                case Helio_ControlInputMode_TFTTouch:
+                case Helio_ControlInputMode_ResistiveTouch: case Helio_ControlInputMode_TouchScreen: case Helio_ControlInputMode_TFTTouch:
                     #ifndef HELIO_UI_ENABLE_XPT2046TS
                         uiCtrlSetup = UIControlSetup(TouchscreenSetup(JOIN(Helio_TouchscreenOrientation,SETUP_UI_TOUCHSCREEN_ORIENT)));
                     #else
@@ -808,24 +801,14 @@ inline void setupUI()
                 default: break;
             }
             switch (helioController.getDisplayOutputMode()) {
-                case Helio_DisplayOutputMode_LCD16x2_EN:
-                case Helio_DisplayOutputMode_LCD16x2_RS:
-                case Helio_DisplayOutputMode_LCD20x4_EN:
-                case Helio_DisplayOutputMode_LCD20x4_RS:
+                case Helio_DisplayOutputMode_LCD16x2_EN: case Helio_DisplayOutputMode_LCD16x2_RS:
+                case Helio_DisplayOutputMode_LCD20x4_EN: case Helio_DisplayOutputMode_LCD20x4_RS:
                     uiDispSetup = UIDisplaySetup(LCDDisplaySetup(JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE)));
                     break;
-                case Helio_DisplayOutputMode_SSD1305:
-                case Helio_DisplayOutputMode_SSD1305_x32Ada:
-                case Helio_DisplayOutputMode_SSD1305_x64Ada:
-                case Helio_DisplayOutputMode_SSD1306:
-                case Helio_DisplayOutputMode_SH1106:
-                case Helio_DisplayOutputMode_CustomOLED:
-                case Helio_DisplayOutputMode_SSD1607:
-                case Helio_DisplayOutputMode_IL3820:
-                case Helio_DisplayOutputMode_IL3820_V2:
-                case Helio_DisplayOutputMode_ST7735:
-                case Helio_DisplayOutputMode_ST7789:
-                case Helio_DisplayOutputMode_ILI9341:
+                case Helio_DisplayOutputMode_SSD1305: case Helio_DisplayOutputMode_SSD1305_x32Ada: case Helio_DisplayOutputMode_SSD1305_x64Ada:
+                case Helio_DisplayOutputMode_SSD1306: case Helio_DisplayOutputMode_SH1106: case Helio_DisplayOutputMode_CustomOLED:
+                case Helio_DisplayOutputMode_SSD1607: case Helio_DisplayOutputMode_IL3820: case Helio_DisplayOutputMode_IL3820_V2:
+                case Helio_DisplayOutputMode_ST7735: case Helio_DisplayOutputMode_ST7789: case Helio_DisplayOutputMode_ILI9341:
                     uiDispSetup = UIDisplaySetup(PixelDisplaySetup(JOIN(Helio_DisplayRotation,SETUP_UI_GFX_ROTATION), SETUP_UI_GFX_DC_PIN, SETUP_UI_GFX_RESET_PIN, SETUP_UI_GFX_BACKLIGHT_PIN, JOIN(Helio_BacklightMode,SETUP_UI_GFX_BACKLIGHT_MODE), DAC_RESOLUTION,
 #ifdef ESP32
                                                                    SETUP_UI_GFX_BACKLIGHT_ESP_CHN,
@@ -914,7 +897,30 @@ inline void setupUI()
                 #elif IS_SETUP_AS(SETUP_CONTROL_IN_MODE, TFTTouch)
                     ui->allocateTFTTouchControl();
                 #endif
+            #endif
 
+            #ifdef SETUP_UI_USE_CLOCK_FONT
+                ui->setupOverviewClockFont(&SETUP_UI_USE_CLOCK_FONT);
+            #endif
+            #ifdef SETUP_UI_USE_DETAIL_FONT
+                ui->setupOverviewDetailFont(&SETUP_UI_USE_DETAIL_FONT);
+            #endif
+            #ifdef SETUP_UI_USE_OVERVIEW_FONT
+                ui->setupOverviewFont(&SETUP_UI_USE_OVERVIEW_FONT);
+            #endif
+            #ifdef SETUP_UI_USE_ITEM_FONT
+                ui->setupMenuItemFont(&SETUP_UI_USE_ITEM_FONT);
+            #endif
+            #ifdef SETUP_UI_USE_TITLE_FONT
+                ui->setupMenuTitleFont(&SETUP_UI_USE_TITLE_FONT);
+            #endif
+            #ifdef SETUP_UI_USE_MENU_FONT
+                ui->setupMenuFont(&SETUP_UI_USE_MENU_FONT);
+            #endif
+
+            helioController.enableUI(ui);
+
+            #if IS_SETUP_AS(SETUP_SYS_UI_MODE, Minimal)
                 #if IS_SETUP_AS(SETUP_UI_REMOTE1_TYPE, Serial) || IS_SETUP_AS(SETUP_UI_REMOTE1_TYPE, UART)
                     ui->addSerialRemote(UARTDeviceSetup(&SETUP_UI_REMOTE1_UART));
                 #elif IS_SETUP_AS(SETUP_UI_REMOTE1_TYPE, Simhub)
@@ -941,25 +947,6 @@ inline void setupUI()
                     ui->addRemote(JOIN(Helio_RemoteControl,SETUP_UI_REMOTE2_TYPE), UARTDeviceSetup(&SETUP_UI_REMOTE2_UART), SETUP_UI_RC_NETWORKING_PORT);
                 #endif
             #endif
-            #ifdef SETUP_UI_USE_CLOCK_FONT
-                ui->setOverviewClockFont(&SETUP_UI_USE_CLOCK_FONT);
-            #endif
-            #ifdef SETUP_UI_USE_DETAIL_FONT
-                ui->setOverviewDetailFont(&SETUP_UI_USE_DETAIL_FONT);
-            #endif
-            #ifdef SETUP_UI_USE_OVERVIEW_FONT
-                ui->setOverviewFont(&SETUP_UI_USE_OVERVIEW_FONT);
-            #endif
-            #ifdef SETUP_UI_USE_ITEM_FONT
-                ui->setMenuItemFont(&SETUP_UI_USE_ITEM_FONT);
-            #endif
-            #ifdef SETUP_UI_USE_TITLE_FONT
-                ui->setMenuTitleFont(&SETUP_UI_USE_TITLE_FONT);
-            #endif
-            #ifdef SETUP_UI_USE_MENU_FONT
-                ui->setMenuFont(&SETUP_UI_USE_MENU_FONT);
-            #endif
-            helioController.enableUI(ui);
         }
     #endif
 }

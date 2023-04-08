@@ -76,11 +76,12 @@ public:
     inline Helio_LogLevel getLogLevel() const;
 
     inline bool isLoggingEnabled() const;
+    inline time_t getSystemInit() const { return _initTime; }
     inline time_t getSystemUptime() const { return unixNow() - (_initTime ?: SECS_YR_2000); }
 
     Signal<const HelioLogEvent, HELIO_LOG_SIGNAL_SLOTS> &getLogSignal();
 
-    void notifyDayChanged();
+    void notifyDateChanged();
 
 protected:
 #if HELIO_SYS_LEAVE_FILES_OPEN
@@ -96,12 +97,14 @@ protected:
     Signal<const HelioLogEvent, HELIO_LOG_SIGNAL_SLOTS> _logSignal; // Logging signal
 
     friend class Helioduino;
+    
+    void log(const HelioLogEvent &event);
 
+public: // consider protected
     inline HelioLoggerSubData *loggerData() const;
     inline bool hasLoggerData() const;
 
-    inline void updateInitTracking() { _initTime = unixNow(); }
-    void log(const HelioLogEvent &event);
+    inline void updateInitTracking(time_t time = unixNow()) { _initTime = time; }
     void cleanupOldestLogs(bool force = false);
 };
 

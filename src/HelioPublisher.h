@@ -55,7 +55,7 @@ public:
 
     Signal<Pair<uint8_t, const HelioDataColumn *>, HELIO_PUBLISH_SIGNAL_SLOTS> &getPublishSignal();
 
-    void notifyDayChanged();
+    void notifyDateChanged();
 
 protected:
 #if HELIO_SYS_LEAVE_FILES_OPEN
@@ -77,9 +77,6 @@ protected:
 
     friend class Helioduino;
 
-    inline HelioPublisherSubData *publisherData() const;
-    inline bool hasPublisherData() const;
-
     void advancePollingFrame();
     friend void dataLoop();
 
@@ -87,6 +84,10 @@ protected:
     void publish(time_t timestamp);
 
     void performTabulation();
+
+public: // consider protected
+    inline HelioPublisherSubData *publisherData() const;
+    inline bool hasPublisherData() const;
 
     void resetDataFile();
     void cleanupOldestData(bool force = false);

@@ -244,7 +244,7 @@ Signal<const HelioLogEvent, HELIO_LOG_SIGNAL_SLOTS> &HelioLogger::getLogSignal()
     return _logSignal;
 }
 
-void HelioLogger::notifyDayChanged()
+void HelioLogger::notifyDateChanged()
 {
     if (isLoggingEnabled()) {
         _logFilename = getYYMMDDFilename(charsToString(loggerData()->logFilePrefix, 16), SFP(HStr_txt));

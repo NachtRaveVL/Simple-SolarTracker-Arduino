@@ -258,6 +258,33 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 #endif
 
 
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_SPI)) && (SPI_INTERFACES_COUNT > 0 || SPI_HOWMANY > 0)
+#define HELIO_USE_SPI                   &SPI
+#else
+#define HELIO_USE_SPI                   nullptr
+#endif
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_SPI1)) && (SPI_INTERFACES_COUNT > 1 || SPI_HOWMANY > 1)
+#define HELIO_USE_SPI1                  &SPI1
+#else
+#define HELIO_USE_SPI1                  nullptr
+#endif
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_TWOWIRE)) && (WIRE_INTERFACES_COUNT > 0 || WIRE_HOWMANY > 0)
+#define HELIO_USE_WIRE                  &Wire
+#else
+#define HELIO_USE_WIRE                  nullptr
+#endif
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_TWOWIRE1)) && (WIRE_INTERFACES_COUNT > 1 || WIRE_HOWMANY > 1)
+#define HELIO_USE_WIRE1                 &Wire1
+#else
+#define HELIO_USE_WIRE1                 nullptr
+#endif
+#if !(defined(NO_GLOBAL_INSTANCES) || defined(NO_GLOBAL_SERIAL1)) && (SERIAL_HOWMANY > 1 || defined(HWSERIAL1) || defined(HAVE_HWSERIAL1) || defined(PIN_SERIAL1_RX) || defined(SERIAL2_RX) || defined(Serial1))
+#define HELIO_USE_SERIAL1               &Serial1
+#else
+#define HELIO_USE_SERIAL1               nullptr
+#endif
+
+
 // EEPROM Device Type Enumeration
 enum Helio_EEPROMType : signed short {
     Helio_EEPROMType_AT24LC01 = I2C_DEVICESIZE_24LC01 >> 7,     // AT24LC01 (1k bits, 128 bytes), 7-bit address space
