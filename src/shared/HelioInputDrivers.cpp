@@ -126,6 +126,9 @@ HelioInputESP32TouchKeys::HelioInputESP32TouchKeys(Pair<uint8_t, const pintype_t
                     attenuation == Helio_ESP32Touch_HighRefAtten_Max ? TOUCH_HVOLT_ATTEN_MAX : TOUCH_HVOLT_ATTEN_KEEP)
 #endif
 {
+    #ifndef ESP32
+        HELIO_HARD_ASSERT(false, HStr_Err_UnsupportedOperation);
+    #endif
     HELIO_SOFT_ASSERT(_pins.first >= 1 && isValidPin(_pins.second[0]), HStr_Err_InvalidParameter);
     HELIO_SOFT_ASSERT(_pins.first >= 2 && isValidPin(_pins.second[1]), HStr_Err_InvalidParameter);
     HELIO_SOFT_ASSERT(_pins.first >= 3 && isValidPin(_pins.second[2]), HStr_Err_InvalidParameter);
