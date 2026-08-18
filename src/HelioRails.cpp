@@ -7,7 +7,7 @@
 
 HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 {
-    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
+    if (dataIn && !isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {

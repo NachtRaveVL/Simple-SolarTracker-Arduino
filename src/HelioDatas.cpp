@@ -24,7 +24,7 @@ HelioData *_allocateDataFromBaseDecode(const HelioData &baseDecode)
     HELIO_SOFT_ASSERT(retVal, F("Unknown data decode"));
     if (retVal) {
         retVal->id = baseDecode.id;
-        HELIO_SOFT_ASSERT(retVal->_version == baseDecode._version, F("Data version mismatch"));
+        HELIO_SOFT_ASSERT(retVal->_version >= baseDecode._version, F("Data version mismatch"));
         retVal->_revision = baseDecode._revision;
         return retVal;
     }

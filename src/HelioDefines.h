@@ -220,6 +220,7 @@ typedef typeof(LOW)                     ard_pinstatus_t;    // Arduino pin statu
 
 #define HELIO_SCH_BALANCE_MINTIME       30                  // Minimum time, in seconds, that all balancers must register as balanced for until driving is marked as completed
 
+#define HELIO_SENSOR_BINARY_STABLE_MILLIS 100                 // Minimum time a binary sensor input must remain changed before the new state is accepted, in milliseconds
 #define HELIO_SENSOR_ANALOGREAD_SAMPLES 5                   // Number of samples to take for any analogRead call inside of a sensor's takeMeasurement call, or 0 to disable sampling (note: bitRes.maxValue * # of samples must fit inside a uint32_t)
 #define HELIO_SENSOR_ANALOGREAD_DELAY   0                   // Delay time between samples, or 0 to disable delay, in milliseconds
 

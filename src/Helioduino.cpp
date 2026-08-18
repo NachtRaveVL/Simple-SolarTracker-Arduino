@@ -580,7 +580,7 @@ bool Helioduino::saveToBinaryStream(Stream *streamOut)
     if (_systemData && streamOut) {
         {   size_t bytesWritten = serializeDataToBinaryStream(_systemData, streamOut);
 
-            HELIO_SOFT_ASSERT(!bytesWritten, SFP(HStr_Err_ExportFailure));
+            HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
             if (!bytesWritten) { return false; }
         }
 

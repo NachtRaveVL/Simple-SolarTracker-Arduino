@@ -7,7 +7,7 @@
 
 HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 {
-    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
+    if (dataIn && !isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -539,7 +539,7 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
             return enableActuator(direction, 1.0f, time);
         #else
             getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getPanel()->getId().getDisplayString()); }
+            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
             if (_contSpeed.value > FLT_EPSILON) {
                 getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
             }
@@ -618,6 +618,8 @@ void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
     HelioRelayActuator::saveToData(dataOut);
 
     _outputPin2.saveToData(&((HelioMotorActuatorData *)dataOut)->outputPin2);
+    ((HelioMotorActuatorData *)dataOut)->travelRange[0] = _travelRange.first;
+    ((HelioMotorActuatorData *)dataOut)->travelRange[1] = _travelRange.second;
     ((HelioMotorActuatorData *)dataOut)->distanceUnits = _distUnits;
     if (_contSpeed.isSet()) {
         _contSpeed.saveToData(&(((HelioMotorActuatorData *)dataOut)->contSpeed));
@@ -627,6 +629,12 @@ void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
     }
     if (_speed.isSet()) {
         strncpy(((HelioMotorActuatorData *)dataOut)->speedSensor, _speed.getKeyString().c_str(), HELIO_NAME_MAXSIZE);
+    }
+    if (_minimum.isSet()) {
+        _minimum->saveToData(&(((HelioMotorActuatorData *)dataOut)->minTrigger));
+    }
+    if (_maximum.isSet()) {
+        _maximum->saveToData(&(((HelioMotorActuatorData *)dataOut)->maxTrigger));
     }
 }
 
@@ -785,7 +793,8 @@ void HelioActuatorData::fromJSONObject(JsonObjectConst &objectIn)
 }
 
 HelioMotorActuatorData::HelioMotorActuatorData()
-    : HelioActuatorData(), outputPin2(), distanceUnits(Helio_UnitsType_Undefined), contSpeed(), positionSensor{0}, speedSensor{0}
+    : HelioActuatorData(), outputPin2(), travelRange{0.0f, FLT_UNDEF}, distanceUnits(Helio_UnitsType_Undefined), contSpeed(),
+      positionSensor{0}, speedSensor{0}, minTrigger(), maxTrigger()
 {
     _size = sizeof(*this);
 }
@@ -798,6 +807,9 @@ void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
         JsonObject outputPin2Obj = objectOut.createNestedObject(SFP(HStr_Key_OutputPin2));
         outputPin2.toJSONObject(outputPin2Obj);
     }
+    if (!isFPEqual(travelRange[0], 0.0f) || travelRange[1] != FLT_UNDEF) {
+        objectOut[SFP(HStr_Key_TravelRange)] = commaStringFromArray(travelRange, 2);
+    }
     if (distanceUnits != Helio_UnitsType_Undefined) { objectOut[SFP(HStr_Key_DistanceUnits)] = unitsTypeToSymbol(distanceUnits); }
     if (contSpeed.value > FLT_EPSILON) {
         JsonObject contSpeedObj = objectOut.createNestedObject(SFP(HStr_Key_ContinuousSpeed));
@@ -805,14 +817,24 @@ void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
     }
     if (positionSensor[0]) { objectOut[SFP(HStr_Key_PositionSensor)] = charsToString(positionSensor, HELIO_NAME_MAXSIZE); }
     if (speedSensor[0]) { objectOut[SFP(HStr_Key_SpeedSensor)] = charsToString(speedSensor, HELIO_NAME_MAXSIZE); }
+    if (minTrigger.isSet()) {
+        JsonObject minTriggerObj = objectOut.createNestedObject(SFP(HStr_Key_MinTrigger));
+        minTrigger.toJSONObject(minTriggerObj);
+    }
+    if (maxTrigger.isSet()) {
+        JsonObject maxTriggerObj = objectOut.createNestedObject(SFP(HStr_Key_MaxTrigger));
+        maxTrigger.toJSONObject(maxTriggerObj);
+    }
 }
 
 void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
 {
     HelioActuatorData::fromJSONObject(objectIn);
 
-    JsonObjectConst outputPinObj = objectIn[SFP(HStr_Key_OutputPin)];
-    if (!outputPinObj.isNull()) { outputPin.fromJSONObject(outputPinObj); }
+    JsonObjectConst outputPin2Obj = objectIn[SFP(HStr_Key_OutputPin2)];
+    if (!outputPin2Obj.isNull()) { outputPin2.fromJSONObject(outputPin2Obj); }
+    JsonVariantConst travelRangeVar = objectIn[SFP(HStr_Key_TravelRange)];
+    commaStringToArray(travelRangeVar, travelRange, 2);
     distanceUnits = unitsTypeFromSymbol(objectIn[SFP(HStr_Key_DistanceUnits)]);
     JsonVariantConst contSpeedVar = objectIn[SFP(HStr_Key_ContinuousSpeed)];
     if (!contSpeedVar.isNull()) { contSpeed.fromJSONVariant(contSpeedVar); }
@@ -820,4 +842,8 @@ void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
     if (positionSensorStr && positionSensorStr[0]) { strncpy(positionSensor, positionSensorStr, HELIO_NAME_MAXSIZE); }
     const char *speedSensorStr = objectIn[SFP(HStr_Key_SpeedSensor)];
     if (speedSensorStr && speedSensorStr[0]) { strncpy(speedSensor, speedSensorStr, HELIO_NAME_MAXSIZE); }
+    JsonObjectConst minTriggerObj = objectIn[SFP(HStr_Key_MinTrigger)];
+    if (!minTriggerObj.isNull()) { minTrigger.fromJSONObject(minTriggerObj); }
+    JsonObjectConst maxTriggerObj = objectIn[SFP(HStr_Key_MaxTrigger)];
+    if (!maxTriggerObj.isNull()) { maxTrigger.fromJSONObject(maxTriggerObj); }
 }

@@ -4,10 +4,11 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 HelioSensor *newSensorObjectFromData(const HelioSensorData *dataIn)
 {
-    if (dataIn && isValidType(dataIn->id.object.idType)) return nullptr;
+    if (dataIn && !isValidType(dataIn->id.object.idType)) return nullptr;
     HELIO_SOFT_ASSERT(dataIn && dataIn->isObjectData(), SFP(HStr_Err_InvalidParameter));
 
     if (dataIn && dataIn->isObjectData()) {
@@ -158,7 +159,8 @@ void HelioSensor::saveToData(HelioData *dataOut)
 
 HelioBinarySensor::HelioBinarySensor(Helio_SensorType sensorType, hposi_t sensorIndex, HelioDigitalPin inputPin, int classType)
     : HelioSensor(sensorType, sensorIndex, classType),
-      _inputPin(inputPin), _usingISR(false)
+      _inputPin(inputPin), _usingISR(false), _pendingState(false), _hasPendingState(false),
+      _pendingStateStart(millis_none), _stateStableTimeMs(HELIO_SENSOR_BINARY_STABLE_MILLIS)
 {
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _inputPin.init();
@@ -166,7 +168,8 @@ HelioBinarySensor::HelioBinarySensor(Helio_SensorType sensorType, hposi_t sensor
 
 HelioBinarySensor::HelioBinarySensor(const HelioBinarySensorData *dataIn)
     : HelioSensor(dataIn),
-      _inputPin(&dataIn->inputPin), _usingISR(false)
+      _inputPin(&dataIn->inputPin), _usingISR(false), _pendingState(false), _hasPendingState(false),
+      _pendingStateStart(millis_none), _stateStableTimeMs(dataIn->stateStableTimeMs)
 {
     HELIO_HARD_ASSERT(_inputPin.isValid(), SFP(HStr_Err_InvalidPinOrType));
     _inputPin.init();
@@ -186,12 +189,14 @@ bool HelioBinarySensor::takeMeasurement(bool force)
     if (_inputPin.isValid() && (force || needsPolling()) && !_isTakingMeasure) {
         _isTakingMeasure = true;
         bool stateBefore = _lastMeasurement.state;
-
-        bool state = _inputPin.isActive();
+        bool sampledState = _inputPin.isActive();
         auto timestamp = unixNow();
+        uint32_t pendingStateStart = _pendingStateStart;
+        bool state = helioUpdateStableBinaryState(stateBefore, sampledState, millis(), _stateStableTimeMs,
+                                                  _pendingState, _hasPendingState, pendingStateStart);
+        _pendingStateStart = pendingStateStart;
 
         _lastMeasurement = HelioBinaryMeasurement(state, timestamp);
-        getController()->returnPinLock(_inputPin.pin);
         _isTakingMeasure = false;
 
         #ifdef HELIO_USE_MULTITASKING
@@ -207,7 +212,6 @@ bool HelioBinarySensor::takeMeasurement(bool force)
                 _stateSignal.fire(_lastMeasurement.state);
             #endif
         }
-
 
         return true;
     }
@@ -236,6 +240,15 @@ Helio_UnitsType HelioBinarySensor::getMeasurementUnits(uint8_t) const
     return _calibrationData ? _calibrationData->calibrationUnits : Helio_UnitsType_Raw_1;
 }
 
+void HelioBinarySensor::setStateStableTime(uint16_t stableTimeMs)
+{
+    if (_stateStableTimeMs != stableTimeMs) {
+        _stateStableTimeMs = stableTimeMs;
+        _hasPendingState = false;
+        bumpRevisionIfNeeded();
+    }
+}
+
 bool HelioBinarySensor::tryRegisterISR(bool anyChange)
 {
     #ifdef HELIO_USE_MULTITASKING
@@ -258,6 +271,7 @@ void HelioBinarySensor::saveToData(HelioData *dataOut)
 
     _inputPin.saveToData(&((HelioBinarySensorData *)dataOut)->inputPin);
     ((HelioBinarySensorData *)dataOut)->usingISR = _usingISR;
+    ((HelioBinarySensorData *)dataOut)->stateStableTimeMs = _stateStableTimeMs;
 }
 
 
@@ -685,9 +699,10 @@ void HelioSensorData::fromJSONObject(JsonObjectConst &objectIn)
 }
 
 HelioBinarySensorData::HelioBinarySensorData()
-    : HelioSensorData(), usingISR(false)
+    : HelioSensorData(), usingISR(false), stateStableTimeMs(HELIO_SENSOR_BINARY_STABLE_MILLIS)
 {
     _size = sizeof(*this);
+    _version = 2;
 }
 
 void HelioBinarySensorData::toJSONObject(JsonObject &objectOut) const
@@ -695,6 +710,7 @@ void HelioBinarySensorData::toJSONObject(JsonObject &objectOut) const
     HelioSensorData::toJSONObject(objectOut);
 
     if (usingISR != false) { objectOut[SFP(HStr_Key_UsingISR)] = usingISR; }
+    if (stateStableTimeMs != HELIO_SENSOR_BINARY_STABLE_MILLIS) { objectOut[SFP(HStr_Key_StateStableTimeMs)] = stateStableTimeMs; }
 }
 
 void HelioBinarySensorData::fromJSONObject(JsonObjectConst &objectIn)
@@ -702,6 +718,12 @@ void HelioBinarySensorData::fromJSONObject(JsonObjectConst &objectIn)
     HelioSensorData::fromJSONObject(objectIn);
 
     usingISR = objectIn[SFP(HStr_Key_UsingISR)] | usingISR;
+    stateStableTimeMs = objectIn[SFP(HStr_Key_StateStableTimeMs)] | stateStableTimeMs;
+}
+
+void HelioBinarySensorData::migrateFromBinaryVersion(uint8_t fromVersion)
+{
+    if (fromVersion < 2) { stateStableTimeMs = HELIO_SENSOR_BINARY_STABLE_MILLIS; }
 }
 
 HelioAnalogSensorData::HelioAnalogSensorData()

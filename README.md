@@ -1,16 +1,14 @@
 # Helioduino
 Helioduino: Simple Solar Tracker Automation Controller.
 
-**Simple-SolarTracker-Arduino v0.6.8.0**
+**Simple-SolarTracker-Arduino v0.7.0.0**
 
 Simple automation controller for solar tracking systems.  
 Licensed under the non-restrictive MIT license.
 
 Created by NachtRaveVL, Jan 3rd, 2023.
 
-**UNDER ACTIVE DEVELOPMENT -- WORK IN PROGRESS**
-
-This controller allows one to set up a system of panels, servos, LDRs, relays, and other objects useful in controlling both single and dual axis sun tracking solar panel systems, and provides data monitoring & collection abilities while operating panel axis servos and/or linear actuators across the day as the sun moves to maintain optimal panel alignment. Works with a large variety of widely-available aquarium/hobbyist equipment, including popular GPS, RTC, EEPROM, SD card, WiFi, and other modules compatible with Arduino. Can be setup to calculate sun position accurately as possible or to auto-balance two opposing photoresistors per panel axis. With the right setup Helioduino can automatically do things like: drive large panels with multiple in-step linear actuators, engaging axis brakes to prevent large panels from moving/taking strain off motors that can then disengage, spray/wipe panels on routine to keep panels clean, deploy panels at sunrise and retract at sunset or when it's too windy out, remind when to realign panels, or even provide panel heating during cold temperatures or when ice is detected.
+This controller manages panels, servos, linear actuators, LDRs, relays, sensors, and data collection for single and dual axis solar tracking systems. Tracking can use calculated sun position or opposing light sensors, with support for panel deployment, brakes, storm handling, cleaning, heating, and related automation. RTC and optional GPS or static location are enough for fully offline operation, while networking can be enabled only when wanted.
 
 Our Keep-It-Simple controller system:
 
@@ -79,6 +77,17 @@ The easiest way to install this controller is to utilize the Arduino IDE library
 From there, you can make a local copy of one of the example sketches based on the kind of system setup you want to use. If you are unsure of which, we recommend the Dual-Axis Tracking Example, as it is our standard implementation built for most common system setups and only requires changing setup defines at the top of the file.
 
 Storage constrained MCUs (< 512kB Flash, particularly <= 256kB) may need further setup file/max-sizes tweaking, and possibly external storage hardware (such as EEPROM or SD Card - see the Data Writer example for more details). Modern MCUs with lots of Flash storage can instead simply build the Full System Example (TODO: Still a WIP - use DA Tracking Example for right now).
+
+### Host Tests
+
+Core logic and source checks can be run without a tracker or Arduino connected:
+
+```sh
+cmake -S tests -B build-host
+cmake --build build-host
+ctest --test-dir build-host --output-on-failure
+python3 tests/validate_source.py
+```
 
 ### Setup
 
@@ -314,11 +323,12 @@ OneWire Devices Supported: DHT* 1W air temp/humidity sensors
   * Again, make sure all analog sensors are calibrated to output the same 0v - `AREF` (or `IOREF`) volts in range.
 * Sensor pins used for event triggering when measurements go above/below a pre-set tolerance - many of which are deceptively labeled `DO` (or `Do`), despite having nothing to do with being `D`ata lines of any kind - can be safely ignored, as the software implementation of such mechanism is more than sufficient.
   * Often these connections are used to drive other hardware-only based solutions that aren't a part of Helioduino's use case, but can still be connected up using a BinarySensor that triggers upon specific conditions, possibly using an ISR-capable pin if desired.
+  * BinarySensor state changes use a configurable stable-time filter before a new level is accepted. The default is 100ms. Use `setStateStableTime()` to adjust it, or set `stateStableTimeMs` to 0 to disable the filter.
 
 ### Networking & Wireless
 
-* Networking of any kind is 100% optional, with all base functionality being able to be performed on a fully remote basis utilizing a single RTC and optional GPS (or known static location).
-  * Networking does however make things much simpler and is highly recommended.
+* Networking of any kind is 100% optional. Base controller operation works offline using an RTC and optional GPS or known static location.
+  * WiFi or Ethernet can be enabled when remote control, MQTT, network time, or network storage is wanted.
 * Devices with built-in WiFi or Ethernet can enable such through header/build defines while other devices can utilize an external [serial ESP WiFi module](http://www.instructables.com/id/Cheap-Arduino-WiFi-Shield-With-ESP8266/) on any open Serial line.
   * Warning: While WiFi password is encrypted into system settings data, it should not be considered secure.
 * Serial Bluetooth-AT modules can be used on any open Serial port to provide remote device control (only).

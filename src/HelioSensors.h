@@ -118,6 +118,9 @@ public:
 
     inline const HelioDigitalPin &getInputPin() const { return _inputPin; }
 
+    void setStateStableTime(uint16_t stableTimeMs);
+    inline uint16_t getStateStableTime() const { return _stateStableTimeMs; }
+
     Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> &getStateSignal();
 
     inline void notifyISRTriggered() { takeMeasurement(true); }
@@ -125,6 +128,10 @@ public:
 protected:
     HelioDigitalPin _inputPin;                              // Digital input pin
     bool _usingISR;                                         // Using ISR flag
+    bool _pendingState;                                     // Pending raw state waiting for debounce
+    bool _hasPendingState;                                  // Pending state tracking flag
+    millis_t _pendingStateStart;                            // Pending state start time
+    uint16_t _stateStableTimeMs;                            // Minimum stable time before state change is accepted
     HelioBinaryMeasurement _lastMeasurement;                // Latest successful measurement
     Signal<bool, HELIO_SENSOR_SIGNAL_SLOTS> _stateSignal;   // State changed signal
 
@@ -258,10 +265,12 @@ struct HelioSensorData : public HelioObjectData {
 // Binary Sensor Serialization Data
 struct HelioBinarySensorData : public HelioSensorData {
     bool usingISR;                                          // Using ISR flag
+    uint16_t stateStableTimeMs;                             // Minimum stable time before state change is accepted
 
     HelioBinarySensorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;
     virtual void fromJSONObject(JsonObjectConst &objectIn) override;
+    virtual void migrateFromBinaryVersion(uint8_t fromVersion) override;
 };
 
 // Analog Sensor Serialization Data

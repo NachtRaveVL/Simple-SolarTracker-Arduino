@@ -591,6 +591,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_MaxPower[] PROGMEM = {"maxPower"};
             return flashStr_Key_MaxPower;
         } break;
+        case HStr_Key_MaxTrigger: {
+            static const char flashStr_Key_MaxTrigger[] PROGMEM = {"maxTrigger"};
+            return flashStr_Key_MaxTrigger;
+        } break;
         case HStr_Key_MeasureMode: {
             static const char flashStr_Key_MeasureMode[] PROGMEM = {"measureMode"};
             return flashStr_Key_MeasureMode;
@@ -606,6 +610,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_MinIntensity: {
             static const char flashStr_Key_MinIntensity[] PROGMEM = {"minIntensity"};
             return flashStr_Key_MinIntensity;
+        } break;
+        case HStr_Key_MinTrigger: {
+            static const char flashStr_Key_MinTrigger[] PROGMEM = {"minTrigger"};
+            return flashStr_Key_MinTrigger;
         } break;
         case HStr_Key_Mode: {
             static const char flashStr_Key_Mode[] PROGMEM = {"mode"};
@@ -755,6 +763,10 @@ const char *pgmAddrForStr(Helio_String strNum)
             static const char flashStr_Key_ToleranceLow[] PROGMEM = {"toleranceLow"};
             return flashStr_Key_ToleranceLow;
         } break;
+        case HStr_Key_TravelRange: {
+            static const char flashStr_Key_TravelRange[] PROGMEM = {"travelRange"};
+            return flashStr_Key_TravelRange;
+        } break;
         case HStr_Key_TriggerBelow: {
             static const char flashStr_Key_TriggerBelow[] PROGMEM = {"triggerBelow"};
             return flashStr_Key_TriggerBelow;
@@ -778,6 +790,10 @@ const char *pgmAddrForStr(Helio_String strNum)
         case HStr_Key_UsingISR: {
             static const char flashStr_Key_UsingISR[] PROGMEM = {"usingISR"};
             return flashStr_Key_UsingISR;
+        } break;
+        case HStr_Key_StateStableTimeMs: {
+            static const char flashStr_Key_StateStableTimeMs[] PROGMEM = {"stateStableTimeMs"};
+            return flashStr_Key_StateStableTimeMs;
         } break;
         case HStr_Key_Value: {
             static const char flashStr_Key_Value[] PROGMEM = {"value"};
