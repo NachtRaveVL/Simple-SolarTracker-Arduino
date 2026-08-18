@@ -9,6 +9,16 @@
 #include <stdint.h>
 #include <stddef.h>
 
+inline uint32_t helioElapsedTime(uint32_t now, uint32_t start)
+{
+    return (uint32_t)(now - start);
+}
+
+inline bool helioHasElapsed(uint32_t now, uint32_t start, uint32_t duration)
+{
+    return helioElapsedTime(now, start) >= duration;
+}
+
 inline bool helioUpdateStableBinaryState(bool acceptedState, bool sampledState, uint32_t nowMillis,
                                          uint16_t stableTimeMillis, bool &pendingState,
                                          bool &hasPendingState, uint32_t &pendingStateStart)
@@ -22,7 +32,7 @@ inline bool helioUpdateStableBinaryState(bool acceptedState, bool sampledState, 
         pendingState = sampledState;
         pendingStateStart = nowMillis;
         hasPendingState = true;
-    } else if ((uint32_t)(nowMillis - pendingStateStart) >= stableTimeMillis) {
+    } else if (helioHasElapsed(nowMillis, pendingStateStart, stableTimeMillis)) {
         hasPendingState = false;
         return sampledState;
     }
@@ -40,9 +50,9 @@ inline HelioBinaryDataReadPlan helioBinaryDataReadPlan(size_t serializedSize, si
 {
     if (serializedSize < baseSize || currentSize < baseSize) { return {0, 0}; }
 
-    size_t serializedRemaining = serializedSize - baseSize;
-    size_t currentRemaining = currentSize - baseSize;
-    size_t copyBytes = serializedRemaining < currentRemaining ? serializedRemaining : currentRemaining;
+    const size_t serializedRemaining = serializedSize - baseSize;
+    const size_t currentRemaining = currentSize - baseSize;
+    const size_t copyBytes = serializedRemaining < currentRemaining ? serializedRemaining : currentRemaining;
     return {copyBytes, serializedRemaining - copyBytes};
 }
 

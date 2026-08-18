@@ -3,6 +3,18 @@
 
 #include "HelioCoreLogic.h"
 
+static void testElapsedTime()
+{
+    assert(helioElapsedTime(150, 100) == 50);
+    assert(!helioHasElapsed(149, 100, 50));
+    assert(helioHasElapsed(150, 100, 50));
+
+    const uint32_t start = UINT32_MAX - 24;
+    assert(helioElapsedTime(25, start) == 50);
+    assert(!helioHasElapsed(24, start, 50));
+    assert(helioHasElapsed(25, start, 50));
+}
+
 static void testBinaryDebounce()
 {
     bool pendingState = false;
@@ -49,12 +61,16 @@ static void testBinaryDataReadPlan()
     auto newer = helioBinaryDataReadPlan(120, 100, 20);
     assert(newer.copyBytes == 80 && newer.skipBytes == 20);
 
-    auto invalid = helioBinaryDataReadPlan(10, 100, 20);
-    assert(invalid.copyBytes == 0 && invalid.skipBytes == 0);
+    auto invalidSerialized = helioBinaryDataReadPlan(10, 100, 20);
+    assert(invalidSerialized.copyBytes == 0 && invalidSerialized.skipBytes == 0);
+
+    auto invalidCurrent = helioBinaryDataReadPlan(100, 10, 20);
+    assert(invalidCurrent.copyBytes == 0 && invalidCurrent.skipBytes == 0);
 }
 
 int main()
 {
+    testElapsedTime();
     testBinaryDataReadPlan();
     testBinaryDebounce();
     return 0;
