@@ -147,6 +147,8 @@ class HelioTrackingPanel : public HelioPanel,
                            public HelioTemperatureSensorAttachmentInterface,
                            public HelioWindSpeedSensorAttachmentInterface {
 public:
+    static constexpr uint16_t NetworkCorrectionMinSamples = 3;
+
     HelioTrackingPanel(Helio_PanelType panelType,
                        hposi_t panelIndex,
                        float angleTolerance = HELIO_PANEL_ALIGN_DEGTOL,
@@ -162,6 +164,14 @@ public:
     virtual bool isAligned(bool poll = false) override;
 
     inline void setLocationOffset(const double *locationOffset) { _locationOffset[0] = locationOffset[0]; _locationOffset[1] = locationOffset[1]; }
+
+    // Optional network data refines the native sun calculation for the current day.
+    // The native calculation remains authoritative whenever no current-day samples exist.
+    void addNetworkSunPositionSample(time_t sampleTime, const double *networkSunPosition);
+    inline void addNetworkSunPositionSample(const double *networkSunPosition) { addNetworkSunPositionSample(unixNow(), networkSunPosition); }
+    void clearNetworkSunCorrection();
+    inline bool hasNetworkSunCorrection() const { return _networkCorrectionSamples >= NetworkCorrectionMinSamples; }
+    inline const float *getNetworkSunCorrection() const { return _networkCorrection; }
 
     template<typename T> inline void setAxisAngleSensor(T angleSensor, hposi_t axisIndex) { _axisAngle[axisIndex].setObject(angleSensor); }
     inline SharedPtr<HelioSensor> getAxisAngleSensor(hposi_t axisIndex, bool poll = false) { _axisAngle[axisIndex].updateIfNeeded(poll); return _axisAngle[axisIndex].getObject(poll); }
@@ -188,18 +198,20 @@ public:
     virtual HelioSensorAttachment &getWindSpeedSensorAttachment() override;
 
     inline DateTime getLastAlignmentChangeTime() const { return localTime(_lastAlignedTime); }
-    inline void notifyAlignmentChanged(const float *actualFacingPosition) { _axisOffset[0] = actualFacingPosition[0] - _facingPosition[0]; _axisOffset[1] = actualFacingPosition[1] - _facingPosition[1]; _lastAlignedTime = unixTime(localDayStart()); }
+    void notifyAlignmentChanged(const float *actualFacingPosition);
 
     inline DateTime getLastPanelCleaningTime() const { return localTime(_lastCleanedTime); }
     inline void notifyPanelCleaned() { _lastCleanedTime = unixTime(localDayStart()); }
 
-    inline void notifyDateChanged() { recalcSunPosition(); recalcFacingPosition(); }
+    void notifyDateChanged();
 
 protected:
     time_t _lastAlignedTime;                                // Last panel alignment/maintenance date (UTC)
     time_t _lastCleanedTime;                                // Last cleaned/sprayed/wiped time (UTC)
     double _locationOffset[2];                              // Panel location offset (lat in deg,long in fp mins)
-    double _sunPosition[2];                                 // Calculated sun position (azi,ele or RA,dec)
+    double _sunPosition[2];                                 // Native calculated sun position (azi,ele or RA,dec)
+    float _networkCorrection[2];                            // Daily network-vs-native correction, if available
+    uint16_t _networkCorrectionSamples;                     // Network correction samples collected for current day
     float _facingPosition[2];                               // Resolved facing position (azi,ele or RA,dec)
     HelioSensorAttachment _powerUsage;                      // Power usage sensor attachment
     HelioSensorAttachment _axisAngle[2];                    // Axis angle sensor attachments
@@ -212,7 +224,9 @@ protected:
 
     virtual void handleState(Helio_PanelState panelState) override;
 
+    void calcSunPositionForTime(time_t time, double *sunPositionOut) const;
     void recalcSunPosition();
+    double correctedSunPosition(hposi_t axisIndex) const;
     virtual void recalcFacingPosition();
 };
 

@@ -1,7 +1,13 @@
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 
 #include "HelioCoreLogic.h"
+
+static bool nearlyEqual(float lhs, float rhs, float epsilon = 0.0001f)
+{
+    return std::fabs(lhs - rhs) <= epsilon;
+}
 
 static void testElapsedTime()
 {
@@ -13,6 +19,62 @@ static void testElapsedTime()
     assert(helioElapsedTime(25, start) == 50);
     assert(!helioHasElapsed(24, start, 50));
     assert(helioHasElapsed(25, start, 50));
+}
+
+static void testSignedOffsetMagnitude()
+{
+    assert(nearlyEqual(helioLargerMagnitude(2.0f, -5.0f), -5.0f));
+    assert(nearlyEqual(helioLargerMagnitude(-5.0f, 3.0f), -5.0f));
+    assert(nearlyEqual(helioLargerMagnitude(-2.0f, 5.0f), 5.0f));
+
+    assert(helioDirectionForOffset(10.0f) == 1);
+    assert(helioDirectionForOffset(-10.0f) == -1);
+    assert(helioDirectionForOffset(0.0f) == 0);
+}
+
+static void testMotorCoastMath()
+{
+    assert(nearlyEqual(helioTravelDistanceForTime(2.0f, 3000, 1), 0.1f));
+    assert(nearlyEqual(helioTravelDistanceForTime(2.0f, 3000, -1), -0.1f));
+    assert(nearlyEqual(helioTravelDistanceForTime(2.0f, 0, 1), 0.0f));
+
+    assert(helioPoweredTravelTime(10000, 2000) == 8000);
+    // Short direct moves retain their requested powered time because a full-speed coast
+    // model is not meaningful before the motor has had time to get moving.
+    assert(helioPoweredTravelTime(1000, 2000) == 1000);
+}
+
+static void testIncrementalMotorCoastHold()
+{
+    // Stop early while approaching so the expected coast can finish the movement.
+    assert(helioShouldHoldIncrementalMotor(0.08f, 1, 0.05f, 0.5f, 0.1f));
+
+    // Small overshoot after forward motion should wait for the sun to catch up.
+    assert(helioShouldHoldIncrementalMotor(-0.20f, 1, 0.05f, 0.5f, 0.1f));
+
+    // Overshoot outside the nearby/coast band must reverse and correct.
+    assert(!helioShouldHoldIncrementalMotor(-0.75f, 1, 0.05f, 0.5f, 0.1f));
+
+    // A large morning reposition must never be mistaken for harmless overshoot.
+    assert(!helioShouldHoldIncrementalMotor(-160.0f, 1, 0.05f, 0.5f, 0.1f));
+
+    // Normal forward travel outside the coast range continues driving.
+    assert(!helioShouldHoldIncrementalMotor(1.0f, 1, 0.05f, 0.5f, 0.1f));
+
+    // With no known previous direction, ordinary error is still corrected.
+    assert(!helioShouldHoldIncrementalMotor(0.2f, 0, 0.05f, 0.5f, 0.1f));
+}
+
+static void testNetworkCorrection()
+{
+    assert(nearlyEqual(helioWrappedAngleDelta(1.0f, 359.0f), 2.0f));
+    assert(nearlyEqual(helioWrappedAngleDelta(359.0f, 1.0f), -2.0f));
+
+    float correction = 0.0f;
+    correction = helioUpdateRunningCorrection(correction, 2.0f, 1);
+    correction = helioUpdateRunningCorrection(correction, 4.0f, 2);
+    correction = helioUpdateRunningCorrection(correction, 3.0f, 3);
+    assert(nearlyEqual(correction, 3.0f));
 }
 
 static void testBinaryDebounce()
@@ -71,6 +133,10 @@ static void testBinaryDataReadPlan()
 int main()
 {
     testElapsedTime();
+    testSignedOffsetMagnitude();
+    testMotorCoastMath();
+    testIncrementalMotorCoastHold();
+    testNetworkCorrection();
     testBinaryDataReadPlan();
     testBinaryDebounce();
     return 0;

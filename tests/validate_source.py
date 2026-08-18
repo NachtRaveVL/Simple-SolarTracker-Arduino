@@ -20,7 +20,7 @@ def validate_factories():
 
 def validate_actuators():
     text = (SRC / "HelioActuators.cpp").read_text()
-    strings = (SRC / "HelioStrings.cpp").read_text()
+    header = (SRC / "HelioActuators.h").read_text()
     require("getPanel()" not in text, "Motor actuator still references nonexistent getPanel()")
 
     save_start = text.index("void HelioRelayMotorActuator::saveToData")
@@ -30,12 +30,16 @@ def validate_actuators():
             "Motor actuator does not save its travel range")
     require("minTrigger" in save_body and "maxTrigger" in save_body,
             "Motor actuator does not save its travel limit triggers")
+    require("coastTimeMillis" in save_body,
+            "Motor actuator does not save its coast time")
 
     ctor_start = text.index("HelioMotorActuatorData::HelioMotorActuatorData")
     to_json_start = text.index("void HelioMotorActuatorData::toJSONObject", ctor_start)
     ctor_body = text[ctor_start:to_json_start]
     require("travelRange{0.0f, FLT_UNDEF}" in ctor_body,
             "Motor actuator data does not initialize its travel range")
+    require("coastTimeMillis(0)" in ctor_body,
+            "Motor actuator data does not default coast time to zero")
 
     from_json_start = text.index("void HelioMotorActuatorData::fromJSONObject", to_json_start)
     to_json_body = text[to_json_start:from_json_start]
@@ -47,8 +51,50 @@ def validate_actuators():
             "Motor actuator JSON does not round-trip its travel limit triggers")
     require("HStr_Key_OutputPin2" in from_json_body and "outputPin2.fromJSONObject" in from_json_body,
             "Motor actuator data does not restore its second output pin")
-    require('"travelRange"' in strings and '"minTrigger"' in strings and '"maxTrigger"' in strings,
-            "Motor actuator serialization keys are missing")
+    require('"coastTimeMillis"' in to_json_body and '"coastTimeMillis"' in from_json_body,
+            "Motor actuator JSON does not round-trip its coast time")
+
+    struct_start = header.index("// Motor Actuator Serialization Data")
+    struct_body = header[struct_start:]
+    require(struct_body.index("coastTimeMillis") > struct_body.index("maxTrigger"),
+            "Motor coast time must remain append-only at the end of motor actuator data")
+
+    travel_start = text.index("void HelioRelayMotorActuator::handleTravelTime")
+    travel_body = text[travel_start:]
+    require("_intensity < 0.0f ? -1.0f : 1.0f" in travel_body,
+            "Sensorless motor travel does not preserve reverse direction")
+
+    activation_start = text.index("void HelioRelayMotorActuator::handleActivation")
+    activation_end = text.index("bool HelioRelayMotorActuator::canTravel", activation_start)
+    activation_body = text[activation_start:activation_end]
+    require("_travelTimeStart = 0;" in activation_body,
+            "Motor travel accounting remains active after the motor stops")
+
+
+def validate_drivers():
+    text = (SRC / "HelioDrivers.cpp").read_text()
+    require("helioLargerMagnitude" in text,
+            "Driver maximum target offset is not sign-safe")
+    require("fabsf(getMaxTargetOffset(true))" in text,
+            "Driver alignment state is not using absolute target error")
+    require("helioShouldHoldIncrementalMotor" in text,
+            "Incremental driver is not using coast/overshoot hold logic")
+    require("getCoastDistance" in text,
+            "Incremental driver is not using per-motor coast distance")
+
+
+def validate_tracking_correction():
+    text = (SRC / "HelioPanels.cpp").read_text()
+    header = (SRC / "HelioPanels.h").read_text()
+    require("addNetworkSunPositionSample" in header and "addNetworkSunPositionSample" in text,
+            "Tracking panel does not expose optional network sun correction samples")
+    require("clearNetworkSunCorrection();" in text[text.index("void HelioTrackingPanel::notifyDateChanged"):],
+            "Daily network correction is not reset on date change")
+    require("correctedSunPosition(0) + _axisOffset[0]" in text and
+            "correctedSunPosition(1) + _axisOffset[1]" in text,
+            "Tracking correction is not applied before the user axis offset")
+    require("_sunPosition[0]" in text[text.index("void HelioTrackingPanel::notifyAlignmentChanged"):text.index("double HelioTrackingPanel::correctedSunPosition")],
+            "Mechanical alignment calibration is not kept separate from network correction")
 
 
 def validate_binary_persistence():
@@ -82,6 +128,8 @@ def validate_readme():
 if __name__ == "__main__":
     validate_factories()
     validate_actuators()
+    validate_drivers()
+    validate_tracking_correction()
     validate_binary_persistence()
     validate_binary_sensor()
     validate_readme()

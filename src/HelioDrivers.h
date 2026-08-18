@@ -91,12 +91,9 @@ protected:
 
 
 // Incremental Driver
-// The incremental driver manages a direction-based actuator list driven by an intensity
-// value corresponding to a speed control. Driver will enter fine driving mode once within
-// nearby range, and will consider itself aligned once within aligned range. Travel rate
-// only relevant for variable speed motors. Will attempt to maintain a maximum difference
-// between leading and trailing actuators. Suitable for driving continuous servos & motors
-// that must stay in sync or risk physical breakage.
+// The incremental driver manages direction-based motors. Free-running motors are allowed
+// to coast and settle rather than being driven toward exact zero positional error. Small
+// overshoot after travel is held inside the nearby range, while larger errors are corrected.
 // All actuators must have position data (be derived from HelioPositionSensorAttachmentInterface).
 class HelioIncrementalDriver : public HelioDriver {
 public:
@@ -110,11 +107,15 @@ public:
     virtual Helio_DrivingState getDrivingState(bool poll = false) override;
 
 protected:
-    float _nearbyRange;                                     // Nearby target range (for fine/coarse control)
+    float _nearbyRange;                                     // Nearby target range (for fine/coarse control and overshoot hold)
     float _alignedRange;                                    // Aligned to target range
     float _maxDifference;                                   // Maximum positional difference
+    int8_t _lastTravelDirection;                            // Last commanded movement direction
 
     virtual void handleMaxOffset(float maxOffset) override;
+
+    float getCoastDistance(HelioActuatorAttachment &attachment) const;
+    bool shouldHold(HelioActuatorAttachment &attachment, float signedOffset) const;
 };
 
 #endif // /ifndef HelioDrivers_H

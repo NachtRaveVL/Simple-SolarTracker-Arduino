@@ -61,18 +61,19 @@ void HelioDriver::setActuators(const Vector<HelioActuatorAttachment, HELIO_DRV_A
 
 float HelioDriver::getMaxTargetOffset(bool poll)
 {
-    float maxDelta = 0;
+    float maxDelta = 0.0f;
 
     for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
+        float delta = 0.0f;
+
         if ((*attachIter)->isAnyMotorClass()) {
             auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(poll).asUnits(getMeasurementUnits());
-
-            float delta = _targetSetpoint - position.value;
-            if (fabsf(delta) > maxDelta) { maxDelta = delta; }
+            delta = _targetSetpoint - position.value;
         } else {
-            float delta = _targetSetpoint - (*attachIter)->getCalibratedValue();
-            if (fabsf(delta) > maxDelta) { maxDelta = delta; }
+            delta = _targetSetpoint - (*attachIter)->getCalibratedValue();
         }
+
+        maxDelta = helioLargerMagnitude(maxDelta, delta);
     }
 
     return maxDelta;
@@ -80,7 +81,7 @@ float HelioDriver::getMaxTargetOffset(bool poll)
 
 Helio_DrivingState HelioDriver::getDrivingState(bool poll)
 {
-    if (poll) { return getMaxTargetOffset(true) > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget; }
+    if (poll) { return fabsf(getMaxTargetOffset(true)) > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget; }
     return _drivingState;
 }
 
@@ -141,7 +142,7 @@ void HelioAbsoluteDriver::setEnabled(bool enabled)
 void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
 {
     auto hadDrivingState = _drivingState;
-    _drivingState = maxOffset > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget;
+    _drivingState = fabsf(maxOffset) > FLT_EPSILON ? Helio_DrivingState_OffTarget : Helio_DrivingState_AlignedTarget;
 
     if (_enabled && _drivingState != Helio_DrivingState_AlignedTarget && _targetSetpoint != FLT_UNDEF) {
         millis_t time = nzMillis();
@@ -182,40 +183,85 @@ void HelioAbsoluteDriver::handleMaxOffset(float maxOffset)
 
 HelioIncrementalDriver::HelioIncrementalDriver(float nearbyRange, float alignedRange, float maxDifference, float travelRate, int typeIn)
     : HelioDriver(FLT_UNDEF, travelRate, typeIn),
-     _nearbyRange(nearbyRange), _alignedRange(alignedRange), _maxDifference(maxDifference)
+      _nearbyRange(fabsf(nearbyRange)), _alignedRange(fabsf(alignedRange)), _maxDifference(fabsf(maxDifference)),
+      _lastTravelDirection(0)
 { ; }
 
 HelioIncrementalDriver::~HelioIncrementalDriver()
 { ; }
 
+float HelioIncrementalDriver::getCoastDistance(HelioActuatorAttachment &attachment) const
+{
+    if (!attachment.resolve() || !attachment->isRelayMotorClass()) { return 0.0f; }
+    auto motor = attachment.HelioAttachment::get<HelioRelayMotorActuator>();
+    return motor ? motor->getCoastDistance(getMeasurementUnits()) : 0.0f;
+}
+
+bool HelioIncrementalDriver::shouldHold(HelioActuatorAttachment &attachment, float signedOffset) const
+{
+    return helioShouldHoldIncrementalMotor(signedOffset, _lastTravelDirection,
+                                           _alignedRange, _nearbyRange,
+                                           getCoastDistance(attachment));
+}
+
 Helio_DrivingState HelioIncrementalDriver::getDrivingState(bool poll)
 {
     if (poll) {
-        float maxOffset = getMaxTargetOffset(true);
-        return maxOffset > _nearbyRange + FLT_EPSILON  ? Helio_DrivingState_OffTarget :
-               maxOffset > _alignedRange + FLT_EPSILON ? Helio_DrivingState_NearbyTarget
-                                                       : Helio_DrivingState_AlignedTarget;
+        float maxMagnitude = 0.0f;
+        bool needsTravel = false;
+
+        for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
+            auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(true).asUnits(getMeasurementUnits());
+            const float signedOffset = _targetSetpoint - position.value;
+            const float offset = fabsf(signedOffset);
+            if (offset > maxMagnitude) { maxMagnitude = offset; }
+            if (!shouldHold(*attachIter, signedOffset)) { needsTravel = true; }
+        }
+
+        if (!needsTravel) { return Helio_DrivingState_AlignedTarget; }
+        return maxMagnitude > _nearbyRange + FLT_EPSILON ? Helio_DrivingState_OffTarget
+                                                          : Helio_DrivingState_NearbyTarget;
     }
     return _drivingState;
 }
 
-void HelioIncrementalDriver::handleMaxOffset(float maxOffset) {
+void HelioIncrementalDriver::handleMaxOffset(float maxOffset)
+{
     auto hadDrivingState = _drivingState;
-    _drivingState = maxOffset > _nearbyRange + FLT_EPSILON  ? Helio_DrivingState_OffTarget :
-                    maxOffset > _alignedRange + FLT_EPSILON ? Helio_DrivingState_NearbyTarget
-                                                            : Helio_DrivingState_AlignedTarget;
+    const float maxMagnitude = fabsf(maxOffset);
+    bool needsTravel = false;
 
-    if (_enabled && _drivingState != Helio_DrivingState_AlignedTarget && _targetSetpoint != FLT_UNDEF) {
-        float offsetLimit = maxOffset - _maxDifference;
+    for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
+        auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(true).asUnits(getMeasurementUnits());
+        if (!shouldHold(*attachIter, _targetSetpoint - position.value)) {
+            needsTravel = true;
+            break;
+        }
+    }
+
+    _drivingState = !needsTravel ? Helio_DrivingState_AlignedTarget :
+                    maxMagnitude > _nearbyRange + FLT_EPSILON ? Helio_DrivingState_OffTarget
+                                                              : Helio_DrivingState_NearbyTarget;
+
+    if (_enabled && needsTravel && _targetSetpoint != FLT_UNDEF) {
+        const float offsetLimit = maxMagnitude - _maxDifference;
 
         for (auto attachIter = _actuators.begin(); attachIter != _actuators.end(); ++attachIter) {
             auto position = attachIter->HelioAttachment::get<HelioPositionSensorAttachmentInterface>()->getPositionSensorAttachment().getMeasurement(true).asUnits(getMeasurementUnits());
-            float offset = fabsf(_targetSetpoint - position.value);
+            const float signedOffset = _targetSetpoint - position.value;
+            const float offset = fabsf(signedOffset);
 
-            if (offset <= _alignedRange + FLT_EPSILON || offset < offsetLimit - FLT_EPSILON) { // aligned or too fast
+            if (offset < offsetLimit - FLT_EPSILON || shouldHold(*attachIter, signedOffset)) { // aligned/coasting or too far ahead of other actuators
                 attachIter->disableActivation();
             } else {
-                attachIter->setupActivation(_targetSetpoint > position.value ? _travelRate : -_travelRate);
+                const int direction = helioDirectionForOffset(signedOffset, FLT_EPSILON);
+                if (!direction) {
+                    attachIter->disableActivation();
+                    continue;
+                }
+
+                _lastTravelDirection = direction;
+                attachIter->setupActivation(direction > 0 ? _travelRate : -_travelRate);
                 attachIter->setRateMultiplier((offset <= _nearbyRange + FLT_EPSILON ? HELIO_DRV_FINETRAVEL_RATEMULT : 1.0f));
                 attachIter->enableActivation();
             }

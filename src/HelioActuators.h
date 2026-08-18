@@ -186,6 +186,10 @@ public:
     virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
     virtual const HelioSingleMeasurement &getContinuousSpeed() override;
 
+    void setCoastTimeMillis(uint32_t coastTimeMillis);
+    inline uint32_t getCoastTimeMillis() const { return _coastTimeMillis; }
+    float getCoastDistance(Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) const;
+
     virtual Pair<float,float> getTravelRange() const override;
     virtual bool isMinTravel(bool poll = false) override;
     virtual bool isMaxTravel(bool poll = false) override;
@@ -200,8 +204,9 @@ public:
 
 protected:
     HelioDigitalPin _outputPin2;                            // Digital output pin 2 (reverse/H-bridge pin B)
-    float _intensity;                                       // Current set intensity
+    float _intensity;                                       // Current/last set intensity and direction
     HelioSingleMeasurement _contSpeed;                      // Continuous speed (dist units per min)
+    uint32_t _coastTimeMillis;                              // Estimated free-running coast time after power removal
     HelioSensorAttachment _position;                        // Position sensor attachment
     HelioSensorAttachment _speed;                           // Speed rate sensor attachment
     HelioTriggerAttachment _minimum;                        // Minimum travel trigger attachment
@@ -290,6 +295,7 @@ struct HelioMotorActuatorData : public HelioActuatorData
     char speedSensor[HELIO_NAME_MAXSIZE];                   // Speed sensor
     HelioTriggerSubData minTrigger;                         // Minimum travel trigger
     HelioTriggerSubData maxTrigger;                         // Maximum travel trigger
+    uint32_t coastTimeMillis;                               // Estimated coast time after motor power removal
 
     HelioMotorActuatorData();
     virtual void toJSONObject(JsonObject &objectOut) const override;

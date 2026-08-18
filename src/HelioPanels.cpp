@@ -298,7 +298,8 @@ HelioTrackingPanel::HelioTrackingPanel(Helio_PanelType panelType, hposi_t panelI
     : HelioPanel(panelType, panelIndex, angleTolerance, classType),
       HelioTemperatureUnitsInterfaceStorage(defaultTemperatureUnits()),
       HelioDistanceUnitsInterfaceStorage(defaultDistanceUnits()),
-      _lastAlignedTime(0), _locationOffset{0}, _sunPosition{0}, _facingPosition{0},
+      _lastAlignedTime(0), _lastCleanedTime(0), _locationOffset{0}, _sunPosition{0},
+      _networkCorrection{0}, _networkCorrectionSamples(0), _facingPosition{0},
       _powerUsage(this), _axisAngle{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1)},
       _temperature(this), _windSpeed(this), _heatingTrigger(this), _stormingTrigger(this)
 {
@@ -313,8 +314,9 @@ HelioTrackingPanel::HelioTrackingPanel(const HelioTrackingPanelData *dataIn)
     : HelioPanel(dataIn),
       HelioTemperatureUnitsInterfaceStorage(definedUnitsElse(dataIn->temperatureUnits, defaultTemperatureUnits())),
       HelioDistanceUnitsInterfaceStorage(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
-      _lastAlignedTime(dataIn->lastAlignedTime), _sunPosition{0},
-      _locationOffset{dataIn->locationOffset[0], dataIn->locationOffset[1]},
+      _lastAlignedTime(dataIn->lastAlignedTime), _lastCleanedTime(dataIn->lastCleanedTime),
+      _locationOffset{dataIn->locationOffset[0], dataIn->locationOffset[1]}, _sunPosition{0},
+      _networkCorrection{0}, _networkCorrectionSamples(0),
       _facingPosition{dataIn->axisPosition[0], dataIn->axisPosition[1]},
       _powerUsage(this), _axisAngle{HelioSensorAttachment(this,0),HelioSensorAttachment(this,1)},
       _temperature(this), _windSpeed(this), _heatingTrigger(this), _stormingTrigger(this)
@@ -402,29 +404,99 @@ bool HelioTrackingPanel::isAligned(bool poll)
     return _panelState == (isDaylight() ? Helio_PanelState_AlignedToSun : Helio_PanelState_AlignedToHome);
 }
 
-void HelioTrackingPanel::recalcSunPosition()
+void HelioTrackingPanel::calcSunPositionForTime(time_t time, double *sunPositionOut) const
 {
-    time_t time = unixNow();
+    if (!sunPositionOut) { return; }
+
     JulianDay julianTime(time);
 
     if (isHorizontalCoords()) {
         Location location = getController() ? getController()->getSystemLocation() : Location();
         if (location.hasPosition()) {
-            calcHorizontalCoordinates(julianTime, location.latitude + _locationOffset[0], location.longitude + _locationOffset[1], _sunPosition[0], _sunPosition[1]);
+            calcHorizontalCoordinates(julianTime, location.latitude + _locationOffset[0], location.longitude + _locationOffset[1], sunPositionOut[0], sunPositionOut[1]);
         }
     } else if (isEquatorialCoords()) {
         double radius;
-        calcEquatorialCoordinates(julianTime, _sunPosition[0], _sunPosition[1], radius);
+        calcEquatorialCoordinates(julianTime, sunPositionOut[0], sunPositionOut[1], radius);
     } else {
         HELIO_SOFT_ASSERT(false, SFP(HStr_Err_UnsupportedOperation));
     }
+}
+
+void HelioTrackingPanel::recalcSunPosition()
+{
+    calcSunPositionForTime(unixNow(), _sunPosition);
+}
+
+void HelioTrackingPanel::addNetworkSunPositionSample(time_t sampleTime, const double *networkSunPosition)
+{
+    if (!networkSunPosition) { return; }
+
+    DateTime sampleDate = localTime(sampleTime);
+    DateTime currentDate = localNow();
+    if (sampleDate.year() != currentDate.year() || sampleDate.month() != currentDate.month() || sampleDate.day() != currentDate.day()) {
+        return;
+    }
+
+    double nativeSunPosition[2] = {0};
+    calcSunPositionForTime(sampleTime, nativeSunPosition);
+
+    if (_networkCorrectionSamples < UINT16_MAX) {
+        ++_networkCorrectionSamples;
+    }
+
+    _networkCorrection[0] = helioUpdateRunningCorrection(
+        _networkCorrection[0],
+        helioWrappedAngleDelta((float)networkSunPosition[0], (float)nativeSunPosition[0]),
+        _networkCorrectionSamples);
+    _networkCorrection[1] = helioUpdateRunningCorrection(
+        _networkCorrection[1],
+        (float)(networkSunPosition[1] - nativeSunPosition[1]),
+        _networkCorrectionSamples);
+
+    recalcSunPosition();
+    recalcFacingPosition();
+}
+
+void HelioTrackingPanel::clearNetworkSunCorrection()
+{
+    _networkCorrection[0] = 0.0f;
+    _networkCorrection[1] = 0.0f;
+    _networkCorrectionSamples = 0;
+}
+
+void HelioTrackingPanel::notifyDateChanged()
+{
+    clearNetworkSunCorrection();
+    recalcSunPosition();
+    recalcFacingPosition();
+}
+
+void HelioTrackingPanel::notifyAlignmentChanged(const float *actualFacingPosition)
+{
+    if (!actualFacingPosition) { return; }
+
+    recalcSunPosition();
+    if (isDaylight()) {
+        _axisOffset[0] = wrapBy180Neg180(actualFacingPosition[0] - (float)_sunPosition[0]);
+        _axisOffset[1] = wrapBy180Neg180(actualFacingPosition[1] - (float)_sunPosition[1]);
+    } else {
+        _axisOffset[0] = wrapBy180Neg180(actualFacingPosition[0] - _homePosition[0]);
+        _axisOffset[1] = wrapBy180Neg180(actualFacingPosition[1] - _homePosition[1]);
+    }
+    _lastAlignedTime = unixTime(localDayStart());
+}
+
+double HelioTrackingPanel::correctedSunPosition(hposi_t axisIndex) const
+{
+    return _sunPosition[axisIndex] + (hasNetworkSunCorrection() ? _networkCorrection[axisIndex] : 0.0f);
 }
 
 void HelioTrackingPanel::recalcFacingPosition()
 {
     if (drivesHorizontalAxis()) {
         if (isDaylight()) {
-            _facingPosition[0] = wrapBy360(_sunPosition[0] + _axisOffset[0]);
+            _facingPosition[0] = wrapBy360(correctedSunPosition(0) + _axisOffset[0]);
         } else {
             _facingPosition[0] = wrapBy360(_homePosition[0] + _axisOffset[0]);
         }
@@ -432,7 +504,7 @@ void HelioTrackingPanel::recalcFacingPosition()
     }
     if (drivesVerticalAxis()) {
         if (isDaylight()) {
-            _facingPosition[1] = wrapBy180Neg180(_sunPosition[1] + _axisOffset[1]);
+            _facingPosition[1] = wrapBy180Neg180(correctedSunPosition(1) + _axisOffset[1]);
         } else {
             _facingPosition[1] = wrapBy180Neg180(_homePosition[1] + _axisOffset[1]);
         }
@@ -488,6 +560,7 @@ void HelioTrackingPanel::saveToData(HelioData *dataOut)
     HelioPanel::saveToData(dataOut);
 
     ((HelioTrackingPanelData *)dataOut)->lastAlignedTime = _lastAlignedTime;
+    ((HelioTrackingPanelData *)dataOut)->lastCleanedTime = _lastCleanedTime;
     ((HelioTrackingPanelData *)dataOut)->locationOffset[0] = _locationOffset[0];
     ((HelioTrackingPanelData *)dataOut)->locationOffset[1] = _locationOffset[1];
     if (_axisAngle[0].isSet()) {
@@ -564,7 +637,8 @@ void HelioReflectingPanel::recalcFacingPosition()
 {
     if (drivesHorizontalAxis()) {
         if (isDaylight()) {
-            _facingPosition[0] = wrapBy360((_sunPosition[0] + ((wrapBy180Neg180(_reflectPosition[0]) - wrapBy180Neg180(_sunPosition[0])) * 0.5f)) + _axisOffset[0]);
+            const double sunPosition = correctedSunPosition(0);
+            _facingPosition[0] = wrapBy360((sunPosition + ((wrapBy180Neg180(_reflectPosition[0]) - wrapBy180Neg180(sunPosition)) * 0.5f)) + _axisOffset[0]);
         } else {
             _facingPosition[0] = wrapBy360(_homePosition[0] + _axisOffset[0]);
         }
@@ -572,7 +646,8 @@ void HelioReflectingPanel::recalcFacingPosition()
     }
     if (drivesVerticalAxis()) {
         if (isDaylight()) {
-            _facingPosition[1] = wrapBy180Neg180((_sunPosition[1] + ((wrapBy180Neg180(_reflectPosition[1]) - wrapBy180Neg180(_sunPosition[1])) * 0.5f)) + _axisOffset[1]);
+            const double sunPosition = correctedSunPosition(1);
+            _facingPosition[1] = wrapBy180Neg180((sunPosition + ((wrapBy180Neg180(_reflectPosition[1]) - wrapBy180Neg180(sunPosition)) * 0.5f)) + _axisOffset[1]);
         } else {
             _facingPosition[1] = wrapBy180Neg180(_homePosition[1] + _axisOffset[1]);
         }

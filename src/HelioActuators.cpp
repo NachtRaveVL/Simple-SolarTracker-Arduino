@@ -365,7 +365,8 @@ void HelioRelayActuator::saveToData(HelioData *dataOut)
 HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, HelioDigitalPin outputPinA, HelioDigitalPin outputPinB, Pair<float,float> travelRange, int classType)
     : HelioRelayActuator(actuatorType, actuatorIndex, outputPinA, classType),
       HelioDistanceUnitsInterfaceStorage(defaultDistanceUnits()),
-      _outputPin2(outputPinB), _travelRange(travelRange), _position(this), _speed(this), _minimum(this), _maximum(this),
+      _outputPin2(outputPinB), _intensity(0.0f), _contSpeed(), _coastTimeMillis(0),
+      _position(this), _speed(this), _minimum(this), _maximum(this), _travelRange(travelRange),
       _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
     _position.setMeasurementUnits(getDistanceUnits());
@@ -378,9 +379,10 @@ HelioRelayMotorActuator::HelioRelayMotorActuator(Helio_ActuatorType actuatorType
 HelioRelayMotorActuator::HelioRelayMotorActuator(const HelioMotorActuatorData *dataIn)
     : HelioRelayActuator(dataIn),
       HelioDistanceUnitsInterfaceStorage(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
-      _outputPin2(&dataIn->outputPin2), _travelRange(make_pair(dataIn->travelRange[0], dataIn->travelRange[1])),
+      _outputPin2(&dataIn->outputPin2), _intensity(0.0f),
+      _contSpeed(&(dataIn->contSpeed)), _coastTimeMillis(dataIn->coastTimeMillis),
       _position(this), _speed(this), _minimum(this), _maximum(this),
-      _contSpeed(&(dataIn->contSpeed)),
+      _travelRange(make_pair(dataIn->travelRange[0], dataIn->travelRange[1])),
       _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0)
 {
     _position.setMeasurementUnits(getDistanceUnits());
@@ -489,12 +491,30 @@ void HelioRelayMotorActuator::handleActivation()
     } else {
         if (_travelTimeAccum < time) { handleTravelTime(time); }
         _travelTimeAccum = 0;
+
+        // Sensorless motors otherwise appear to stop instantly in software even though the
+        // real mechanism keeps moving. Apply the configured coast once when power is removed.
+        if (!getPositionSensor() && _coastTimeMillis && helioDirectionForOffset(_intensity)) {
+            const float coastDistance = getCoastDistance(getDistanceUnits());
+            _travelDistAccum += _intensity > 0.0f ? coastDistance : -coastDistance;
+
+            float estimatedPosition = _travelPosStart + _travelDistAccum;
+            estimatedPosition = constrain(estimatedPosition, _travelRange.first, _travelRange.second);
+            _travelDistAccum = estimatedPosition - _travelPosStart;
+            _position.setMeasurement(estimatedPosition);
+        }
+
         float duration = time - _travelTimeStart;
 
         getLogger()->logStatus(this, SFP(HStr_Log_MeasuredTravel));
         if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
         getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Measured), measurementToString(_travelDistAccum, baseUnits(getSpeedUnits()), 1));
         getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), roundToString(duration / 1000.0f, 1), String('s'));
+
+        // Travel accounting is complete once power is removed and the one-shot coast
+        // estimate has been applied. Leaving this set would keep accumulating motion
+        // while the motor is stopped.
+        _travelTimeStart = 0;
     }
 }
 
@@ -513,7 +533,8 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
 {
     if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
         convertUnits(&distance, &distanceUnits, getDistanceUnits());
-        return travel(direction, (millis_t)((distance / _contSpeed.value) * secondsToMillis(SECS_PER_MIN)));
+        const uint32_t totalTravelTime = (uint32_t)((fabsf(distance) / _contSpeed.value) * secondsToMillis(SECS_PER_MIN));
+        return travel(direction, (millis_t)helioPoweredTravelTime(totalTravelTime, _coastTimeMillis));
     }
     return HelioActivationHandle();
 }
@@ -521,7 +542,9 @@ HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direct
 bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, millis_t time)
 {
     if (getParentPanel() && _contSpeed.value > FLT_EPSILON) {
-        return canTravel(direction, _contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), getDistanceUnits());
+        const uint32_t poweredTime = time > 0 ? (uint32_t)time : 0;
+        const uint32_t predictedTime = poweredTime + (poweredTime ? _coastTimeMillis : 0);
+        return canTravel(direction, _contSpeed.value * (predictedTime / (float)secondsToMillis(SECS_PER_MIN)), getDistanceUnits());
     }
     return false;
 }
@@ -529,23 +552,15 @@ bool HelioRelayMotorActuator::canTravel(Helio_DirectionMode direction, millis_t 
 HelioActivationHandle HelioRelayMotorActuator::travel(Helio_DirectionMode direction, millis_t time)
 {
     if (getParentPanel()) {
-        #ifdef HELIO_USE_MULTITASKING
-            getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
-            if (_contSpeed.value > FLT_EPSILON) {
-                getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
-            }
-            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
-            return enableActuator(direction, 1.0f, time);
-        #else
-            getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
-            if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
-            if (_contSpeed.value > FLT_EPSILON) {
-                getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (time / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
-            }
-            getLogger()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
-            return enableActuator(direction, 1.0f, time);
-        #endif
+        getLogger()->logStatus(this, SFP(HStr_Log_CalculatedTravel));
+        if (getParentPanel()) { getLogger()->logMessage(SFP(HStr_Log_Field_Solar_Panel), getParentPanel()->getId().getDisplayString()); }
+        if (_contSpeed.value > FLT_EPSILON) {
+            const uint32_t poweredTime = time > 0 ? (uint32_t)time : 0;
+            const uint32_t predictedTime = poweredTime + (poweredTime ? _coastTimeMillis : 0);
+            getLogger()->logMessage(SFP(HStr_Log_Field_Travel_Calculated), measurementToString(_contSpeed.value * (predictedTime / (float)secondsToMillis(SECS_PER_MIN)), baseUnits(getSpeedUnits()), 1));
+        }
+        getLogger()->logMessage(SFP(HStr_Log_Field_Time_Calculated), roundToString(time / 1000.0f, 1), String('s'));
+        return enableActuator(direction, 1.0f, time);
     }
     return HelioActivationHandle();
 }
@@ -574,6 +589,24 @@ void HelioRelayMotorActuator::setContinuousSpeed(HelioSingleMeasurement contSpee
 const HelioSingleMeasurement &HelioRelayMotorActuator::getContinuousSpeed()
 {
     return _contSpeed;
+}
+
+void HelioRelayMotorActuator::setCoastTimeMillis(uint32_t coastTimeMillis)
+{
+    if (_coastTimeMillis != coastTimeMillis) {
+        _coastTimeMillis = coastTimeMillis;
+        bumpRevisionIfNeeded();
+    }
+}
+
+float HelioRelayMotorActuator::getCoastDistance(Helio_UnitsType distanceUnits) const
+{
+    float coastDistance = fabsf(_contSpeed.value) * (_coastTimeMillis / (float)secondsToMillis(SECS_PER_MIN));
+    Helio_UnitsType coastUnits = getDistanceUnits();
+    if (distanceUnits != Helio_UnitsType_Undefined) {
+        convertUnits(&coastDistance, &coastUnits, distanceUnits);
+    }
+    return coastDistance;
 }
 
 Pair<float,float> HelioRelayMotorActuator::getTravelRange() const
@@ -621,6 +654,7 @@ void HelioRelayMotorActuator::saveToData(HelioData *dataOut)
     ((HelioMotorActuatorData *)dataOut)->travelRange[0] = _travelRange.first;
     ((HelioMotorActuatorData *)dataOut)->travelRange[1] = _travelRange.second;
     ((HelioMotorActuatorData *)dataOut)->distanceUnits = _distUnits;
+    ((HelioMotorActuatorData *)dataOut)->coastTimeMillis = _coastTimeMillis;
     if (_contSpeed.isSet()) {
         _contSpeed.saveToData(&(((HelioMotorActuatorData *)dataOut)->contSpeed));
     }
@@ -653,10 +687,12 @@ void HelioRelayMotorActuator::handleTravelTime(millis_t time)
         _travelDistAccum = travelDistTotal;
     } else {
         auto speed = getSpeedSensor(true) ? _speed.getMeasurement() : _contSpeed;
+        const float speedMagnitude = fabsf(speed.value);
+        const float minSpeed = fabsf(_contSpeed.value) * HELIO_ACT_TRAVELCALC_MINSPEED;
 
-        if (speed.value >= (_contSpeed.value * HELIO_ACT_TRAVELCALC_MINSPEED) - FLT_EPSILON) {        
+        if (speedMagnitude >= minSpeed - FLT_EPSILON) {
             auto timeDelta = (time - _travelTimeAccum) / (float)secondsToMillis(SECS_PER_MIN);
-            auto distDelta = speed.value * timeDelta;
+            auto distDelta = speedMagnitude * timeDelta * (_intensity < 0.0f ? -1.0f : 1.0f);
             _travelDistAccum += distDelta;
             _position.setMeasurement(_travelPosStart + _travelDistAccum);
         }
@@ -794,7 +830,7 @@ void HelioActuatorData::fromJSONObject(JsonObjectConst &objectIn)
 
 HelioMotorActuatorData::HelioMotorActuatorData()
     : HelioActuatorData(), outputPin2(), travelRange{0.0f, FLT_UNDEF}, distanceUnits(Helio_UnitsType_Undefined), contSpeed(),
-      positionSensor{0}, speedSensor{0}, minTrigger(), maxTrigger()
+      positionSensor{0}, speedSensor{0}, minTrigger(), maxTrigger(), coastTimeMillis(0)
 {
     _size = sizeof(*this);
 }
@@ -825,6 +861,7 @@ void HelioMotorActuatorData::toJSONObject(JsonObject &objectOut) const
         JsonObject maxTriggerObj = objectOut.createNestedObject(SFP(HStr_Key_MaxTrigger));
         maxTrigger.toJSONObject(maxTriggerObj);
     }
+    if (coastTimeMillis) { objectOut["coastTimeMillis"] = coastTimeMillis; }
 }
 
 void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
@@ -846,4 +883,5 @@ void HelioMotorActuatorData::fromJSONObject(JsonObjectConst &objectIn)
     if (!minTriggerObj.isNull()) { minTrigger.fromJSONObject(minTriggerObj); }
     JsonObjectConst maxTriggerObj = objectIn[SFP(HStr_Key_MaxTrigger)];
     if (!maxTriggerObj.isNull()) { maxTrigger.fromJSONObject(maxTriggerObj); }
+    coastTimeMillis = objectIn["coastTimeMillis"] | coastTimeMillis;
 }
