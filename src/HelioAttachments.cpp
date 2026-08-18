@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 HelioDLinkObject::HelioDLinkObject()
     : _key(hkey_none), _obj(nullptr), _keyStr(nullptr)
@@ -144,7 +145,10 @@ void HelioActuatorAttachment::setupActivation(float value, millis_t duration, bo
         value = get()->calibrationInvTransform(value);
 
         if (get()->isMotorType()) {
-            setupActivation(HelioActivation(value > FLT_EPSILON ? Helio_DirectionMode_Forward : value < -FLT_EPSILON ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop, fabsf(value), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
+            // Keep direction selection tolerant of floating-point noise around a stopped command.
+            int direction = helioDirectionForOffset(value, FLT_EPSILON);
+            setupActivation(HelioActivation(direction > 0 ? Helio_DirectionMode_Forward : direction < 0 ? Helio_DirectionMode_Reverse : Helio_DirectionMode_Stop,
+                                            fabsf(value), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)));
             return;
         }
     }

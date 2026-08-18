@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,6 +121,24 @@ def validate_binary_sensor():
     require("returnPinLock" not in body, "Binary sensor returns a pin lock it did not acquire")
 
 
+def validate_family_consistency():
+    attachments = (SRC / "HelioAttachments.cpp").read_text()
+    core_logic = (SRC / "HelioCoreLogic.h").read_text()
+    datas = (SRC / "HelioDatas.cpp").read_text()
+
+    require("helioDirectionForOffset(value, FLT_EPSILON)" in attachments,
+            "Motor attachment direction is bypassing the shared floating-point direction helper")
+    require("value > FLT_EPSILON ? Helio_DirectionMode_Forward" not in attachments,
+            "Motor attachment direction still uses an inline raw-epsilon ternary")
+    require("isFPEqual(bTerm, 0.0f)" in datas,
+            "Calibration two-point setup is bypassing isFPEqual() for its zero-span guard")
+
+    for field in ["copyBytes", "skipBytes"]:
+        lines = [line for line in core_logic.splitlines() if re.search(rf"\b{field}\s*;", line)]
+        require(lines and all("//" in line for line in lines),
+                f"HelioBinaryDataReadPlan.{field} is missing its inline member comment")
+
+
 def validate_readme():
     readme = (ROOT / "README.md").read_text()
     require("UNDER ACTIVE DEVELOPMENT -- WORK IN PROGRESS" not in readme, "README still has WIP banner")
@@ -132,5 +151,6 @@ if __name__ == "__main__":
     validate_tracking_correction()
     validate_binary_persistence()
     validate_binary_sensor()
+    validate_family_consistency()
     validate_readme()
     print("Helioduino source validation passed")

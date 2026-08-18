@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
+#include <cfloat>
 
 #include "HelioCoreLogic.h"
 
@@ -30,6 +31,12 @@ static void testSignedOffsetMagnitude()
     assert(helioDirectionForOffset(10.0f) == 1);
     assert(helioDirectionForOffset(-10.0f) == -1);
     assert(helioDirectionForOffset(0.0f) == 0);
+
+    // Attachment direction selection uses FLT_EPSILON to match actuator stop semantics.
+    assert(helioDirectionForOffset(FLT_EPSILON, FLT_EPSILON) == 0);
+    assert(helioDirectionForOffset(-FLT_EPSILON, FLT_EPSILON) == 0);
+    assert(helioDirectionForOffset(FLT_EPSILON * 2.0f, FLT_EPSILON) == 1);
+    assert(helioDirectionForOffset(-FLT_EPSILON * 2.0f, FLT_EPSILON) == -1);
 }
 
 static void testMotorCoastMath()
