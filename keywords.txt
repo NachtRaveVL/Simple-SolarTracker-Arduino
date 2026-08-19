@@ -1,15 +1,120 @@
-==================================
-CLASSES
-==================================
+# Helioduino syntax coloring
 
-==================================
-FUNCTIONS
-==================================
+# Controllers and core types
+Helioduino	KEYWORD1
+HelioObject	KEYWORD1
+HelioSubObject	KEYWORD1
+HelioFactory	KEYWORD1
+HelioScheduler	KEYWORD1
+HelioLogger	KEYWORD1
+HelioPublisher	KEYWORD1
+HelioCalibrations	KEYWORD1
+HelioObjectRegistration	KEYWORD1
+HelioPinHandlers	KEYWORD1
 
-==================================
-CONSTANTS
-==================================
+# Activations and attachments
+HelioActivation	KEYWORD1
+HelioActivationHandle	KEYWORD1
+HelioDLinkObject	KEYWORD1
+HelioAttachment	KEYWORD1
+HelioActuatorAttachment	KEYWORD1
+HelioSensorAttachment	KEYWORD1
+HelioTriggerAttachment	KEYWORD1
+HelioDriverAttachment	KEYWORD1
 
-==================================
-DATA TYPES
-==================================
+# Measurements and pins
+HelioMeasurement	KEYWORD1
+HelioSingleMeasurement	KEYWORD1
+HelioBinaryMeasurement	KEYWORD1
+HelioDoubleMeasurement	KEYWORD1
+HelioTripleMeasurement	KEYWORD1
+HelioMeasurementData	KEYWORD1
+HelioPin	KEYWORD1
+HelioDigitalPin	KEYWORD1
+HelioAnalogPin	KEYWORD1
+HelioPinData	KEYWORD1
+HelioPinMuxer	KEYWORD1
+HelioPinExpander	KEYWORD1
+
+# Actuators and sensors
+HelioActuator	KEYWORD1
+HelioRelayActuator	KEYWORD1
+HelioRelayMotorActuator	KEYWORD1
+HelioVariableActuator	KEYWORD1
+HelioSensor	KEYWORD1
+HelioBinarySensor	KEYWORD1
+HelioAnalogSensor	KEYWORD1
+HelioDigitalSensor	KEYWORD1
+HelioDHTTempHumiditySensor	KEYWORD1
+
+# Triggers and drivers
+HelioTrigger	KEYWORD1
+HelioMeasurementValueTrigger	KEYWORD1
+HelioMeasurementRangeTrigger	KEYWORD1
+HelioDriver	KEYWORD1
+HelioAbsoluteDriver	KEYWORD1
+HelioIncrementalDriver	KEYWORD1
+
+# Panels and rails
+HelioPanel	KEYWORD1
+HelioBalancingPanel	KEYWORD1
+HelioTrackingPanel	KEYWORD1
+HelioReflectingPanel	KEYWORD1
+HelioRail	KEYWORD1
+HelioSimpleRail	KEYWORD1
+HelioRegulatedRail	KEYWORD1
+
+# User interface
+HelioduinoBaseUI	KEYWORD1
+HelioduinoMinUI	KEYWORD1
+HelioduinoFullUI	KEYWORD1
+HelioduinoUI	KEYWORD1
+
+# Public enum types
+Helio_SystemMode	KEYWORD1
+Helio_MeasurementMode	KEYWORD1
+Helio_DisplayOutputMode	KEYWORD1
+Helio_ControlInputMode	KEYWORD1
+Helio_ActuatorType	KEYWORD1
+Helio_SensorType	KEYWORD1
+Helio_PanelType	KEYWORD1
+Helio_RailType	KEYWORD1
+Helio_PinMode	KEYWORD1
+Helio_EnableMode	KEYWORD1
+Helio_DirectionMode	KEYWORD1
+Helio_UnitsCategory	KEYWORD1
+Helio_UnitsType	KEYWORD1
+Helio_DrivingState	KEYWORD1
+Helio_TriggerState	KEYWORD1
+Helio_PanelState	KEYWORD1
+Helio_EEPROMType	KEYWORD1
+Helio_RTCType	KEYWORD1
+Helio_ActivationFlags	KEYWORD1
+
+# Public factory and conversion helpers
+newActuatorObjectFromData	KEYWORD2
+newSensorObjectFromData	KEYWORD2
+newPanelObjectFromData	KEYWORD2
+newRailObjectFromData	KEYWORD2
+newTriggerObjectFromSubData	KEYWORD2
+newMeasurementObjectFromSubData	KEYWORD2
+newPinObjectFromSubData	KEYWORD2
+defaultUnitsForSensor	KEYWORD2
+defaultCategoryForSensor	KEYWORD2
+
+# Build flags
+HELIO_DISABLE_MULTITASKING	LITERAL1
+HELIO_DISABLE_GUI	LITERAL1
+HELIO_ENABLE_WIFI	LITERAL1
+HELIO_ENABLE_AT_WIFI	LITERAL1
+HELIO_ENABLE_ETHERNET	LITERAL1
+HELIO_ENABLE_MQTT	LITERAL1
+HELIO_ENABLE_GPS	LITERAL1
+HELIO_DISABLE_BUILTIN_DATA	LITERAL1
+HELIO_ENABLE_DEBUG_OUTPUT	LITERAL1
+HELIO_ENABLE_VERBOSE_DEBUG	LITERAL1
+HELIO_ENABLE_DEBUG_ASSERTIONS	LITERAL1
+HELIO_UI_ENABLE_XPT2046TS	LITERAL1
+HELIO_UI_ENABLE_STCHROMA_LDTC	LITERAL1
+HELIO_UI_ENABLE_BSP_TOUCH	LITERAL1
+HELIO_UI_ENABLE_DEBUG_MENU	LITERAL1
