@@ -1,6 +1,6 @@
 {
     "name": "Simple-SolarTracker-Arduino",
-    "version": "0.7.0.0",
+    "version": "0.7.1.0",
     "keywords": "solar,solar-tracking,solartracking,solarpanel,solar-panel,panel,sun,sun-tracking,suntracking,scheduler,tracking,diy,automation,controller,monitor,system",
     "description": "Helioduino: Simple automation controller for solar tracking systems.",
     "license": "MIT",
@@ -18,7 +18,46 @@
         "url": "https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino.git"
     },
     "examples": [
+        {
+            "name": "SimpleLDR",
+            "base": "examples/SimpleLDR",
+            "files": [
+                "SimpleLDR.ino"
+            ]
+        },
+        {
+            "name": "DATracking",
+            "base": "examples/DATracking",
+            "files": [
+                "DATracking.ino"
+            ]
+        },
+        {
+            "name": "FullSystem",
+            "base": "examples/FullSystem",
+            "files": [
+                "FullSystem.ino"
+            ]
+        },
+        {
+            "name": "DataWriter",
+            "base": "examples/DataWriter",
+            "files": [
+                "DataWriter.ino"
+            ]
+        }
     ],
-    "frameworks": ["arduino", "espidf", "mbed"],
-    "platforms": ["avr", "sam", "samd", "teensy", "espressif8266", "espressif32"]
+    "frameworks": [
+        "arduino",
+        "espidf",
+        "mbed"
+    ],
+    "platforms": [
+        "avr",
+        "sam",
+        "samd",
+        "teensy",
+        "espressif8266",
+        "espressif32"
+    ]
 }
