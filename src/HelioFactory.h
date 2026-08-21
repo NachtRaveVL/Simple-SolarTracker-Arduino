@@ -53,20 +53,19 @@ public:
 #endif
                                                         int8_t pinChannel = hpinchnl_none); // Pin muxer/expander channel #, else -127/none
 
-// TODO: #9 in Helioduino.
-//     // Adds a new PWM-based panel-axis-driving continuous servo to the system using the given parameters.
-//     // PWM continuous servos provide constant angular movement not just limited to two angles.
-//     SharedPtr<HelioVariableMotorActuator> addContinuousServo(pintype_t outputPin,           // Analog output pin this actuator sits on
-//                                                              float maxTravel = __FLT_MAX__, // Maximum travel range
-//                                                              float minTravel = -__FLT_MAX__, // Minimum travel range
-//                                                              uint8_t outputBitRes = DAC_RESOLUTION, // PWM output bit resolution to use
-// #ifdef ESP32
-//                                                              uint8_t pwmChannel = 1,        // PWM output channel (0 reserved for buzzer)
-// #endif
-// #ifdef ESP_PLATFORM
-//                                                              float pwmFrequency = 1000,     // PWM output frequency
-// #endif
-//                                                              int8_t pinChannel = hpinchnl_none); // Pin muxer/expander channel #, else -127/none
+    // Adds a new PWM-based panel-axis-driving continuous servo to the system using the given parameters.
+    // PWM continuous servos provide constant angular movement not just limited to two angles.
+    SharedPtr<HelioVariableMotorActuator> addContinuousServo(pintype_t outputPin,           // Analog output pin this actuator sits on
+                                                             float maxTravel = __FLT_MAX__, // Maximum travel range
+                                                             float minTravel = -__FLT_MAX__, // Minimum travel range
+                                                             uint8_t outputBitRes = DAC_RESOLUTION, // PWM output bit resolution to use
+#ifdef ESP32
+                                                             uint8_t pwmChannel = 1,        // PWM output channel (0 reserved for buzzer)
+#endif
+#ifdef ESP_PLATFORM
+                                                             float pwmFrequency = 50,       // PWM output frequency
+#endif
+                                                             int8_t pinChannel = hpinchnl_none); // Pin muxer/expander channel #, else -127/none
 
     // Adds a new relay-based panel-axis-driving linear actuator to the system using the given parameters.
     // Linear actuators allow angular movement of panels that are too large for servos by instead using hydraulics and lever action.
@@ -77,22 +76,21 @@ public:
                                                               int8_t pinChannelA = hpinchnl_none, // Pin muxer/expander channel # for Pin A, else -127/none
                                                               int8_t pinChannelB = hpinchnl_none); // Pin muxer/expander channel # for Pin B, else -127/none
 
-// TODO: #9 in Helioduino.
-//     // Adds a new analog PWM-based panel-axis-driving linear actuator to the system using the given parameters.
-//     // PWM linear actuators allow a graduated adaptive speed control, typically via H-bridge.
-//     SharedPtr<HelioVariableMotorActuator> addAnalogLinearActuator(pintype_t outputPinA,     // Analog output pin A (forward) this actuator sits on
-//                                                                   pintype_t outputPinB,     // Analog output pin B (reverse) this actuator sits on
-//                                                                   float maxStroke,          // Maximum stroke distance
-//                                                                   float minStroke = 0.0f,   // Minimum stroke distance
-//                                                                   uint8_t outputBitRes = DAC_RESOLUTION, // PWM output bit resolution to use
-// #ifdef ESP32
-//                                                                   uint8_t pwmChannel = 1,   // PWM output channel (0 reserved for buzzer)
-// #endif
-// #ifdef ESP_PLATFORM
-//                                                                   float pwmFrequency = 1000, // PWM output frequency
-// #endif
-//                                                                   int8_t pinChannelA = hpinchnl_none, // Pin muxer/expander channel # for Pin A, else -127/none
-//                                                                   int8_t pinChannelB = hpinchnl_none); // Pin muxer/expander channel # for Pin B, else -127/none
+    // Adds a new analog PWM-based panel-axis-driving linear actuator to the system using the given parameters.
+    // PWM linear actuators allow a graduated adaptive speed control, typically via H-bridge.
+    SharedPtr<HelioVariableMotorActuator> addAnalogLinearActuator(pintype_t outputPinA,     // Analog output pin A (forward) this actuator sits on
+                                                                  pintype_t outputPinB,     // Analog output pin B (reverse) this actuator sits on
+                                                                  float maxStroke,          // Maximum stroke distance
+                                                                  float minStroke = 0.0f,   // Minimum stroke distance
+                                                                  uint8_t outputBitRes = DAC_RESOLUTION, // PWM output bit resolution to use
+#ifdef ESP32
+                                                                  uint8_t pwmChannel = 1,   // PWM output channel (0 reserved for buzzer)
+#endif
+#ifdef ESP_PLATFORM
+                                                                  float pwmFrequency = 1000, // PWM output frequency
+#endif
+                                                                  int8_t pinChannelA = hpinchnl_none, // Pin muxer/expander channel # for Pin A, else -127/none
+                                                                  int8_t pinChannelB = hpinchnl_none); // Pin muxer/expander channel # for Pin B, else -127/none
 
     // Convenience builders for common sensors (shared, nullptr return -> failure).
 
