@@ -112,7 +112,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
                 if (id.keyString == iter->second->getKeyString()) {
                     return iter->second;
                 } else {
-                    objectById_Col(id);
+                    return objectById_Col(id);
                 }
             }
         }
@@ -123,7 +123,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
                 if (id.keyString == iter->second->getKeyString()) {
                     return iter->second;
                 } else {
-                    objectById_Col(id);
+                    return objectById_Col(id);
                 }
             }
         }
@@ -133,7 +133,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
             if (id.keyString == iter->second->getKeyString()) {
                 return iter->second;
             } else {
-                objectById_Col(id);
+                return objectById_Col(id);
             }
         }
     }
