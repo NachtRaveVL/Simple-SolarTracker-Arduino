@@ -4,8 +4,8 @@
 */
 // Copied and modified from: https://github.com/tomstewart89/Callback
 
-#ifndef HelioCallback_H
-#define HelioCallback_H
+#ifndef HelioCallback_HH
+#define HelioCallback_HH
 
 #include "Helioduino.h"
 
@@ -164,4 +164,4 @@ public:
     }
 };
 
-#endif // HelioCallback_H
+#endif // HelioCallback_HH
