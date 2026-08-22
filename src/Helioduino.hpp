@@ -3,6 +3,9 @@
     Helioduino System
 */
 
+#ifndef Helioduino_HPP
+#define Helioduino_HPP
+
 #include "Helioduino.h"
 
 inline bool Twilight::isDaytime(time_t unixTime) const {
@@ -234,3 +237,5 @@ inline bool HelioScheduler::hasSchedulerData() const
 {
     return Helioduino::_activeInstance && Helioduino::_activeInstance->_systemData;
 }
+
+#endif // /ifndef Helioduino_HPP
