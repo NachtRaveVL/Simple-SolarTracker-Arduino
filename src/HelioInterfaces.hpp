@@ -3,6 +3,9 @@
     Helio Attachment Points
 */
 
+#ifndef HelioInterfaces_HPP
+#define HelioInterfaces_HPP
+
 #include "Helioduino.h"
 
 inline void HelioDistanceUnitsInterfaceStorage::setSpeedUnits(Helio_UnitsType speedUnits)
@@ -249,3 +252,5 @@ inline SharedPtr<U> HelioLimitTriggerAttachmentInterface::getLimitTrigger(bool p
     getLimitTriggerAttachment().updateIfNeeded(poll);
     return getLimitTriggerAttachment().HelioAttachment::getObject<U>();
 }
+
+#endif // /ifndef HelioInterfaces_HPP
