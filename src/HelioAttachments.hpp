@@ -3,6 +3,9 @@
     Helioduino Attachment Points
 */
 
+#ifndef HelioAttachments_HPP
+#define HelioAttachments_HPP
+
 #include "Helioduino.h"
 
 inline HelioDLinkObject &HelioDLinkObject::operator=(HelioIdentity rhs)
@@ -206,3 +209,5 @@ inline Helio_DrivingState HelioDriverAttachment::getDrivingState(bool poll)
 {
     return resolve() ? get()->getDrivingState(poll) : Helio_DrivingState_Undefined;
 }
+
+#endif // /ifndef HelioAttachments_HPP
