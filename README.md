@@ -82,7 +82,6 @@ Core logic and source checks can be run without a tracker or Arduino connected:
 cmake -S tests -B build-host
 cmake --build build-host
 ctest --test-dir build-host --output-on-failure
-python3 tests/validate_source.py
 ```
 
 ### Setup
