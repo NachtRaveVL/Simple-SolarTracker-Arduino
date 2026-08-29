@@ -84,7 +84,7 @@ inline float helioUpdateRunningCorrection(float correction, float sample, uint16
 }
 
 // Applies a minimum stable time before accepting a changed binary sensor state.
-inline bool helioUpdateStableBinaryState(bool acceptedState, bool sampledState, uint32_t nowMillis,
+inline bool helioUpdateStableBinaryState(bool acceptedState, bool sampledState, uint32_t now,
                                          uint16_t stableTimeMillis, bool &pendingState,
                                          bool &hasPendingState, uint32_t &pendingStateStart)
 {
@@ -95,9 +95,9 @@ inline bool helioUpdateStableBinaryState(bool acceptedState, bool sampledState, 
         return sampledState;
     } else if (!hasPendingState || pendingState != sampledState) {
         pendingState = sampledState;
-        pendingStateStart = nowMillis;
+        pendingStateStart = now;
         hasPendingState = true;
-    } else if (helioHasElapsed(nowMillis, pendingStateStart, stableTimeMillis)) {
+    } else if (helioHasElapsed(now, pendingStateStart, stableTimeMillis)) {
         hasPendingState = false;
         return sampledState;
     }
