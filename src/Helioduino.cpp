@@ -1073,11 +1073,7 @@ void Helioduino::setAutosaveEnabled(Helio_Autosave autosaveEnabled, Helio_Autosa
 
 void Helioduino::setRTCTime(DateTime time)
 {
-    auto rtc = getRTC();
-    if (rtc) {
-        rtc->adjust(DateTime((uint32_t)unixTime(time)));
-        notifyRTCTimeUpdated();
-    }
+    _setUnixTime(DateTime((uint32_t)unixTime(time)), true);
 }
 
 #ifdef HELIO_USE_WIFI

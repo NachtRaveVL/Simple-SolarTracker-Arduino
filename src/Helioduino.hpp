@@ -85,6 +85,7 @@ inline void Helioduino::performAutosave()
                 #ifdef HELIO_USE_WIFI_STORAGE
                     saveToWiFiStorage(RAW);
                 #endif
+                break;
             case Helio_Autosave_Disabled:
                 break;
         }
