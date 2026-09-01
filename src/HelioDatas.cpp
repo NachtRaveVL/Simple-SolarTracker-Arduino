@@ -250,7 +250,7 @@ void HelioCalibrationData::setFromTwoPoints(float point1MeasuredAt, float point1
     HELIO_SOFT_ASSERT(!isFPEqual(bTerm, 0.0f), SFP(HStr_Err_InvalidParameter));
     if (!isFPEqual(bTerm, 0.0f)) {
         multiplier = aTerm / bTerm;
-        offset = ((aTerm * point2MeasuredAt) + (bTerm * point1CalibratedTo)) / bTerm;
+        offset = ((bTerm * point1CalibratedTo) - (aTerm * point1MeasuredAt)) / bTerm;
         bumpRevisionIfNeeded();
     }
 }
