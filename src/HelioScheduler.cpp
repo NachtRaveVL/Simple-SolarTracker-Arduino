@@ -440,6 +440,7 @@ void HelioTracking::update()
         auto sunset = getScheduler()->getDailyTwilight().getSunsetLocalTime();
         bool afterSunset = currTime > sunset;
         bool afterSunrise = currTime >= sunrise;
+        bool daytime = afterSunrise && !afterSunset;
         bool cleaningDue = trackingPanel && currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnCleaningMins,0) &&
                            currTime >= trackingPanel->getLastPanelCleaningTime() + TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
                            linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelSprayer).size();
@@ -450,10 +451,10 @@ void HelioTracking::update()
 
         switch (stage) {
             case Init: {
-                if (afterSunset) { // storm trigger handled in later update
+                if (!daytime) { // storm trigger handled in later update
                     stage = Cover; stageStart = time;
                     setupStaging();
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging();
                 } else if (preHeatingDue) {
