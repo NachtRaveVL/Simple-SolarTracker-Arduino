@@ -51,20 +51,17 @@ Helioduino is a MCU-based solution primarily written for Arduino and Arduino-lik
 
 ### Requirements
 
-Minimum MCU: 256-512kB Flash, 16-24kB SRAM, 16MHz  
-Recommended: 512kB-1MB+ Flash, 24-32kB+ SRAM, 32-48MHz+
+There is no single minimum MCU for every Helioduino build because enabled UI, networking, logging, sensor counts, power-system complexity, and object counts can change the program and memory requirements considerably.
 
-* Definitely ___will___ work: GIGA, Portenta (any), ESP32/8266, Teensy 3.5+, STM32 (>256kB), Pico/RP2040 (any)
+As a practical starting point:
 
-* _Can_ work /w external data/minimal UI: Uno R4, Nano 33 (any), MKR (any), Due/Zero, STM32 (256kB)
+Minimum planning target: 256–512kB Flash, 16–24kB SRAM, 16MHz+
 
-* _May_ work, but only with heavy tweaking/limited build: ATMega2560, Genuino 101, Teensy 3.2 (/3.1), STM32F0
+Recommended: 512kB–1MB+ Flash, 24–32kB+ SRAM, 32–48MHz+
 
-* Definitely ___will not___ work: Uno (classic to R3), Nano (classic & Every), Leonardo/Duemilanove, Micro, Pro, Esplora, Teensy 2/LC, STM8 (|32<256kB), ATtiny (any)
+Modern 32-bit boards such as Pico RP2040/RP2350, ESP32, Teensy 3.5+, STM32, GIGA, and Portenta-class devices are the natural starting point when tracking, logging, UI, and networking are expected to run together.
 
-Note: Pin-limited MCUs may be restricted in how many sensors/actuators/etc. can be connected at once, and in such case where more pins are needed an i2c-based 8/16-bit expander using a PCF857X or MCP23017 might be recommended. The controller also supports standard multiplexing with a CD74HC or similar.
-
-Note: Certain MCUs, such as those from STM, are sold in many different Flash/SRAM size configurations. Some configurations may not be supported, others may limit total system size (i.e. object count, library support, features, etc.). Bigger is always better until you get a better idea of your specific use case's size requirements.
+Helioduino systems may need to monitor voltage, current, power, battery state, environmental conditions, and multiple controlled loads while responding to changing generation and storage conditions. Sensor sampling, control responsiveness, display load, logging, and communication traffic can therefore matter more than Flash size alone when selecting the MCU.
 
 ### Installation
 
