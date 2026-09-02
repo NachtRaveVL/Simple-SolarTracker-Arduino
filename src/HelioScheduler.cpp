@@ -467,17 +467,17 @@ void HelioTracking::update()
             } break;
 
             case Warm: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging();  logStage = true;
                 } // else running heating
             } break;
 
             case Uncover: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
                 } else if (!panel->getPanelCoverDriver() || panel->getPanelCoverDriver()->isAligned()) {
@@ -487,7 +487,7 @@ void HelioTracking::update()
             } break;
 
             case Clean: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
                 } if (time >= stageStart + (getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN)) {
@@ -499,16 +499,16 @@ void HelioTracking::update()
             } break;
 
             case Track: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
                 } // else running tracking
             } break;
 
             case Cover: {
-                if (afterSunset || isStorming) { // running cover
+                if (!daytime || isStorming) { // running cover
                     if (afterSunset && !nightSeqReported) { stormingReported = false; logStage = true; }
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging(); logStage = true;
                 } else if (preHeatingDue) {
