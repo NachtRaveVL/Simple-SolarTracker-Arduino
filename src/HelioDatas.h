@@ -34,7 +34,7 @@ struct HelioSystemData : public HelioData {
     Helio_DisplayOutputMode dispOutMode;                    // System display output mode
     Helio_ControlInputMode ctrlInMode;                      // System control input mode 
     char systemName[HELIO_NAME_MAXSIZE];                    // System name
-    int16_t timeZoneOffset;                                 // Timezone offset from UTC, in whole hours
+    float timeZoneOffset;                                   // Timezone offset from UTC, in fractional hours
     uint16_t pollingInterval;                               // Sensor polling interval, in milliseconds
     Helio_Autosave autosaveEnabled;                         // Autosave enabled
     Helio_Autosave autosaveFallback;                        // Autosave fallback
