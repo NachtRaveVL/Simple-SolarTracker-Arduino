@@ -60,8 +60,14 @@ add_executable(helioduino_hardware_tests
 )
 target_link_libraries(helioduino_hardware_tests PRIVATE helioduino_host)
 
+add_executable(helioduino_serialization_tests
+    host/test_serialization.cpp
+)
+target_link_libraries(helioduino_serialization_tests PRIVATE helioduino_host)
+
 enable_testing()
 add_test(NAME helioduino_core_tests COMMAND helioduino_core_tests)
 add_test(NAME helioduino_hardening_tests COMMAND helioduino_hardening_tests)
 add_test(NAME helioduino_infrastructure_tests COMMAND helioduino_infrastructure_tests)
 add_test(NAME helioduino_hardware_tests COMMAND helioduino_hardware_tests)
+add_test(NAME helioduino_serialization_tests COMMAND helioduino_serialization_tests)
