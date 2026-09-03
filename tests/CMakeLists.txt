@@ -39,6 +39,14 @@ set(HELIODUINO_SRC
 
 add_library(helioduino_host STATIC ${HELIODUINO_SRC})
 target_include_directories(helioduino_host PUBLIC ../src)
+target_include_directories(helioduino_host SYSTEM PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/host/shims
+)
+target_compile_definitions(helioduino_host PUBLIC
+    ARDUINO=10819
+    HELIO_DISABLE_GUI
+    HELIO_DISABLE_MULTITASKING
+)
 
 add_executable(helioduino_core_tests
     host/test_core_logic.cpp
