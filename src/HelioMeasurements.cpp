@@ -103,6 +103,7 @@ HelioMeasurement::HelioMeasurement(const HelioMeasurementData *dataIn)
 
 void HelioMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t measurementRow, unsigned int additionalDecPlaces) const
 {
+    (void)additionalDecPlaces;
     dataOut->type = (int8_t)type;
     dataOut->measurementRow = measurementRow;
     dataOut->timestamp = timestamp;
@@ -197,8 +198,8 @@ void HelioDoubleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t m
 {
     HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow >= 0 && measurementRow < 2 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
-    dataOut->units = measurementRow >= 0 && measurementRow < 2 ? units[measurementRow] : Helio_UnitsType_Undefined;
+    dataOut->value = measurementRow < 2 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
+    dataOut->units = measurementRow < 2 ? units[measurementRow] : Helio_UnitsType_Undefined;
 }
 
 
@@ -236,8 +237,8 @@ void HelioTripleMeasurement::saveToData(HelioMeasurementData *dataOut, uint8_t m
 {
     HelioMeasurement::saveToData(dataOut, measurementRow, additionalDecPlaces);
 
-    dataOut->value = measurementRow >= 0 && measurementRow < 3 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
-    dataOut->units = measurementRow >= 0 && measurementRow < 3 ? units[measurementRow] : Helio_UnitsType_Undefined;
+    dataOut->value = measurementRow < 3 ? roundForExport(value[measurementRow], additionalDecPlaces) : 0.0f;
+    dataOut->units = measurementRow < 3 ? units[measurementRow] : Helio_UnitsType_Undefined;
 }
 
 

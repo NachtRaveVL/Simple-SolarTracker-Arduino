@@ -22,6 +22,23 @@ HelioDLinkObject::HelioDLinkObject(const HelioDLinkObject &obj)
     }
 }
 
+HelioDLinkObject &HelioDLinkObject::operator=(const HelioDLinkObject &obj)
+{
+    if (this != &obj) {
+        _key = obj._key;
+        _obj = obj._obj;
+        if (_keyStr) { free((void *)_keyStr); _keyStr = nullptr; }
+        if (obj._keyStr) {
+            auto len = strnlen(obj._keyStr, HELIO_NAME_MAXSIZE);
+            if (len) {
+                _keyStr = (const char *)malloc(len + 1);
+                strncpy((char *)_keyStr, obj._keyStr, len + 1);
+            }
+        }
+    }
+    return *this;
+}
+
 HelioDLinkObject::~HelioDLinkObject()
 {
     if (_keyStr) { free((void *)_keyStr); }
@@ -64,6 +81,23 @@ HelioAttachment::HelioAttachment(const HelioAttachment &attachment)
     initObject(attachment._obj);
 }
 
+HelioAttachment &HelioAttachment::operator=(const HelioAttachment &attachment)
+{
+    if (this != &attachment) {
+        if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) {
+            _obj.get<HelioObject>()->removeLinkage((HelioObject *)_parent);
+        }
+
+        _parent = attachment._parent;
+        _obj = attachment._obj;
+        _subIndex = attachment._subIndex;
+        if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) {
+            _obj.get<HelioObject>()->addLinkage((HelioObject *)_parent);
+        }
+    }
+    return *this;
+}
+
 HelioAttachment::~HelioAttachment()
 {
     if (isResolved() && _obj->isObject() && _parent && _parent->isObject()) {
@@ -88,6 +122,7 @@ void HelioAttachment::detachObject()
 
 void HelioAttachment::updateIfNeeded(bool poll)
 {
+    (void)poll;
     // intended to be overridden by derived classes, but not an error if left not implemented
 }
 
@@ -120,6 +155,20 @@ HelioActuatorAttachment::HelioActuatorAttachment(const HelioActuatorAttachment &
       _rateMultiplier(attachment._rateMultiplier), _calledLastUpdate(false)
 { ; }
 
+HelioActuatorAttachment &HelioActuatorAttachment::operator=(const HelioActuatorAttachment &attachment)
+{
+    if (this != &attachment) {
+        HelioSignalAttachment<HelioActuator *, HELIO_ACTUATOR_SIGNAL_SLOTS>::operator=(attachment);
+        _actHandle = attachment._actHandle;
+        _actSetup = attachment._actSetup;
+        if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
+        _updateSlot = attachment._updateSlot ? attachment._updateSlot->clone() : nullptr;
+        _rateMultiplier = attachment._rateMultiplier;
+        _calledLastUpdate = false;
+    }
+    return *this;
+}
+
 HelioActuatorAttachment::~HelioActuatorAttachment()
 {
     if (_updateSlot) { delete _updateSlot; _updateSlot = nullptr; }
@@ -127,6 +176,7 @@ HelioActuatorAttachment::~HelioActuatorAttachment()
 
 void HelioActuatorAttachment::updateIfNeeded(bool poll)
 {
+    (void)poll;
     if (_actHandle.isValid()) {
         if (isActivated()) {
             _actHandle.elapseTo();

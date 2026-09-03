@@ -81,7 +81,7 @@ struct HelioCalibrationData : public HelioData {
     inline void transform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { *valueInOut = transform(*valueInOut);
                                                                                           if (unitsOut) { *unitsOut = calibrationUnits; } }
     // Transforms measurement from raw (or initial) measurement into calibrated (or transformed) measurement.
-    inline HelioSingleMeasurement transform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(transform(measurement.value), calibrationUnits, measurement.timestamp, measurement.frame); }
+    inline HelioSingleMeasurement transform(HelioSingleMeasurement measurement) const { return HelioSingleMeasurement(transform(measurement.value), calibrationUnits, measurement.timestamp, measurement.frame); }
     // Transforms measurement in-place from raw (or initial) measurement into calibrated (or transformed) measurement.
     inline void transform(HelioSingleMeasurement *measurementInOut) const { transform(&measurementInOut->value, &measurementInOut->units); }
 
@@ -91,7 +91,7 @@ struct HelioCalibrationData : public HelioData {
     inline void inverseTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { *valueInOut = inverseTransform(*valueInOut);
                                                                                                  if (unitsOut) { *unitsOut = Helio_UnitsType_Raw_1; } }
     // Inverse transforms measurement from calibrated (or transformed) measurement back into raw (or initial) measurement.
-    inline HelioSingleMeasurement inverseTransform(HelioSingleMeasurement measurement) { return HelioSingleMeasurement(inverseTransform(measurement.value), Helio_UnitsType_Raw_1, measurement.timestamp, measurement.frame); }
+    inline HelioSingleMeasurement inverseTransform(HelioSingleMeasurement measurement) const { return HelioSingleMeasurement(inverseTransform(measurement.value), Helio_UnitsType_Raw_1, measurement.timestamp, measurement.frame); }
     // Inverse transforms measurement in-place from calibrated (or transformed) measurement back into raw (or initial) measurement.
     inline void inverseTransform(HelioSingleMeasurement *measurementInOut) const { inverseTransform(&measurementInOut->value, &measurementInOut->units); }
 

@@ -255,6 +255,7 @@ void HelioLogger::notifyDateChanged()
 
 void HelioLogger::cleanupOldestLogs(bool force)
 {
+    (void)force;
     // TODO: Old data cleanup. #17 in Hydruino.
 }
 

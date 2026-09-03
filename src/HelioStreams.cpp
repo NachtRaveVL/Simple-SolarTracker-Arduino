@@ -148,12 +148,15 @@ void HelioPROGMEMStream::flush()
 
 size_t HelioPROGMEMStream::write(const uint8_t *buffer, size_t size)
 {
+    (void)buffer;
+    (void)size;
     HELIO_SOFT_ASSERT(false, SFP(HStr_Err_OperationFailure));
     return 0;
 }
 
 size_t HelioPROGMEMStream::write(uint8_t data)
 {
+    (void)data;
     HELIO_SOFT_ASSERT(false, SFP(HStr_Err_OperationFailure));
     return 0;
 }

@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 {
@@ -27,29 +28,27 @@ HelioPanel *newPanelObjectFromData(const HelioPanelData *dataIn)
 
 
 HelioPanel::HelioPanel(Helio_PanelType panelType, hposi_t panelIndex, float alignedTolerance, int classTypeIn)
-    : HelioObject(HelioIdentity(panelType, panelIndex)), classType((typeof(classType))classTypeIn),
-      HelioPowerUnitsInterfaceStorage(defaultPowerUnits()), _coverDriver(this),
-      _panelState(Helio_PanelState_Undefined), _alignedTolerance(alignedTolerance),
-      _homePosition{0}, _axisOffset{0}, _inDaytimeMode(false),
+    : HelioObject(HelioIdentity(panelType, panelIndex)), HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
+      classType(static_cast<decltype(Balancing)>(classTypeIn)), _panelState(Helio_PanelState_Undefined),
+      _alignedTolerance(alignedTolerance), _homePosition{0}, _axisOffset{0}, _inDaytimeMode(false),
       _isHorzCoords(!getIsEquatorialCoordsFromType(panelType)),
       _drivesHorz(getDrivesHorizontalAxis(panelType)), _drivesVert(getDrivesVerticalAxis(panelType)),
-      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}, _coverDriver(this)
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
 }
 
 HelioPanel::HelioPanel(const HelioPanelData *dataIn)
-    : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
-      HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
-      _panelState(Helio_PanelState_Undefined),
+    : HelioObject(dataIn), HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
+      classType(static_cast<decltype(Balancing)>(dataIn->id.object.classType)), _panelState(Helio_PanelState_Undefined),
+      _alignedTolerance(dataIn->alignedTolerance),
       _homePosition{dataIn->homePosition[0],dataIn->homePosition[1]},
-      _axisOffset{dataIn->axisOffset[0],dataIn->axisOffset[1]},
-      _inDaytimeMode(false), _coverDriver(this),
+      _axisOffset{dataIn->axisOffset[0],dataIn->axisOffset[1]}, _inDaytimeMode(false),
       _isHorzCoords(!getIsEquatorialCoordsFromType((Helio_PanelType)dataIn->id.object.objType)),
       _drivesHorz(getDrivesHorizontalAxis((Helio_PanelType)dataIn->id.object.objType)),
       _drivesVert(getDrivesVerticalAxis((Helio_PanelType)dataIn->id.object.objType)),
-      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}
+      _powerProd(this), _axisDriver{HelioDriverAttachment(this,0),HelioDriverAttachment(this,1)}, _coverDriver(this)
 {
     allocateLinkages(HELIO_PANEL_LINKS_BASESIZE);
     _powerProd.setMeasurementUnits(getPowerUnits());
@@ -106,6 +105,7 @@ bool HelioPanel::canActivate(HelioActuator *actuator)
 
 bool HelioPanel::isDaylight(bool poll)
 {
+    (void)poll;
     return _inDaytimeMode;
 }
 

@@ -283,6 +283,8 @@ inline bool convertUnits(const HelioSingleMeasurement *measureIn, HelioSingleMea
 
 // For wrapping of values to positive-only moduli range [0, +range), e.g. [0,360) [0,2pi) etc, used in horizontal coordinates and as default wrap mode
 template<typename T> inline T wrapBy(T value, T range) { value = value % range; return value >= 0 ? value : value + range; }
+template<> inline float wrapBy(float value, float range);
+template<> inline double wrapBy(double value, double range);
 // For wrapping of values to positive-and-negative-split moduli range [-range/2,+range/2), e.g. [-180,180) [-pi,pi] etc, used in vertical coordinates
 template<typename T> inline T wrapBySplit(T value, T range) { return wrapBy<T>(value + (range / 2), range) - (range / 2); }
 // For wrapping of degree angle values to [0,360)
@@ -339,6 +341,8 @@ template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilter
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N>  linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, bool isMotor);
 // Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel and axis.
 template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAxisAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, Helio_ActuatorType actuatorType);
+// Returns linkages list filtered down to just actuators of a certain type that operate on a specific panel.
+template<size_t N = HELIO_DEFAULT_MAXSIZE> Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, Helio_ActuatorType actuatorType);
 
 // Returns the # of actuators that are travel based as found in the linkages list.
 extern int linksCountTravelActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links);

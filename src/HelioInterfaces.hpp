@@ -80,7 +80,7 @@ inline SharedPtr<U> HelioParentPanelAttachmentInterface::getParentPanel()
 
 inline hposi_t HelioParentPanelAttachmentInterface::getParentPanelAxisIndex()
 {
-    getParentPanelAttachment().getParentSubIndex();
+    return getParentPanelAttachment().getParentSubIndex();
 }
 
 template <class U>

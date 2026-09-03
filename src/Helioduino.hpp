@@ -121,7 +121,7 @@ inline void Helioduino::notifySignificantTime(time_t time)
     _lastAutosave = isAutosaveEnabled() ? time : 0;
 }
 
-inline void Helioduino::notifySignificantLocation(Location loc)
+inline void Helioduino::notifySignificantLocation(Location)
 {
     if (_systemData) { _systemData->bumpRevisionIfNeeded(); }
 }

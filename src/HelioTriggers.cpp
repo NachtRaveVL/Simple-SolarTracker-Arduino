@@ -26,7 +26,7 @@ HelioTrigger *newTriggerObjectFromSubData(const HelioTriggerSubData *dataIn)
 
 
 HelioTrigger::HelioTrigger(HelioIdentity sensorId, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay, int typeIn)
-    : type((typeof(type))typeIn), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
+    : type(static_cast<decltype(MeasureValue)>(typeIn)), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
       _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled)
 {
     _sensor.setMeasurementRow(measurementRow);
@@ -34,7 +34,7 @@ HelioTrigger::HelioTrigger(HelioIdentity sensorId, uint8_t measurementRow, float
 }
 
 HelioTrigger::HelioTrigger(SharedPtr<HelioSensor> sensor, uint8_t measurementRow, float detriggerTol, millis_t detriggerDelay, int typeIn)
-    : type((typeof(type))typeIn), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
+    : type(static_cast<decltype(MeasureValue)>(typeIn)), _sensor(this), _detriggerTol(detriggerTol), _detriggerDelay(detriggerDelay),
       _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled)
 {
     _sensor.setMeasurementRow(measurementRow);
@@ -42,8 +42,8 @@ HelioTrigger::HelioTrigger(SharedPtr<HelioSensor> sensor, uint8_t measurementRow
 }
 
 HelioTrigger::HelioTrigger(const HelioTriggerSubData *dataIn)
-    : type((typeof(type))(dataIn->type)), _sensor(this), _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled),
-      _detriggerTol(dataIn->detriggerTol), _detriggerDelay(dataIn->detriggerDelay)
+    : type(static_cast<decltype(MeasureValue)>(dataIn->type)), _sensor(this), _detriggerTol(dataIn->detriggerTol), _detriggerDelay(dataIn->detriggerDelay),
+      _lastTrigger(0), _triggerState(Helio_TriggerState_Disabled)
 {
     _sensor.setMeasurementRow(dataIn->measurementRow);
     _sensor.setMeasurementUnits(dataIn->measurementUnits);

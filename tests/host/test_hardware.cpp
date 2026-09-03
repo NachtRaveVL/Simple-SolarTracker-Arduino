@@ -20,7 +20,7 @@ int main()
     assert(heater->getUserCalibrationData() == nullptr);
 
     heater->setEnableMode(Helio_EnableMode_Highest);
-    HelioActivationHandle handle = heater->enableActuator(Helio_DirectionMode_Forward, 0.5f, (millis_t)-1, true);
+    HelioActivationHandle handle = heater->enableActuator(0.5f, (millis_t)-1, true);
     heater->update();
     assert(heater->isEnabled());
 

@@ -25,17 +25,15 @@ HelioRail *newRailObjectFromData(const HelioRailData *dataIn)
 
 
 HelioRail::HelioRail(Helio_RailType railType, hposi_t railIndex, int classTypeIn)
-    : HelioObject(HelioIdentity(railType, railIndex)), classType((typeof(classType))classTypeIn),
-      HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
-      _limitState(Helio_TriggerState_Undefined)
+    : HelioObject(HelioIdentity(railType, railIndex)), HelioPowerUnitsInterfaceStorage(defaultPowerUnits()),
+      classType(static_cast<decltype(Simple)>(classTypeIn)), _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
 
 HelioRail::HelioRail(const HelioRailData *dataIn)
-    : HelioObject(dataIn), classType((typeof(classType))(dataIn->id.object.classType)),
-      HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
-      _limitState(Helio_TriggerState_Undefined)
+    : HelioObject(dataIn), HelioPowerUnitsInterfaceStorage(definedUnitsElse(dataIn->powerUnits, defaultPowerUnits())),
+      classType(static_cast<decltype(Simple)>(dataIn->id.object.classType)), _limitState(Helio_TriggerState_Undefined)
 {
     allocateLinkages(HELIO_RAILS_LINKS_BASESIZE);
 }
@@ -138,11 +136,13 @@ HelioSimpleRail::HelioSimpleRail(const HelioSimpleRailData *dataIn)
 
 bool HelioSimpleRail::canActivate(HelioActuator *actuator)
 {
+    (void)actuator;
     return _activeCount < _maxActiveAtOnce;
 }
 
 float HelioSimpleRail::getCapacity(bool poll)
 {
+    (void)poll;
     return _activeCount / (float)_maxActiveAtOnce;
 }
 

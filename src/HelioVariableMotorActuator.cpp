@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 static constexpr float HELIO_CONT_SERVO_MIN = 0.025f;
 static constexpr float HELIO_CONT_SERVO_MAX = 0.125f;
@@ -40,7 +41,7 @@ HelioVariableMotorActuator::HelioVariableMotorActuator(Helio_ActuatorType actuat
 HelioVariableMotorActuator::HelioVariableMotorActuator(const HelioMotorActuatorData *dataIn)
     : HelioVariableActuator(dataIn),
       HelioDistanceUnitsInterfaceStorage(definedUnitsElse(dataIn->distanceUnits, defaultDistanceUnits())),
-      _outputPin2(&dataIn->outputPin2), _contSpeed(dataIn->contSpeed), _position(this), _speed(this),
+      _outputPin2(&dataIn->outputPin2), _contSpeed(&(dataIn->contSpeed)), _position(this), _speed(this),
       _minimum(this), _maximum(this),
       _travelRange(make_pair(dataIn->travelRange[0], dataIn->travelRange[1])), _signedIntensity(0.0f),
       _travelPosStart(0.0f), _travelDistAccum(0.0f), _travelTimeStart(0), _travelTimeAccum(0),

@@ -6,8 +6,8 @@
 #include "Helioduino.h"
 
 HelioActivationHandle::HelioActivationHandle(SharedPtr<HelioActuator> actuatorIn, Helio_DirectionMode direction, float intensity, millis_t duration, bool force)
-    : activation(direction, constrain(intensity, 0.0f, 1.0f), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)), 
-      actuator(nullptr), checkTime(0), elapsed(0)
+    : actuator(nullptr), activation(direction, constrain(intensity, 0.0f, 1.0f), duration, (force ? Helio_ActivationFlags_Forced : Helio_ActivationFlags_None)),
+      checkTime(0), elapsed(0)
 {
     operator=(actuatorIn);
 }
