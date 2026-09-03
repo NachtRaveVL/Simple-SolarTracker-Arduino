@@ -1,6 +1,6 @@
 {
     "name": "Simple-SolarTracker-Arduino",
-    "version": "0.7.2.0",
+    "version": "0.7.2",
     "keywords": "solar,solar-tracking,solartracking,solarpanel,solar-panel,panel,sun,sun-tracking,suntracking,scheduler,tracking,diy,automation,controller,monitor,system",
     "description": "Helioduino: Simple automation controller for solar tracking systems.",
     "license": "MIT",
@@ -47,17 +47,6 @@
             ]
         }
     ],
-    "frameworks": [
-        "arduino",
-        "espidf",
-        "mbed"
-    ],
-    "platforms": [
-        "avr",
-        "sam",
-        "samd",
-        "teensy",
-        "espressif8266",
-        "espressif32"
-    ]
+    "frameworks": "arduino",
+    "platforms": "*"
 }
