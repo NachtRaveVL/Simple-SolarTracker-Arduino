@@ -60,6 +60,7 @@ struct HelioData : public HelioJSONSerializableInterface {
               uint8_t version = 1,                          // Data structure version #
               uint8_t revision = 1);                        // Stored data revision #
     HelioData(const HelioIdentity &id);                     // Identity constructor
+    virtual ~HelioData() { ; }
 
     virtual void toJSONObject(JsonObject &objectOut) const override;
     virtual void fromJSONObject(JsonObjectConst &objectIn) override;

@@ -26,6 +26,7 @@ class HelioDLinkObject {
 public:
     HelioDLinkObject();
     HelioDLinkObject(const HelioDLinkObject &obj);
+    HelioDLinkObject &operator=(const HelioDLinkObject &obj);
     virtual ~HelioDLinkObject();
 
     inline bool isUnresolved() const { return !_obj; }
@@ -78,6 +79,7 @@ class HelioAttachment : public HelioSubObject {
 public:
     HelioAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioAttachment(const HelioAttachment &attachment);
+    HelioAttachment &operator=(const HelioAttachment &attachment);
     virtual ~HelioAttachment();
 
     // Attaches object and any relevant signaling mechanisms. Derived classes should call base class's method first.
@@ -142,6 +144,7 @@ public:
 
     template<class U> HelioSignalAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0, Signal<ParameterType,Slots> &(U::*signalGetter)(void) = nullptr);
     HelioSignalAttachment(const HelioSignalAttachment<ParameterType,Slots> &attachment);
+    HelioSignalAttachment<ParameterType,Slots> &operator=(const HelioSignalAttachment<ParameterType,Slots> &attachment);
     virtual ~HelioSignalAttachment();
 
     virtual void attachObject() override;
@@ -174,6 +177,7 @@ class HelioActuatorAttachment : public HelioSignalAttachment<HelioActuator *, HE
 public:
     HelioActuatorAttachment(HelioObjInterface *parent = nullptr, hposi_t subIndex = 0);
     HelioActuatorAttachment(const HelioActuatorAttachment &attachment);
+    HelioActuatorAttachment &operator=(const HelioActuatorAttachment &attachment);
     virtual ~HelioActuatorAttachment();
 
     // Updates with actuator activation handle. Does not call actuator's update() (handled by system).

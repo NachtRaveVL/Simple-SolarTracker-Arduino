@@ -4,6 +4,7 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 {
@@ -19,7 +20,7 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
             case (hid_t)HelioActuator::Variable:
                 return new HelioVariableActuator((const HelioActuatorData *)dataIn);
             case (hid_t)HelioActuator::VariableMotor:
-                //return new HelioVariableMotorActuator((const HelioMotorActuatorData *)dataIn);
+                return new HelioVariableMotorActuator((const HelioMotorActuatorData *)dataIn);
             default: break;
         }
     }
@@ -29,13 +30,13 @@ HelioActuator *newActuatorObjectFromData(const HelioActuatorData *dataIn)
 
 
 HelioActuator::HelioActuator(Helio_ActuatorType actuatorType, hposi_t actuatorIndex, int classTypeIn)
-    : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType((typeof(classType))classTypeIn),
+    : HelioObject(HelioIdentity(actuatorType, actuatorIndex)), classType(static_cast<decltype(Relay)>(classTypeIn)),
       _enabled(false), _needsUpdate(false), _enableMode(Helio_EnableMode_Undefined),
       _parentRail(this), _parentPanel(this), _calibrationData(nullptr)
 { ; }
 
 HelioActuator::HelioActuator(const HelioActuatorData *dataIn)
-    : HelioObject(dataIn), classType((typeof(classType))dataIn->id.object.classType),
+    : HelioObject(dataIn), classType(static_cast<decltype(Relay)>(dataIn->id.object.classType)),
       _enabled(false), _needsUpdate(false), _enableMode(dataIn->enableMode),
       _contPowerUsage(&(dataIn->contPowerUsage)),
       _parentRail(this), _parentPanel(this), _calibrationData(nullptr)
@@ -56,17 +57,18 @@ void HelioActuator::update()
     // Update running handles and elapse them as needed, determine forced status, and remove invalid/finished handles
     bool forced = false;
     if (_handles.size()) {
-        for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
+        for (auto handleIter = _handles.begin(); handleIter != _handles.end();) {
             if (_enabled && (*handleIter)->isActive()) {
                 (*handleIter)->elapseTo(time);
             }
             if ((*handleIter)->actuator.get() != this || !(*handleIter)->isValid() || (*handleIter)->isDone()) {
                 if ((*handleIter)->actuator.get() == this) { (*handleIter)->actuator = nullptr; }
-                handleIter = _handles.erase(handleIter) - 1;
+                handleIter = _handles.erase(handleIter);
                 setNeedsUpdate();
                 continue;
             }
             forced = forced || (*handleIter)->isForced();
+            ++handleIter;
         }
     }
 
@@ -132,7 +134,8 @@ void HelioActuator::update()
             } break;
 
             case Helio_EnableMode_RevOrder: {
-                for (auto handleIter = _handles.end() - 1; handleIter != _handles.begin() - 1; --handleIter) {
+                for (auto handleIter = _handles.end(); handleIter != _handles.begin();) {
+                    --handleIter;
                     if ((*handleIter)->isValid() && !(*handleIter)->isDone()) {
                         drivingIntensity += (*handleIter)->getDriveIntensity();
                         break;
@@ -150,7 +153,7 @@ void HelioActuator::update()
             case Helio_EnableMode_DescOrder: {
                 bool selected = false;
                 for (auto handleIter = _handles.begin(); handleIter != _handles.end(); ++handleIter) {
-                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->getDriveIntensity(), drivingIntensity)) {
                         selected = true; (*handleIter)->checkTime = time;
                     } else if ((*handleIter)->checkTime != 0) {
                         (*handleIter)->checkTime = 0;
@@ -161,8 +164,9 @@ void HelioActuator::update()
             case Helio_EnableMode_RevOrder:
             case Helio_EnableMode_AscOrder: {
                 bool selected = false;
-                for (auto handleIter = _handles.end() - 1; handleIter != _handles.begin() - 1; --handleIter) {
-                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->activation.intensity, getDriveIntensity())) {
+                for (auto handleIter = _handles.end(); handleIter != _handles.begin();) {
+                    --handleIter;
+                    if (!selected && (*handleIter)->isValid() && !(*handleIter)->isDone() && isFPEqual((*handleIter)->getDriveIntensity(), drivingIntensity)) {
                         selected = true; (*handleIter)->checkTime = time;
                     } else if ((*handleIter)->checkTime != 0) {
                         (*handleIter)->checkTime = 0;
@@ -322,6 +326,7 @@ float HelioRelayActuator::getDriveIntensity() const
 
 bool HelioRelayActuator::isEnabled(float tolerance) const
 {
+    (void)tolerance;
     return _enabled;
 }
 

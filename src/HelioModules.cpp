@@ -5,6 +5,39 @@
 
 #include "Helioduino.h"
 
+HelioCalibrations::~HelioCalibrations()
+{
+    clearUserCalibrations();
+}
+
+void HelioCalibrations::clearUserCalibrations()
+{
+    while (_calibrationData.size()) {
+        auto iter = _calibrationData.begin();
+        hkey_t key = iter->first;
+
+        if (iter->second && getController()) {
+            HelioIdentity ownerId(iter->second->ownerName);
+            ownerId.posIndex = 0;
+            auto owner = getController()->objectById(ownerId);
+
+            if (owner) {
+                if (owner->isSensorType()) {
+                    static_pointer_cast<HelioSensor>(owner)->setUserCalibrationData(nullptr);
+                } else if (owner->isActuatorType()) {
+                    static_pointer_cast<HelioActuator>(owner)->setUserCalibrationData(nullptr);
+                }
+            }
+        }
+
+        iter = _calibrationData.find(key);
+        if (iter != _calibrationData.end()) {
+            if (iter->second) { delete iter->second; }
+            _calibrationData.erase(iter);
+        }
+    }
+}
+
 const HelioCalibrationData *HelioCalibrations::getUserCalibrationData(hkey_t key) const
 {
     auto iter = _calibrationData.find(key);
@@ -45,6 +78,8 @@ bool HelioCalibrations::setUserCalibrationData(const HelioCalibrationData *calib
 bool HelioCalibrations::dropUserCalibrationData(const HelioCalibrationData *calibrationData)
 {
     HELIO_HARD_ASSERT(calibrationData, SFP(HStr_Err_InvalidParameter));
+    if (!calibrationData) { return false; }
+
     hkey_t key = stringHash(calibrationData->ownerName);
     auto iter = _calibrationData.find(key);
 
@@ -61,7 +96,7 @@ bool HelioCalibrations::dropUserCalibrationData(const HelioCalibrationData *cali
 
 bool HelioObjectRegistration::registerObject(SharedPtr<HelioObject> obj)
 {
-    HELIO_SOFT_ASSERT(obj->getId().posIndex >= 0 && obj->getId().posIndex < HELIO_POS_MAXSIZE, SFP(HStr_Err_InvalidParameter));
+    HELIO_SOFT_ASSERT(obj && obj->getId().posIndex >= 0 && obj->getId().posIndex < HELIO_POS_MAXSIZE, SFP(HStr_Err_InvalidParameter));
     if (obj && _objects.find(obj->getKey()) == _objects.end()) {
         _objects[obj->getKey()] = obj;
 
@@ -83,6 +118,9 @@ bool HelioObjectRegistration::registerObject(SharedPtr<HelioObject> obj)
 
 bool HelioObjectRegistration::unregisterObject(SharedPtr<HelioObject> obj)
 {
+    HELIO_SOFT_ASSERT(obj, SFP(HStr_Err_InvalidParameter));
+    if (!obj) { return false; }
+
     auto iter = _objects.find(obj->getKey());
     if (iter != _objects.end()) {
         _objects.erase(iter);
@@ -112,7 +150,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
                 if (id.keyString == iter->second->getKeyString()) {
                     return iter->second;
                 } else {
-                    objectById_Col(id);
+                    return objectById_Col(id);
                 }
             }
         }
@@ -123,7 +161,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
                 if (id.keyString == iter->second->getKeyString()) {
                     return iter->second;
                 } else {
-                    objectById_Col(id);
+                    return objectById_Col(id);
                 }
             }
         }
@@ -133,7 +171,7 @@ SharedPtr<HelioObject> HelioObjectRegistration::objectById(HelioIdentity id) con
             if (id.keyString == iter->second->getKeyString()) {
                 return iter->second;
             } else {
-                objectById_Col(id);
+                return objectById_Col(id);
             }
         }
     }

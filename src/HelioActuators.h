@@ -10,7 +10,7 @@ class HelioActuator;
 class HelioRelayActuator;
 class HelioRelayMotorActuator;
 class HelioVariableActuator;
-//class HelioVariableMotorActuator;
+class HelioVariableMotorActuator;
 
 struct HelioActuatorData;
 struct HelioMotorActuatorData;
@@ -80,13 +80,13 @@ public:
     // Transformation methods that convert from normalized driving intensity/driver value to calibration units
     inline float calibrationTransform(float value) const { return _calibrationData ? _calibrationData->transform(value) : value; }
     inline void calibrationTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->transform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibrationUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline HelioSingleMeasurement calibrationTransform(HelioSingleMeasurement measurement) const { return _calibrationData ? HelioSingleMeasurement(_calibrationData->transform(measurement.value), _calibrationData->calibrationUnits, measurement.timestamp, measurement.frame) : measurement; }
     inline void calibrationTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->transform(&measurementInOut->value, &measurementInOut->units); } }
 
     // Transformation methods that convert from calibration units to normalized driving intensity/driver value
     inline float calibrationInvTransform(float value) const { return _calibrationData ? _calibrationData->inverseTransform(value) : value; }
     inline void calibrationInvTransform(float *valueInOut, Helio_UnitsType *unitsOut = nullptr) const { if (valueInOut && _calibrationData) { _calibrationData->inverseTransform(valueInOut, unitsOut); } }
-    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), _calibrationData->calibrationUnits, measurement.timestamp, measurement.frame) : measurement; }
+    inline HelioSingleMeasurement calibrationInvTransform(HelioSingleMeasurement measurement) const { return _calibrationData ? HelioSingleMeasurement(_calibrationData->inverseTransform(measurement.value), Helio_UnitsType_Raw_1, measurement.timestamp, measurement.frame) : measurement; }
     inline void calibrationInvTransform(HelioSingleMeasurement *measurementInOut) const { if (measurementInOut && _calibrationData) { _calibrationData->inverseTransform(&measurementInOut->value, &measurementInOut->units); } }
 
     inline float getCalibratedValue() const { return calibrationTransform(getDriveIntensity()); }
@@ -265,9 +265,79 @@ protected:
 // This actuator acts as a throttleable motor and can control speed & displacement.
 // Motors using this class have variable motor control but also can be paired with
 // a speed sensor for more precise running calculations.
-//class HelioVariableMotorActuator : public HelioVariableActuator, public HelioMotorObjectInterface, public HelioSpeedSensorAttachmentInterface {
-// TODO: #9 in Helioduino.
-//};
+class HelioVariableMotorActuator : public HelioVariableActuator,
+                                   public HelioMotorObjectInterface,
+                                   public HelioDistanceUnitsInterfaceStorage,
+                                   public HelioPositionSensorAttachmentInterface,
+                                   public HelioSpeedSensorAttachmentInterface,
+                                   public HelioMinimumTriggerAttachmentInterface,
+                                   public HelioMaximumTriggerAttachmentInterface {
+public:
+    HelioVariableMotorActuator(Helio_ActuatorType actuatorType,
+                               hposi_t actuatorIndex,
+                               HelioAnalogPin outputPin,
+                               HelioAnalogPin outputPin2 = HelioAnalogPin(),
+                               Pair<float,float> travelRange = make_pair(-FLT_UNDEF, FLT_UNDEF));
+    HelioVariableMotorActuator(const HelioMotorActuatorData *dataIn);
+    virtual ~HelioVariableMotorActuator();
+
+    virtual void update() override;
+    virtual SharedPtr<HelioObjInterface> getSharedPtrFor(const HelioObjInterface *obj) const override;
+
+    virtual bool getCanEnable() override;
+    virtual float getDriveIntensity() const override;
+    virtual bool isEnabled(float tolerance = 0.0f) const override;
+
+    virtual bool canTravel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
+    virtual HelioActivationHandle travel(Helio_DirectionMode direction, float distance, Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) override;
+    virtual bool canTravel(Helio_DirectionMode direction, millis_t time) override;
+    virtual HelioActivationHandle travel(Helio_DirectionMode direction, millis_t time) override;
+
+    virtual void setDistanceUnits(Helio_UnitsType distanceUnits) override;
+    virtual void setContinuousSpeed(HelioSingleMeasurement contSpeed) override;
+    virtual const HelioSingleMeasurement &getContinuousSpeed() override;
+
+    void setCoastTimeMillis(uint32_t coastTimeMillis);
+    inline uint32_t getCoastTimeMillis() const { return _coastTimeMillis; }
+    float getCoastDistance(Helio_UnitsType distanceUnits = Helio_UnitsType_Undefined) const;
+    virtual Pair<float,float> getTravelRange() const override;
+
+    virtual bool isMinTravel(bool poll = false) override;
+    virtual bool isMaxTravel(bool poll = false) override;
+
+    virtual HelioSensorAttachment &getPositionSensorAttachment() override;
+    virtual HelioSensorAttachment &getSpeedSensorAttachment() override;
+    virtual HelioTriggerAttachment &getMinimumTriggerAttachment() override;
+    virtual HelioTriggerAttachment &getMaximumTriggerAttachment() override;
+
+    inline const HelioAnalogPin &getOutputPin2() const { return _outputPin2; }
+    inline bool isCenteredServoOutput() const { return getActuatorType() == Helio_ActuatorType_ContinuousServo && !_outputPin2.isValid(); }
+
+protected:
+    HelioAnalogPin _outputPin2;                             // Analog output pin 2 (reverse/H-bridge pin B), optional for continuous servo
+    HelioSingleMeasurement _contSpeed;                      // Continuous speed (dist units per min)
+    HelioSensorAttachment _position;                        // Position sensor attachment
+    HelioSensorAttachment _speed;                           // Speed rate sensor attachment
+    HelioTriggerAttachment _minimum;                        // Minimum travel trigger attachment
+    HelioTriggerAttachment _maximum;                        // Maximum travel trigger attachment
+    Pair<float,float> _travelRange;                         // Travel range, in distance units
+    float _signedIntensity;                                 // Current signed intensity and direction
+    float _travelPosStart;                                  // Start for travel distance
+    float _travelDistAccum;                                 // Accumulator for total distance traveled
+    millis_t _travelTimeStart;                              // Time millis motor was activated at
+    millis_t _travelTimeAccum;                              // Time millis motor has been accumulated up to
+    uint32_t _coastTimeMillis;                              // Estimated free-running coast time after power removal
+
+    virtual void saveToData(HelioData *dataOut) override;
+    virtual void _enableActuator(float intensity = 1.0f) override;
+    virtual void _disableActuator() override;
+    virtual void handleActivation() override;
+    virtual void handleTravelTime(millis_t time) override;
+
+    void handleMinimumTrigger(Helio_TriggerState minimumTrigger);
+    void handleMaximumTrigger(Helio_TriggerState maximumTrigger);
+    void writeMotorOutput(float intensity);
+};
 
 
 // Actuator Serialization Data

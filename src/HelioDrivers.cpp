@@ -4,9 +4,10 @@
 */
 
 #include "Helioduino.h"
+#include "HelioCoreLogic.h"
 
 HelioDriver::HelioDriver(float targetSetpoint, float travelRate, int typeIn)
-    : type((typeof(type))typeIn), _trackRange(make_pair(__FLT_MAX__,-__FLT_MAX__)),
+    : type(static_cast<decltype(Absolute)>(typeIn)), _trackRange(make_pair(__FLT_MAX__,-__FLT_MAX__)),
       _targetSetpoint(targetSetpoint), _travelRate(travelRate),
       _drivingState(Helio_DrivingState_Undefined), _enabled(false)
 { ; }

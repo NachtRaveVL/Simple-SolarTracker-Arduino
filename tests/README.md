@@ -8,15 +8,7 @@ cmake --build build-host
 ctest --test-dir build-host --output-on-failure
 ```
 
-The host suite covers elapsed-time rollover handling, signed tracking direction, motor coast behavior, incremental tracking hold logic, network correction math, binary input stability, and append-only binary record migration helpers.
-
-When Python is available, CTest also runs the source validator. It checks motor persistence, tracking correction, binary sensor behavior, and several framework regressions that are easy to reintroduce during refactors.
-
-Source checks can also be run directly:
-
-```sh
-python3 tests/validate_source.py
-```
+The host suite covers elapsed-time rollover handling, signed tracking direction, motor coast behavior, incremental tracking hold logic, network correction math, binary input stability, and append-only binary record migration helpers. It also builds the full Helioduino source and exercises controller initialization, object registration and reconstruction, factory-created hardware objects, activation and panel attachments, measurement conversion, and user calibration lifecycle. Serialization coverage round-trips system, calibration, actuator, binary sensor, and trigger data through ArduinoJson and exercises JSON-based data allocation.
 
 Development Arduino sketches are included for enum conversion and enum decoder export work:
 

@@ -57,26 +57,46 @@ Helioduino::Helioduino(pintype_t piezoBuzzerPin,
                        DeviceSetup gpsSetup,
                        pintype_t *ctrlInputPins,
                        DeviceSetup displaySetup)
-    : _piezoBuzzerPin(piezoBuzzerPin),
-      _eepromType(eepromType), _eepromSetup(eepromSetup), _eeprom(nullptr), _eepromBegan(false),
-      _rtcType(rtcType), _rtcSetup(rtcSetup), _rtc(nullptr), _rtcBegan(false), _rtcBattFail(false),
-      _sdSetup(sdSetup), _sd(nullptr), _sdBegan(false), _sdOut(0),
+    :
+#ifdef HELIO_USE_GUI
+      _activeUIInstance(nullptr), _uiData(nullptr),
+#endif
+      _systemData(nullptr),
+      _piezoBuzzerPin(piezoBuzzerPin),
+      _eepromType(eepromType), _eepromSetup(eepromSetup),
+      _rtcType(rtcType), _rtcSetup(rtcSetup),
+      _sdSetup(sdSetup),
 #ifdef HELIO_USE_NET
-      _netSetup(netSetup), _netBegan(false),
+      _netSetup(netSetup),
 #endif
 #ifdef HELIO_USE_GPS
-      _gpsSetup(gpsSetup), _gps(nullptr), _gpsBegan(false),
+      _gpsSetup(gpsSetup),
 #endif
 #ifdef HELIO_USE_GUI
-      _activeUIInstance(nullptr), _uiData(nullptr), _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
+      _ctrlInputPins(ctrlInputPins), _displaySetup(displaySetup),
+#endif
+      _eeprom(nullptr), _rtc(nullptr), _sd(nullptr), _sdOut(0),
+#ifdef HELIO_USE_GPS
+      _gps(nullptr),
+#endif
+      _eepromBegan(false), _rtcBegan(false), _rtcBattFail(false), _sdBegan(false),
+#ifdef HELIO_USE_NET
+      _netBegan(false),
+#endif
+#ifdef HELIO_USE_GPS
+      _gpsBegan(false),
 #endif
 #ifdef HELIO_USE_MULTITASKING
       _controlTaskId(TASKMGR_INVALIDID), _dataTaskId(TASKMGR_INVALIDID), _miscTaskId(TASKMGR_INVALIDID),
 #endif
-      _systemData(nullptr), _suspend(true), _pollingFrame(0), _lastSpaceCheck(0), _lastAutosave(0),
-      _sysConfigFilename(SFP(HStr_Default_ConfigFilename)), _sysDataAddress(-1)
+      _suspend(true), _pollingFrame(0), _lastSpaceCheck(0), _lastAutosave(0),
+      _sysConfigFilename(SFP(HStr_Default_ConfigFilename)), _sysDataAddress((uint16_t)-1)
 {
     _activeInstance = this;
+    (void)netSetup;
+    (void)gpsSetup;
+    (void)ctrlInputPins;
+    (void)displaySetup;
 }
 
 Helioduino::~Helioduino()
@@ -216,6 +236,8 @@ void Helioduino::init(Helio_SystemMode systemMode,
                       Helio_DisplayOutputMode dispOutMode,
                       Helio_ControlInputMode ctrlInMode)
 {
+    (void)dispOutMode;
+    (void)ctrlInMode;
     HELIO_HARD_ASSERT(!_systemData, SFP(HStr_Err_AlreadyInitialized));
 
     if (!_systemData) {
@@ -254,7 +276,7 @@ bool Helioduino::initFromEEPROM(bool jsonFormat)
     if (!_systemData) {
         commonPreInit();
 
-        if (getEEPROM() && _eepromBegan && _sysDataAddress != -1) {
+        if (getEEPROM() && _eepromBegan && _sysDataAddress != (uint16_t)-1) {
             HelioEEPROMStream eepromStream(_sysDataAddress, getEEPROMSize() - _sysDataAddress);
             return jsonFormat ? initFromJSONStream(&eepromStream) : initFromBinaryStream(&eepromStream);
         }
@@ -268,7 +290,7 @@ bool Helioduino::saveToEEPROM(bool jsonFormat)
     HELIO_HARD_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
 
     if (_systemData) {
-        if (getEEPROM() && _eepromBegan && _sysDataAddress != -1) {
+        if (getEEPROM() && _eepromBegan && _sysDataAddress != (uint16_t)-1) {
             HelioEEPROMStream eepromStream(_sysDataAddress, getEEPROMSize() - _sysDataAddress);
             return jsonFormat ? saveToJSONStream(&eepromStream) : saveToBinaryStream(&eepromStream);
         }
@@ -307,12 +329,15 @@ bool Helioduino::saveToSDCard(bool jsonFormat)
 {
     HELIO_HARD_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
 
-    if (!_systemData) {
+    if (_systemData) {
         auto sd = getSDCard();
 
         if (sd) {
             bool retVal = false;
-            auto configFile = sd->open(_sysConfigFilename.c_str(), FILE_READ);
+            if (sd->exists(_sysConfigFilename.c_str())) {
+                sd->remove(_sysConfigFilename.c_str());
+            }
+            auto configFile = sd->open(_sysConfigFilename.c_str(), FILE_WRITE);
 
             if (configFile) {
                 retVal = jsonFormat ? saveToJSONStream(&configFile, false) : saveToBinaryStream(&configFile);
@@ -341,10 +366,14 @@ bool Helioduino::initFromWiFiStorage(bool jsonFormat)
         auto configFile = WiFiStorage.open(_sysConfigFilename.c_str());
 
         if (configFile) {
-            auto configFileStream = HelioWiFiStorageFileStream(configFile);
-            return jsonFormat ? initFromJSONStream(&configFileStream) : initFromBinaryStream(&configFileStream);
+            bool retVal = false;
+            {
+                auto configFileStream = HelioWiFiStorageFileStream(configFile);
+                retVal = jsonFormat ? initFromJSONStream(&configFileStream) : initFromBinaryStream(&configFileStream);
+            }
 
             configFile.close();
+            return retVal;
         }
     }
 
@@ -361,13 +390,16 @@ bool Helioduino::saveToWiFiStorage(bool jsonFormat)
         }
         auto configFile = WiFiStorage.open(_sysConfigFilename.c_str());
 
-        if (configFile) {
+        bool retVal = false;
+        {
             auto configFileStream = HelioWiFiStorageFileStream(configFile);
-            return jsonFormat ? saveToJSONStream(&configFileStream, false) : saveToBinaryStream(&configFileStream);
-
+            retVal = jsonFormat ? saveToJSONStream(&configFileStream, false) : saveToBinaryStream(&configFileStream);
             configFileStream.flush();
-            configFile.close();
         }
+
+        retVal = retVal && configFile;
+        configFile.close();
+        return retVal;
     }
 
     return false;
@@ -407,10 +439,13 @@ bool Helioduino::initFromJSONStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
-                    } else if (data->isUIData()) {
-                        if (_uiData) { delete _uiData; }
-                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
+                    #ifdef HELIO_USE_GUI
+                        else if (data->isUIData()) {
+                            if (_uiData) { delete _uiData; }
+                            _uiData = (HelioUIData *)data; data = nullptr;
+                        }
+                    #endif
                     if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
@@ -471,17 +506,19 @@ bool Helioduino::saveToJSONStream(Stream *streamOut, bool compact)
             }
         }
 
-        if (_uiData) {
-            StaticJsonDocument<HELIO_JSON_DOC_DEFSIZE> doc;
+        #ifdef HELIO_USE_GUI
+            if (_uiData) {
+                StaticJsonDocument<HELIO_JSON_DOC_DEFSIZE> doc;
 
-            JsonObject uiDataObj = doc.to<JsonObject>();
-            _uiData->toJSONObject(uiDataObj);
+                JsonObject uiDataObj = doc.to<JsonObject>();
+                _uiData->toJSONObject(uiDataObj);
 
-            if (!(compact ? serializeJson(doc, *streamOut) : serializeJsonPretty(doc, *streamOut))) {
-                HELIO_SOFT_ASSERT(false, SFP(HStr_Err_ExportFailure));
-                return false;
+                if (!(compact ? serializeJson(doc, *streamOut) : serializeJsonPretty(doc, *streamOut))) {
+                    HELIO_SOFT_ASSERT(false, SFP(HStr_Err_ExportFailure));
+                    return false;
+                }
             }
-        }
+        #endif
 
         if (_objects.size()) {
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
@@ -539,10 +576,13 @@ bool Helioduino::initFromBinaryStream(Stream *streamIn)
                 if (data && data->isStandardData()) {
                     if (data->isCalibrationData()) {
                         setUserCalibrationData((HelioCalibrationData *)data);
-                    } else if (data->isUIData()) {
-                        if (_uiData) { delete _uiData; }
-                        _uiData = (HelioUIData *)data; data = nullptr;
                     }
+                    #ifdef HELIO_USE_GUI
+                        else if (data->isUIData()) {
+                            if (_uiData) { delete _uiData; }
+                            _uiData = (HelioUIData *)data; data = nullptr;
+                        }
+                    #endif
                     if (data) { delete data; data = nullptr; }
                 } else if (data && data->isObjectData()) {
                     HelioObject *obj = newObjectFromData(data);
@@ -595,12 +635,14 @@ bool Helioduino::saveToBinaryStream(Stream *streamOut)
             if (!bytesWritten) { return false; }
         }
 
-        if (_uiData) {
-            size_t bytesWritten = serializeDataToBinaryStream(_uiData, streamOut);
+        #ifdef HELIO_USE_GUI
+            if (_uiData) {
+                size_t bytesWritten = serializeDataToBinaryStream(_uiData, streamOut);
 
-            HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
-            if (!bytesWritten) { return false; }
-        }
+                HELIO_SOFT_ASSERT(bytesWritten, SFP(HStr_Err_ExportFailure));
+                if (!bytesWritten) { return false; }
+            }
+        #endif
 
         if (_objects.size()) {
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
@@ -678,9 +720,9 @@ void Helioduino::commonPreInit()
         }
     #endif
     if (_sdSetup.cfgType == DeviceSetup::SPISetup && isValidPin(_sdSetup.cfgAs.spi.cs)) {
-        if (began.find((uintptr_t)_rtcSetup.cfgAs.spi.spi) == began.end()) {
+        if (began.find((uintptr_t)_sdSetup.cfgAs.spi.spi) == began.end()) {
             _sdSetup.cfgAs.spi.spi->begin();
-            began[(uintptr_t)_rtcSetup.cfgAs.spi.spi] = 0;
+            began[(uintptr_t)_sdSetup.cfgAs.spi.spi] = 0;
         }
         pinMode(_sdSetup.cfgAs.spi.cs, OUTPUT);
         digitalWrite(_sdSetup.cfgAs.spi.cs, HIGH);
@@ -808,6 +850,11 @@ void Helioduino::commonPostSave()
     if (_systemData) {
         _systemData->unsetModified();
     }
+    #ifdef HELIO_USE_GUI
+        if (_uiData) {
+            _uiData->unsetModified();
+        }
+    #endif
 
     if (hasUserCalibrations()) {
         for (auto iter = _calibrationData.begin(); iter != _calibrationData.end(); ++iter) {
@@ -1027,12 +1074,11 @@ void Helioduino::setSystemName(String systemName)
     }
 }
 
-void Helioduino::setTimeZoneOffset(int8_t hoursOffset, int8_t minsOffset)
+void Helioduino::setTimeZoneOffset(float hoursOffset)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
-    int16_t timeZoneOffset = (hoursOffset * 100) + ((minsOffset * 100) / 60);
-    if (_systemData && _systemData->timeZoneOffset != timeZoneOffset) {
-        _systemData->timeZoneOffset = timeZoneOffset;
+    if (_systemData && !isFPEqual(_systemData->timeZoneOffset, hoursOffset)) {
+        _systemData->timeZoneOffset = hoursOffset;
 
         setNeedsRedraw();
         _systemData->bumpRevisionIfNeeded();
@@ -1074,11 +1120,7 @@ void Helioduino::setAutosaveEnabled(Helio_Autosave autosaveEnabled, Helio_Autosa
 
 void Helioduino::setRTCTime(DateTime time)
 {
-    auto rtc = getRTC();
-    if (rtc) {
-        rtc->adjust(DateTime((uint32_t)unixTime(time)));
-        notifyRTCTimeUpdated();
-    }
+    _setUnixTime(DateTime((uint32_t)unixTime(time)), true);
 }
 
 #ifdef HELIO_USE_WIFI
@@ -1087,8 +1129,8 @@ void Helioduino::setWiFiConnection(String ssid, String pass)
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
     if (_systemData) {
-        bool ssidChanged = ssid.equals(getWiFiSSID());
-        bool passChanged = pass.equals(getWiFiPassword());
+        bool ssidChanged = !ssid.equals(getWiFiSSID());
+        bool passChanged = !pass.equals(getWiFiPassword());
 
         if (ssidChanged || passChanged || (pass.length() && !_systemData->wifiPasswordSeed)) {
             if (ssid.length()) {
@@ -1177,7 +1219,7 @@ Pair<uint8_t, const pintype_t *> Helioduino::getControlInputPins() const
             case Helio_ControlInputMode_Matrix2x2UpDownButtonsOkL:
             case Helio_ControlInputMode_ResistiveTouch:
                 return make_pair((uint8_t)4, (const pintype_t *)_ctrlInputPins);
-            #ifdef HELIO_ENABLE_XPT2046TS
+            #ifdef HELIO_UI_ENABLE_XPT2046TS
                 case Helio_ControlInputMode_TouchScreen:
             #endif
             case Helio_ControlInputMode_TFTTouch:
@@ -1247,6 +1289,7 @@ SDClass *Helioduino::getSDCard(bool begin)
 
 void Helioduino::endSDCard(SDClass *sd)
 {
+    (void)sd;
     #if defined(CORE_TEENSY)
         --_sdOut; // no delayed write on teensy's SD impl
     #else
@@ -1361,7 +1404,7 @@ String Helioduino::getSystemName() const
 time_t Helioduino::getTimeZoneOffset() const
 {
     HELIO_SOFT_ASSERT(_systemData, SFP(HStr_Err_NotYetInitialized));
-    return _systemData ? (_systemData->timeZoneOffset * SECS_PER_HOUR) / 100 : 0;
+    return _systemData ? _systemData->timeZoneOffset * SECS_PER_HOUR : 0;
 }
 
 uint16_t Helioduino::getPollingInterval() const
@@ -1435,7 +1478,7 @@ Location Helioduino::getSystemLocation() const
 void Helioduino::checkFreeMemory()
 {
     auto memLeft = freeMemory();
-    if (memLeft != -1 && memLeft < HELIO_SYS_FREERAM_LOWBYTES) {
+    if (memLeft != (unsigned int)-1 && memLeft < HELIO_SYS_FREERAM_LOWBYTES) {
         broadcastLowMemory();
     }
 }
@@ -1456,7 +1499,7 @@ static uint64_t getSDCardFreeSpace()
 void Helioduino::checkFreeSpace()
 {
     if ((logger.isLoggingEnabled() || publisher.isPublishingEnabled()) &&
-        (!_lastSpaceCheck || unixNow() >= _lastSpaceCheck + (HELIO_SYS_FREESPACE_INTERVAL * SECS_PER_MIN))) {
+        (!_lastSpaceCheck || unixNow() >= _lastSpaceCheck + (time_t)(HELIO_SYS_FREESPACE_INTERVAL * SECS_PER_MIN))) {
         if (logger.isLoggingToSDCard() || publisher.isPublishingToSDCard()) {
             uint32_t freeKB = getSDCardFreeSpace();
             while (freeKB < HELIO_SYS_FREESPACE_LOWSPACE) {
@@ -1472,7 +1515,7 @@ void Helioduino::checkFreeSpace()
 
 void Helioduino::checkAutosave()
 {
-    if (isAutosaveEnabled() && unixNow() >= _lastAutosave + (_systemData->autosaveInterval * SECS_PER_MIN)) {
+    if (isAutosaveEnabled() && unixNow() >= _lastAutosave + (time_t)(_systemData->autosaveInterval * SECS_PER_MIN)) {
         performAutosave();
     }
 }

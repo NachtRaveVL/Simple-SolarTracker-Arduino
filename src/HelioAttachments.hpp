@@ -3,6 +3,9 @@
     Helioduino Attachment Points
 */
 
+#ifndef HelioAttachments_HPP
+#define HelioAttachments_HPP
+
 #include "Helioduino.h"
 
 inline HelioDLinkObject &HelioDLinkObject::operator=(HelioIdentity rhs)
@@ -114,6 +117,26 @@ HelioSignalAttachment<ParameterType,Slots>::HelioSignalAttachment(const HelioSig
 { ; }
 
 template<class ParameterType, int Slots>
+HelioSignalAttachment<ParameterType,Slots> &HelioSignalAttachment<ParameterType,Slots>::operator=(const HelioSignalAttachment<ParameterType,Slots> &attachment)
+{
+    if (this != &attachment) {
+        if (isResolved() && _handleSlot && _signalGetter) {
+            (get()->*_signalGetter)().detach(*_handleSlot);
+        }
+
+        HelioAttachment::operator=(attachment);
+        _signalGetter = attachment._signalGetter;
+        if (_handleSlot) { delete _handleSlot; _handleSlot = nullptr; }
+        _handleSlot = attachment._handleSlot ? attachment._handleSlot->clone() : nullptr;
+
+        if (isResolved() && _handleSlot && _signalGetter) {
+            (get()->*_signalGetter)().attach(*_handleSlot);
+        }
+    }
+    return *this;
+}
+
+template<class ParameterType, int Slots>
 HelioSignalAttachment<ParameterType,Slots>::~HelioSignalAttachment()
 {
     if (isResolved() && _handleSlot && _signalGetter) {
@@ -206,3 +229,5 @@ inline Helio_DrivingState HelioDriverAttachment::getDrivingState(bool poll)
 {
     return resolve() ? get()->getDrivingState(poll) : Helio_DrivingState_Undefined;
 }
+
+#endif // /ifndef HelioAttachments_HPP

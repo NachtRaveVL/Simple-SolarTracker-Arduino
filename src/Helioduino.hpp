@@ -3,6 +3,9 @@
     Helioduino System
 */
 
+#ifndef Helioduino_HPP
+#define Helioduino_HPP
+
 #include "Helioduino.h"
 
 inline bool Twilight::isDaytime(time_t unixTime) const {
@@ -82,6 +85,7 @@ inline void Helioduino::performAutosave()
                 #ifdef HELIO_USE_WIFI_STORAGE
                     saveToWiFiStorage(RAW);
                 #endif
+                break;
             case Helio_Autosave_Disabled:
                 break;
         }
@@ -117,7 +121,7 @@ inline void Helioduino::notifySignificantTime(time_t time)
     _lastAutosave = isAutosaveEnabled() ? time : 0;
 }
 
-inline void Helioduino::notifySignificantLocation(Location loc)
+inline void Helioduino::notifySignificantLocation(Location)
 {
     if (_systemData) { _systemData->bumpRevisionIfNeeded(); }
 }
@@ -234,3 +238,5 @@ inline bool HelioScheduler::hasSchedulerData() const
 {
     return Helioduino::_activeInstance && Helioduino::_activeInstance->_systemData;
 }
+
+#endif // /ifndef Helioduino_HPP

@@ -39,7 +39,7 @@ void HelioScheduler::update()
                   _lastDay[1] == currTime.month() &&
                   _lastDay[2] == currTime.day())) {
                 // only log uptime upon actual day change and if uptime has been at least 1d
-                if (getLogger()->getSystemUptime() >= SECS_PER_DAY) {
+                if (getLogger()->getSystemUptime() >= (time_t)SECS_PER_DAY) {
                     getLogger()->logSystemUptime();
                 }
                 broadcastDateChange();
@@ -411,8 +411,7 @@ void HelioTracking::update()
 
     if (trackingPanel && (!lastEnvReport || time >= lastEnvReport + getScheduler()->schedulerData()->reportInterval) &&
         (getScheduler()->schedulerData()->reportInterval > 0) && // 0 disables
-        (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getTemperatureSensor()) ||
-        (panel->isAnyTrackingClass() && static_pointer_cast<HelioTrackingPanel>(panel)->getWindSpeedSensor())) {
+        (trackingPanel->getTemperatureSensor() || trackingPanel->getWindSpeedSensor())) {
         getLogger()->logProcess(panel.get(), SFP(HStr_Log_EnvReport));
         if (trackingPanel->getTemperatureSensor(true)) {
             #ifdef HELIO_USE_MULTITASKING
@@ -440,6 +439,7 @@ void HelioTracking::update()
         auto sunset = getScheduler()->getDailyTwilight().getSunsetLocalTime();
         bool afterSunset = currTime > sunset;
         bool afterSunrise = currTime >= sunrise;
+        bool daytime = afterSunrise && !afterSunset;
         bool cleaningDue = trackingPanel && currTime >= sunrise - TimeSpan(0,0,getScheduler()->schedulerData()->preDawnCleaningMins,0) &&
                            currTime >= trackingPanel->getLastPanelCleaningTime() + TimeSpan(getScheduler()->schedulerData()->cleaningIntervalDays,0,0,0) &&
                            linksFilterActuatorsByPanelAndType(trackingPanel->getLinkages(), trackingPanel.get(), Helio_ActuatorType_PanelSprayer).size();
@@ -450,10 +450,10 @@ void HelioTracking::update()
 
         switch (stage) {
             case Init: {
-                if (afterSunset) { // storm trigger handled in later update
+                if (!daytime) { // storm trigger handled in later update
                     stage = Cover; stageStart = time;
                     setupStaging();
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging();
                 } else if (preHeatingDue) {
@@ -466,17 +466,17 @@ void HelioTracking::update()
             } break;
 
             case Warm: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging();  logStage = true;
                 } // else running heating
             } break;
 
             case Uncover: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
                 } else if (!panel->getPanelCoverDriver() || panel->getPanelCoverDriver()->isAligned()) {
@@ -486,10 +486,10 @@ void HelioTracking::update()
             } break;
 
             case Clean: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
-                } if (time >= stageStart + (getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN)) {
+                } if (time >= stageStart + (time_t)(getScheduler()->schedulerData()->preDawnCleaningMins * SECS_PER_MIN)) {
                     stage = Track; stageStart = time;
                     setupStaging(); logStage = true;
 
@@ -498,16 +498,16 @@ void HelioTracking::update()
             } break;
 
             case Track: {
-                if (afterSunset || isStorming) {
+                if (!daytime || isStorming) {
                     stage = Cover; stageStart = time;
                     setupStaging(); logStage = true;
                 } // else running tracking
             } break;
 
             case Cover: {
-                if (afterSunset || isStorming) { // running cover
+                if (!daytime || isStorming) { // running cover
                     if (afterSunset && !nightSeqReported) { stormingReported = false; logStage = true; }
-                } else if (afterSunrise || cleaningDue) {
+                } else if (daytime || cleaningDue) {
                     stage = Uncover; stageStart = time;
                     setupStaging(); logStage = true;
                 } else if (preHeatingDue) {
@@ -529,6 +529,9 @@ void HelioTracking::update()
         if (logStage) {
             if (stageWas != stage) {
                 switch (stageWas) {
+                    case Init:
+                        break;
+
                     case Warm: {
                         getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnWarmup), SFP(HStr_Log_HasEnded));
                         getLogger()->logMessage(SFP(HStr_Log_Field_Time_Measured), timeSpanToString(TimeSpan(time - stageStart)));
@@ -569,6 +572,9 @@ void HelioTracking::update()
             }
 
             switch (stage) {
+                case Init:
+                    break;
+
                 case Warm: {
                     getLogger()->logProcess(panel.get(), SFP(HStr_Log_PreDawnWarmup), SFP(HStr_Log_HasBegan));
                     getLogger()->logMessage(SFP(HStr_Log_Field_Heating_Duration), roundToString(getScheduler()->schedulerData()->preDawnHeatingMins), String('m'));
@@ -632,7 +638,7 @@ void HelioTracking::update()
 
 
 HelioSchedulerSubData::HelioSchedulerSubData()
-    : HelioSubData(0), reportInterval(8 * SECS_PER_HOUR), cleaningIntervalDays(14), preDawnCleaningMins(1), preDawnHeatingMins(30)
+    : HelioSubData(0), cleaningIntervalDays(14), preDawnCleaningMins(1), preDawnHeatingMins(30), reportInterval(8 * SECS_PER_HOUR)
 { ; }
 
 void HelioSchedulerSubData::toJSONObject(JsonObject &objectOut) const

@@ -95,7 +95,7 @@ void HelioObject::allocateLinkages(size_t size)
         if (size) {
             HELIO_HARD_ASSERT(newLinks, SFP(HStr_Err_AllocationFailure));
 
-            hposi_t linksIndex = 0;
+            size_t linksIndex = 0;
             if (_links) {
                 for (; linksIndex < _linksSize && linksIndex < size; ++linksIndex) {
                     newLinks[linksIndex] = _links[linksIndex];
@@ -230,7 +230,7 @@ void HelioObject::saveToData(HelioData *dataOut)
 
 
 void HelioSubObject::unresolveAny(HelioObject *obj)
-{ ; }
+{ (void)obj; }
 
 HelioIdentity HelioSubObject::getId() const
 {

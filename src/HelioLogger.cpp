@@ -87,23 +87,19 @@ bool HelioLogger::beginLoggingToWiFiStorage(String logFilePrefix)
     if (hasLoggerData() && !loggerData()->logToWiFiStorage) {
         String logFilename = getYYMMDDFilename(logFilePrefix, SFP(HStr_txt));
         #if HELIO_SYS_LEAVE_FILES_OPEN
-            auto &logFile = _logFileWS ? *_logFileWS : *(_logFileWS = new WiFiStorageFile(WiFiStorage.open(logFilename.c_str())));
+            _logFilename = logFilename;
+            if (!_logFileWS) { _logFileWS = new WiFiStorageFile(WiFiStorage.open(_logFilename.c_str())); }
         #else
             auto logFile = WiFiStorage.open(logFilename.c_str());
+            logFile.close();
+            _logFilename = logFilename;
         #endif
 
-        if (logFile) {
-            #if !HELIO_SYS_LEAVE_FILES_OPEN
-                logFile.close();
-            #endif
+        strncpy(loggerData()->logFilePrefix, logFilePrefix.c_str(), 16);
+        loggerData()->logToWiFiStorage = true;
+        Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
 
-            strncpy(loggerData()->logFilePrefix, logFilePrefix.c_str(), 16);
-            loggerData()->logToWiFiStorage = true;
-            _logFilename = logFilename;
-            Helioduino::_activeInstance->_systemData->bumpRevisionIfNeeded();
-
-            return true;
-        }
+        return true;
     }
 
     return false;
@@ -193,7 +189,7 @@ void HelioLogger::log(const HelioLogEvent &event)
             auto logFile = WiFiStorage.open(_logFilename.c_str());
         #endif
 
-        if (logFile) {
+        {
             auto logFileStream = HelioWiFiStorageFileStream(logFile, logFile.size());
 
             logFileStream.print(event.timestamp);
@@ -203,8 +199,8 @@ void HelioLogger::log(const HelioLogEvent &event)
             logFileStream.print(event.suffix1);
             logFileStream.println(event.suffix2);
 
+            logFileStream.flush();
             #if !HELIO_SYS_LEAVE_FILES_OPEN
-                logFileStream.flush();
                 logFile.close();
             #endif
         }
@@ -247,6 +243,11 @@ Signal<const HelioLogEvent, HELIO_LOG_SIGNAL_SLOTS> &HelioLogger::getLogSignal()
 void HelioLogger::notifyDateChanged()
 {
     if (isLoggingEnabled()) {
+        #if HELIO_SYS_LEAVE_FILES_OPEN
+            #ifdef HELIO_USE_WIFI_STORAGE
+                if (_logFileWS) { _logFileWS->close(); delete _logFileWS; _logFileWS = nullptr; }
+            #endif
+        #endif
         _logFilename = getYYMMDDFilename(charsToString(loggerData()->logFilePrefix, 16), SFP(HStr_txt));
         cleanupOldestLogs();
     }
@@ -254,6 +255,7 @@ void HelioLogger::notifyDateChanged()
 
 void HelioLogger::cleanupOldestLogs(bool force)
 {
+    (void)force;
     // TODO: Old data cleanup. #17 in Hydruino.
 }
 

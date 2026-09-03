@@ -3,6 +3,9 @@
     Helio Attachment Points
 */
 
+#ifndef HelioInterfaces_HPP
+#define HelioInterfaces_HPP
+
 #include "Helioduino.h"
 
 inline void HelioDistanceUnitsInterfaceStorage::setSpeedUnits(Helio_UnitsType speedUnits)
@@ -77,7 +80,7 @@ inline SharedPtr<U> HelioParentPanelAttachmentInterface::getParentPanel()
 
 inline hposi_t HelioParentPanelAttachmentInterface::getParentPanelAxisIndex()
 {
-    getParentPanelAttachment().getParentSubIndex();
+    return getParentPanelAttachment().getParentSubIndex();
 }
 
 template <class U>
@@ -249,3 +252,5 @@ inline SharedPtr<U> HelioLimitTriggerAttachmentInterface::getLimitTrigger(bool p
     getLimitTriggerAttachment().updateIfNeeded(poll);
     return getLimitTriggerAttachment().HelioAttachment::getObject<U>();
 }
+
+#endif // /ifndef HelioInterfaces_HPP

@@ -8,267 +8,267 @@
 
 // Strings Enumeration Table
 enum Helio_String : unsigned short {
-    HStr_ColonSpace,
-    HStr_DoubleSpace,
-    HStr_csv,
-    HStr_dat,
-    HStr_Disabled,
-    HStr_raw,
-    HStr_txt,
-    HStr_Undefined,
-    HStr_null,
+    HStr_ColonSpace,                                // ": "
+    HStr_DoubleSpace,                               // "  "
+    HStr_csv,                                       // "csv"
+    HStr_dat,                                       // "dat"
+    HStr_Disabled,                                  // "Disabled"
+    HStr_raw,                                       // "raw"
+    HStr_txt,                                       // "txt"
+    HStr_Undefined,                                 // "Undefined"
+    HStr_null,                                      // "null"
 
-    HStr_Default_SystemName,
-    HStr_Default_ConfigFilename,
+    HStr_Default_SystemName,                        // "Helioduino"
+    HStr_Default_ConfigFilename,                    // "Helioduino.cfg"
 
-    HStr_Err_AllocationFailure,
-    HStr_Err_AlreadyInitialized,
-    HStr_Err_AssertionFailure,
-    HStr_Err_ExportFailure,
-    HStr_Err_ImportFailure,
-    HStr_Err_InitializationFailure,
-    HStr_Err_InvalidParameter,
-    HStr_Err_InvalidPinOrType,
-    HStr_Err_MeasurementFailure,
-    HStr_Err_MissingLinkage,
-    HStr_Err_NoPositionsAvailable,
-    HStr_Err_NotConfiguredProperly,
-    HStr_Err_NotYetInitialized,
-    HStr_Err_OperationFailure,
-    HStr_Err_UnsupportedOperation,
+    HStr_Err_AllocationFailure,                     // "Allocation failure"
+    HStr_Err_AlreadyInitialized,                    // "Already initialized"
+    HStr_Err_AssertionFailure,                      // "Assertion failure"
+    HStr_Err_ExportFailure,                         // "Export failure"
+    HStr_Err_ImportFailure,                         // "Import failure"
+    HStr_Err_InitializationFailure,                 // "Initialization failure"
+    HStr_Err_InvalidParameter,                      // "Invalid parameter"
+    HStr_Err_InvalidPinOrType,                      // "Invalid pin or type"
+    HStr_Err_MeasurementFailure,                    // "Measurement failure"
+    HStr_Err_MissingLinkage,                        // "Missing or no linkage"
+    HStr_Err_NoPositionsAvailable,                  // "No positions available"
+    HStr_Err_NotConfiguredProperly,                 // "Not configured properly"
+    HStr_Err_NotYetInitialized,                     // "Not yet initialized"
+    HStr_Err_OperationFailure,                      // "Operation failure"
+    HStr_Err_UnsupportedOperation,                  // "Unsupported operation"
 
-    HStr_Log_CalculatedTravel,
-    HStr_Log_CoverSequence,
-    HStr_Log_EnvReport,
-    HStr_Log_HasBegan,
-    HStr_Log_HasDisabled,
-    HStr_Log_HasEnabled,
-    HStr_Log_HasEnded,
-    HStr_Log_MeasuredTravel,
-    HStr_Log_NightSequence,
-    HStr_Log_PreDawnCleaning,
-    HStr_Log_PreDawnWarmup,
-    HStr_Log_RTCBatteryFailure,
-    HStr_Log_StormingSequence,
-    HStr_Log_SystemDataSaved,
-    HStr_Log_SystemUptime,
-    HStr_Log_TrackingSequence,
-    HStr_Log_UncoverSequence,
+    HStr_Log_CalculatedTravel,                      // " travel request:"
+    HStr_Log_CoverSequence,                         // " cover sequence"
+    HStr_Log_EnvReport,                             // " environment report:"
+    HStr_Log_HasBegan,                              // " has began"
+    HStr_Log_HasDisabled,                           // " has disabled"
+    HStr_Log_HasEnabled,                            // " has enabled"
+    HStr_Log_HasEnded,                              // " has ended"
+    HStr_Log_MeasuredTravel,                        // " travel result:"
+    HStr_Log_NightSequence,                         // " night sequence"
+    HStr_Log_PreDawnCleaning,                       // " pre-dawn cleaning"
+    HStr_Log_PreDawnWarmup,                         // " pre-dawn warm-up"
+    HStr_Log_RTCBatteryFailure,                     // "RTC battery failure, time needs reset."
+    HStr_Log_StormingSequence,                      // " storming sequence"
+    HStr_Log_SystemDataSaved,                       // "System data saved"
+    HStr_Log_SystemUptime,                          // "System uptime: "
+    HStr_Log_TrackingSequence,                      // " tracking sequence"
+    HStr_Log_UncoverSequence,                       // " uncover sequence"
 
-    HStr_Log_Prefix_Info,
-    HStr_Log_Prefix_Warning,
-    HStr_Log_Prefix_Error,
+    HStr_Log_Prefix_Info,                           // "[INFO] "
+    HStr_Log_Prefix_Warning,                        // "[WARN] "
+    HStr_Log_Prefix_Error,                          // "[FAIL] "
 
-    HStr_Log_Field_Cleaning_Duration,
-    HStr_Log_Field_Heating_Duration,
-    HStr_Log_Field_Light_Duration,
-    HStr_Log_Field_Solar_Panel,
-    HStr_Log_Field_Temp_Measured,
-    HStr_Log_Field_Time_Calculated,
-    HStr_Log_Field_Time_Finish,
-    HStr_Log_Field_Time_Measured,
-    HStr_Log_Field_Time_Progress,
-    HStr_Log_Field_Time_Start,
-    HStr_Log_Field_Travel_Calculated,
-    HStr_Log_Field_Travel_Measured,
-    HStr_Log_Field_WindSpeed_Measured,
+    HStr_Log_Field_Cleaning_Duration,               // "  Sprayer run time: "
+    HStr_Log_Field_Heating_Duration,                // "  Heater run time: "
+    HStr_Log_Field_Light_Duration,                  // "  Daylight hours: "
+    HStr_Log_Field_Solar_Panel,                     // "  Solar panel: "
+    HStr_Log_Field_Temp_Measured,                   // "  Temperature: "
+    HStr_Log_Field_Time_Calculated,                 // "  Motor run time: "
+    HStr_Log_Field_Time_Finish,                     // "  Finish time: "
+    HStr_Log_Field_Time_Measured,                   // "  Elapsed time: "
+    HStr_Log_Field_Time_Progress,                   // "  Daytime progress: "
+    HStr_Log_Field_Time_Start,                      // "  Start time: "
+    HStr_Log_Field_Travel_Calculated,               // "  Est. travel dis.: "
+    HStr_Log_Field_Travel_Measured,                 // "  Act. travel dis.: "
+    HStr_Log_Field_WindSpeed_Measured,              // "  Wind speed: "
 
-    HStr_Key_ActiveLow,
-    HStr_Key_AlignedTolerance,
-    HStr_Key_AutosaveEnabled,
-    HStr_Key_AutosaveFallback,
-    HStr_Key_AutosaveInterval,
-    HStr_Key_AxisOffset,
-    HStr_Key_AxisPosition,
-    HStr_Key_AxisSensorHorz,
-    HStr_Key_AxisSensorVert,
-    HStr_Key_BitRes,
-    HStr_Key_CalibrationUnits,
-    HStr_Key_Channel,
-    HStr_Key_CleaningIntervalDays,
-    HStr_Key_ComputeHeatIndex,
-    HStr_Key_ContinuousPowerUsage,
-    HStr_Key_ContinuousSpeed,
-    HStr_Key_CtrlInMode,
-    HStr_Key_DailyLightHours,
-    HStr_Key_DataFilePrefix,
-    HStr_Key_DetriggerDelay,
-    HStr_Key_DetriggerTol,
-    HStr_Key_DHTType,
-    HStr_Key_DisplayTheme,
-    HStr_Key_DispOutMode,
-    HStr_Key_DistanceUnits,
-    HStr_Key_EnableMode,
-    HStr_Key_Flags,
-    HStr_Key_HeatingTrigger,
-    HStr_Key_HomePosition,
-    HStr_Key_Id,
-    HStr_Key_InputInversion,
-    HStr_Key_InputPin,
-    HStr_Key_JoystickCalib,
-    HStr_Key_LastAlignedTime,
-    HStr_Key_LastCleanedTime,
-    HStr_Key_LDRSensorHorzMin,
-    HStr_Key_LDRSensorHorzMax,
-    HStr_Key_LDRSensorVertMin,
-    HStr_Key_LDRSensorVertMax,
-    HStr_Key_LimitTrigger,
-    HStr_Key_Location,
-    HStr_Key_LocationOffset,
-    HStr_Key_LogFilePrefix,
-    HStr_Key_LogLevel,
-    HStr_Key_LogToSDCard,
-    HStr_Key_LogToWiFiStorage,
-    HStr_Key_Logger,
-    HStr_Key_MACAddress,
-    HStr_Key_MaxActiveAtOnce,
-    HStr_Key_MaxPower,
-    HStr_Key_MaxTrigger,
-    HStr_Key_MeasureMode,
-    HStr_Key_MeasurementRow,
-    HStr_Key_MeasurementUnits,
-    HStr_Key_MinIntensity,
-    HStr_Key_MinTrigger,
-    HStr_Key_Mode,
-    HStr_Key_Multiplier,
-    HStr_Key_Offset,
-    HStr_Key_OutputPin,
-    HStr_Key_OutputPin2,
-    HStr_Key_PanelName,
-    HStr_Key_Pin,
-    HStr_Key_PollingInterval,
-    HStr_Key_PositionSensor,
-    HStr_Key_PowerProductionSensor,
-    HStr_Key_PowerUsageSensor,
-    HStr_Key_PowerUnits,
-    HStr_Key_PreDawnCleaningMins,
-    HStr_Key_PreDawnHeatingMins,
-    HStr_Key_PublishToSDCard,
-    HStr_Key_PublishToWiFiStorage,
-    HStr_Key_Publisher,
-    HStr_Key_PWMChannel,
-    HStr_Key_PWMFrequency,
-    HStr_Key_RailName,
-    HStr_Key_ReflectPosition,
-    HStr_Key_ReportInterval,
-    HStr_Key_Revision,
-    HStr_Key_Scheduler,
-    HStr_Key_SensorName,
-    HStr_Key_SpeedSensor,
-    HStr_Key_State,
-    HStr_Key_StormingTrigger,
-    HStr_Key_SystemMode,
-    HStr_Key_SystemName,
-    HStr_Key_TemperatureUnits,
-    HStr_Key_TemperatureSensor,
-    HStr_Key_TimeZoneOffset,
-    HStr_Key_Timestamp,
-    HStr_Key_Tolerance,
-    HStr_Key_ToleranceHigh,
-    HStr_Key_ToleranceLow,
-    HStr_Key_TravelRange,
-    HStr_Key_TriggerBelow,
-    HStr_Key_TriggerOutside,
-    HStr_Key_Type,
-    HStr_Key_Units,
-    HStr_Key_UpdatesPerSec,
-    HStr_Key_UsingISR,
-    HStr_Key_StateStableTimeMs,
-    HStr_Key_Value,
-    HStr_Key_Version,
-    HStr_Key_WiFiPassword,
-    HStr_Key_WiFiPasswordSeed,
-    HStr_Key_WiFiSSID,
-    HStr_Key_WindSpeedSensor,
-    HStr_Key_WireDevAddress,
-    HStr_Key_WirePosIndex,
+    HStr_Key_ActiveLow,                             // "activeLow"
+    HStr_Key_AlignedTolerance,                      // "alignedTolerance"
+    HStr_Key_AutosaveEnabled,                       // "autosaveEnabled"
+    HStr_Key_AutosaveFallback,                      // "autosaveFallback"
+    HStr_Key_AutosaveInterval,                      // "autosaveInterval"
+    HStr_Key_AxisOffset,                            // "axisOffset"
+    HStr_Key_AxisPosition,                          // "axisPosition"
+    HStr_Key_AxisSensorHorz,                        // "axisSensorHorz"
+    HStr_Key_AxisSensorVert,                        // "axisSensorVert"
+    HStr_Key_BitRes,                                // "bitRes"
+    HStr_Key_CalibrationUnits,                      // "calibrationUnits"
+    HStr_Key_Channel,                               // "channel"
+    HStr_Key_CleaningIntervalDays,                  // "cleaningIntervalDays"
+    HStr_Key_ComputeHeatIndex,                      // "computeHeatIndex"
+    HStr_Key_ContinuousPowerUsage,                  // "contPowerUsage"
+    HStr_Key_ContinuousSpeed,                       // "contSpeed"
+    HStr_Key_CtrlInMode,                            // "ctrlInMode"
+    HStr_Key_DailyLightHours,                       // "dailyLightHours"
+    HStr_Key_DataFilePrefix,                        // "dataFilePrefix"
+    HStr_Key_DetriggerDelay,                        // "detriggerDelay"
+    HStr_Key_DetriggerTol,                          // "detriggerTol"
+    HStr_Key_DHTType,                               // "dhtType"
+    HStr_Key_DisplayTheme,                          // "displayTheme"
+    HStr_Key_DispOutMode,                           // "dispOutMode"
+    HStr_Key_DistanceUnits,                         // "distanceUnits"
+    HStr_Key_EnableMode,                            // "enableMode"
+    HStr_Key_Flags,                                 // "flags"
+    HStr_Key_HeatingTrigger,                        // "heatingTrigger"
+    HStr_Key_HomePosition,                          // "homePosition"
+    HStr_Key_Id,                                    // "id"
+    HStr_Key_InputInversion,                        // "inputInversion"
+    HStr_Key_InputPin,                              // "inputPin"
+    HStr_Key_JoystickCalib,                         // "joystickCalib"
+    HStr_Key_LastAlignedTime,                       // "lastAlignedTime"
+    HStr_Key_LastCleanedTime,                       // "lastCleanedTime"
+    HStr_Key_LDRSensorHorzMin,                      // "ldrSensorHorzMin"
+    HStr_Key_LDRSensorHorzMax,                      // "ldrSensorHorzMax"
+    HStr_Key_LDRSensorVertMin,                      // "ldrSensorVertMin"
+    HStr_Key_LDRSensorVertMax,                      // "ldrSensorVertMax"
+    HStr_Key_LimitTrigger,                          // "limitTrigger"
+    HStr_Key_Location,                              // "location"
+    HStr_Key_LocationOffset,                        // "locationOffset"
+    HStr_Key_LogFilePrefix,                         // "logFilePrefix"
+    HStr_Key_LogLevel,                              // "logLevel"
+    HStr_Key_LogToSDCard,                           // "logToSDCard"
+    HStr_Key_LogToWiFiStorage,                      // "logToWiFiStorage"
+    HStr_Key_Logger,                                // "logger"
+    HStr_Key_MACAddress,                            // "macAddress"
+    HStr_Key_MaxActiveAtOnce,                       // "maxActiveAtOnce"
+    HStr_Key_MaxPower,                              // "maxPower"
+    HStr_Key_MaxTrigger,                            // "maxTrigger"
+    HStr_Key_MeasureMode,                           // "measureMode"
+    HStr_Key_MeasurementRow,                        // "measurementRow"
+    HStr_Key_MeasurementUnits,                      // "measurementUnits"
+    HStr_Key_MinIntensity,                          // "minIntensity"
+    HStr_Key_MinTrigger,                            // "minTrigger"
+    HStr_Key_Mode,                                  // "mode"
+    HStr_Key_Multiplier,                            // "multiplier"
+    HStr_Key_Offset,                                // "offset"
+    HStr_Key_OutputPin,                             // "outputPin"
+    HStr_Key_OutputPin2,                            // "outputPin2"
+    HStr_Key_PanelName,                             // "panelName"
+    HStr_Key_Pin,                                   // "pin"
+    HStr_Key_PollingInterval,                       // "pollingInterval"
+    HStr_Key_PositionSensor,                        // "positionSensor"
+    HStr_Key_PowerProductionSensor,                 // "powerProdSensor"
+    HStr_Key_PowerUsageSensor,                      // "powerUsageSensor"
+    HStr_Key_PowerUnits,                            // "powerUnits"
+    HStr_Key_PreDawnCleaningMins,                   // "preDawnCleaningMins"
+    HStr_Key_PreDawnHeatingMins,                    // "preDawnHeatingMins"
+    HStr_Key_PublishToSDCard,                       // "publishToSDCard"
+    HStr_Key_PublishToWiFiStorage,                  // "publishToWiFiStorage"
+    HStr_Key_Publisher,                             // "publisher"
+    HStr_Key_PWMChannel,                            // "pwmChannel"
+    HStr_Key_PWMFrequency,                          // "pwmFrequency"
+    HStr_Key_RailName,                              // "railName"
+    HStr_Key_ReflectPosition,                       // "reflectPosition"
+    HStr_Key_ReportInterval,                        // "reportInterval"
+    HStr_Key_Revision,                              // "revision"
+    HStr_Key_Scheduler,                             // "scheduler"
+    HStr_Key_SensorName,                            // "sensorName"
+    HStr_Key_SpeedSensor,                           // "speedSensor"
+    HStr_Key_State,                                 // "state"
+    HStr_Key_StormingTrigger,                       // "stormingTrigger"
+    HStr_Key_SystemMode,                            // "systemMode"
+    HStr_Key_SystemName,                            // "systemName"
+    HStr_Key_TemperatureUnits,                      // "temperatureUnits"
+    HStr_Key_TemperatureSensor,                     // "tempSensor"
+    HStr_Key_TimeZoneOffset,                        // "timeZoneOffset"
+    HStr_Key_Timestamp,                             // "timestamp"
+    HStr_Key_Tolerance,                             // "tolerance"
+    HStr_Key_ToleranceHigh,                         // "toleranceHigh"
+    HStr_Key_ToleranceLow,                          // "toleranceLow"
+    HStr_Key_TravelRange,                           // "travelRange"
+    HStr_Key_TriggerBelow,                          // "triggerBelow"
+    HStr_Key_TriggerOutside,                        // "triggerOutside"
+    HStr_Key_Type,                                  // "type"
+    HStr_Key_Units,                                 // "units"
+    HStr_Key_UpdatesPerSec,                         // "updatesPerSec"
+    HStr_Key_UsingISR,                              // "usingISR"
+    HStr_Key_StateStableTimeMs,                     // "stateStableTimeMs"
+    HStr_Key_Value,                                 // "value"
+    HStr_Key_Version,                               // "version"
+    HStr_Key_WiFiPassword,                          // "wifiPassword"
+    HStr_Key_WiFiPasswordSeed,                      // "wifiPwSeed"
+    HStr_Key_WiFiSSID,                              // "wifiSSID"
+    HStr_Key_WindSpeedSensor,                       // "windSpeedSensor"
+    HStr_Key_WireDevAddress,                        // "wireDevAddress"
+    HStr_Key_WirePosIndex,                          // "wirePosIndex"
 
-    HStr_Enum_AC110V,
-    HStr_Enum_AC220V,
-    HStr_Enum_AnalogInput,
-    HStr_Enum_AnalogJoystick,
-    HStr_Enum_AnalogOutput,
-    HStr_Enum_Angle,
-    HStr_Enum_AscOrder,
-    HStr_Enum_Average,
-    HStr_Enum_Balancing,
-    HStr_Enum_ContinuousServo,
-    HStr_Enum_CustomOLED,
-    HStr_Enum_DC12V,
-    HStr_Enum_DC24V,
-    HStr_Enum_DC3V3,
-    HStr_Enum_DC48V,
-    HStr_Enum_DC5V,
-    HStr_Enum_DescOrder,
-    HStr_Enum_DigitalInput,
-    HStr_Enum_DigitalInputPullDown,
-    HStr_Enum_DigitalInputPullUp,
-    HStr_Enum_DigitalOutput,
-    HStr_Enum_DigitalOutputPushPull,
-    HStr_Enum_Distance,
-    HStr_Enum_Equatorial,
-    HStr_Enum_Gimballed,
-    HStr_Enum_Highest,
-    HStr_Enum_Horizontal,
-    HStr_Enum_IceDetector,
-    HStr_Enum_IL3820,
-    HStr_Enum_IL3820V2,
-    HStr_Enum_ILI9341,
-    HStr_Enum_Imperial,
-    HStr_Enum_InOrder,
-    HStr_Enum_LCD16x2,
-    HStr_Enum_LCD20x4,
-    HStr_Enum_LightIntensity,
-    HStr_Enum_LinearActuator,
-    HStr_Enum_Lowest,
-    HStr_Enum_Matrix2x2,
-    HStr_Enum_Matrix3x4,
-    HStr_Enum_Matrix4x4,
-    HStr_Enum_Metric,
-    HStr_Enum_Multiply,
-    HStr_Enum_PanelBrake,
-    HStr_Enum_PanelCover,
-    HStr_Enum_PanelHeater,
-    HStr_Enum_PanelSprayer,
-    HStr_Enum_Percentile,
-    HStr_Enum_PositionalServo,
-    HStr_Enum_Power,
-    HStr_Enum_PowerProduction,
-    HStr_Enum_PowerUsage,
-    HStr_Enum_RemoteControl,
-    HStr_Enum_ResistiveTouch,
-    HStr_Enum_RevOrder,
-    HStr_Enum_RotaryEncoder,
-    HStr_Enum_Scientific,
-    HStr_Enum_SH1106,
-    HStr_Enum_Speed,
-    HStr_Enum_SSD1305,
-    HStr_Enum_SSD1305x32Ada,
-    HStr_Enum_SSD1305x64Ada,
-    HStr_Enum_SSD1306,
-    HStr_Enum_SSD1607,
-    HStr_Enum_ST7735,
-    HStr_Enum_ST7789,
-    HStr_Enum_Temperature,
-    HStr_Enum_TFTTouch,
-    HStr_Enum_TiltAngle,
-    HStr_Enum_TouchScreen,
-    HStr_Enum_Tracking,
-    HStr_Enum_TravelPosition,
-    HStr_Enum_UpDownButtons,
-    HStr_Enum_UpDownESP32Touch,
-    HStr_Enum_Vertical,
-    HStr_Enum_WindSpeed,
+    HStr_Enum_AC110V,                               // "AC110V"
+    HStr_Enum_AC220V,                               // "AC220V"
+    HStr_Enum_AnalogInput,                          // "AnalogInput"
+    HStr_Enum_AnalogJoystick,                       // "AnalogJoystick"
+    HStr_Enum_AnalogOutput,                         // "AnalogOutput"
+    HStr_Enum_Angle,                                // "Angle"
+    HStr_Enum_AscOrder,                             // "AscOrder"
+    HStr_Enum_Average,                              // "Average"
+    HStr_Enum_Balancing,                            // "Balancing"
+    HStr_Enum_ContinuousServo,                      // "ContinuousServo"
+    HStr_Enum_CustomOLED,                           // "CustomOLED"
+    HStr_Enum_DC12V,                                // "DC12V"
+    HStr_Enum_DC24V,                                // "DC24V"
+    HStr_Enum_DC3V3,                                // "DC3V3"
+    HStr_Enum_DC48V,                                // "DC48V"
+    HStr_Enum_DC5V,                                 // "DC5V"
+    HStr_Enum_DescOrder,                            // "DescOrder"
+    HStr_Enum_DigitalInput,                         // "DigitalInput"
+    HStr_Enum_DigitalInputPullDown,                 // "DigitalInputPullDown"
+    HStr_Enum_DigitalInputPullUp,                   // "DigitalInputPullUp"
+    HStr_Enum_DigitalOutput,                        // "DigitalOutput"
+    HStr_Enum_DigitalOutputPushPull,                // "DigitalOutputPushPull"
+    HStr_Enum_Distance,                             // "Distance"
+    HStr_Enum_Equatorial,                           // "Equatorial"
+    HStr_Enum_Gimballed,                            // "Gimballed"
+    HStr_Enum_Highest,                              // "Highest"
+    HStr_Enum_Horizontal,                           // "Horizontal"
+    HStr_Enum_IceDetector,                          // "IceDetector"
+    HStr_Enum_IL3820,                               // "IL3820"
+    HStr_Enum_IL3820V2,                             // "IL3820V2"
+    HStr_Enum_ILI9341,                              // "ILI9341"
+    HStr_Enum_Imperial,                             // "Imperial"
+    HStr_Enum_InOrder,                              // "InOrder"
+    HStr_Enum_LCD16x2,                              // "LCD16x2"
+    HStr_Enum_LCD20x4,                              // "LCD20x4"
+    HStr_Enum_LightIntensity,                       // "LightIntensity"
+    HStr_Enum_LinearActuator,                       // "LinearActuator"
+    HStr_Enum_Lowest,                               // "Lowest"
+    HStr_Enum_Matrix2x2,                            // "Matrix2x2"
+    HStr_Enum_Matrix3x4,                            // "Matrix3x4"
+    HStr_Enum_Matrix4x4,                            // "Matrix4x4"
+    HStr_Enum_Metric,                               // "Metric"
+    HStr_Enum_Multiply,                             // "Multiply"
+    HStr_Enum_PanelBrake,                           // "PanelBrake"
+    HStr_Enum_PanelCover,                           // "PanelCover"
+    HStr_Enum_PanelHeater,                          // "PanelHeater"
+    HStr_Enum_PanelSprayer,                         // "PanelSprayer"
+    HStr_Enum_Percentile,                           // "Percentile"
+    HStr_Enum_PositionalServo,                      // "PositionalServo"
+    HStr_Enum_Power,                                // "Power"
+    HStr_Enum_PowerProduction,                      // "PowerProduction"
+    HStr_Enum_PowerUsage,                           // "PowerUsage"
+    HStr_Enum_RemoteControl,                        // "RemoteControl"
+    HStr_Enum_ResistiveTouch,                       // "ResistiveTouch"
+    HStr_Enum_RevOrder,                             // "RevOrder"
+    HStr_Enum_RotaryEncoder,                        // "RotaryEncoder"
+    HStr_Enum_Scientific,                           // "Scientific"
+    HStr_Enum_SH1106,                               // "SH1106"
+    HStr_Enum_Speed,                                // "Speed"
+    HStr_Enum_SSD1305,                              // "SSD1305"
+    HStr_Enum_SSD1305x32Ada,                        // "SSD1305x32Ada"
+    HStr_Enum_SSD1305x64Ada,                        // "SSD1305x64Ada"
+    HStr_Enum_SSD1306,                              // "SSD1306"
+    HStr_Enum_SSD1607,                              // "SSD1607"
+    HStr_Enum_ST7735,                               // "ST7735"
+    HStr_Enum_ST7789,                               // "ST7789"
+    HStr_Enum_Temperature,                          // "Temperature"
+    HStr_Enum_TFTTouch,                             // "TFTTouch"
+    HStr_Enum_TiltAngle,                            // "TiltAngle"
+    HStr_Enum_TouchScreen,                          // "TouchScreen"
+    HStr_Enum_Tracking,                             // "Tracking"
+    HStr_Enum_TravelPosition,                       // "TravelPosition"
+    HStr_Enum_UpDownButtons,                        // "UpDownButtons"
+    HStr_Enum_UpDownESP32Touch,                     // "UpDownESP32Touch"
+    HStr_Enum_Vertical,                             // "Vertical"
+    HStr_Enum_WindSpeed,                            // "WindSpeed"
 
-    HStr_Unit_Count,
-    HStr_Unit_Degree,
-    HStr_Unit_Feet,
-    HStr_Unit_Minutes,
-    HStr_Unit_PerMinute,
-    HStr_Unit_Radians,
-    HStr_Unit_Undefined,
+    HStr_Unit_Count,                                // "[qty]"
+    HStr_Unit_Degree,                               // "°"
+    HStr_Unit_Feet,                                 // "ft"
+    HStr_Unit_Minutes,                              // "mins"
+    HStr_Unit_PerMinute,                            // "/min"
+    HStr_Unit_Radians,                              // "rad"
+    HStr_Unit_Undefined,                            // "[undef]"
 
-    HStr_Count
+    HStr_Count                                      // String count
 };
 
 // Blank string (HStr_Blank)

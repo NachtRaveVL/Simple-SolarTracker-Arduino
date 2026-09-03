@@ -125,7 +125,7 @@ template<typename T>
 String commaStringFromArray(const T *arrayIn, size_t length)
 {
     if (!arrayIn || !length) { return String(SFP(HStr_null)); }
-    String retVal; retVal.reserve(length << 1 + length >> 1 + 1);
+    String retVal; retVal.reserve((length << 1) + (length >> 1) + 1);
     for (size_t index = 0; index < length; ++index) {
         if (retVal.length()) { retVal.concat(','); }
         retVal += String(arrayIn[index]);
@@ -142,7 +142,7 @@ void commaStringToArray(String stringIn, T *arrayOut, size_t length)
         int nextSepPos = stringIn.indexOf(',', lastSepPos+1);
         if (nextSepPos == -1) { nextSepPos = stringIn.length(); }
         String subString = stringIn.substring(lastSepPos+1, nextSepPos);
-        if (nextSepPos < stringIn.length()) { lastSepPos = nextSepPos; }
+        if (nextSepPos < static_cast<int>(stringIn.length())) { lastSepPos = nextSepPos; }
 
         arrayOut[index] = static_cast<T>(subString.toInt());
     }
@@ -208,7 +208,7 @@ template<> inline double wrapBy(double value, double range)
 }
 
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links)
 {
     Vector<HelioObject *, N> retVal;
@@ -222,7 +222,7 @@ Vector<HelioObject *, N> linksFilterActuators(Pair<uint8_t, Pair<HelioObject *, 
     return retVal;
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, Helio_ActuatorType actuatorType, HelioPanel *panel, bool isMotor)
 {
     Vector<HelioObject *, N> retVal;
@@ -241,7 +241,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByTypePanelAndMotor(Pair<uint8_t, P
     return retVal;
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, hposi_t axisIndex, bool isMotor)
 {
     Vector<HelioObject *, N> retVal;
@@ -260,7 +260,7 @@ Vector<HelioObject *, N> linksFilterTravelActuatorsByPanelAxisAndMotor(Pair<uint
     return retVal;
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<HelioObject *, int8_t> *> links, HelioPanel *panel, Helio_ActuatorType actuatorType)
 {
     Vector<HelioObject *, N> retVal;
@@ -278,7 +278,7 @@ Vector<HelioObject *, N> linksFilterActuatorsByPanelAndType(Pair<uint8_t, Pair<H
     return retVal;
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
@@ -291,7 +291,7 @@ void linksResolveActuatorsByType(Vector<HelioObject *, N> &actuatorsIn, Vector<H
     }
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, Vector<HelioActuatorAttachment, N> &activationsOut)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {
@@ -304,7 +304,7 @@ void linksResolveActuatorsToAttachments(Vector<HelioObject *, N> &actuatorsIn, H
     }
 }
 
-template<size_t N = HELIO_DEFAULT_MAXSIZE>
+template<size_t N>
 void linksResolveActuatorsToAttachmentsByRateAndType(Vector<HelioObject *, N> &actuatorsIn, HelioObjInterface *parent, hposi_t subIndex, float rateMultiplier, Vector<HelioActuatorAttachment, N> &activationsOut, Helio_ActuatorType actuatorType)
 {
     for (auto actIter = actuatorsIn.begin(); actIter != actuatorsIn.end(); ++actIter) {

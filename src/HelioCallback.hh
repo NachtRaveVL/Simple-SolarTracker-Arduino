@@ -4,8 +4,8 @@
 */
 // Copied and modified from: https://github.com/tomstewart89/Callback
 
-#ifndef HelioCallback_H
-#define HelioCallback_H
+#ifndef HelioCallback_HH
+#define HelioCallback_HH
 
 #include "Helioduino.h"
 
@@ -62,10 +62,12 @@ public:
 
     // Removes slot from list of connections.
     void detach(const Slot<ParameterType>& slot) {
-        for (auto iter = _connections.begin(); iter != _connections.end(); ++iter) {
+        for (auto iter = _connections.begin(); iter != _connections.end(); ) {
             if (!(*iter) || slot.operator==(*iter)) {
                 if (*iter) { delete *iter; *iter = nullptr; }
-                iter = _connections.erase(iter) - 1;
+                iter = _connections.erase(iter);
+            } else {
+                ++iter;
             }
         }
     }
@@ -164,4 +166,4 @@ public:
     }
 };
 
-#endif // HelioCallback_H
+#endif // HelioCallback_HH

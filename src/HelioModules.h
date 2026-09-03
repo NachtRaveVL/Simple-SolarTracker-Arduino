@@ -18,6 +18,9 @@ class HelioPinHandlers;
 // an usable input value.
 class HelioCalibrations {
 public:
+    ~HelioCalibrations();
+    void clearUserCalibrations();
+
     // Adds/updates user calibration data to storage, returning success flag
     bool setUserCalibrationData(const HelioCalibrationData *calibrationData);
 

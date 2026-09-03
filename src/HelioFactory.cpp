@@ -100,6 +100,41 @@ SharedPtr<HelioVariableActuator> HelioFactory::addPositionalServo(pintype_t outp
     return nullptr;
 }
 
+SharedPtr<HelioVariableMotorActuator> HelioFactory::addContinuousServo(pintype_t outputPin, float maxTravel, float minTravel, uint8_t outputBitRes,
+#ifdef ESP32
+                                                                  uint8_t pwmChannel,
+#endif
+#ifdef ESP_PLATFORM
+                                                                  float pwmFrequency,
+#endif
+                                                                  int8_t pinChannel)
+{
+    bool outputPinIsPWM = checkPinIsPWMOutput(outputPin);
+    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_ContinuousServo));
+    HELIO_HARD_ASSERT(outputPinIsPWM, SFP(HStr_Err_InvalidPinOrType));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
+
+    if (outputPinIsPWM && isValidIndex(positionIndex)) {
+        auto actuator = SharedPtr<HelioVariableMotorActuator>(new HelioVariableMotorActuator(
+            Helio_ActuatorType_ContinuousServo,
+            positionIndex,
+            HelioAnalogPin(outputPin, OUTPUT, outputBitRes,
+#ifdef ESP32
+                           pwmChannel,
+#endif
+#ifdef ESP_PLATFORM
+                           pwmFrequency,
+#endif
+                           pinChannel),
+            HelioAnalogPin(),
+            make_pair(minTravel, maxTravel)
+        ));
+        if (getController()->registerObject(actuator)) { return actuator; }
+    }
+
+    return nullptr;
+}
+
 SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_t outputPinA, pintype_t outputPinB, float maxPosition, float minPosition, int8_t pinChannelA, int8_t pinChannelB)
 {
     bool outputPinAIsDigital = checkPinIsDigital(outputPinA);
@@ -115,6 +150,49 @@ SharedPtr<HelioRelayMotorActuator> HelioFactory::addLinearActuatorRelay(pintype_
             HelioDigitalPin(outputPinA, OUTPUT, pinChannelA),
             HelioDigitalPin(outputPinB, OUTPUT, pinChannelB),
             make_pair(minPosition, maxPosition)
+        ));
+        if (getController()->registerObject(actuator)) { return actuator; }
+    }
+
+    return nullptr;
+}
+
+SharedPtr<HelioVariableMotorActuator> HelioFactory::addAnalogLinearActuator(pintype_t outputPinA, pintype_t outputPinB, float maxStroke, float minStroke, uint8_t outputBitRes,
+#ifdef ESP32
+                                                                           uint8_t pwmChannel,
+#endif
+#ifdef ESP_PLATFORM
+                                                                           float pwmFrequency,
+#endif
+                                                                           int8_t pinChannelA, int8_t pinChannelB)
+{
+    bool outputPinAIsPWM = checkPinIsPWMOutput(outputPinA);
+    bool outputPinBIsPWM = checkPinIsPWMOutput(outputPinB);
+    hposi_t positionIndex = getController()->firstPositionOpen(HelioIdentity(Helio_ActuatorType_LinearActuator));
+    HELIO_HARD_ASSERT(outputPinAIsPWM && outputPinBIsPWM, SFP(HStr_Err_InvalidPinOrType));
+    HELIO_SOFT_ASSERT(isValidIndex(positionIndex), SFP(HStr_Err_NoPositionsAvailable));
+
+    if (outputPinAIsPWM && outputPinBIsPWM && isValidIndex(positionIndex)) {
+        auto actuator = SharedPtr<HelioVariableMotorActuator>(new HelioVariableMotorActuator(
+            Helio_ActuatorType_LinearActuator,
+            positionIndex,
+            HelioAnalogPin(outputPinA, OUTPUT, outputBitRes,
+#ifdef ESP32
+                           pwmChannel,
+#endif
+#ifdef ESP_PLATFORM
+                           pwmFrequency,
+#endif
+                           pinChannelA),
+            HelioAnalogPin(outputPinB, OUTPUT, outputBitRes,
+#ifdef ESP32
+                           pwmChannel + 1,
+#endif
+#ifdef ESP_PLATFORM
+                           pwmFrequency,
+#endif
+                           pinChannelB),
+            make_pair(minStroke, maxStroke)
         ));
         if (getController()->registerObject(actuator)) { return actuator; }
     }
