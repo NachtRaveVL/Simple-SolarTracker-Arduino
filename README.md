@@ -8,9 +8,11 @@ Licensed under the non-restrictive MIT license.
 
 Created by NachtRaveVL, Jan 3rd, 2023.
 
+This project is part of a four-library controller family: **Simple-Hydroponics-Arduino (Hydruino)**, **Simple-SolarTracker-Arduino (Helioduino)**, **Simple-Homestead-Arduino (Terraduino)**, and **Simple-AstroTracker-Arduino (Astruino)**.
+
 This controller manages panels, servos, linear actuators, LDRs, relays, sensors, and data collection for single and dual axis solar tracking systems. Tracking can use calculated sun position or opposing light sensors, with support for panel deployment, brakes, storm handling, cleaning, heating, and related automation. RTC and optional GPS or static location are enough for fully offline operation, while networking can be enabled only when wanted.
 
-Our Keep-It-Simple controller system:
+The Keep-It-Simple controller system:
 
 * Can be used entirely offline with RTC module and optional GPS module (or known static location) for accurate time keeping, or used online through enabled on-board WiFi/Ethernet or external ESP-AT WiFi module.
   * Uses [SolarCalculator](https://github.com/jpb10/SolarCalculator), inspired by the NOAA Solar Calculator, for fine offline calculations of the sun's solar position (including sunrise, sunset, & transit times), accurate until 2100.
@@ -32,25 +34,25 @@ Our Keep-It-Simple controller system:
     * Full UI mode, which uses large amounts of Flash space available on modern MCUs to provide everything all at once, with only major system (or static linked component) changes requiring a sketch modify/re-upload.
 * Actuator & Sensor pins can be multiplexed or expanded along with any control input pins through 8/16-bit i2c expanders for pin-limited controllers.
 
-Made primarily for Arduino microcontrollers / build environments, but should work with PlatformIO, Espressif, Teensy, STM32, Pico, and others - although one might experience turbulence until the bug reports get ironed out.
+Designed primarily for Arduino and Arduino-compatible build environments. PlatformIO, Espressif, Teensy, STM32, Pico, and other supported toolchains may also be used.
 
 Datasheet links include: [Generic LDR information](https://components101.com/resistors/ldr-datasheet), [Generic linear actuator information](https://arduinogetstarted.com/tutorials/arduino-actuator), [DHT12 Air Temperature and Humidity Sensor](https://github.com/NachtRaveVL/Simple-SolarTracker-Arduino/blob/main/extra/dht12.pdf), but many more are available online.
 
-*If you value the work that we do, our small team always appreciates a subscription to our [Patreon](www.patreon.com/nachtrave).*
+*If this work is useful, project support is always appreciated through [Patreon](www.patreon.com/nachtrave).*
 
 ## About
 
-We want to make solar trackers more accessible to DIY'ers by utilizing the widely-available low-cost IoT and IoT-like microcontrollers (MCUs) of today.
+The goal is to make solar tracking more accessible to DIY builders by using widely available, low-cost microcontrollers (MCUs).
 
-With the advances in miniaturization technology bringing us even more compact MCUs at even lower costs, it becomes a lot more possible to simply use one of these small devices to do what amounts to putting a few servos in the correct offsets as the day goes by. Solar tracking is a perfect application for these devices, especially as a data logger, process monitor, and more. Professional controller systems like this can cost hundreds to even thousands of dollars, but DIY systems can wind up being a fraction of that cost.
+Modern low-cost MCUs provide enough processing power, memory, and I/O to resolve panel targets, drive tracking axes, monitor environmental conditions, and coordinate panel protection equipment. Solar tracking is a strong fit for these devices as a local controller, data logger, and process monitor. Commercial controller systems can cost hundreds or thousands of dollars, while DIY systems can be built for substantially less.
 
-Helioduino is a MCU-based solution primarily written for Arduino and Arduino-like MCU devices. It allows one to throw together a bunch of hobbyist servos and relays, some solar panels, maybe some light dependent resistors (LDRs), and other widely available low-cost hardware to build a functional DIY solar tracking controller system. Be it made with PVC from the hardware store or 3D printed at home, Helioduino opens the door for more people to get involved in reducing their carbon footprint, becoming more knowledgeable about their power and where it comes from - and hey, hopefully learning some basic electronics/coding along the way.
+Helioduino is written primarily for Arduino and Arduino-compatible MCUs. It combines servos, linear actuators, relays, solar panels, light sensors, and other widely available low-cost hardware into a functional DIY solar tracking system. The physical implementation remains open to the builder.
 
 ## Controller Setup
 
-### Requirements
+### MCU Requirements
 
-There is no single minimum MCU for every Helioduino build because enabled UI, networking, logging, sensor counts, power-system complexity, and object counts can change the program and memory requirements considerably.
+There is no single minimum MCU for every Helioduino build because enabled UI, networking, logging, sensor counts, panel counts, axis-driver configuration, and tracking complexity can change the program and memory requirements considerably.
 
 As a practical starting point:
 
@@ -58,21 +60,21 @@ Minimum planning target: 256–512kB Flash, 16–24kB SRAM, 16MHz+
 
 Recommended: 512kB–1MB+ Flash, 24–32kB+ SRAM, 32–48MHz+
 
-Modern 32-bit boards such as Pico RP2040/RP2350, ESP32, Teensy 3.5+, STM32, GIGA, and Portenta-class devices are the natural starting point when tracking, logging, UI, and networking are expected to run together.
+Modern 32-bit boards such as Pico RP2040/RP2350, ESP32, Teensy 3.5+, STM32, GIGA, and Portenta-class devices are the natural starting point when automation, logging, UI, and networking are expected to run together.
 
-Helioduino systems may need to monitor voltage, current, power, battery state, environmental conditions, and multiple controlled loads while responding to changing generation and storage conditions. Sensor sampling, control responsiveness, display load, logging, and communication traffic can therefore matter more than Flash size alone when selecting the MCU.
+Solar-position calculations and axis control use floating-point math and timing-sensitive actuator updates. Sensor polling, motor response, display load, logging, and communication traffic can therefore matter more than Flash size alone when selecting the MCU.
 
 ### Installation
 
-The easiest way to install this controller is to utilize the Arduino IDE library manager, or through a package manager such as PlatformIO. Otherwise, simply download this controller and extract its files into a `Simple-SolarTracker-Arduino` folder in your Arduino custom libraries folder, typically found in your `[My ]Documents\Arduino\libraries` folder (Windows), or `~/Documents/Arduino/libraries/` folder (Linux/OSX).
+Installation through the Arduino IDE Library Manager or a package manager such as PlatformIO is the simplest option. Manual installation consists of extracting the library into a `Simple-SolarTracker-Arduino` directory under the Arduino custom libraries directory, typically `[My ]Documents\Arduino\libraries` on Windows or `~/Documents/Arduino/libraries/` on Linux/macOS.
 
-From there, you can make a local copy of one of the example sketches based on the kind of system setup you want to use. If you are unsure of which, we recommend the Dual-Axis Tracking Example, as it is our standard implementation built for most common system setups and only requires changing setup defines at the top of the file.
+The Simple LDR Example is the recommended starting point because it is the smallest practical tracking system. The DA Tracking Example is the larger integrated reference.
 
-Storage constrained MCUs (< 512kB Flash, particularly <= 256kB) may need further setup file/max-sizes tweaking, and possibly external storage hardware (such as EEPROM or SD Card - see the Data Writer example for more details). Modern MCUs with lots of Flash storage can instead simply build the Full System Example (TODO: Still a WIP - use DA Tracking Example for right now).
+Storage-constrained MCUs (< 512kB Flash, particularly <= 256kB) may require smaller feature sets, adjusted max-size defines, or external EEPROM/SD storage; see the Data Writer Example. Modern MCUs with larger Flash and SRAM can enable more of the controller at once.
 
 ### Host Tests
 
-Core logic and source checks can be run without a tracker or Arduino connected:
+Host-side tests can be run with CMake:
 
 ```sh
 cmake -S tests -B build-host
@@ -84,11 +86,11 @@ ctest --test-dir build-host --output-on-failure
 
 #### Header Defines
 
-There are several defines inside of the controller's main `Helioduino[UI].h` header file that allow for more fine-tuned control of the controller. You may edit and uncomment these lines directly, or supply them via custom build flags. While editing the main header file isn't ideal, it is often easiest. Note that editing the controller's main header file directly will affect all projects compiled on your system using those modified controller files.
+Several defines inside the controller's main `Helioduino[UI].h` header file provide fine-grained control over optional features and build behavior. These may be edited directly or supplied through custom build flags. Editing the main header is often the simplest approach, but affects every project compiled against that modified library.
 
-Alternatively, you may also refer to <https://forum.arduino.cc/index.php?topic=602603.0> on how to define custom build flags manually via modifying the platform[.local].txt file, or with the Arduino CLI (preferred way going forward).
+Custom build flags can also be supplied through the Arduino CLI or the older `platform.local.txt` override approach. See <https://forum.arduino.cc/index.php?topic=602603.0> for additional details.
 
-For the older platform.local.txt file override approach, create platform.local.txt alongside platform.txt located in %applocaldata%\Arduino15\packages\{platform}\hardware\{arch}\{version}\ (replacing %applocaldata%\Arduino15 with ~/Library/Arduino15 for OSX, and ~/.arduino15 for Linux), with the contents: `compiler.cpp.extra_flags=-Dname` (replacing `name` with full name of below define). Note that it will affect all builds for that platform until again changed/removed. Some build systems may require directly editing platform.txt and adding onto the end of its CPP build recipe, e.g. Teensy & `recipe.cpp.o.pattern=<bunch-of-stuff> -Dname`.
+For the older `platform.local.txt` override, create `platform.local.txt` alongside `platform.txt` in `%applocaldata%\Arduino15\packages\{platform}\hardware\{arch}\{version}\` (replace `%applocaldata%\Arduino15` with `~/Library/Arduino15` on macOS or `~/.arduino15` on Linux) and add `compiler.cpp.extra_flags=-Dname`, replacing `name` with the required define. This affects all builds for that platform until changed or removed. Some build systems, including Teensy, may instead require editing `platform.txt` and appending the define to the C++ build recipe.
 
 From Helioduino.h:
 ```Arduino
@@ -161,7 +163,7 @@ Networking is optional. An offline Helioduino system does not need a WiFi, Ether
 
 #### External UI Libraries
 
-The optional tcMenu UI layer can use the same display and input libraries across the controller family:
+The optional tcMenu UI layer can use the following display and input libraries as required by the selected hardware:
 
 * **tcMenu** for the menu, remote-control, and display abstraction layer.
 * **Adafruit GFX**, **Adafruit ILI9341**, and **Adafruit ST7735 and ST7789 Library** for supported color displays.
@@ -182,7 +184,7 @@ There are several initialization mode settings exposed through this controller t
 
 #### Class Instantiation
 
-The controller's class object must first be instantiated, commonly at the top of the sketch where pin setups are defined (or exposed through some other mechanism), which makes a call to the controller's class constructor. The constructor allows one to set the module's various devices and how they are connected, with defaults providing no device specified.
+Instantiate the controller object before `setup()`, typically near the sketch's pin and device configuration. The constructor accepts optional hardware-device setup values; defaults select no external devices.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
@@ -201,7 +203,7 @@ From Helioduino.h, in class Helioduino:
 
 #### Controller Initialization
 
-Additionally, a call is expected to be provided to the controller class object's `init[From…](…)` method, commonly called inside of the sketch's `setup()` function. This allows one to set the controller's system type (Tracking or Balancing), units of measurement (Metric, Imperial, or Scientific), control input mode, and display output mode. The default mode of the controller, if left unspecified, is a position calculating system set to Metric units, without any input control or output display.
+Call the controller object's `init[From…](…)` method from `setup()` to initialize a new system or load a saved configuration. For a new system, `init()` selects the system mode, measurement mode, control-input mode, and display-output mode. Defaults select a Tracking system using the default measurement units with control input and display output disabled.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
@@ -252,11 +254,11 @@ From Helioduino.h, in class Helioduino:
 
 ### Event Logging & Data Publishing
 
-The controller can, after initialization, be set to produce logs and data files that can be further used by other applications. Log entries are timestamped and can keep track of when offsets are performed, when voltage spikes/drops, etc., while data files can be read into plotting applications or exported to a database for further processing. The passed file prefix is typically the subfolder that such files should reside under and is appended with the year, month, and date (in YYMMDD format).
+After initialization, the controller can write timestamped system logs and sensor data for external analysis. Log entries record controller events, while data files can be imported into plotting tools or databases. File prefixes are typically used as subfolders and are appended with the date in `YYMMDD` format.
 
-Note: You can also get the same logging output sent to the Serial device by defining `HELIO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
+Serial logging output can also be enabled with `HELIO_ENABLE_DEBUG_OUTPUT`, described above under Header Defines.
 
-Note: Files on FAT32-based SD cards are limited to 8 character file/folder names and a 3 character extension.
+FAT32-based SD cards use 8.3 filenames, limiting file/folder names to eight characters plus a three-character extension.
 
 From Helioduino.h, in class Helioduino:
 ```Arduino
@@ -369,7 +371,7 @@ Below are several examples of controller usage.
 
 LDR setups are great for beginners, and has the advantage of being able to be built out of commonly available materials. A positional servo is used to tilt the panel, which is mounted horizontally facing the general direction of the sun.
 
-The Simple LDR Example sketch shows how a simple Helioduino system can be setup using the most minimal of work. In this sketch only that which you actually use is built into the final compiled binary, making it an ideal lean choice for those who don't need anything fancy. This sketch has no UI or input control, but with a simple buzzer and some additional sensors the system can control another axis for a gimballed system.
+The Simple LDR Example shows how a small Helioduino system can be set up with a balancing panel, positional servo, and opposing light sensors. Only the objects used by the sketch are built into the final binary, making it a lean starting point. The sketch has no UI or input control, but additional sensors and another axis can be added for a larger tracker.
 
 ```Arduino
 #include <Helioduino.h>
@@ -432,249 +434,19 @@ void loop()
 
 ### Main System Examples
 
-There are two main system examples to choose from, Dual-Axis (DA) Tracking and Full System, each with its own requirements and capabilities. The DA Tracking Example is the recommended starting point for most system builders, and is perfect for those with only basic programming knowledge. It can be easily extended to include other functionality if desired, simply by copying and pasting the example code.
+The supplied examples cover the main Helioduino system roles. The Simple LDR Example above is the recommended starting point; the remaining examples provide focused references for additional controller features.
 
-The DA Tracking Example sketch has the benefit of being able to compile in a minimal UI mode that will strip out what isn't used, making it ideal for storage constrained devices (e.g. those with < 512kB Flash), but will not provide full UI functionality since it will be missing the code for all the other objects the system build code strips out, thus requiring re-compiling/re-uploading on system setup changes. The UI, in this mode, only provides edit capabilities, not create/delete, with more customization options locked out.
-
-By contrast, the Full System Example sketch will build an empty system with all object and system features enabled. It is recommended for modern MCUs that have lots of storage space to use such as ESP32, RasPi Pico, etc. It works similarly to the DA Tracking Example, except is meant for systems where a GUI (possibly only remotely controlled) will be primarily used to create objects with. It involves the least amount of coding, but comes at the highest cost since it has to contain everything that possibly could be used, even if it ultimately isn't. The UI, in this mode, provides edit, create, and delete capabilities, with more options available for customization.
-
-Included below is the default system setup defines of the DA Tracking example (of which a smaller similar version is used for the Full System example) to illustrate a variety of the controller features. This is not an exhaustive list of course, as there are many more things the controller is capable of, as documented in its main header file include, GitHub Project Wiki, and elsewhere.
-
-```Arduino
-// Pins & Class Instances
-#define SETUP_PIEZO_BUZZER_PIN          -1              // Piezo buzzer pin, else -1
-#define SETUP_EEPROM_DEVICE_TYPE        None            // EEPROM device type/size (AT24LC01, AT24LC02, AT24LC04, AT24LC08, AT24LC16, AT24LC32, AT24LC64, AT24LC128, AT24LC256, AT24LC512, None)
-#define SETUP_EEPROM_I2C_ADDR           0b000           // EEPROM i2c address (A0-A2, bitwise or'ed with base address 0x50)
-#define SETUP_RTC_DEVICE_TYPE           None            // RTC device type (DS1307, DS3231, PCF8523, PCF8563, None)
-#define SETUP_SD_CARD_SPI               SPI             // SD card SPI class instance
-#define SETUP_SD_CARD_SPI_CS            -1              // SD card CS pin, else -1
-#define SETUP_SD_CARD_SPI_SPEED         F_SPD           // SD card SPI speed, in Hz (ignored on Teensy)
-#define SETUP_DISP_LCD_I2C_ADDR         0b111           // LCD i2c address (A0-A2, bitwise or'ed with base address 0x20)
-#define SETUP_DISP_OLED_I2C_ADDR        0b000           // OLED i2c address (A0-A2, bitwise or'ed with base address 0x78)
-#define SETUP_DISP_SPI                  SPI             // Display SPI class instance
-#define SETUP_DISP_SPI_CS               -1              // Display SPI CS pin, else -1
-#define SETUP_DISP_SPI_SPEED            F_SPD           // Display SPI speed, in Hz
-#define SETUP_CTRL_INPUT_PINS           {hpin_none}     // Control input pins array, else {-1} (should be same sized array as control input mode enum specifies)
-#define SETUP_I2C_WIRE                  Wire            // I2C wire class instance
-#define SETUP_I2C_SPEED                 400000U         // I2C speed, in Hz
-#define SETUP_ESP_I2C_SDA               SDA             // I2C SDA pin, if on ESP
-#define SETUP_ESP_I2C_SCL               SCL             // I2C SCL pin, if on ESP
-
-// WiFi Settings                                        (note: define HELIO_ENABLE_WIFI or HELIO_ENABLE_AT_WIFI to enable WiFi)
-// #include "secrets.h"                                 // Pro-tip: Put sensitive password information into a custom secrets.h
-#define SETUP_WIFI_SSID                 "CHANGE_ME"     // WiFi SSID
-#define SETUP_WIFI_PASS                 "CHANGE_ME"     // WiFi passphrase
-#define SETUP_WIFI_SPI                  SPIWIFI         // WiFi SPI class instance, if using spi
-#define SETUP_WIFI_SPI_CS               SPIWIFI_SS      // WiFi CS pin, if using spi
-#define SETUP_WIFI_SERIAL               Serial1         // WiFi serial class instance, if using serial
-
-// Ethernet Settings                                    (note: define HELIO_ENABLE_ETHERNET to enable Ethernet)
-#define SETUP_ETHERNET_MAC              { (uint8_t)0xDE, (uint8_t)0xAD, (uint8_t)0xBE, (uint8_t)0xEF, (uint8_t)0xFE, (uint8_t)0xED } // Ethernet MAC address
-#define SETUP_ETHERNET_SPI              SPI1            // Ethernet SPI class instance
-#define SETUP_ETHERNET_SPI_CS           SS1             // Ethernet CS pin
-
-// GPS Settings                                         (note: define HELIO_ENABLE_GPS to enable GPS)
-#define SETUP_GPS_TYPE                  None            // Type of GPS (UART, I2C, SPI, None)
-#define SETUP_GPS_SERIAL                Serial1         // GPS serial class instance, if using serial
-#define SETUP_GPS_I2C_ADDR              0b000           // GPS i2c address (A0-A2, bitwise or'ed with base address 0x10), if using i2c
-#define SETUP_GPS_SPI                   SPI             // GPS SPI class instance, if using spi
-#define SETUP_GPS_SPI_CS                SS              // GPS CS pin, if using spi
-
-// System Settings
-#define SETUP_SYSTEM_MODE               Tracking        // System run mode (Tracking, Balancing)
-#define SETUP_MEASURE_MODE              Default         // System measurement mode (Default, Imperial, Metric, Scientific)
-#define SETUP_DISPLAY_OUT_MODE          Disabled        // System display output mode (Disabled, LCD16x2_EN, LCD16x2_RS, LCD20x4_EN, LCD20x4_RS, SSD1305, SSD1305_x32Ada, SSD1305_x64Ada, SSD1306, SH1106, CustomOLED, SSD1607, IL3820, IL3820_V2, ST7735, ST7789, ILI9341, TFT)
-#define SETUP_CONTROL_IN_MODE           Disabled        // System control input mode (Disabled, RotaryEncoderOk, RotaryEncoderOkLR, UpDownButtonsOk, UpDownButtonsOkLR, UpDownESP32TouchOk, UpDownESP32TouchOkLR, AnalogJoystickOk, Matrix2x2UpDownButtonsOkL, Matrix3x4Keyboard_OptRotEncOk, Matrix3x4Keyboard_OptRotEncOkLR, Matrix4x4Keyboard_OptRotEncOk, Matrix4x4Keyboard_OptRotEncOkLR, ResistiveTouch, TouchScreen, TFTTouch, RemoteControl)
-#define SETUP_SYS_UI_MODE               Minimal         // System user interface mode (Disabled, Minimal, Full)
-#define SETUP_SYS_NAME                  "Helioduino"    // System name
-#define SETUP_SYS_TIMEZONE              +0              // System timezone offset, in whole hours
-#define SETUP_SYS_LOGLEVEL              All             // System log level filter (All, Warnings, Errors, None)
-#define SETUP_SYS_STATIC_LAT            DBL_UNDEF       // System static latitude (if not using GPS/UI, else DBL_UNDEF), in degrees
-#define SETUP_SYS_STATIC_LONG           DBL_UNDEF       // System static longitude (if not using GPS/UI, else DBL_UNDEF), in minutes
-#define SETUP_SYS_STATIC_ALT            DBL_UNDEF       // System static altitude (if not using GPS/UI, else DBL_UNDEF), in meters above sea level (msl)
-
-// System Saves Settings                                (note: only one primary and one fallback mechanism may be enabled at a time)
-#define SETUP_SAVES_CONFIG_FILE         "helioduino.cfg" // System config file name for system saves
-#define SETUP_SAVES_SD_CARD_MODE        Disabled        // If saving/loading from SD card is enable (Primary, Fallback, Disabled)
-#define SETUP_SAVES_EEPROM_MODE         Disabled        // If saving/loading from EEPROM is enabled (Primary, Fallback, Disabled)
-#define SETUP_SAVES_WIFISTORAGE_MODE    Disabled        // If saving/loading from WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only) is enabled (Primary, Fallback, Disabled)
-
-// Logging & Data Publishing Settings
-#define SETUP_LOG_FILE_PREFIX           "logs/he"       // System logs file prefix (appended with YYMMDD.txt)
-#define SETUP_DATA_FILE_PREFIX          "data/he"       // System data publishing files prefix (appended with YYMMDD.csv)
-#define SETUP_DATA_SD_ENABLE            false           // If system data publishing is enabled to SD card
-#define SETUP_LOG_SD_ENABLE             false           // If system logging is enabled to SD card
-#define SETUP_DATA_WIFISTORAGE_ENABLE   false           // If system data publishing is enabled to WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only)
-#define SETUP_LOG_WIFISTORAGE_ENABLE    false           // If system logging is enabled to WiFiStorage (OS/OTA filesystem / WiFiNINA_Generic only)
-
-// MQTT Settings                                        (note: define HELIO_ENABLE_MQTT to enable MQTT)
-#define SETUP_MQTT_BROKER_CONNECT_BY    Hostname        // Which style of address broker uses (Hostname, IPAddress)
-#define SETUP_MQTT_BROKER_HOSTNAME      "hostname"      // Hostname that MQTT broker exists at
-#define SETUP_MQTT_BROKER_IPADDR        { (uint8_t)192, (uint8_t)168, (uint8_t)1, (uint8_t)2 } // IP address that MQTT broker exists at
-#define SETUP_MQTT_BROKER_PORT          1883            // Port number that MQTT broker exists at
-
-// External Data Settings
-#define SETUP_EXTDATA_SD_ENABLE         false           // If data should be read from an external SD card (searched first for panels lib data)
-#define SETUP_EXTDATA_SD_LIB_PREFIX     "lib/"          // Library data folder/data file prefix (appended with {type}##.dat)
-#define SETUP_EXTDATA_EEPROM_ENABLE     false           // If data should be read from an external EEPROM (searched first for strings data)
-
-// External EEPROM Settings
-#define SETUP_EEPROM_SYSDATA_ADDR       0x2222          // System data memory offset for EEPROM saves (from Data Writer output)
-#define SETUP_EEPROM_STRINGS_ADDR       0x0000          // Start address for strings data (from Data Writer output)
-#define SETUP_EEPROM_UIDSTRS_ADDR       0x1111          // Start address for UI strings data (from Data Writer output, GUI not disabled)
-
-// UI Settings
-#define SETUP_UI_LOGIC_LEVEL            ACT_LOW         // I/O signaling logic active level (ACT_LOW, ACT_HIGH)
-#define SETUP_UI_ALLOW_INTERRUPTS       true            // Allow interrupt driven I/O if able, else force polling
-#define SETUP_UI_USE_TCUNICODE_FONTS    false           // Use tcUnicode fonts over GFXfont (Adafruit) fonts, if using graphical color display
-#define SETUP_UI_USE_BUFFERED_VRAM      HAS_LARGE_SRAM  // Use sprite-sized buffered video RAM for smooth animations, if large SRAM
-#define SETUP_UI_IS_DFROBOTSHIELD       false           // Using DFRobotShield as preset (SETUP_CTRL_INPUT_PINS may be left {-1})
-
-// UI Display Output Settings
-#define SETUP_UI_GFX_ROTATION           R0              // Display rotation (R0, R1, R2, R3, HorzMirror, VertMirror), if using graphical display or touchscreen
-#define SETUP_UI_GFX_DC_PIN             -1              // Display interface DC/RS pin, if using SPI display
-#define SETUP_UI_GFX_RESET_PIN          -1              // Optional display interface reset/RST pin, if using SPI display, else -1 (Note: Unused reset pin typically needs tied to HIGH for display to function)
-#define SETUP_UI_GFX_ST7735_TAG         Undefined       // ST7735 tag color (B, Green, Green18, Red, Red18, Black, Black18, Green144, Mini, MiniPlugin, HalloWing), if using ST7735 display
-#define SETUP_UI_GFX_ST7789_RES         Undefined       // ST7789 screen resolution (128x128, 135x240, 170x320, 172x320, 240x240, 240x280, 240x320, CustomTFT), if using ST7789 display
-#define SETUP_UI_GFX_BACKLIGHT_PIN      -1              // Optional display interface backlight/LED/BL pin, if using SPI display (Note: Unused backlight pin can optionally be tied typically to HIGH for always-on)
-#define SETUP_UI_GFX_BACKLIGHT_MODE     Normal          // Display backlight mode (Normal, Inverted, PWM), if using LCD or display /w backlight pin
-#define SETUP_UI_GFX_BACKLIGHT_ESP_CHN  1               // Backlight PWM channel, if on ESP/using PWM backlight
-#define SETUP_UI_GFX_BACKLIGHT_ESP_FRQ  1000            // Backlight PWM frequency, if on ESP/using PWM backlight
-
-// UI Control Input Settings
-#define SETUP_UI_ENC_ROTARY_SPEED       HalfCycle       // Rotary encoder cycling speed (FullCycle, HalfCycle, QuarterCycle)
-#define SETUP_UI_KEY_REPEAT_SPEED       20              // Key repeat speed, in ticks (lower = faster)
-#define SETUP_UI_KEY_REPEAT_DELAY       850             // Key repeat delay, in milliseconds
-#define SETUP_UI_KEY_REPEAT_INTERVAL    350             // Key repeat interval, in milliseconds
-#define SETUP_UI_JS_ACCELERATION        3.0f            // Joystick acceleration (decrease divisor), if using analog joystick
-#define SETUP_UI_TOUCHSCREEN_ORIENT     Same            // Touchscreen orientation tuning (Same, Plus1, Plus2, Plus3, None, InvertX, InvertY, InvertXY, SwapXY, InvertX_SwapXY, InvertY_SwapXY, InvertXY_SwapXY), if using touchscreen
-#define SETUP_UI_TOUCHSCREEN_SPI        SPI             // SPI class for XPT2046 touchscreen, if using XTP2046
-#define SETUP_UI_ESP32TOUCH_SWITCH      800             // ESP32 Touch key switch threshold, if on ESP32/using ESP32Touch
-#define SETUP_UI_ESP32TOUCH_HVOLTS      V_2V7           // ESP32 Touch key high reference voltage (Keep, V_2V4, V_2V5, V_2V6, V_2V7, Max), if on ESP32/using ESP32Touch
-#define SETUP_UI_ESP32TOUCH_LVOLTS      V_0V5           // ESP32 Touch key low reference voltage (Keep, V_0V5, V_0V6, V_0V7, V_0V8, Max), if on ESP32/using ESP32Touch
-#define SETUP_UI_ESP32TOUCH_HVATTEN     V_1V            // ESP32 Touch key high ref voltage attenuation (Keep, V_1V5, V_1V, V_0V5, V_0V, Max), if on ESP32/using ESP32Touch
-
-// UI Remote Control Settings
-#define SETUP_UI_DEVICE_UUID            "00000000-0000-0000-0000-000000000000" // Device UUID hex string, for unique identification of device
-#define SETUP_UI_REMOTE1_TYPE           Disabled        // Type of first remote control (Disabled, Serial, Simhub, WiFi, Ethernet)
-#define SETUP_UI_REMOTE1_UART           Serial1         // Serial setup for first remote control, if Serial/Simhub
-#define SETUP_UI_REMOTE2_TYPE           Disabled        // Type of second remote control (Disabled, Serial, Simhub, WiFi, Ethernet)
-#define SETUP_UI_REMOTE2_UART           Serial1         // Serial setup for second remote control, if Serial/Simhub
-#define SETUP_UI_RC_NETWORKING_PORT     3333            // Remote controller networking port, if WiFi/Ethernet
-
-// Device Setup
-#define SETUP_AC_USAGE_SENSOR_PIN       -1              // AC power usage meter sensor pin (analog), else -1
-#define SETUP_DC_USAGE_SENSOR_PIN       -1              // DC power usage meter sensor pin (analog), else -1
-#define SETUP_DC_GEN_SENSOR_PIN         -1              // DC power generation meter sensor pin (analog), else -1
-#define SETUP_DHT_AIR_TEMP_HUMID_PIN    -1              // DHT* air temp sensor data pin (digital), else -1
-#define SETUP_DHT_SENSOR_TYPE           None            // DHT sensor type enum (DHT11, DHT12, DHT21, DHT22, AM2301, None)
-#define SETUP_ICE_INDICATOR_PIN         -1              // Ice indicator pin (digital), else -1
-#define SETUP_ICE_INDICATOR_TYPE        ACT_HIGH        // Ice indicator type/active level (ACT_HIGH, ACT_LOW)
-#define SETUP_MINMAX_INDICATOR_TYPE     ACT_HIGH        // Linear actuator min/max endstop indicator type/active level (ACT_HIGH, ACT_LOW)
-#define SETUP_LINACT1_AXIS1_PINA        -1              // Ele/dec axis linear actuator #1 pin A (digital), else -1
-#define SETUP_LINACT1_AXIS1_PINB        -1              // Ele/dec axis linear actuator #1 pin B (digital), else -1
-#define SETUP_LINACT1_POS_SENSOR_PIN    -1              // Ele/dec axis linear actuator #1 position sensor pin (analog), else -1
-#define SETUP_LINACT1_MIN_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #1 min endstop pin (digital), else -1
-#define SETUP_LINACT1_MAX_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #1 max endstop pin (digital), else -1
-#define SETUP_LINACT2_AXIS1_PINA        -1              // Ele/dec axis linear actuator #2 pin A (digital), else -1
-#define SETUP_LINACT2_AXIS1_PINB        -1              // Ele/dec axis linear actuator #2 pin B (digital), else -1
-#define SETUP_LINACT2_POS_SENSOR_PIN    -1              // Ele/dec axis linear actuator #2 position sensor pin (analog), else -1
-#define SETUP_LINACT2_MIN_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #2 min endstop pin (digital), else -1
-#define SETUP_LINACT2_MAX_ENDSTOP_PIN   -1              // Ele/dec axis linear actuator #2 max endstop pin (digital), else -1
-#define SETUP_PANEL_BRAKE_PIN           -1              // Panel brake relay pin (digital), else -1
-#define SETUP_PANEL_HEATER_PIN          -1              // Panel heater relay pin (digital), else -1
-#define SETUP_PANEL_SPRAYER_PIN         -1              // Panel sprayer/wiper relay pin (digital), else -1
-#define SETUP_PANEL_TILT_AXIS1_PIN      -1              // Ele/dec axis panel tilt angle sensor pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS0_PIN       -1              // Azi/RA axis positional servo pin (analog), else -1
-#define SETUP_POS_SERVO_AXIS1_PIN       -1              // Ele/dec axis positional servo pin (analog), else -1
-#define SETUP_WIND_SPEED_SENSOR_PIN     -1              // Wind speed sensor pin (analog), else -1
-
-// Device Multiplexing Setup
-#define SETUP_MUXER_CHANNEL_BITS        -1              // Multiplexer channel bits (3 = 8-bit, 4 = 16-bit), else -1
-#define SETUP_MUXER_ADDRESS_PINS        {hpin_none}     // Multiplexer addressing bus/channel pins, else {-1}
-#define SETUP_MUXER_ENABLE_PIN          -1              // Multiplexer chip enable pin (optional), else -1
-#define SETUP_MUXER_ENABLE_TYPE         ACT_LOW         // Multiplexer chip enable pin type/active level (ACT_HIGH, ACT_LOW)
-#define SETUP_MUXER_ISR_PIN             -1              // Multiplexer interrupt pin, else -1
-#define SETUP_MUXER_ISR_TYPE            ACT_LOW         // Multiplexer interrupt pin type/active level (ACT_HIGH, ACT_LOW)
-
-// Device Pin Expanders Setup                           // (Note: Will redefine any used pins from channel setup below to a virtual pin = 100+chnl#)
-#define SETUP_EXPANDER1_CHANNEL_BITS    -1              // Pin expander 1 channel bits (3 = 8-bit, 4 = 16-bit), else -1
-#define SETUP_EXPANDER2_CHANNEL_BITS    -1              // Pin expander 2 channel bits (3 = 8-bit, 4 = 16-bit), else -1
-#define SETUP_EXPANDER1_IOREF_I2C_ADDR  0x27            // Pin expander 1 full I2C device address (including device base offset)
-#define SETUP_EXPANDER2_IOREF_I2C_ADDR  0x28            // Pin expander 2 full I2C device address (including device base offset)
-#define SETUP_EXPANDER_IOREF_I2C_WIRE   Wire            // Pin expanders I2C wire class instance
-#define SETUP_EXPANDER1_IOREF_ISR_PIN   -1              // Pin expander 1 interrupt pin, else -1
-#define SETUP_EXPANDER2_IOREF_ISR_PIN   -1              // Pin expander 2 interrupt pin, else -1
-#define SETUP_EXPANDER_IOREF_ISR_TYPE   ACT_LOW         // Pin expanders interrupt pin type/active level (ACT_HIGH, ACT_LOW)
-// IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 1
-#define SETUP_EXPANDER1_IOREF_ALLOC()   ioFrom8575((uint8_t)SETUP_EXPANDER1_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER1_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
-// IORef allocation command using ioFrom* functions in IoAbstraction for pin expander 2
-#define SETUP_EXPANDER2_IOREF_ALLOC()   ioFrom8575((uint8_t)SETUP_EXPANDER2_IOREF_I2C_ADDR, (pinid_t)SETUP_EXPANDER2_IOREF_ISR_PIN, &SETUP_EXPANDER_IOREF_I2C_WIRE)
-
-// Pin Muxer/Expander Channel Setup                     // (Note: Only multiplexing or expanding may be done at the same time)
-#define SETUP_AC_USAGE_SENSOR_PINCHNL   hpinchnl_none   // AC power usage meter sensor pin muxer/expander channel #, else -127/none
-#define SETUP_DC_USAGE_SENSOR_PINCHNL   hpinchnl_none   // DC power usage meter sensor pin muxer/expander channel #, else -127/none
-#define SETUP_DC_GEN_SENSOR_PINCHNL     hpinchnl_none   // DC power generation meter sensor pin muxer/expander channel #, else -127/none
-#define SETUP_ICE_INDICATOR_PINCHNL     hpinchnl_none   // Ice indicator pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT1_AXIS1_PINCHNLA     hpinchnl_none  // Ele/dec axis linear actuator #1 A pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT1_AXIS1_PINCHNLB     hpinchnl_none  // Ele/dec axis linear actuator #1 B pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT1_POS_SENSOR_PINCHNL hpinchnl_none  // Ele/dec axis linear actuator #1 position sensor pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT1_MIN_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #1 min endstop pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT1_MAX_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #1 max endstop pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT2_AXIS1_PINCHNLA     hpinchnl_none  // Ele/dec axis linear actuator #2 A pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT2_AXIS1_PINCHNLB     hpinchnl_none  // Ele/dec axis linear actuator #2 B pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT2_POS_SENSOR_PINCHNL hpinchnl_none  // Ele/dec axis linear actuator #2 position sensor pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT2_MIN_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #2 min endstop pin muxer/expander channel #, else -127/none
-#define SETUP_LINACT2_MAX_ENDSTOP_PINCHNL hpinchnl_none // Ele/dec axis linear actuator #2 max endstop pin muxer/expander channel #, else -127/none
-#define SETUP_PANEL_BRAKE_PINCHNL       hpinchnl_none   // Panel brake relay pin muxer/expander channel #, else -127/none
-#define SETUP_PANEL_HEATER_PINCHNL      hpinchnl_none   // Panel heater relay pin muxer/expander channel #, else -127/none
-#define SETUP_PANEL_SPRAYER_PINCHNL     hpinchnl_none   // Panel sprayer/wiper relay pin muxer/expander channel #, else -127/none
-#define SETUP_PANEL_TILT_AXIS1_PINCHNL  hpinchnl_none   // Ele/dec axis panel tilt angle sensor pin muxer/expander channel #, else -127/none
-#define SETUP_POS_SERVO_AXIS0_PINCHNL   hpinchnl_none   // Azi/RA axis positional servo pin muxer/expander channel #, else -127/none
-#define SETUP_POS_SERVO_AXIS1_PINCHNL   hpinchnl_none   // Ele/dec axis positional servo pin muxer/expander channel #, else -127/none
-#define SETUP_WIND_SPEED_SENSOR_PINCHNL hpinchnl_none   // Wind speed sensor pin muxer/expander channel #, else -127/none
-
-// System Setup
-#define SETUP_AC_POWER_RAIL_TYPE        AC110V          // Rail power type used for actuator AC rail (AC110V, AC220V)
-#define SETUP_DC_POWER_RAIL_TYPE        DC12V           // Rail power type used for actuator DC rail (DC3V3, DC5V, DC12V, DC24V, DC48V)
-#define SETUP_AC_SUPPLY_POWER           0               // Maximum AC supply power wattage, else 0 if not known (-> use simple rails)
-#define SETUP_DC_SUPPLY_POWER           0               // Maximum DC supply power wattage, else 0 if not known (-> use simple rails)
-#define SETUP_PANEL_TYPE                Gimballed       // Panel/mount type (Horizontal, Vertical, Gimballed, Equatorial)
-#define SETUP_PANEL_HOME                {0.0f,0.0f}     // Panel home axis position (azi,ele or RA,dec)
-#define SETUP_PANEL_OFFSET              {0.0f,0.0f}     // Panel axis alignment offset (azi,ele or RA,dec)
-#define SETUP_PANEL_HEATER_TEMP         0               // Temperature at which panel heaters are engaged (if using temp sensor), in Celsius
-#define SETUP_PANEL_STORMING_SPEED      500             // Wind speed at which storming mode is engaged (if using wind sensor), in m/min
-#define SETUP_LINACT_AXIS1_STROKE       1               // Stroke length of linear actuators on axis 1, in meters
-#define SETUP_LINACT_TRAVEL_SPEED       1.0/0.5         // The base continuous linear actuator travel speed, in m/min.
-#define SETUP_PANEL_TILT_AXIS1_SCALE    0,0 , 1,90      // Ele/dec axis panel tilt angle sensor scaling parameters used for angle calibration (passed to setFromTwoPoints), from raw into degrees
-#define SETUP_POS_SERVO_MINMAX_ANGLE    -90, 90         // Axial positional servo min,max angle range used for angle calibration (passed to setFromServo), in degrees
-#define SETUP_WIND_SPEED_SENSOR_SCALE   0.08,0 , 0.4,0.54 // Wind speed sensor scaling parameters used for speed calibration (passed to setFromTwoPoints), from raw into m/min
-```
+* **SimpleLDR** - Basic single-axis LDR balancing with a positional servo and opposing light sensors.
+* **DATracking** - Dual-axis tracking reference with configurable drivers, sensors, rails, and UI/storage paths.
+* **FullSystem** - Full-feature empty-system reference intended for UI-driven configuration on larger MCUs.
+* **DataWriter** - System and string data export for external EEPROM or SD storage.
 
 ### Data Writer Example
 
-The Data Writer Example can be used on the same system setup to offload all exportable data, such as string data, onto a connected external SD card or EEPROM storage device to help storage constrained MCUs compile system builds.
+The Data Writer Example can offload exportable system and string data to SD card or EEPROM storage, which can reduce Flash usage on storage-constrained MCUs.
 
-This Example doesn't actually run the Helioduino controller in full, but a code stripped version of it that easily compiles with all extra data built-in. The compiled binary in this Example will include all exportable data stored as compact JSON string text, and typically easily fits in under 256kB compilation size.
+It does not run the Helioduino controller in full. Instead, it builds the exportable data into a small writer sketch and emits either binary EEPROM data or human-readable JSON files.
 
-This data can further be exported into smaller binary chunks with native endianness for EEPROM storage, or into expanded pretty print JSON text files for SD card storage. You can also further customize default and/or extend library data that will be included in data export.
+Helioduino can operate with the built-in data kept in Flash. External storage is optional and is mainly useful when program space matters.
 
-If you are planning to utilize an external EEPROM storage device and have made any custom data modifications, you will have to update your system's sketch to include the proper offsets that the output of the Data Writer sketch produces. These defines can be copied over and overwrite the existing ones in the main system examples.
-
-In serial monitor (near end):
-```
-…
-2023-02-07T04:24:27 [INFO] Writing String: #365 "W"
-2023-02-07T04:24:27 [INFO] ... to byte offset: 11854 (0x2e4e)
-2023-02-07T04:24:27 [INFO] Wrote: 2 bytes
-2023-02-07T04:24:27 [INFO] Successfully wrote: 4908 bytes
-2023-02-07T04:24:27 [INFO] Total EEPROM usage: 11856 bytes
-2023-02-07T04:24:27 [INFO] EEPROM capacity used: 36.18% of 32768 bytes
-2023-02-07T04:24:27 [INFO] Use the following EEPROM setup defines in your sketch:
-#define SETUP_EEPROM_SYSDATA_ADDR       0x2222
-#define SETUP_EEPROM_STRINGS_ADDR       0x0000
-#define SETUP_EEPROM_UIDSTRS_ADDR       0x1111
-2023-02-07T04:24:27 [INFO] Done!
-```
-
-Note: Again, you can get logging output sent to the Serial device by defining `HELIO_ENABLE_DEBUG_OUTPUT`, described above in Header Defines.
+Serial logging output can also be enabled with `HELIO_ENABLE_DEBUG_OUTPUT`, described above under Header Defines.
